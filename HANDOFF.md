@@ -23,7 +23,7 @@ off: runs need `--loot --loot-sight` (`--loot-sight` alone is ignored). See the 
 **Git (new, the user asked for it):** the project is a git repo now (`.gitignore`: runs/, captures/, caches, .idea).
 `main` = baseline before the refactor (`b143100`, assets/mcw = the maplestory.io copy); the work is on branch
 `client-data`. Back to the old state instantly: `git switch main`. Repo-local identity (the user's name/email),
-`core.autocrlf=false` (exact bytes). Not merged yet: the user decides (after a live run on the new assets).
+`core.autocrlf=false` (exact bytes). **Merged into `main` 2026-11-03** (fast-forward, after the live run); old state = `b143100`.
 **Pipeline** (full guide: `assets/README.md` 'How it's made' + 'After a game patch'):
 `tools/cwdata/export.ps1` (~10 s; every map + minimap PNG, every mob + frame PNG, UOL/_inlink/_outlink resolved,
 String names) -> `C:\Users\Yoav\dev\cw-data\export` -> `python -m maplebot assets build` (~7 s;
