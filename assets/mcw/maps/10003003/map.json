@@ -1,0 +1,683 @@
+{
+  "backgroundMusic": "Bgm01/BadGuys",
+  "isReturnMap": false,
+  "returnMap": 10003000,
+  "portals": [
+    {
+      "portalName": "sp",
+      "toName": "",
+      "type": 0,
+      "toMap": 999999999,
+      "x": 166,
+      "y": -273,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": 166,
+        "y": -273,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 166,
+          "y": -273,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": -273,
+        "right": 167,
+        "bottom": -272,
+        "left": 166
+      }
+    },
+    {
+      "portalName": "sp",
+      "toName": "",
+      "type": 0,
+      "toMap": 999999999,
+      "x": 198,
+      "y": -278,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": 198,
+        "y": -278,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 198,
+          "y": -278,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": -278,
+        "right": 199,
+        "bottom": -277,
+        "left": 198
+      }
+    },
+    {
+      "portalName": "sp",
+      "toName": "",
+      "type": 0,
+      "toMap": 999999999,
+      "x": 235,
+      "y": -277,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": 235,
+        "y": -277,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 235,
+          "y": -277,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": -277,
+        "right": 236,
+        "bottom": -276,
+        "left": 235
+      }
+    },
+    null
+  ],
+  "npcs": [
+    {
+      "x": 128,
+      "y": 128,
+      "walkAreaX1": 78,
+      "walkAreaX2": 178,
+      "id": 411,
+      "footholdId": 39,
+      "foothold": {
+        "id": 39,
+        "next": 0,
+        "prev": 0,
+        "piece": 0,
+        "x1": 111,
+        "x2": 156,
+        "y1": 128,
+        "y2": 128,
+        "layerId": 2,
+        "groupId": 2
+      },
+      "hidden": false,
+      "type": 0,
+      "link": "/npc/411",
+      "index": 0,
+      "position": {},
+      "bounds": {
+        "x": 128,
+        "y": 128,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 128,
+          "y": 128,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 128,
+        "right": 129,
+        "bottom": 129,
+        "left": 128
+      },
+      "flip": false
+    }
+  ],
+  "mobs": [],
+  "mobRate": 1,
+  "isTown": true,
+  "isSwim": false,
+  "mapMark": "KerningCity",
+  "footholds": {
+    "23": {
+      "id": 23,
+      "next": 24,
+      "prev": 22,
+      "piece": 0,
+      "x1": -210,
+      "x2": -210,
+      "y1": 166,
+      "y2": 148,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "2": {
+      "id": 2,
+      "next": 3,
+      "prev": 1,
+      "piece": 0,
+      "x1": -345,
+      "x2": -270,
+      "y1": -158,
+      "y2": -158,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "34": {
+      "id": 34,
+      "next": 35,
+      "prev": 33,
+      "piece": 0,
+      "x1": 97,
+      "x2": 251,
+      "y1": 96,
+      "y2": 96,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "19": {
+      "id": 19,
+      "next": 20,
+      "prev": 0,
+      "piece": 0,
+      "x1": -346,
+      "x2": -346,
+      "y1": -171,
+      "y2": 181,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "10": {
+      "id": 10,
+      "next": 0,
+      "prev": 9,
+      "piece": 0,
+      "x1": 367,
+      "x2": 367,
+      "y1": -95,
+      "y2": -382,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "21": {
+      "id": 21,
+      "next": 22,
+      "prev": 20,
+      "piece": 0,
+      "x1": -228,
+      "x2": -227,
+      "y1": 181,
+      "y2": 165,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "32": {
+      "id": 32,
+      "next": 33,
+      "prev": 31,
+      "piece": 0,
+      "x1": -109,
+      "x2": 97,
+      "y1": 143,
+      "y2": 143,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "4": {
+      "id": 4,
+      "next": 0,
+      "prev": 3,
+      "piece": 0,
+      "x1": -270,
+      "x2": -142,
+      "y1": -180,
+      "y2": -180,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "30": {
+      "id": 30,
+      "next": 31,
+      "prev": 29,
+      "piece": 0,
+      "x1": -159,
+      "x2": -109,
+      "y1": 96,
+      "y2": 96,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "6": {
+      "id": 6,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -185,
+      "x2": -100,
+      "y1": -137,
+      "y2": -137,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "16": {
+      "id": 16,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 235,
+      "x2": 321,
+      "y1": -159,
+      "y2": -159,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "27": {
+      "id": 27,
+      "next": 28,
+      "prev": 26,
+      "piece": 0,
+      "x1": -176,
+      "x2": -176,
+      "y1": 131,
+      "y2": 114,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "14": {
+      "id": 14,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 238,
+      "x2": 323,
+      "y1": -200,
+      "y2": -200,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "18": {
+      "id": 18,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 193,
+      "x2": 277,
+      "y1": -116,
+      "y2": -116,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "25": {
+      "id": 25,
+      "next": 26,
+      "prev": 24,
+      "piece": 0,
+      "x1": -194,
+      "x2": -194,
+      "y1": 148,
+      "y2": 131,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "29": {
+      "id": 29,
+      "next": 30,
+      "prev": 28,
+      "piece": 0,
+      "x1": -159,
+      "x2": -159,
+      "y1": 114,
+      "y2": 96,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "5": {
+      "id": 5,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -206,
+      "x2": -123,
+      "y1": -158,
+      "y2": -158,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "12": {
+      "id": 12,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 195,
+      "x2": 280,
+      "y1": -243,
+      "y2": -243,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "38": {
+      "id": 38,
+      "next": 0,
+      "prev": 37,
+      "piece": 0,
+      "x1": 334,
+      "x2": 334,
+      "y1": 181,
+      "y2": 16,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "7": {
+      "id": 7,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -167,
+      "x2": -76,
+      "y1": -116,
+      "y2": -116,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "17": {
+      "id": 17,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 214,
+      "x2": 297,
+      "y1": -137,
+      "y2": -137,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "15": {
+      "id": 15,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 256,
+      "x2": 363,
+      "y1": -179,
+      "y2": -179,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "26": {
+      "id": 26,
+      "next": 27,
+      "prev": 25,
+      "piece": 0,
+      "x1": -194,
+      "x2": -176,
+      "y1": 131,
+      "y2": 131,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "37": {
+      "id": 37,
+      "next": 38,
+      "prev": 36,
+      "piece": 0,
+      "x1": 162,
+      "x2": 334,
+      "y1": 181,
+      "y2": 181,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "13": {
+      "id": 13,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 217,
+      "x2": 301,
+      "y1": -221,
+      "y2": -221,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "1": {
+      "id": 1,
+      "next": 2,
+      "prev": 0,
+      "piece": 0,
+      "x1": -345,
+      "x2": -345,
+      "y1": -341,
+      "y2": -158,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "24": {
+      "id": 24,
+      "next": 25,
+      "prev": 23,
+      "piece": 0,
+      "x1": -210,
+      "x2": -194,
+      "y1": 148,
+      "y2": 148,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "35": {
+      "id": 35,
+      "next": 0,
+      "prev": 34,
+      "piece": 0,
+      "x1": 251,
+      "x2": 251,
+      "y1": 96,
+      "y2": -49,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "28": {
+      "id": 28,
+      "next": 29,
+      "prev": 27,
+      "piece": 0,
+      "x1": -176,
+      "x2": -159,
+      "y1": 114,
+      "y2": 114,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "39": {
+      "id": 39,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 111,
+      "x2": 156,
+      "y1": 128,
+      "y2": 128,
+      "layerId": 2,
+      "groupId": 2
+    },
+    "9": {
+      "id": 9,
+      "next": 10,
+      "prev": 8,
+      "piece": 0,
+      "x1": -236,
+      "x2": 367,
+      "y1": -95,
+      "y2": -95,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "11": {
+      "id": 11,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 153,
+      "x2": 260,
+      "y1": -263,
+      "y2": -263,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "22": {
+      "id": 22,
+      "next": 23,
+      "prev": 21,
+      "piece": 0,
+      "x1": -227,
+      "x2": -210,
+      "y1": 165,
+      "y2": 166,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "33": {
+      "id": 33,
+      "next": 34,
+      "prev": 32,
+      "piece": 0,
+      "x1": 97,
+      "x2": 97,
+      "y1": 143,
+      "y2": 96,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "3": {
+      "id": 3,
+      "next": 4,
+      "prev": 2,
+      "piece": 0,
+      "x1": -270,
+      "x2": -270,
+      "y1": -158,
+      "y2": -180,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "20": {
+      "id": 20,
+      "next": 21,
+      "prev": 19,
+      "piece": 0,
+      "x1": -346,
+      "x2": -228,
+      "y1": 181,
+      "y2": 181,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "31": {
+      "id": 31,
+      "next": 32,
+      "prev": 30,
+      "piece": 0,
+      "x1": -109,
+      "x2": -109,
+      "y1": 96,
+      "y2": 143,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "40": {
+      "id": 40,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -382,
+      "x2": 383,
+      "y1": 183,
+      "y2": 183,
+      "layerId": 2,
+      "groupId": 2
+    },
+    "36": {
+      "id": 36,
+      "next": 37,
+      "prev": 0,
+      "piece": 0,
+      "x1": 162,
+      "x2": 162,
+      "y1": 98,
+      "y2": 181,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "8": {
+      "id": 8,
+      "next": 9,
+      "prev": 0,
+      "piece": 0,
+      "x1": -236,
+      "x2": -236,
+      "y1": -177,
+      "y2": -95,
+      "layerId": 1,
+      "groupId": 3
+    }
+  },
+  "vrBounds": {
+    "x": -400,
+    "y": -660,
+    "width": 800,
+    "height": 960,
+    "location": {
+      "x": -400,
+      "y": -660,
+      "isEmpty": false
+    },
+    "size": {
+      "width": 800,
+      "height": 960,
+      "isEmpty": false
+    },
+    "isEmpty": false,
+    "top": -660,
+    "right": 400,
+    "bottom": 300,
+    "left": -400
+  },
+  "returnMapName": {
+    "name": "Kerning City",
+    "streetName": "Victoria Road",
+    "id": 10003000
+  },
+  "ladderRopes": [
+    {
+      "x": 213,
+      "y1": 98,
+      "y2": 179,
+      "isLadder": true
+    },
+    {
+      "x": -304,
+      "y1": -156,
+      "y2": 140,
+      "isLadder": true
+    }
+  ],
+  "name": "Thieves' Hideout",
+  "streetName": "Victoria Road",
+  "id": 10003003
+}

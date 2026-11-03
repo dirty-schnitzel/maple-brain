@@ -1,0 +1,33 @@
+{
+  "id": 800002,
+  "linksTo": 31,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 29,
+    "maxHP": 1186,
+    "maxMP": 50,
+    "speed": -15,
+    "physicalDamage": 203,
+    "physicalDefense": 10,
+    "magicDamage": 0,
+    "magicDefense": 20,
+    "accuracy": 106,
+    "evasion": 13,
+    "exp": 94,
+    "isUndead": false,
+    "minimumPushDamage": 150,
+    "elementalAttributes": "S2",
+    "summonType": 1,
+    "revivesMonsterId": [],
+    "linksToOtherMob": 31
+  },
+  "name": "Curse Eye",
+  "framebooks": {
+    "move": 4,
+    "stand": 3,
+    "jump": 1,
+    "hit1": 1,
+    "die1": 3
+  },
+  "foundAt": []
+}

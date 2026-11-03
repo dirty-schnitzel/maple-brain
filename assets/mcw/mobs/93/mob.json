@@ -1,0 +1,36 @@
+{
+  "id": 93,
+  "linksTo": 17,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 200,
+    "maxHP": 9999,
+    "maxMP": 0,
+    "flySpeed": 0,
+    "physicalDamage": 1,
+    "physicalDefense": 999,
+    "magicDamage": 1,
+    "magicDefense": 999,
+    "accuracy": 999,
+    "evasion": 999,
+    "exp": 0,
+    "isUndead": false,
+    "minimumPushDamage": 9999,
+    "summonType": 1,
+    "revivesMonsterId": [],
+    "linksToOtherMob": 17,
+    "isInvincible": true
+  },
+  "name": "Super Stirge",
+  "framebooks": {
+    "fly": 2,
+    "hit1": 1,
+    "die1": 4
+  },
+  "foundAt": [],
+  "names": {
+    "en": "Super Stirge",
+    "es": "Superestirge",
+    "ko": "\uc288\ud37c \uc2a4\ud2f0\uc9c0"
+  }
+}

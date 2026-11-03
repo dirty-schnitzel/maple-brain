@@ -1,0 +1,1377 @@
+{
+  "backgroundMusic": "Bgm00/FloralLife",
+  "isReturnMap": false,
+  "returnMap": 80002000,
+  "portals": [
+    {
+      "portalName": "sp",
+      "toName": "",
+      "type": 0,
+      "toMap": 999999999,
+      "x": 828,
+      "y": -210,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": 828,
+        "y": -210,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 828,
+          "y": -210,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": -210,
+        "right": 829,
+        "bottom": -209,
+        "left": 828
+      }
+    },
+    {
+      "portalName": "sp",
+      "toName": "",
+      "type": 0,
+      "toMap": 999999999,
+      "x": 80,
+      "y": -49,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": 80,
+        "y": -49,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 80,
+          "y": -49,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": -49,
+        "right": 81,
+        "bottom": -48,
+        "left": 80
+      }
+    },
+    {
+      "portalName": "sp",
+      "toName": "",
+      "type": 0,
+      "toMap": 999999999,
+      "x": -65,
+      "y": -266,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": -65,
+        "y": -266,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -65,
+          "y": -266,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": -266,
+        "right": -64,
+        "bottom": -265,
+        "left": -65
+      }
+    },
+    {
+      "portalName": "sp",
+      "toName": "",
+      "type": 0,
+      "toMap": 999999999,
+      "x": 373,
+      "y": -481,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": 373,
+        "y": -481,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 373,
+          "y": -481,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": -481,
+        "right": 374,
+        "bottom": -480,
+        "left": 373
+      }
+    },
+    {
+      "portalName": "out00",
+      "toName": "in15",
+      "type": 1,
+      "toMap": 80002000,
+      "x": 793,
+      "y": 33,
+      "linkToMap": "/map/80002000",
+      "toMapName": {
+        "name": "Free Market Entrance",
+        "streetName": "Hidden Street",
+        "id": 80002000
+      },
+      "onlyOnce": false,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": false,
+      "bounds": {
+        "x": 793,
+        "y": 33,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 793,
+          "y": 33,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 33,
+        "right": 794,
+        "bottom": 34,
+        "left": 793
+      }
+    },
+    {
+      "portalName": "up00",
+      "toName": "up01",
+      "type": 1,
+      "toMap": 80002015,
+      "x": -278,
+      "y": 33,
+      "linkToMap": "/map/80002015",
+      "toMapName": {
+        "name": "Free Market <15>",
+        "streetName": "Hidden Street",
+        "id": 80002015
+      },
+      "onlyOnce": false,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": false,
+      "bounds": {
+        "x": -278,
+        "y": 33,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -278,
+          "y": 33,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 33,
+        "right": -277,
+        "bottom": 34,
+        "left": -278
+      }
+    },
+    {
+      "portalName": "up01",
+      "toName": "up02",
+      "type": 1,
+      "toMap": 80002015,
+      "x": -256,
+      "y": -209,
+      "linkToMap": "/map/80002015",
+      "toMapName": {
+        "name": "Free Market <15>",
+        "streetName": "Hidden Street",
+        "id": 80002015
+      },
+      "onlyOnce": false,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": false,
+      "bounds": {
+        "x": -256,
+        "y": -209,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -256,
+          "y": -209,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": -209,
+        "right": -255,
+        "bottom": -208,
+        "left": -256
+      }
+    },
+    {
+      "portalName": "dn00",
+      "toName": "dn01",
+      "type": 1,
+      "toMap": 80002015,
+      "x": 676,
+      "y": -418,
+      "linkToMap": "/map/80002015",
+      "toMapName": {
+        "name": "Free Market <15>",
+        "streetName": "Hidden Street",
+        "id": 80002015
+      },
+      "onlyOnce": false,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": false,
+      "bounds": {
+        "x": 676,
+        "y": -418,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 676,
+          "y": -418,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": -418,
+        "right": 677,
+        "bottom": -417,
+        "left": 676
+      }
+    },
+    {
+      "portalName": "dn01",
+      "toName": "dn02",
+      "type": 1,
+      "toMap": 80002015,
+      "x": 426,
+      "y": -211,
+      "linkToMap": "/map/80002015",
+      "toMapName": {
+        "name": "Free Market <15>",
+        "streetName": "Hidden Street",
+        "id": 80002015
+      },
+      "onlyOnce": false,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": false,
+      "bounds": {
+        "x": 426,
+        "y": -211,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 426,
+          "y": -211,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": -211,
+        "right": 427,
+        "bottom": -210,
+        "left": 426
+      }
+    },
+    {
+      "portalName": "dn02",
+      "toName": "",
+      "type": 1,
+      "toMap": 999999999,
+      "x": 430,
+      "y": 31,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": 430,
+        "y": 31,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 430,
+          "y": 31,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 31,
+        "right": 431,
+        "bottom": 32,
+        "left": 430
+      }
+    },
+    {
+      "portalName": "up02",
+      "toName": "",
+      "type": 1,
+      "toMap": 999999999,
+      "x": -190,
+      "y": -418,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": -190,
+        "y": -418,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -190,
+          "y": -418,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": -418,
+        "right": -189,
+        "bottom": -417,
+        "left": -190
+      }
+    }
+  ],
+  "npcs": [],
+  "mobs": [],
+  "mobRate": 1,
+  "isTown": true,
+  "isSwim": false,
+  "mapMark": "Henesys",
+  "miniMap": {
+    "centerX": 478,
+    "centerY": 805,
+    "height": 1029,
+    "width": 1496,
+    "magnification": 4,
+    "canvas": "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"
+  },
+  "footholds": {
+    "67": {
+      "id": 67,
+      "next": 68,
+      "prev": 69,
+      "piece": -1,
+      "x1": 952,
+      "x2": 1028,
+      "y1": 34,
+      "y2": 34,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "24": {
+      "id": 24,
+      "next": 26,
+      "prev": 27,
+      "piece": -1,
+      "x1": 180,
+      "x2": 270,
+      "y1": -206,
+      "y2": -206,
+      "layerId": 3,
+      "groupId": 8
+    },
+    "54": {
+      "id": 54,
+      "next": 70,
+      "prev": 68,
+      "piece": -1,
+      "x1": 1028,
+      "x2": 1028,
+      "y1": 60,
+      "y2": 120,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "11": {
+      "id": 11,
+      "next": 3,
+      "prev": 9,
+      "piece": -1,
+      "x1": -187,
+      "x2": -135,
+      "y1": -416,
+      "y2": -416,
+      "layerId": 2,
+      "groupId": 15
+    },
+    "29": {
+      "id": 29,
+      "next": 28,
+      "prev": 44,
+      "piece": -1,
+      "x1": 810,
+      "x2": 900,
+      "y1": -146,
+      "y2": -146,
+      "layerId": 3,
+      "groupId": 2
+    },
+    "66": {
+      "id": 66,
+      "next": 71,
+      "prev": 75,
+      "piece": -1,
+      "x1": -488,
+      "x2": -488,
+      "y1": 120,
+      "y2": 60,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "41": {
+      "id": 41,
+      "next": 42,
+      "prev": 40,
+      "piece": -1,
+      "x1": 682,
+      "x2": 682,
+      "y1": -86,
+      "y2": -120,
+      "layerId": 3,
+      "groupId": 2
+    },
+    "59": {
+      "id": 59,
+      "next": 57,
+      "prev": 58,
+      "piece": -1,
+      "x1": 0,
+      "x2": 90,
+      "y1": 34,
+      "y2": 34,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "26": {
+      "id": 26,
+      "next": 23,
+      "prev": 24,
+      "piece": -1,
+      "x1": 270,
+      "x2": 360,
+      "y1": -206,
+      "y2": -206,
+      "layerId": 3,
+      "groupId": 8
+    },
+    "71": {
+      "id": 71,
+      "next": 72,
+      "prev": 66,
+      "piece": -1,
+      "x1": -488,
+      "x2": -488,
+      "y1": 60,
+      "y2": 34,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "53": {
+      "id": 53,
+      "next": 51,
+      "prev": 52,
+      "piece": -1,
+      "x1": 630,
+      "x2": 720,
+      "y1": 34,
+      "y2": 34,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "9": {
+      "id": 9,
+      "next": 11,
+      "prev": 8,
+      "piece": -1,
+      "x1": -263,
+      "x2": -187,
+      "y1": -416,
+      "y2": -416,
+      "layerId": 2,
+      "groupId": 15
+    },
+    "56": {
+      "id": 56,
+      "next": 52,
+      "prev": 60,
+      "piece": -1,
+      "x1": 450,
+      "x2": 540,
+      "y1": 34,
+      "y2": 34,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "13": {
+      "id": 13,
+      "next": 0,
+      "prev": 12,
+      "piece": -1,
+      "x1": 803,
+      "x2": 803,
+      "y1": -416,
+      "y2": -390,
+      "layerId": 2,
+      "groupId": 15
+    },
+    "40": {
+      "id": 40,
+      "next": 41,
+      "prev": 39,
+      "piece": -1,
+      "x1": 668,
+      "x2": 682,
+      "y1": -86,
+      "y2": -86,
+      "layerId": 3,
+      "groupId": 2
+    },
+    "3": {
+      "id": 3,
+      "next": 4,
+      "prev": 11,
+      "piece": -1,
+      "x1": -135,
+      "x2": -45,
+      "y1": -416,
+      "y2": -416,
+      "layerId": 2,
+      "groupId": 15
+    },
+    "58": {
+      "id": 58,
+      "next": 59,
+      "prev": 64,
+      "piece": -1,
+      "x1": -90,
+      "x2": 0,
+      "y1": 34,
+      "y2": 34,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "25": {
+      "id": 25,
+      "next": 27,
+      "prev": 21,
+      "piece": -1,
+      "x1": 0,
+      "x2": 90,
+      "y1": -206,
+      "y2": -206,
+      "layerId": 3,
+      "groupId": 8
+    },
+    "43": {
+      "id": 43,
+      "next": 30,
+      "prev": 42,
+      "piece": -1,
+      "x1": 682,
+      "x2": 720,
+      "y1": -146,
+      "y2": -146,
+      "layerId": 3,
+      "groupId": 2
+    },
+    "70": {
+      "id": 70,
+      "next": 55,
+      "prev": 54,
+      "piece": -1,
+      "x1": 1028,
+      "x2": 1028,
+      "y1": 120,
+      "y2": 180,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "6": {
+      "id": 6,
+      "next": 5,
+      "prev": 4,
+      "piece": -1,
+      "x1": 45,
+      "x2": 135,
+      "y1": -416,
+      "y2": -416,
+      "layerId": 2,
+      "groupId": 15
+    },
+    "8": {
+      "id": 8,
+      "next": 9,
+      "prev": 0,
+      "piece": -1,
+      "x1": -263,
+      "x2": -263,
+      "y1": -390,
+      "y2": -416,
+      "layerId": 2,
+      "groupId": 15
+    },
+    "18": {
+      "id": 18,
+      "next": 21,
+      "prev": 22,
+      "piece": -1,
+      "x1": -180,
+      "x2": -90,
+      "y1": -206,
+      "y2": -206,
+      "layerId": 3,
+      "groupId": 8
+    },
+    "73": {
+      "id": 73,
+      "next": 65,
+      "prev": 72,
+      "piece": -1,
+      "x1": -412,
+      "x2": -360,
+      "y1": 34,
+      "y2": 34,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "55": {
+      "id": 55,
+      "next": 0,
+      "prev": 70,
+      "piece": -1,
+      "x1": 1028,
+      "x2": 1028,
+      "y1": 180,
+      "y2": 240,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "12": {
+      "id": 12,
+      "next": 13,
+      "prev": 14,
+      "piece": -1,
+      "x1": 727,
+      "x2": 803,
+      "y1": -416,
+      "y2": -416,
+      "layerId": 2,
+      "groupId": 15
+    },
+    "30": {
+      "id": 30,
+      "next": 44,
+      "prev": 43,
+      "piece": -1,
+      "x1": 720,
+      "x2": 758,
+      "y1": -146,
+      "y2": -146,
+      "layerId": 3,
+      "groupId": 2
+    },
+    "2": {
+      "id": 2,
+      "next": 14,
+      "prev": 1,
+      "piece": -1,
+      "x1": 585,
+      "x2": 675,
+      "y1": -416,
+      "y2": -416,
+      "layerId": 2,
+      "groupId": 15
+    },
+    "48": {
+      "id": 48,
+      "next": 49,
+      "prev": 47,
+      "piece": -1,
+      "x1": 1028,
+      "x2": 1028,
+      "y1": -120,
+      "y2": -60,
+      "layerId": 3,
+      "groupId": 2
+    },
+    "15": {
+      "id": 15,
+      "next": 10,
+      "prev": 7,
+      "piece": -1,
+      "x1": 315,
+      "x2": 405,
+      "y1": -416,
+      "y2": -416,
+      "layerId": 2,
+      "groupId": 15
+    },
+    "42": {
+      "id": 42,
+      "next": 43,
+      "prev": 41,
+      "piece": -1,
+      "x1": 682,
+      "x2": 682,
+      "y1": -120,
+      "y2": -146,
+      "layerId": 3,
+      "groupId": 2
+    },
+    "60": {
+      "id": 60,
+      "next": 56,
+      "prev": 61,
+      "piece": -1,
+      "x1": 360,
+      "x2": 450,
+      "y1": 34,
+      "y2": 34,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "5": {
+      "id": 5,
+      "next": 7,
+      "prev": 6,
+      "piece": -1,
+      "x1": 135,
+      "x2": 225,
+      "y1": -416,
+      "y2": -416,
+      "layerId": 2,
+      "groupId": 15
+    },
+    "27": {
+      "id": 27,
+      "next": 24,
+      "prev": 25,
+      "piece": -1,
+      "x1": 90,
+      "x2": 180,
+      "y1": -206,
+      "y2": -206,
+      "layerId": 3,
+      "groupId": 8
+    },
+    "45": {
+      "id": 45,
+      "next": 46,
+      "prev": 28,
+      "piece": -1,
+      "x1": 952,
+      "x2": 990,
+      "y1": -146,
+      "y2": -146,
+      "layerId": 3,
+      "groupId": 2
+    },
+    "72": {
+      "id": 72,
+      "next": 73,
+      "prev": 71,
+      "piece": -1,
+      "x1": -488,
+      "x2": -412,
+      "y1": 34,
+      "y2": 34,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "75": {
+      "id": 75,
+      "next": 66,
+      "prev": 74,
+      "piece": -1,
+      "x1": -488,
+      "x2": -488,
+      "y1": 180,
+      "y2": 120,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "57": {
+      "id": 57,
+      "next": 62,
+      "prev": 59,
+      "piece": -1,
+      "x1": 90,
+      "x2": 180,
+      "y1": 34,
+      "y2": 34,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "14": {
+      "id": 14,
+      "next": 12,
+      "prev": 2,
+      "piece": -1,
+      "x1": 675,
+      "x2": 727,
+      "y1": -416,
+      "y2": -416,
+      "layerId": 2,
+      "groupId": 15
+    },
+    "32": {
+      "id": 32,
+      "next": 35,
+      "prev": 34,
+      "piece": -1,
+      "x1": 540,
+      "x2": 578,
+      "y1": -26,
+      "y2": -26,
+      "layerId": 3,
+      "groupId": 2
+    },
+    "17": {
+      "id": 17,
+      "next": 22,
+      "prev": 16,
+      "piece": -1,
+      "x1": -308,
+      "x2": -232,
+      "y1": -206,
+      "y2": -206,
+      "layerId": 3,
+      "groupId": 8
+    },
+    "44": {
+      "id": 44,
+      "next": 29,
+      "prev": 30,
+      "piece": -1,
+      "x1": 758,
+      "x2": 810,
+      "y1": -146,
+      "y2": -146,
+      "layerId": 3,
+      "groupId": 2
+    },
+    "62": {
+      "id": 62,
+      "next": 61,
+      "prev": 57,
+      "piece": -1,
+      "x1": 180,
+      "x2": 270,
+      "y1": 34,
+      "y2": 34,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "47": {
+      "id": 47,
+      "next": 48,
+      "prev": 46,
+      "piece": -1,
+      "x1": 1028,
+      "x2": 1028,
+      "y1": -146,
+      "y2": -120,
+      "layerId": 3,
+      "groupId": 2
+    },
+    "19": {
+      "id": 19,
+      "next": 20,
+      "prev": 23,
+      "piece": -1,
+      "x1": 412,
+      "x2": 488,
+      "y1": -206,
+      "y2": -206,
+      "layerId": 3,
+      "groupId": 8
+    },
+    "74": {
+      "id": 74,
+      "next": 75,
+      "prev": 0,
+      "piece": -1,
+      "x1": -488,
+      "x2": -488,
+      "y1": 240,
+      "y2": 180,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "31": {
+      "id": 31,
+      "next": 0,
+      "prev": 49,
+      "piece": -1,
+      "x1": 1028,
+      "x2": 1028,
+      "y1": 0,
+      "y2": 60,
+      "layerId": 3,
+      "groupId": 2
+    },
+    "49": {
+      "id": 49,
+      "next": 31,
+      "prev": 48,
+      "piece": -1,
+      "x1": 1028,
+      "x2": 1028,
+      "y1": -60,
+      "y2": 0,
+      "layerId": 3,
+      "groupId": 2
+    },
+    "16": {
+      "id": 16,
+      "next": 17,
+      "prev": 0,
+      "piece": -1,
+      "x1": -308,
+      "x2": -308,
+      "y1": -180,
+      "y2": -206,
+      "layerId": 3,
+      "groupId": 8
+    },
+    "34": {
+      "id": 34,
+      "next": 32,
+      "prev": 33,
+      "piece": -1,
+      "x1": 502,
+      "x2": 540,
+      "y1": -26,
+      "y2": -26,
+      "layerId": 3,
+      "groupId": 2
+    },
+    "61": {
+      "id": 61,
+      "next": 60,
+      "prev": 62,
+      "piece": -1,
+      "x1": 270,
+      "x2": 360,
+      "y1": 34,
+      "y2": 34,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "64": {
+      "id": 64,
+      "next": 58,
+      "prev": 63,
+      "piece": -1,
+      "x1": -180,
+      "x2": -90,
+      "y1": 34,
+      "y2": 34,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "46": {
+      "id": 46,
+      "next": 47,
+      "prev": 45,
+      "piece": -1,
+      "x1": 990,
+      "x2": 1028,
+      "y1": -146,
+      "y2": -146,
+      "layerId": 3,
+      "groupId": 2
+    },
+    "21": {
+      "id": 21,
+      "next": 25,
+      "prev": 18,
+      "piece": -1,
+      "x1": -90,
+      "x2": 0,
+      "y1": -206,
+      "y2": -206,
+      "layerId": 3,
+      "groupId": 8
+    },
+    "39": {
+      "id": 39,
+      "next": 40,
+      "prev": 38,
+      "piece": -1,
+      "x1": 592,
+      "x2": 668,
+      "y1": -86,
+      "y2": -86,
+      "layerId": 3,
+      "groupId": 2
+    },
+    "76": {
+      "id": 76,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -166,
+      "x2": -109,
+      "y1": -445,
+      "y2": -445,
+      "layerId": 1,
+      "groupId": 17
+    },
+    "33": {
+      "id": 33,
+      "next": 34,
+      "prev": 36,
+      "piece": -1,
+      "x1": 502,
+      "x2": 502,
+      "y1": 0,
+      "y2": -26,
+      "layerId": 3,
+      "groupId": 2
+    },
+    "51": {
+      "id": 51,
+      "next": 50,
+      "prev": 53,
+      "piece": -1,
+      "x1": 720,
+      "x2": 810,
+      "y1": 34,
+      "y2": 34,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "69": {
+      "id": 69,
+      "next": 67,
+      "prev": 50,
+      "piece": -1,
+      "x1": 900,
+      "x2": 952,
+      "y1": 34,
+      "y2": 34,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "36": {
+      "id": 36,
+      "next": 33,
+      "prev": 0,
+      "piece": -1,
+      "x1": 502,
+      "x2": 502,
+      "y1": 60,
+      "y2": 0,
+      "layerId": 3,
+      "groupId": 2
+    },
+    "63": {
+      "id": 63,
+      "next": 64,
+      "prev": 65,
+      "piece": -1,
+      "x1": -270,
+      "x2": -180,
+      "y1": 34,
+      "y2": 34,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "20": {
+      "id": 20,
+      "next": 0,
+      "prev": 19,
+      "piece": -1,
+      "x1": 488,
+      "x2": 488,
+      "y1": -206,
+      "y2": -180,
+      "layerId": 3,
+      "groupId": 8
+    },
+    "1": {
+      "id": 1,
+      "next": 2,
+      "prev": 10,
+      "piece": -1,
+      "x1": 495,
+      "x2": 585,
+      "y1": -416,
+      "y2": -416,
+      "layerId": 2,
+      "groupId": 15
+    },
+    "38": {
+      "id": 38,
+      "next": 39,
+      "prev": 37,
+      "piece": -1,
+      "x1": 592,
+      "x2": 592,
+      "y1": -60,
+      "y2": -86,
+      "layerId": 3,
+      "groupId": 2
+    },
+    "23": {
+      "id": 23,
+      "next": 19,
+      "prev": 26,
+      "piece": -1,
+      "x1": 360,
+      "x2": 412,
+      "y1": -206,
+      "y2": -206,
+      "layerId": 3,
+      "groupId": 8
+    },
+    "50": {
+      "id": 50,
+      "next": 69,
+      "prev": 51,
+      "piece": -1,
+      "x1": 810,
+      "x2": 900,
+      "y1": 34,
+      "y2": 34,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "4": {
+      "id": 4,
+      "next": 6,
+      "prev": 3,
+      "piece": -1,
+      "x1": -45,
+      "x2": 45,
+      "y1": -416,
+      "y2": -416,
+      "layerId": 2,
+      "groupId": 15
+    },
+    "68": {
+      "id": 68,
+      "next": 54,
+      "prev": 67,
+      "piece": -1,
+      "x1": 1028,
+      "x2": 1028,
+      "y1": 34,
+      "y2": 60,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "35": {
+      "id": 35,
+      "next": 37,
+      "prev": 32,
+      "piece": -1,
+      "x1": 578,
+      "x2": 592,
+      "y1": -26,
+      "y2": -26,
+      "layerId": 3,
+      "groupId": 2
+    },
+    "7": {
+      "id": 7,
+      "next": 15,
+      "prev": 5,
+      "piece": -1,
+      "x1": 225,
+      "x2": 315,
+      "y1": -416,
+      "y2": -416,
+      "layerId": 2,
+      "groupId": 15
+    },
+    "10": {
+      "id": 10,
+      "next": 1,
+      "prev": 15,
+      "piece": -1,
+      "x1": 405,
+      "x2": 495,
+      "y1": -416,
+      "y2": -416,
+      "layerId": 2,
+      "groupId": 15
+    },
+    "28": {
+      "id": 28,
+      "next": 45,
+      "prev": 29,
+      "piece": -1,
+      "x1": 900,
+      "x2": 952,
+      "y1": -146,
+      "y2": -146,
+      "layerId": 3,
+      "groupId": 2
+    },
+    "65": {
+      "id": 65,
+      "next": 63,
+      "prev": 73,
+      "piece": -1,
+      "x1": -360,
+      "x2": -270,
+      "y1": 34,
+      "y2": 34,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "22": {
+      "id": 22,
+      "next": 18,
+      "prev": 17,
+      "piece": -1,
+      "x1": -232,
+      "x2": -180,
+      "y1": -206,
+      "y2": -206,
+      "layerId": 3,
+      "groupId": 8
+    },
+    "52": {
+      "id": 52,
+      "next": 53,
+      "prev": 56,
+      "piece": -1,
+      "x1": 540,
+      "x2": 630,
+      "y1": 34,
+      "y2": 34,
+      "layerId": 5,
+      "groupId": 0
+    },
+    "37": {
+      "id": 37,
+      "next": 38,
+      "prev": 35,
+      "piece": -1,
+      "x1": 592,
+      "x2": 592,
+      "y1": -26,
+      "y2": -60,
+      "layerId": 3,
+      "groupId": 2
+    }
+  },
+  "vrBounds": {
+    "x": -478,
+    "y": -805,
+    "width": 1496,
+    "height": 1029,
+    "location": {
+      "x": -478,
+      "y": -805,
+      "isEmpty": false
+    },
+    "size": {
+      "width": 1496,
+      "height": 1029,
+      "isEmpty": false
+    },
+    "isEmpty": false,
+    "top": -805,
+    "right": 1018,
+    "bottom": 224,
+    "left": -478
+  },
+  "returnMapName": {
+    "name": "Free Market Entrance",
+    "streetName": "Hidden Street",
+    "id": 80002000
+  },
+  "ladderRopes": [
+    {
+      "x": 118,
+      "y1": -414,
+      "y2": -208,
+      "isLadder": true
+    },
+    {
+      "x": 735,
+      "y1": -414,
+      "y2": -148,
+      "isLadder": true
+    },
+    {
+      "x": 358,
+      "y1": -204,
+      "y2": 32,
+      "isLadder": true
+    },
+    {
+      "x": -192,
+      "y1": -204,
+      "y2": 32,
+      "isLadder": true
+    }
+  ],
+  "name": "Free Market <15>",
+  "streetName": "Hidden Street",
+  "id": 80002015
+}

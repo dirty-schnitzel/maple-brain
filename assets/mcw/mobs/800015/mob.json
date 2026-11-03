@@ -1,0 +1,37 @@
+{
+  "id": 800015,
+  "linksTo": 16,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 30,
+    "maxHP": 789,
+    "maxMP": 30,
+    "speed": 5,
+    "physicalDamage": 204,
+    "physicalDefense": 10,
+    "magicDamage": 0,
+    "magicDefense": 20,
+    "accuracy": 118,
+    "evasion": 18,
+    "exp": 56,
+    "isUndead": false,
+    "minimumPushDamage": 225,
+    "summonType": 1,
+    "revivesMonsterId": [],
+    "linksToOtherMob": 16
+  },
+  "name": "Blue Mushroom",
+  "framebooks": {
+    "move": 3,
+    "stand": 2,
+    "jump": 1,
+    "hit1": 1,
+    "die1": 3
+  },
+  "foundAt": [],
+  "names": {
+    "en": "Blue Mushroom",
+    "es": "Champi\u00f1\u00f3n azul",
+    "ko": "\ud30c\ub780 \ubc84\uc12f"
+  }
+}

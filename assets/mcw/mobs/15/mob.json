@@ -1,0 +1,30 @@
+{
+  "id": 15,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 17,
+    "maxHP": 371,
+    "maxMP": 30,
+    "speed": -50,
+    "physicalDamage": 75,
+    "physicalDefense": 30,
+    "magicDamage": 0,
+    "magicDefense": 0,
+    "accuracy": 72,
+    "evasion": 8,
+    "exp": 32,
+    "isUndead": false,
+    "minimumPushDamage": 30,
+    "elementalAttributes": "F3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Axe Stump",
+  "framebooks": {
+    "move": 4,
+    "stand": 1,
+    "hit1": 1,
+    "die1": 4
+  },
+  "foundAt": []
+}

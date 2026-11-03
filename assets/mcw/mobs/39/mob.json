@@ -1,0 +1,30 @@
+{
+  "id": 39,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 19,
+    "maxHP": 404,
+    "maxMP": 30,
+    "speed": -45,
+    "physicalDamage": 89,
+    "physicalDefense": 15,
+    "magicDamage": 0,
+    "magicDefense": 15,
+    "accuracy": 72,
+    "evasion": 7,
+    "exp": 35,
+    "isUndead": false,
+    "minimumPushDamage": 30,
+    "elementalAttributes": "F3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Ghost Stump",
+  "framebooks": {
+    "die1": 5,
+    "move": 4,
+    "stand": 5,
+    "hit1": 1
+  },
+  "foundAt": []
+}

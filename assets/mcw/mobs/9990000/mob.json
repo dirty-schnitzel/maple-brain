@@ -1,0 +1,25 @@
+{
+  "id": 9990000,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 30,
+    "maxHP": 2100000000,
+    "maxMP": 100,
+    "physicalDamage": 166,
+    "physicalDefense": 0,
+    "magicDamage": 166,
+    "magicDefense": 0,
+    "accuracy": 1,
+    "evasion": 0,
+    "minimumPushDamage": 99999,
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Test(Basic)",
+  "framebooks": {
+    "stand": 1,
+    "hit1": 1,
+    "die1": 6
+  },
+  "foundAt": []
+}

@@ -1,0 +1,668 @@
+{
+  "backgroundMusic": "Bgm00/FloralLife",
+  "isReturnMap": false,
+  "returnMap": 10001000,
+  "portals": [
+    {
+      "portalName": "sp",
+      "toName": "",
+      "type": 0,
+      "toMap": 999999999,
+      "x": 383,
+      "y": 182,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": 383,
+        "y": 182,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 383,
+          "y": 182,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 182,
+        "right": 384,
+        "bottom": 183,
+        "left": 383
+      }
+    },
+    {
+      "portalName": "out00",
+      "toName": "in04",
+      "type": 2,
+      "toMap": 10001000,
+      "x": 491,
+      "y": 203,
+      "linkToMap": "/map/10001000",
+      "toMapName": {
+        "name": "Henesys",
+        "streetName": "Victoria Road",
+        "id": 10001000
+      },
+      "onlyOnce": false,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": false,
+      "bounds": {
+        "x": 491,
+        "y": 203,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 491,
+          "y": 203,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 203,
+        "right": 492,
+        "bottom": 204,
+        "left": 491
+      }
+    },
+    {
+      "portalName": "sp",
+      "toName": "",
+      "type": 0,
+      "toMap": 999999999,
+      "x": -172,
+      "y": -8,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": -172,
+        "y": -8,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -172,
+          "y": -8,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": -8,
+        "right": -171,
+        "bottom": -7,
+        "left": -172
+      }
+    }
+  ],
+  "npcs": [
+    {
+      "x": 191,
+      "y": 206,
+      "walkAreaX1": 141,
+      "walkAreaX2": 241,
+      "id": 229,
+      "footholdId": 23,
+      "foothold": {
+        "id": 23,
+        "next": 0,
+        "prev": 0,
+        "piece": 1,
+        "x1": -677,
+        "x2": 689,
+        "y1": 206,
+        "y2": 206,
+        "layerId": 4,
+        "groupId": 5
+      },
+      "hidden": false,
+      "type": 0,
+      "link": "/npc/229",
+      "index": 0,
+      "position": {},
+      "bounds": {
+        "x": 191,
+        "y": 206,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 191,
+          "y": 206,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 206,
+        "right": 192,
+        "bottom": 207,
+        "left": 191
+      },
+      "flip": true
+    },
+    {
+      "x": -10,
+      "y": 5,
+      "walkAreaX1": -60,
+      "walkAreaX2": 40,
+      "id": 230,
+      "footholdId": 13,
+      "foothold": {
+        "id": 13,
+        "next": 0,
+        "prev": 0,
+        "piece": 0,
+        "x1": -644,
+        "x2": 180,
+        "y1": 5,
+        "y2": 5,
+        "layerId": 2,
+        "groupId": 10
+      },
+      "hidden": false,
+      "type": 0,
+      "link": "/npc/230",
+      "index": 1,
+      "position": {},
+      "bounds": {
+        "x": -10,
+        "y": 5,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -10,
+          "y": 5,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 5,
+        "right": -9,
+        "bottom": 6,
+        "left": -10
+      },
+      "flip": false
+    },
+    {
+      "x": -451,
+      "y": 5,
+      "walkAreaX1": -501,
+      "walkAreaX2": -401,
+      "id": 232,
+      "footholdId": 13,
+      "foothold": {
+        "id": 13,
+        "next": 0,
+        "prev": 0,
+        "piece": 0,
+        "x1": -644,
+        "x2": 180,
+        "y1": 5,
+        "y2": 5,
+        "layerId": 2,
+        "groupId": 10
+      },
+      "hidden": false,
+      "type": 0,
+      "link": "/npc/232",
+      "index": 3,
+      "position": {},
+      "bounds": {
+        "x": -451,
+        "y": 5,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -451,
+          "y": 5,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 5,
+        "right": -450,
+        "bottom": 6,
+        "left": -451
+      },
+      "flip": true
+    },
+    {
+      "x": -43,
+      "y": 206,
+      "walkAreaX1": -93,
+      "walkAreaX2": 7,
+      "id": 233,
+      "footholdId": 23,
+      "foothold": {
+        "id": 23,
+        "next": 0,
+        "prev": 0,
+        "piece": 1,
+        "x1": -677,
+        "x2": 689,
+        "y1": 206,
+        "y2": 206,
+        "layerId": 4,
+        "groupId": 5
+      },
+      "hidden": false,
+      "type": 0,
+      "link": "/npc/233",
+      "index": 4,
+      "position": {},
+      "bounds": {
+        "x": -43,
+        "y": 206,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -43,
+          "y": 206,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 206,
+        "right": -42,
+        "bottom": 207,
+        "left": -43
+      },
+      "flip": true
+    },
+    {
+      "x": -422,
+      "y": 206,
+      "walkAreaX1": -472,
+      "walkAreaX2": -372,
+      "id": 234,
+      "footholdId": 23,
+      "foothold": {
+        "id": 23,
+        "next": 0,
+        "prev": 0,
+        "piece": 1,
+        "x1": -677,
+        "x2": 689,
+        "y1": 206,
+        "y2": 206,
+        "layerId": 4,
+        "groupId": 5
+      },
+      "hidden": false,
+      "type": 0,
+      "link": "/npc/234",
+      "index": 2,
+      "position": {},
+      "bounds": {
+        "x": -422,
+        "y": 206,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -422,
+          "y": 206,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 206,
+        "right": -421,
+        "bottom": 207,
+        "left": -422
+      },
+      "flip": true
+    }
+  ],
+  "mobs": [],
+  "mobRate": 1,
+  "isTown": true,
+  "isSwim": false,
+  "mapMark": "Henesys",
+  "miniMap": {
+    "centerX": 667,
+    "centerY": 509,
+    "height": 905,
+    "width": 1346,
+    "magnification": 4,
+    "canvas": "iVBORw0KGgoAAAANSUhEUgAAAFQAAAA4CAYAAABjXd/gAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAQrUlEQVR4nO1c23nsNg7GwzSAFtiCWlALTgk+JSQlxC24hWlBJSxbYAtoYYk7KGlOnP28b2bWZ8YSCYIg8ONCeh8A0OCnfVtjgf5n/iD8tG9pLNAfYX5je8BP+9b2I9Bvbj8C/eb2I9BvbilQxIt3QiB+DGPA/ObP9B/tbe/nS7IODbNf2zZ4Hv0yqc+DrQEx8frC6JCw5D0JbtupL00m8KZL47UhxPtOhceWvPPbM426bu9LN36cjIgINBkvC0YOUNEIUjzbrOs2JXdMzqogiXxCXUTv40q3TCCLPM2t784sY5V1PkUTpn1PAgTrb0yvzY1PupVfgEoHYZ+L7HOjq/CdGo8bNoDKXLqhItB7YXpX7uTMkkygi9sQ4bJKTEa3RnAM/Z01GIP4OuNdzObLjjF0r6MUYjhTw9MTkv+YF6z0bEM8s6nbMCito5n2n2QLeHrGtG8wVCUSpoAk+qGsU+jsc0pLJoJ114MNUkb3fYPPZ184HkYrtvo0/yr8uThITUe13bLRZL3udFj78OYflJuN/lkE6ZAgfTuvjZb3rWGMFc0dzuQ65yJQFUhK3VmVcYNCU5n4mDLatwafEyODpMmIBb1tuu/HyeyLrAJ31nYyd7freEvxmGGn6+5MPJ6cjxM9h6OJ5dtQDeXNFTG4cp9MfpO1kX6OiyRUUTBlNZyWtYuGOo3uTscGCN9mBnvb4A1T8Og/tvOCQXOl3TArIINWzFsxFW5N28cGXhYr76NIo5DJwfqhjnHi3+SLLU/WhEWoUOadE73tuqJB3d5NAVsfgT3TEbpBvUeV/roICo8NYgpgOKSAzQJDTCFW+ELrUxl1s8KbRfjsTg/N23o/toich24FP3qH8nrdbPPy7pTC7GHZS2mfFpW8T6hi4UPgpGEp5LhhX6q/KWHT6oDgNLDF4pqYMVmH0KDC6BjrRDLORdeqg3IzOnktl65/EhWzwqC9crq6JA+lhoxVxlgJ3jaNTs7rrkLlpl6e8TtDx61gduDuiY9HNUfRQXJ9yYFVuP6zTcEqlqCZ3jCB6yL4PUWY4HNM+i5s35FFJu63zdkhSuimmoXBA5VBJR5YhOvzAaTm64ZOiqPH8535hPTiZJsnWNmUnAt8uPYXfhY7mwRXp8STMda0CgEz/OkZnI/YTtIYbToflJkt+GDzmu/2bYfjONLcBguzL2tfQg44N5WCCBVXsbWbUTXkuWKp8ijemXl7e5/8jBCS8mhBv3n4OoN4eXaC7GhNLYcJXj8HuMo9nB2ck7bpbAJTXKsG03BIBo3PDCfRdkXlqIGze9rn8VRhGFZI2CHxXHr95htwI+AqqNZOIrxJRDLSMA2zBTbzQmjz8MayggRuN1uDRwSisaqWutYWVuDCB8N5NE/fS4LzcBzc5q40CwPQNIPTwoSyXBSRLoGFtM2QRDTYXTgY/tikY5jpzt3tU2MBcnFw0ryzYNX0xqqhRZiLI/VxZiFuxvx0a/sUxgitUusa8/m2QA2vZeLBdHDDrOM8i45lWRAqNqM57G6Q8VB1VrOSSU0A+yQ+JMCfTmh+vhW36MwP8fbdcKdgrjsBSKzCrtrisBKO5Zx6QnpmoXW4l28GGWkVd+Pc1SceEjyfn4GNKRcW6hECE1hizTX6EX/fNDIz5/VzvCqyQ/UPD3Es85+nVThkl0TdlRlxOKad7PF22R0INVJ41jhP/Q8ZXFAsvJlX8KDY8SqD0VVIMm8fiU/UNHPhzQiIKbGXe+rZl0g32Pu6xfG83b3KyTuz2TcHiZNAz5vnWg9m/sfQtQhUzPkfIOa4zwckJvn2xs6kq2BBA3xkRoVIMhhB+uxHBwlkaC80s0CbyOIC1/BxiMDFSdl7nh/b24XxYdChn6gYv0RWqUXEdOcP95U1T23eRKhbYOTeMhlwK1DuSLGUMJwoBv0XatoEHWCKDba3N4WRiaUP1SqMRLw/D9FIZozz8G0y9Pz8AIbJfXKk4RDFQql70WFSGZ5jr0xlAG3x6/Y+LfljpoMqWKCn9Gi2iRKWbRqz+NjNPHF48bLOMYXHwnxaRWk3/WMsF97mRngEpzUKtauIGix0sqBY6G01/TLlEeWaeKzr20QJBx2xRsFQYWhqIFr8eQw1Gy2/mTcDjSVHP+SnNs9MugsQMvdCwZUREZts9vY2MfkzzE5NkSd+TuV9LoJqxS6H11WL5yLT/MYbNRfIMaWEcsw/mJfmXqPyjLCW3SCVIDz+hJjxWYdYqITwztZkFhZlnuE+xDCUzcPz7mZF31E2SDRnqElv6OWTZvOQbMBuYVM292AWTDPd/skmMDUoGRWtmfTZFPdpOtu+K3NGy60hogwzwedTwzLWpj6mUNnBzPU57UjzJQbdZE1My2NMrKw6KkGxLsqUzkO9hs2wklRZjMYxFcFj9wc6jxpzyIAuC9JwZVgK1g3HJLLAJnVRJy5xmPPGEYIJsfdDbcwdyTQXYhx8/gXH/M4bydvDomLMZoFyz4+PD5Ci3TAPP2nsb1toZ//8nHjfw4RFJyaMwPEJ+/vfOtfnXyVeVF41mM/wzum5ZSVeOuaPrIiJGlcYWB2pyzFSzyCFGqK4J5bjA4nlyq6XviDC2O0oo1ve3OIoIdM/lPjOf2+ugbaQyhwLVrSpzBHAaZ5fecKAjWNuHq+3TwtohZZ7aufHwvtVkKVhaheE2trYKGAs/ddHj1NQIKak4VPGZ170iNDDKDxHz0QXcoNH7xEmlXxAy12urRwddMqEwHkHg5hLrdQKKRFwr+dB4WIY67xvEZiL8YXPvr6xBZNZJpnDFT5rqFZGi8mvdMyM2WuqfiiPpQzlWKbYad+mxnBI4vTZfYjfXG5NuUZ6OMW4aYF/nE14cN30WTVPyFBKaEQ6qg4hBG3JA7lDRUf66H0vR7wRtuw3W+vIB8WhZQE6aSxnSrIpUgAgwTpfhIRSU0Rc+kLDRD1O0NydMdRN48rn6dvQEGk8P9TfeiDteN3U0XhmtQqzy3woNQedk6apyzKHpaj8e8eAEVUA8/ZwL7TgfdEAsnW6g1xHq5u5nkZcKvaOgcc0fYkFTUYcc/HXQ448EP7+c1enNf+b0aqV2AbUArDyOUKo2/6+AnnFxzng1x9/aKAvQoXAmyhWa3AxMVbfPe13ri20qUkcYHsxxmWSafEXWpX20IM9CZEMljCYUNb02GUd9vCJlQbJDnvBhMzDby1xCw2hntPThtMJ67SzmNVONSwzU+VeWjfQIoNgGwvdocSihizOFDz0A8PDvvvGyWfnUNY2v4lj46eH5ednkVbjxbM03fmOAZHh3TSJiEaPoF4EuuCjrV/M2WZrLY+B0VydX2yQU8KmHnRYuinx5OZFZz96UNPxFFBKhdSNHkoAL9aKVqD2ChWagxF800B9k6KL4jeHZ0/LpTfHYQ73WvWE4Lv9Si5l7zNEKsa9ytS9dIyBZTvC5PsAz8SNB3MSx0gioRLJxGHnHfpaowNJ/7bsdMiBHS966OWIo5sEszDLz6TYYMcTUkIr2u+b7sUI5vWwBfMTHXfoxs95mp26Zr6vGv3ay58E5hi8tSjTRZEYFplmo9/cbfKhhCVcqS9OPT2erCeRHidudqbt2vtcCvc5vpJWrcDUjgwJLfZzq7qGd9z6YQUdhICYEf1f66qTZucnEHj0HIGQY+2hx6Fh8v7OX6BN2kIIfmaaiypksxlUcPHkMOzrpKmqM8Df+ILE287n+Ym0bq36oyYf+0KwmJUXiFWInv4O0MzFNyPPpKpDyhLGGp8uCzS6tP+53JWXiCw8Pb3clsiU/M4OC5O1SM5dJjPHr49icR7/2ZZYlbp6PjKP+JQTRs3vG+b1HbIS2jsLtcPCHFe3eN7PmXp6jOeBiWc/RCMEvFloxw/8qFk9+5CSoJcRUyp5GYI8Ij5ZnCzLvJvPnUpEkj57afNiZ+gmH9pZOnBBg7ROGPVNLLEhaVhBI6vjzpB4elLsFE0H01SpBaTmv/ORLktYql3GiGnd5uGPOLRhTg9k/HP4fFammc/eOF2Fk8Z5UF9gCG/W6sL2Jsg+tOJ2WFE6+ME7vcx2wVCn+2tq5iJ9gMyJ+dNCGLGLAYtpublVenK2D+UelAl9Rz09ZdziGPfz+GUFbYOeXUonEglweOXn5UqzmLCEE90O0N8kjlZmKl9w0cjlQUQ7Cg4MT/UInxObqjy1ZdgUJFdU0FJXnVaxzeNO3KfW0RZe1AUn2kd66Kd4qALeW14OcCTq5JcozJkZSIqwoVmQ3wphXBzPICsgu1Aki2uCgQwdvo4x7DiFsylIS3I+zpLx9LQKk/kTgUai4LHGui2PcDZreDVx1BzCyFhTBpY0UbTUL/hArklSdFS85aoSR16H0WmQeNzk2ETrjVtbl8alvzEw8FfYbBkKBT+gOfXHXx+xCBZmsywvoIr7nUtDp1bildsW6CtresppxvpONFT3KTEJpSjLwMsnmhv6tV1L/0Z6ZznVPLt98tt3qr18ToUWiIuWS1lOjWrFMzttRdUMz8Ad7P2gT7vmKYCr6+7Vdn8TUYIVT66SuRdaFLZXQVffxuk2n3JyqXALNtThPTBuVej5kFesJQsSoQ4Rqh4t2Dl9eFyKO5ceosNpcgIImnG10TaWZ5XDPY/jatY2vfTuJ7B8AEd5NxXrJpqFLY5xZHVo2DVMDuf04oIWVtDTSvvxzK9uxn0ziBsY80pVq+mpxsPDOi08oJx6cjtm9M11STbZ59wJicNQb394argWNygXx0Kw6ztikh462R1OX0u31DU0Au0qjJXgpNrDms7M07AbH75pTWsANlZuhMSJpgqUi/x7s1UzO8QIWo5SEC15wGSgQEn9DAWR6pvPS4BrjdKvM2oIxP/TiwuKhXxBYCn5tTIhpmPBsI/M81sE1q7BmXMPU0QP+j2gJwlPdBUS3PdnaDe3fVL9hG5rX9WonoFdGpf7SFPZcCqUBWPX9FzFKtQz0UYQNGAz6ZkMHhyqdKx/qaGOQHBMnErdHjsSaekYJGXnYkexkzzI05NPdSypza5VojSUgi/AB5yXS45OWVWqG8n/bn4HnXxeX316aXZsYAd0+mYEHXC/ofc05GQ1hEpQ6hE6sotl2ni+hmQwyIP4YhzP8fDBPpQH9VMJpUJWeFxYJS2IoUhst4Md4LI/wbrZLkPEq9PQHJ7Wzlg+S0y7Nrr87ulsO9GkmGcNGkPWmDSSr5Nmn2a9FkcK1dyfvKzgnrmdGbFMJio6JdwByhqo3wIOxj0JKGlifRZsFekljiYT54Aof89r6Rh/kpLE1vW4H9Dtb4W+HrPc0V/b1/+SLkKcKyF88R1MwB7/YNmBs9Z/cfrrTPi6n34/d8Dr3OidMTbn9Oi143c2rEMI9LIwqlrhIIa3hOnuSez0iURaz60gf3tcccaFf9iKSx5zY6K3vJdvtQD/+7m0/cu/9UwVyxoRnt5ABOrJNS5rr9hlbuF2Q/+JC6VlTg1W3FuwsmD5hUplk2jRxqzg60f1+lVRanuUPr9tIbC6yydwroxcmHLBm5rqXf51YK1YfaXFekOJzP1RZmHXMescKew7xQD4dxydTB7g94Kt3tpXs1SZTineKnyK8etSVnbPevUKv860zsTOyLHwfOEA4s8M05HCHVL8o+Jdj5FvfqFX7188y8257u+rvX5F47Y/3T9aNjx4WN+/arebS6/7vWr/89/Lf8UIvmy638gDfaHP/7P9/B8QfHP7L4Mtj/BzyR23AAAAAElFTkSuQmCC"
+  },
+  "footholds": {
+    "20": {
+      "id": 20,
+      "next": 0,
+      "prev": 0,
+      "piece": 1,
+      "x1": -266,
+      "x2": -151,
+      "y1": 132,
+      "y2": 132,
+      "layerId": 3,
+      "groupId": 9
+    },
+    "12": {
+      "id": 12,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -517,
+      "x2": -455,
+      "y1": 166,
+      "y2": 166,
+      "layerId": 0,
+      "groupId": 8
+    },
+    "8": {
+      "id": 8,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -71,
+      "x2": 22,
+      "y1": 183,
+      "y2": 183,
+      "layerId": 0,
+      "groupId": 8
+    },
+    "3": {
+      "id": 3,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -108,
+      "x2": -64,
+      "y1": -40,
+      "y2": -40,
+      "layerId": 0,
+      "groupId": 8
+    },
+    "1": {
+      "id": 1,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -610,
+      "x2": -360,
+      "y1": -149,
+      "y2": -149,
+      "layerId": 0,
+      "groupId": 8
+    },
+    "11": {
+      "id": 11,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -478,
+      "x2": -377,
+      "y1": 139,
+      "y2": 139,
+      "layerId": 0,
+      "groupId": 8
+    },
+    "10": {
+      "id": 10,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -552,
+      "x2": -480,
+      "y1": 126,
+      "y2": 126,
+      "layerId": 0,
+      "groupId": 8
+    },
+    "6": {
+      "id": 6,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 9,
+      "x2": 133,
+      "y1": -36,
+      "y2": -36,
+      "layerId": 0,
+      "groupId": 8
+    },
+    "17": {
+      "id": 17,
+      "next": 0,
+      "prev": 0,
+      "piece": 1,
+      "x1": -334,
+      "x2": -218,
+      "y1": 56,
+      "y2": 56,
+      "layerId": 3,
+      "groupId": 9
+    },
+    "22": {
+      "id": 22,
+      "next": 0,
+      "prev": 0,
+      "piece": 1,
+      "x1": -222,
+      "x2": -106,
+      "y1": 181,
+      "y2": 181,
+      "layerId": 3,
+      "groupId": 9
+    },
+    "4": {
+      "id": 4,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -236,
+      "x2": -119,
+      "y1": -40,
+      "y2": -40,
+      "layerId": 0,
+      "groupId": 8
+    },
+    "21": {
+      "id": 21,
+      "next": 0,
+      "prev": 0,
+      "piece": 1,
+      "x1": -244,
+      "x2": -129,
+      "y1": 156,
+      "y2": 156,
+      "layerId": 3,
+      "groupId": 9
+    },
+    "2": {
+      "id": 2,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -610,
+      "x2": -360,
+      "y1": -84,
+      "y2": -84,
+      "layerId": 0,
+      "groupId": 8
+    },
+    "14": {
+      "id": 14,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 144,
+      "x2": 284,
+      "y1": 168,
+      "y2": 168,
+      "layerId": 2,
+      "groupId": 10
+    },
+    "7": {
+      "id": 7,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 46,
+      "x2": 116,
+      "y1": 184,
+      "y2": 184,
+      "layerId": 0,
+      "groupId": 8
+    },
+    "13": {
+      "id": 13,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -644,
+      "x2": 180,
+      "y1": 5,
+      "y2": 5,
+      "layerId": 2,
+      "groupId": 10
+    },
+    "5": {
+      "id": 5,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 131,
+      "x2": 237,
+      "y1": -40,
+      "y2": -40,
+      "layerId": 0,
+      "groupId": 8
+    },
+    "19": {
+      "id": 19,
+      "next": 0,
+      "prev": 0,
+      "piece": 1,
+      "x1": -289,
+      "x2": -173,
+      "y1": 107,
+      "y2": 107,
+      "layerId": 3,
+      "groupId": 9
+    },
+    "18": {
+      "id": 18,
+      "next": 0,
+      "prev": 0,
+      "piece": 1,
+      "x1": -313,
+      "x2": -197,
+      "y1": 81,
+      "y2": 81,
+      "layerId": 3,
+      "groupId": 9
+    },
+    "23": {
+      "id": 23,
+      "next": 0,
+      "prev": 0,
+      "piece": 1,
+      "x1": -677,
+      "x2": 689,
+      "y1": 206,
+      "y2": 206,
+      "layerId": 4,
+      "groupId": 5
+    },
+    "9": {
+      "id": 9,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -66,
+      "x2": 12,
+      "y1": 126,
+      "y2": 126,
+      "layerId": 0,
+      "groupId": 8
+    },
+    "16": {
+      "id": 16,
+      "next": 0,
+      "prev": 0,
+      "piece": 1,
+      "x1": -356,
+      "x2": -243,
+      "y1": 31,
+      "y2": 31,
+      "layerId": 3,
+      "groupId": 9
+    },
+    "15": {
+      "id": 15,
+      "next": 0,
+      "prev": 0,
+      "piece": 2,
+      "x1": -85,
+      "x2": 44,
+      "y1": -33,
+      "y2": -33,
+      "layerId": 2,
+      "groupId": 10
+    }
+  },
+  "vrBounds": {
+    "x": -667,
+    "y": -509,
+    "width": 1346,
+    "height": 905,
+    "location": {
+      "x": -667,
+      "y": -509,
+      "isEmpty": false
+    },
+    "size": {
+      "width": 1346,
+      "height": 905,
+      "isEmpty": false
+    },
+    "isEmpty": false,
+    "top": -509,
+    "right": 679,
+    "bottom": 396,
+    "left": -667
+  },
+  "returnMapName": {
+    "name": "Henesys",
+    "streetName": "Victoria Road",
+    "id": 10001000
+  },
+  "ladderRopes": [],
+  "name": "Henesys Town Hall",
+  "streetName": "Victoria Road",
+  "id": 10001007
+}

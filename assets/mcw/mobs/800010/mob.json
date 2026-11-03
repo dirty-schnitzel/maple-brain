@@ -1,0 +1,32 @@
+{
+  "id": 800010,
+  "linksTo": 23,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 30,
+    "maxHP": 789,
+    "maxMP": 50,
+    "speed": -10,
+    "physicalDamage": 224,
+    "physicalDefense": 10,
+    "magicDamage": 0,
+    "magicDefense": 20,
+    "accuracy": 108,
+    "evasion": 20,
+    "exp": 56,
+    "isUndead": false,
+    "minimumPushDamage": 225,
+    "summonType": 1,
+    "revivesMonsterId": [],
+    "linksToOtherMob": 23
+  },
+  "name": "Evil Eye",
+  "framebooks": {
+    "move": 4,
+    "stand": 3,
+    "jump": 1,
+    "hit1": 1,
+    "die1": 3
+  },
+  "foundAt": []
+}

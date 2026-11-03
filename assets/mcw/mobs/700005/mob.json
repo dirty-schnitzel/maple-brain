@@ -1,0 +1,35 @@
+{
+  "id": 700005,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 100,
+    "maxHP": 741240,
+    "maxMP": 700,
+    "flySpeed": 10,
+    "physicalDamage": 1192,
+    "physicalDefense": 15,
+    "magicDamage": 1356,
+    "magicDefense": 15,
+    "accuracy": 174,
+    "evasion": 57,
+    "exp": 6000,
+    "minimumPushDamage": 8750,
+    "hpRecovery": 741,
+    "mpRecovery": 70,
+    "elementalAttributes": "S1H3D2",
+    "summonType": 1,
+    "revivesMonsterId": [],
+    "isBoss": true,
+    "isAutoAggro": true
+  },
+  "name": "Crimson Balrog",
+  "framebooks": {
+    "fly": 4,
+    "stand": 4,
+    "attack1": 8,
+    "attack2": 5,
+    "hit1": 1,
+    "die1": 10
+  },
+  "foundAt": []
+}

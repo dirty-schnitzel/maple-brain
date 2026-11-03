@@ -1,0 +1,32 @@
+{
+  "id": 94,
+  "linksTo": 18,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 200,
+    "maxHP": 930000,
+    "maxMP": 30000,
+    "physicalDamage": 1,
+    "physicalDefense": 999,
+    "magicDamage": 1,
+    "magicDefense": 999,
+    "accuracy": 999,
+    "evasion": 1999,
+    "minimumPushDamage": 10000,
+    "summonType": 1,
+    "revivesMonsterId": [],
+    "linksToOtherMob": 18,
+    "fixedDamageAmount": 1,
+    "isInvincible": true,
+    "physicalDefenseRate": 100,
+    "magicDefenseRate": 100
+  },
+  "name": "Ultra Jr. Necki 1",
+  "framebooks": {
+    "move": 3,
+    "stand": 3,
+    "hit1": 1,
+    "die1": 3
+  },
+  "foundAt": []
+}

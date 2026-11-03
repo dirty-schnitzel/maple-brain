@@ -1,0 +1,32 @@
+{
+  "id": 43,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 48,
+    "maxHP": 2350,
+    "maxMP": 80,
+    "speed": 15,
+    "physicalDamage": 226,
+    "physicalDefense": 30,
+    "magicDamage": 0,
+    "magicDefense": 0,
+    "accuracy": 127,
+    "evasion": 32,
+    "exp": 122,
+    "isUndead": true,
+    "minimumPushDamage": 225,
+    "hpRecovery": 50,
+    "elementalAttributes": "H3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Wraith",
+  "framebooks": {
+    "move": 4,
+    "stand": 1,
+    "jump": 1,
+    "hit1": 1,
+    "die1": 6
+  },
+  "foundAt": []
+}

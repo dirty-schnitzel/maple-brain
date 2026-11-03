@@ -1,0 +1,31 @@
+{
+  "id": 800001,
+  "linksTo": 18,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 25,
+    "maxHP": 765,
+    "maxMP": 30,
+    "speed": 10,
+    "physicalDamage": 139,
+    "physicalDefense": 0,
+    "magicDamage": 0,
+    "magicDefense": 30,
+    "accuracy": 111,
+    "evasion": 12,
+    "exp": 80,
+    "isUndead": false,
+    "minimumPushDamage": 1,
+    "summonType": 1,
+    "revivesMonsterId": [],
+    "linksToOtherMob": 18
+  },
+  "name": "Jr. Necki",
+  "framebooks": {
+    "move": 3,
+    "stand": 3,
+    "hit1": 1,
+    "die1": 3
+  },
+  "foundAt": []
+}

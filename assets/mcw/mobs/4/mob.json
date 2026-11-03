@@ -1,0 +1,29 @@
+{
+  "id": 4,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 3,
+    "maxHP": 62,
+    "maxMP": 30,
+    "speed": -30,
+    "physicalDamage": 7,
+    "physicalDefense": 0,
+    "magicDamage": 0,
+    "magicDefense": 0,
+    "accuracy": 44,
+    "evasion": 0,
+    "exp": 6,
+    "isUndead": false,
+    "minimumPushDamage": 1,
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Shroom",
+  "framebooks": {
+    "move": 4,
+    "stand": 3,
+    "hit1": 1,
+    "die1": 4
+  },
+  "foundAt": []
+}

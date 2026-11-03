@@ -1,0 +1,31 @@
+{
+  "id": 66,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 47,
+    "maxHP": 2513,
+    "maxMP": 0,
+    "speed": 10,
+    "physicalDamage": 248,
+    "physicalDefense": 15,
+    "magicDamage": 0,
+    "magicDefense": 15,
+    "accuracy": 138,
+    "evasion": 29,
+    "exp": 117,
+    "isUndead": true,
+    "minimumPushDamage": 337,
+    "elementalAttributes": "H3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Mummydog",
+  "framebooks": {
+    "move": 5,
+    "stand": 3,
+    "jump": 1,
+    "hit1": 1,
+    "die1": 6
+  },
+  "foundAt": []
+}

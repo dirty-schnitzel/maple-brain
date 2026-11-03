@@ -1,0 +1,29 @@
+{
+  "id": 5,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 4,
+    "maxHP": 68,
+    "maxMP": 30,
+    "speed": -50,
+    "physicalDamage": 9,
+    "physicalDefense": 0,
+    "magicDamage": 0,
+    "magicDefense": 30,
+    "accuracy": 45,
+    "evasion": 0,
+    "exp": 8,
+    "isUndead": false,
+    "minimumPushDamage": 1,
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Red Snail",
+  "framebooks": {
+    "move": 4,
+    "stand": 1,
+    "hit1": 1,
+    "die1": 3
+  },
+  "foundAt": []
+}

@@ -1,0 +1,32 @@
+{
+  "id": 38,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 41,
+    "maxHP": 1774,
+    "maxMP": 50,
+    "speed": 30,
+    "physicalDamage": 221,
+    "physicalDefense": 0,
+    "magicDamage": 242,
+    "magicDefense": 30,
+    "accuracy": 121,
+    "evasion": 29,
+    "exp": 89,
+    "isUndead": true,
+    "minimumPushDamage": 175,
+    "elementalAttributes": "H3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Zombie Lupin",
+  "framebooks": {
+    "move": 4,
+    "stand": 1,
+    "attack1": 11,
+    "jump": 1,
+    "hit1": 1,
+    "die1": 3
+  },
+  "foundAt": []
+}

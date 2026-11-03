@@ -1,0 +1,29 @@
+{
+  "id": 800024,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 15,
+    "maxHP": 310,
+    "maxMP": 30,
+    "flySpeed": -50,
+    "physicalDamage": 54,
+    "physicalDefense": 25,
+    "magicDamage": 0,
+    "magicDefense": 5,
+    "accuracy": 74,
+    "evasion": 7,
+    "exp": 49,
+    "isUndead": false,
+    "minimumPushDamage": 0,
+    "summonType": 1,
+    "revivesMonsterId": [],
+    "hideName": true
+  },
+  "name": "Goblin Fire",
+  "framebooks": {
+    "fly": 8,
+    "hit1": 1,
+    "die1": 5
+  },
+  "foundAt": []
+}

@@ -1,0 +1,31 @@
+{
+  "id": 14,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 15,
+    "maxHP": 259,
+    "maxMP": 30,
+    "speed": 10,
+    "physicalDamage": 61,
+    "physicalDefense": 20,
+    "magicDamage": 0,
+    "magicDefense": 10,
+    "accuracy": 81,
+    "evasion": 9,
+    "exp": 28,
+    "isUndead": false,
+    "minimumPushDamage": 30,
+    "elementalAttributes": "L3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Bubbling",
+  "framebooks": {
+    "move": 7,
+    "stand": 3,
+    "jump": 1,
+    "hit1": 1,
+    "die1": 4
+  },
+  "foundAt": []
+}

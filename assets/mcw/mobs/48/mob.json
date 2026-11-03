@@ -1,0 +1,30 @@
+{
+  "id": 48,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 56,
+    "maxHP": 5134,
+    "maxMP": 120,
+    "speed": -70,
+    "physicalDamage": 288,
+    "physicalDefense": 30,
+    "magicDamage": 0,
+    "magicDefense": 0,
+    "accuracy": 120,
+    "evasion": 30,
+    "exp": 175,
+    "minimumPushDamage": 975,
+    "elementalAttributes": "S2",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Stone Golem",
+  "framebooks": {
+    "move": 4,
+    "stand": 3,
+    "skill1": 10,
+    "hit1": 1,
+    "die1": 7
+  },
+  "foundAt": []
+}

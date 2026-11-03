@@ -1,0 +1,31 @@
+{
+  "id": 67,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 57,
+    "maxHP": 3872,
+    "maxMP": 0,
+    "speed": -40,
+    "physicalDamage": 297,
+    "physicalDefense": 15,
+    "magicDamage": 0,
+    "magicDefense": 15,
+    "accuracy": 147,
+    "evasion": 34,
+    "exp": 183,
+    "isUndead": true,
+    "minimumPushDamage": 650,
+    "elementalAttributes": "H3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Skeleton Soldier",
+  "framebooks": {
+    "move": 4,
+    "stand": 4,
+    "attack1": 8,
+    "hit1": 1,
+    "die1": 6
+  },
+  "foundAt": []
+}

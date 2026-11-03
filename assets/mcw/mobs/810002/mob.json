@@ -1,0 +1,37 @@
+{
+  "id": 810002,
+  "linksTo": 700000,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 40,
+    "maxHP": 34440,
+    "maxMP": 200,
+    "speed": 5,
+    "physicalDamage": 532,
+    "physicalDefense": 15,
+    "magicDamage": 585,
+    "magicDefense": 15,
+    "accuracy": 130,
+    "evasion": 4,
+    "exp": 340,
+    "isUndead": false,
+    "minimumPushDamage": 2750,
+    "hpRecovery": 344,
+    "mpRecovery": 20,
+    "summonType": 0,
+    "revivesMonsterId": [],
+    "linksToOtherMob": 700000,
+    "isBoss": true,
+    "isAutoAggro": true
+  },
+  "name": "Mushmom",
+  "framebooks": {
+    "move": 6,
+    "stand": 1,
+    "jump": 1,
+    "attack1": 5,
+    "hit1": 1,
+    "die1": 6
+  },
+  "foundAt": []
+}

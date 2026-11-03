@@ -1,0 +1,29 @@
+{
+  "id": 51,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 62,
+    "maxHP": 5057,
+    "maxMP": 100,
+    "speed": 30,
+    "physicalDamage": 315,
+    "physicalDefense": 30,
+    "magicDamage": 0,
+    "magicDefense": 0,
+    "accuracy": 138,
+    "evasion": 36,
+    "exp": 231,
+    "minimumPushDamage": 1125,
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Wild Kargo",
+  "framebooks": {
+    "move": 5,
+    "stand": 1,
+    "jump": 1,
+    "hit1": 1,
+    "die1": 5
+  },
+  "foundAt": []
+}

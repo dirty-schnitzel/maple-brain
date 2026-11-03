@@ -1,0 +1,31 @@
+{
+  "id": 36,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 38,
+    "maxHP": 1714,
+    "maxMP": 10,
+    "speed": 20,
+    "physicalDamage": 207,
+    "physicalDefense": 0,
+    "magicDamage": 0,
+    "magicDefense": 30,
+    "accuracy": 116,
+    "evasion": 24,
+    "exp": 78,
+    "isUndead": false,
+    "minimumPushDamage": 125,
+    "elementalAttributes": "L3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Lorang",
+  "framebooks": {
+    "move": 4,
+    "stand": 2,
+    "jump": 1,
+    "hit1": 1,
+    "die1": 4
+  },
+  "foundAt": []
+}

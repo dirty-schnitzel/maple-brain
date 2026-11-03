@@ -1,0 +1,31 @@
+{
+  "id": 61,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 54,
+    "maxHP": 3924,
+    "maxMP": 120,
+    "speed": -50,
+    "physicalDamage": 306,
+    "physicalDefense": 10,
+    "magicDamage": 306,
+    "magicDefense": 0,
+    "accuracy": 118,
+    "evasion": 29,
+    "exp": 160,
+    "isUndead": false,
+    "minimumPushDamage": 825,
+    "elementalAttributes": "F3L2",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Myewood",
+  "framebooks": {
+    "stand": 6,
+    "move": 6,
+    "attack1": 12,
+    "hit1": 1,
+    "die1": 7
+  },
+  "foundAt": []
+}

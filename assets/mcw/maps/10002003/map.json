@@ -1,0 +1,757 @@
+{
+  "backgroundMusic": "Bgm02/WhenTheMorningComes",
+  "isReturnMap": false,
+  "returnMap": 10002000,
+  "portals": [
+    {
+      "portalName": "sp",
+      "toName": "",
+      "type": 0,
+      "toMap": 999999999,
+      "x": -275,
+      "y": 54,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": -275,
+        "y": 54,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -275,
+          "y": 54,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 54,
+        "right": -274,
+        "bottom": 55,
+        "left": -275
+      }
+    },
+    {
+      "portalName": "sp",
+      "toName": "",
+      "type": 0,
+      "toMap": 999999999,
+      "x": -205,
+      "y": 54,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": -205,
+        "y": 54,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -205,
+          "y": 54,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 54,
+        "right": -204,
+        "bottom": 55,
+        "left": -205
+      }
+    },
+    {
+      "portalName": "sp",
+      "toName": "",
+      "type": 0,
+      "toMap": 999999999,
+      "x": -128,
+      "y": 50,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": -128,
+        "y": 50,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -128,
+          "y": 50,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 50,
+        "right": -127,
+        "bottom": 51,
+        "left": -128
+      }
+    },
+    {
+      "portalName": "sp",
+      "toName": "",
+      "type": 0,
+      "toMap": 999999999,
+      "x": -55,
+      "y": 54,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": -55,
+        "y": 54,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -55,
+          "y": 54,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 54,
+        "right": -54,
+        "bottom": 55,
+        "left": -55
+      }
+    },
+    {
+      "portalName": "out01",
+      "toName": "",
+      "type": 1,
+      "toMap": 999999999,
+      "x": -200,
+      "y": -271,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": -200,
+        "y": -271,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -200,
+          "y": -271,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": -271,
+        "right": -199,
+        "bottom": -270,
+        "left": -200
+      }
+    },
+    {
+      "portalName": "jobout00",
+      "toName": "jobin00",
+      "type": 2,
+      "toMap": 10002000,
+      "x": 253,
+      "y": 184,
+      "linkToMap": "/map/10002000",
+      "toMapName": {
+        "name": "Ellinia",
+        "streetName": "Victoria Road",
+        "id": 10002000
+      },
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": false,
+      "bounds": {
+        "x": 253,
+        "y": 184,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 253,
+          "y": 184,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 184,
+        "right": 254,
+        "bottom": 185,
+        "left": 253
+      }
+    },
+    {
+      "portalName": "sp",
+      "toName": "",
+      "type": 0,
+      "toMap": 999999999,
+      "x": 69,
+      "y": 50,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": 69,
+        "y": 50,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 69,
+          "y": 50,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 50,
+        "right": 70,
+        "bottom": 51,
+        "left": 69
+      }
+    },
+    {
+      "portalName": "sp",
+      "toName": "",
+      "type": 0,
+      "toMap": 999999999,
+      "x": 125,
+      "y": 136,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": 125,
+        "y": 136,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 125,
+          "y": 136,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 136,
+        "right": 126,
+        "bottom": 137,
+        "left": 125
+      }
+    },
+    {
+      "portalName": "sp",
+      "toName": "",
+      "type": 0,
+      "toMap": 999999999,
+      "x": 195,
+      "y": 131,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": 195,
+        "y": 131,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 195,
+          "y": 131,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 131,
+        "right": 196,
+        "bottom": 132,
+        "left": 195
+      }
+    },
+    {
+      "portalName": "sp",
+      "toName": "",
+      "type": 0,
+      "toMap": 999999999,
+      "x": -74,
+      "y": -136,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": -74,
+        "y": -136,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -74,
+          "y": -136,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": -136,
+        "right": -73,
+        "bottom": -135,
+        "left": -74
+      }
+    },
+    null
+  ],
+  "npcs": [
+    {
+      "x": -7,
+      "y": -77,
+      "walkAreaX1": -57,
+      "walkAreaX2": 43,
+      "id": 313,
+      "footholdId": 17,
+      "foothold": {
+        "id": 17,
+        "next": 0,
+        "prev": 0,
+        "piece": 0,
+        "x1": -51,
+        "x2": 52,
+        "y1": -77,
+        "y2": -77,
+        "layerId": 2,
+        "groupId": 1
+      },
+      "hidden": false,
+      "type": 0,
+      "link": "/npc/313",
+      "index": 0,
+      "position": {},
+      "bounds": {
+        "x": -7,
+        "y": -77,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -7,
+          "y": -77,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": -77,
+        "right": -6,
+        "bottom": -76,
+        "left": -7
+      },
+      "flip": true
+    }
+  ],
+  "mobs": [],
+  "mobRate": 1,
+  "isTown": true,
+  "isSwim": false,
+  "mapMark": "Ellinia",
+  "footholds": {
+    "20": {
+      "id": 20,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 134,
+      "x2": 207,
+      "y1": 115,
+      "y2": 115,
+      "layerId": 2,
+      "groupId": 1
+    },
+    "27": {
+      "id": 27,
+      "next": 26,
+      "prev": 0,
+      "piece": 15,
+      "x1": -267,
+      "x2": -187,
+      "y1": -390,
+      "y2": -376,
+      "layerId": 7,
+      "groupId": 7
+    },
+    "26": {
+      "id": 26,
+      "next": 0,
+      "prev": 27,
+      "piece": 15,
+      "x1": -187,
+      "x2": -105,
+      "y1": -376,
+      "y2": -367,
+      "layerId": 7,
+      "groupId": 7
+    },
+    "12": {
+      "id": 12,
+      "next": 13,
+      "prev": 0,
+      "piece": 0,
+      "x1": 266,
+      "x2": 304,
+      "y1": -300,
+      "y2": -306,
+      "layerId": 0,
+      "groupId": 3
+    },
+    "8": {
+      "id": 8,
+      "next": 9,
+      "prev": 7,
+      "piece": 0,
+      "x1": 119,
+      "x2": 232,
+      "y1": -247,
+      "y2": -253,
+      "layerId": 0,
+      "groupId": 3
+    },
+    "3": {
+      "id": 3,
+      "next": 4,
+      "prev": 2,
+      "piece": 0,
+      "x1": -297,
+      "x2": -254,
+      "y1": -264,
+      "y2": -256,
+      "layerId": 0,
+      "groupId": 3
+    },
+    "11": {
+      "id": 11,
+      "next": 0,
+      "prev": 10,
+      "piece": 0,
+      "x1": 340,
+      "x2": 340,
+      "y1": -257,
+      "y2": -518,
+      "layerId": 0,
+      "groupId": 3
+    },
+    "1": {
+      "id": 1,
+      "next": 2,
+      "prev": 0,
+      "piece": 0,
+      "x1": -340,
+      "x2": -340,
+      "y1": -510,
+      "y2": -259,
+      "layerId": 0,
+      "groupId": 3
+    },
+    "10": {
+      "id": 10,
+      "next": 11,
+      "prev": 9,
+      "piece": 0,
+      "x1": 289,
+      "x2": 340,
+      "y1": -260,
+      "y2": -257,
+      "layerId": 0,
+      "groupId": 3
+    },
+    "6": {
+      "id": 6,
+      "next": 7,
+      "prev": 5,
+      "piece": 0,
+      "x1": -66,
+      "x2": 23,
+      "y1": -245,
+      "y2": -244,
+      "layerId": 0,
+      "groupId": 3
+    },
+    "17": {
+      "id": 17,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -51,
+      "x2": 52,
+      "y1": -77,
+      "y2": -77,
+      "layerId": 2,
+      "groupId": 1
+    },
+    "22": {
+      "id": 22,
+      "next": 0,
+      "prev": 23,
+      "piece": 9,
+      "x1": -196,
+      "x2": -114,
+      "y1": -327,
+      "y2": -318,
+      "layerId": 7,
+      "groupId": 7
+    },
+    "4": {
+      "id": 4,
+      "next": 5,
+      "prev": 3,
+      "piece": 0,
+      "x1": -254,
+      "x2": -161,
+      "y1": -256,
+      "y2": -249,
+      "layerId": 0,
+      "groupId": 3
+    },
+    "21": {
+      "id": 21,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 150,
+      "x2": 190,
+      "y1": 63,
+      "y2": 63,
+      "layerId": 2,
+      "groupId": 1
+    },
+    "2": {
+      "id": 2,
+      "next": 3,
+      "prev": 1,
+      "piece": 0,
+      "x1": -340,
+      "x2": -297,
+      "y1": -259,
+      "y2": -264,
+      "layerId": 0,
+      "groupId": 3
+    },
+    "14": {
+      "id": 14,
+      "next": 15,
+      "prev": 0,
+      "piece": 0,
+      "x1": -340,
+      "x2": -340,
+      "y1": -254,
+      "y2": 184,
+      "layerId": 2,
+      "groupId": 1
+    },
+    "7": {
+      "id": 7,
+      "next": 8,
+      "prev": 6,
+      "piece": 0,
+      "x1": 23,
+      "x2": 119,
+      "y1": -244,
+      "y2": -247,
+      "layerId": 0,
+      "groupId": 3
+    },
+    "13": {
+      "id": 13,
+      "next": 0,
+      "prev": 12,
+      "piece": 0,
+      "x1": 304,
+      "x2": 338,
+      "y1": -306,
+      "y2": -302,
+      "layerId": 0,
+      "groupId": 3
+    },
+    "5": {
+      "id": 5,
+      "next": 6,
+      "prev": 4,
+      "piece": 0,
+      "x1": -161,
+      "x2": -66,
+      "y1": -249,
+      "y2": -245,
+      "layerId": 0,
+      "groupId": 3
+    },
+    "19": {
+      "id": 19,
+      "next": 0,
+      "prev": 18,
+      "piece": 0,
+      "x1": 277,
+      "x2": 294,
+      "y1": 0,
+      "y2": 3,
+      "layerId": 2,
+      "groupId": 1
+    },
+    "25": {
+      "id": 25,
+      "next": 24,
+      "prev": 0,
+      "piece": 14,
+      "x1": -268,
+      "x2": -188,
+      "y1": -284,
+      "y2": -270,
+      "layerId": 7,
+      "groupId": 7
+    },
+    "18": {
+      "id": 18,
+      "next": 19,
+      "prev": 0,
+      "piece": 0,
+      "x1": 201,
+      "x2": 277,
+      "y1": 0,
+      "y2": 0,
+      "layerId": 2,
+      "groupId": 1
+    },
+    "24": {
+      "id": 24,
+      "next": 0,
+      "prev": 25,
+      "piece": 14,
+      "x1": -188,
+      "x2": -106,
+      "y1": -270,
+      "y2": -261,
+      "layerId": 7,
+      "groupId": 7
+    },
+    "23": {
+      "id": 23,
+      "next": 22,
+      "prev": 0,
+      "piece": 9,
+      "x1": -276,
+      "x2": -196,
+      "y1": -341,
+      "y2": -327,
+      "layerId": 7,
+      "groupId": 7
+    },
+    "9": {
+      "id": 9,
+      "next": 10,
+      "prev": 8,
+      "piece": 0,
+      "x1": 232,
+      "x2": 289,
+      "y1": -253,
+      "y2": -260,
+      "layerId": 0,
+      "groupId": 3
+    },
+    "16": {
+      "id": 16,
+      "next": 0,
+      "prev": 15,
+      "piece": 0,
+      "x1": 339,
+      "x2": 339,
+      "y1": 184,
+      "y2": -251,
+      "layerId": 2,
+      "groupId": 1
+    },
+    "15": {
+      "id": 15,
+      "next": 16,
+      "prev": 14,
+      "piece": 0,
+      "x1": -340,
+      "x2": 339,
+      "y1": 184,
+      "y2": 184,
+      "layerId": 2,
+      "groupId": 1
+    }
+  },
+  "vrBounds": {
+    "x": -400,
+    "y": -520,
+    "width": 800,
+    "height": 820,
+    "location": {
+      "x": -400,
+      "y": -520,
+      "isEmpty": false
+    },
+    "size": {
+      "width": 800,
+      "height": 820,
+      "isEmpty": false
+    },
+    "isEmpty": false,
+    "top": -520,
+    "right": 400,
+    "bottom": 300,
+    "left": -400
+  },
+  "returnMapName": {
+    "name": "Ellinia",
+    "streetName": "Victoria Road",
+    "id": 10002000
+  },
+  "ladderRopes": [
+    {
+      "x": 251,
+      "y1": -253,
+      "y2": -17,
+      "isLadder": true
+    },
+    {
+      "x": -486,
+      "y1": 444,
+      "y2": 688,
+      "isLadder": false
+    }
+  ],
+  "name": "Magic Library",
+  "streetName": "Victoria Road",
+  "id": 10002003
+}

@@ -1,0 +1,29 @@
+{
+  "id": 42,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 23,
+    "maxHP": 462,
+    "maxMP": 30,
+    "speed": -30,
+    "physicalDamage": 117,
+    "physicalDefense": 0,
+    "magicDamage": 0,
+    "magicDefense": 30,
+    "accuracy": 99,
+    "evasion": 14,
+    "exp": 43,
+    "isUndead": false,
+    "minimumPushDamage": 40,
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Wooden Mask",
+  "framebooks": {
+    "move": 6,
+    "stand": 6,
+    "hit1": 1,
+    "die1": 8
+  },
+  "foundAt": []
+}

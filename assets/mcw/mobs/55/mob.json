@@ -1,0 +1,39 @@
+{
+  "id": 55,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 40,
+    "maxHP": 1722,
+    "maxMP": 50,
+    "speed": -15,
+    "physicalDamage": 216,
+    "physicalDefense": 10,
+    "magicDamage": 0,
+    "magicDefense": 0,
+    "accuracy": 120,
+    "evasion": 25,
+    "exp": 85,
+    "isUndead": false,
+    "minimumPushDamage": 175,
+    "elementalAttributes": "I2F3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Raffle",
+  "framebooks": {
+    "stand": 6,
+    "move": 6,
+    "hit1": 1,
+    "die1": 10,
+    "jump": 1
+  },
+  "foundAt": [],
+  "names": {
+    "en": "Raffle",
+    "es": "Raffle",
+    "ko": "\ub77c\ud50c"
+  },
+  "untranslated": [
+    "es"
+  ]
+}

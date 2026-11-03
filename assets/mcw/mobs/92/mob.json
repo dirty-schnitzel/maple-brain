@@ -1,0 +1,38 @@
+{
+  "id": 92,
+  "linksTo": 10,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 200,
+    "maxHP": 9999,
+    "maxMP": 0,
+    "speed": 5,
+    "physicalDamage": 64,
+    "physicalDefense": 999,
+    "magicDamage": 0,
+    "magicDefense": 999,
+    "accuracy": 999,
+    "evasion": 999,
+    "exp": 0,
+    "isUndead": false,
+    "minimumPushDamage": 9999,
+    "summonType": 1,
+    "revivesMonsterId": [],
+    "linksToOtherMob": 10,
+    "isInvincible": true
+  },
+  "name": "Super Ribbon Pig",
+  "framebooks": {
+    "move": 3,
+    "stand": 3,
+    "jump": 1,
+    "hit1": 1,
+    "die1": 3
+  },
+  "foundAt": [],
+  "names": {
+    "en": "Super Ribbon Pig",
+    "es": "Supercerdo con lazo",
+    "ko": "\uc288\ud37c \ub9ac\ubcf8 \ub3fc\uc9c0"
+  }
+}

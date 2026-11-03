@@ -1,0 +1,28 @@
+{
+  "id": 47,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 55,
+    "maxHP": 2998,
+    "maxMP": 90,
+    "flySpeed": -30,
+    "physicalDamage": 226,
+    "physicalDefense": 0,
+    "magicDamage": 311,
+    "magicDefense": 50,
+    "accuracy": 146,
+    "evasion": 33,
+    "exp": 167,
+    "minimumPushDamage": 325,
+    "elementalAttributes": "F2I2H3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Malady",
+  "framebooks": {
+    "fly": 4,
+    "hit1": 1,
+    "die1": 3
+  },
+  "foundAt": []
+}

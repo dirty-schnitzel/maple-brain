@@ -1,0 +1,1856 @@
+{
+  "backgroundMusic": "Bgm01/BadGuys",
+  "isReturnMap": false,
+  "returnMap": 10003000,
+  "portals": [
+    {
+      "portalName": "sp",
+      "toName": "",
+      "type": 0,
+      "toMap": 999999999,
+      "x": -1491,
+      "y": -81,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": -1491,
+        "y": -81,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -1491,
+          "y": -81,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": -81,
+        "right": -1490,
+        "bottom": -80,
+        "left": -1491
+      }
+    },
+    {
+      "portalName": "out00",
+      "toName": "hiden00",
+      "type": 2,
+      "toMap": 10003080,
+      "x": -1599,
+      "y": -95,
+      "linkToMap": "/map/10003080",
+      "toMapName": {
+        "name": "Construction Site North of Kerning City",
+        "streetName": "Victoria Road",
+        "id": 10003080,
+        "names": {
+          "en": "Construction Site North of Kerning City",
+          "es": "Sitio de construcci\u00f3n al norte de Ciudad de Kerning",
+          "ko": "\ucee4\ub2dd\uc2dc\ud2f0 \ubd81\ucabd \uacf5\uc0ac\uc7a5"
+        }
+      },
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": false,
+      "bounds": {
+        "x": -1599,
+        "y": -95,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -1599,
+          "y": -95,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": -95,
+        "right": -1598,
+        "bottom": -94,
+        "left": -1599
+      }
+    }
+  ],
+  "npcs": [],
+  "mobs": [
+    {
+      "x": -1284,
+      "y": 726,
+      "walkAreaX1": -2130,
+      "walkAreaX2": -750,
+      "id": 16,
+      "footholdId": 12,
+      "foothold": {
+        "id": 12,
+        "next": 9,
+        "prev": 13,
+        "piece": -1,
+        "x1": -1305,
+        "x2": -1215,
+        "y1": 726,
+        "y2": 726,
+        "layerId": 4,
+        "groupId": 0
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/16",
+      "index": 1,
+      "name": "Blue Mushroom",
+      "position": {},
+      "bounds": {
+        "x": -1284,
+        "y": 726,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -1284,
+          "y": 726,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 726,
+        "right": -1283,
+        "bottom": 727,
+        "left": -1284
+      },
+      "flip": false
+    },
+    {
+      "x": -1801,
+      "y": 231,
+      "walkAreaX1": -1944,
+      "walkAreaX2": -786,
+      "id": 12,
+      "footholdId": 56,
+      "foothold": {
+        "id": 56,
+        "next": 53,
+        "prev": 0,
+        "piece": 0,
+        "x1": -1964,
+        "x2": -1594,
+        "y1": 231,
+        "y2": 231,
+        "layerId": 3,
+        "groupId": 11
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/12",
+      "index": 2,
+      "name": "Octopus",
+      "position": {},
+      "bounds": {
+        "x": -1801,
+        "y": 231,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -1801,
+          "y": 231,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 231,
+        "right": -1800,
+        "bottom": 232,
+        "left": -1801
+      },
+      "flip": false
+    },
+    {
+      "x": -1678,
+      "y": 231,
+      "walkAreaX1": -1944,
+      "walkAreaX2": -786,
+      "id": 12,
+      "footholdId": 56,
+      "foothold": {
+        "id": 56,
+        "next": 53,
+        "prev": 0,
+        "piece": 0,
+        "x1": -1964,
+        "x2": -1594,
+        "y1": 231,
+        "y2": 231,
+        "layerId": 3,
+        "groupId": 11
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/12",
+      "index": 3,
+      "name": "Octopus",
+      "position": {},
+      "bounds": {
+        "x": -1678,
+        "y": 231,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -1678,
+          "y": 231,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 231,
+        "right": -1677,
+        "bottom": 232,
+        "left": -1678
+      },
+      "flip": false
+    },
+    {
+      "x": -1395,
+      "y": 231,
+      "walkAreaX1": -1944,
+      "walkAreaX2": -786,
+      "id": 12,
+      "footholdId": 53,
+      "foothold": {
+        "id": 53,
+        "next": 0,
+        "prev": 56,
+        "piece": 0,
+        "x1": -1594,
+        "x2": -1309,
+        "y1": 231,
+        "y2": 231,
+        "layerId": 3,
+        "groupId": 11
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/12",
+      "index": 4,
+      "name": "Octopus",
+      "position": {},
+      "bounds": {
+        "x": -1395,
+        "y": 231,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -1395,
+          "y": 231,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 231,
+        "right": -1394,
+        "bottom": 232,
+        "left": -1395
+      },
+      "flip": false
+    },
+    {
+      "x": -855,
+      "y": 231,
+      "walkAreaX1": -1944,
+      "walkAreaX2": -786,
+      "id": 12,
+      "footholdId": 57,
+      "foothold": {
+        "id": 57,
+        "next": 0,
+        "prev": 54,
+        "piece": 0,
+        "x1": -903,
+        "x2": -766,
+        "y1": 231,
+        "y2": 231,
+        "layerId": 3,
+        "groupId": 11
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/12",
+      "index": 5,
+      "name": "Octopus",
+      "position": {},
+      "bounds": {
+        "x": -855,
+        "y": 231,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -855,
+          "y": 231,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 231,
+        "right": -854,
+        "bottom": 232,
+        "left": -855
+      },
+      "flip": false
+    },
+    {
+      "x": -1394,
+      "y": 497,
+      "walkAreaX1": -1942,
+      "walkAreaX2": -789,
+      "id": 12,
+      "footholdId": 41,
+      "foothold": {
+        "id": 41,
+        "next": 40,
+        "prev": 43,
+        "piece": 0,
+        "x1": -1564,
+        "x2": -1310,
+        "y1": 497,
+        "y2": 497,
+        "layerId": 4,
+        "groupId": 4
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/12",
+      "index": 6,
+      "name": "Octopus",
+      "position": {},
+      "bounds": {
+        "x": -1394,
+        "y": 497,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -1394,
+          "y": 497,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 497,
+        "right": -1393,
+        "bottom": 498,
+        "left": -1394
+      },
+      "flip": false
+    },
+    {
+      "x": -1145,
+      "y": 497,
+      "walkAreaX1": -1942,
+      "walkAreaX2": -789,
+      "id": 12,
+      "footholdId": 40,
+      "foothold": {
+        "id": 40,
+        "next": 39,
+        "prev": 41,
+        "piece": 0,
+        "x1": -1310,
+        "x2": -1054,
+        "y1": 497,
+        "y2": 497,
+        "layerId": 4,
+        "groupId": 4
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/12",
+      "index": 7,
+      "name": "Octopus",
+      "position": {},
+      "bounds": {
+        "x": -1145,
+        "y": 497,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -1145,
+          "y": 497,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 497,
+        "right": -1144,
+        "bottom": 498,
+        "left": -1145
+      },
+      "flip": false
+    },
+    {
+      "x": -855,
+      "y": 497,
+      "walkAreaX1": -1942,
+      "walkAreaX2": -789,
+      "id": 12,
+      "footholdId": 39,
+      "foothold": {
+        "id": 39,
+        "next": 0,
+        "prev": 40,
+        "piece": 0,
+        "x1": -1054,
+        "x2": -769,
+        "y1": 497,
+        "y2": 497,
+        "layerId": 4,
+        "groupId": 4
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/12",
+      "index": 8,
+      "name": "Octopus",
+      "position": {},
+      "bounds": {
+        "x": -855,
+        "y": 497,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -855,
+          "y": 497,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 497,
+        "right": -854,
+        "bottom": 498,
+        "left": -855
+      },
+      "flip": false
+    },
+    {
+      "x": -1876,
+      "y": 497,
+      "walkAreaX1": -1942,
+      "walkAreaX2": -789,
+      "id": 12,
+      "footholdId": 42,
+      "foothold": {
+        "id": 42,
+        "next": 43,
+        "prev": 0,
+        "piece": 0,
+        "x1": -1962,
+        "x2": -1580,
+        "y1": 497,
+        "y2": 497,
+        "layerId": 4,
+        "groupId": 4
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/12",
+      "index": 9,
+      "name": "Octopus",
+      "position": {},
+      "bounds": {
+        "x": -1876,
+        "y": 497,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -1876,
+          "y": 497,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 497,
+        "right": -1875,
+        "bottom": 498,
+        "left": -1876
+      },
+      "flip": false
+    },
+    {
+      "x": -1013,
+      "y": 666,
+      "walkAreaX1": -2130,
+      "walkAreaX2": -750,
+      "id": 16,
+      "footholdId": 4,
+      "foothold": {
+        "id": 4,
+        "next": 2,
+        "prev": 8,
+        "piece": -1,
+        "x1": -1035,
+        "x2": -945,
+        "y1": 666,
+        "y2": 666,
+        "layerId": 4,
+        "groupId": 0
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/16",
+      "index": 10,
+      "name": "Blue Mushroom",
+      "position": {},
+      "bounds": {
+        "x": -1013,
+        "y": 666,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -1013,
+          "y": 666,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 666,
+        "right": -1012,
+        "bottom": 667,
+        "left": -1013
+      },
+      "flip": false
+    },
+    {
+      "x": -1711,
+      "y": 786,
+      "walkAreaX1": -2130,
+      "walkAreaX2": -750,
+      "id": 16,
+      "footholdId": 18,
+      "foothold": {
+        "id": 18,
+        "next": 17,
+        "prev": 25,
+        "piece": -1,
+        "x1": -1755,
+        "x2": -1665,
+        "y1": 786,
+        "y2": 786,
+        "layerId": 4,
+        "groupId": 0
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/16",
+      "index": 11,
+      "name": "Blue Mushroom",
+      "position": {},
+      "bounds": {
+        "x": -1711,
+        "y": 786,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -1711,
+          "y": 786,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 786,
+        "right": -1710,
+        "bottom": 787,
+        "left": -1711
+      },
+      "flip": false
+    },
+    {
+      "x": -1570,
+      "y": 497,
+      "walkAreaX1": -1942,
+      "walkAreaX2": -789,
+      "id": 12,
+      "footholdId": 43,
+      "foothold": {
+        "id": 43,
+        "next": 41,
+        "prev": 42,
+        "piece": 0,
+        "x1": -1580,
+        "x2": -1564,
+        "y1": 497,
+        "y2": 497,
+        "layerId": 4,
+        "groupId": 4
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/12",
+      "index": 12,
+      "name": "Octopus",
+      "position": {},
+      "bounds": {
+        "x": -1570,
+        "y": 497,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -1570,
+          "y": 497,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 497,
+        "right": -1569,
+        "bottom": 498,
+        "left": -1570
+      },
+      "flip": false
+    },
+    {
+      "x": -1171,
+      "y": 231,
+      "walkAreaX1": -1944,
+      "walkAreaX2": -786,
+      "id": 12,
+      "footholdId": 54,
+      "foothold": {
+        "id": 54,
+        "next": 57,
+        "prev": 0,
+        "piece": 0,
+        "x1": -1285,
+        "x2": -903,
+        "y1": 231,
+        "y2": 231,
+        "layerId": 3,
+        "groupId": 11
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/12",
+      "index": 13,
+      "name": "Octopus",
+      "position": {},
+      "bounds": {
+        "x": -1171,
+        "y": 231,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -1171,
+          "y": 231,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 231,
+        "right": -1170,
+        "bottom": 232,
+        "left": -1171
+      },
+      "flip": false
+    },
+    {
+      "x": -1278,
+      "y": 497,
+      "walkAreaX1": -1942,
+      "walkAreaX2": -789,
+      "id": 12,
+      "footholdId": 40,
+      "foothold": {
+        "id": 40,
+        "next": 39,
+        "prev": 41,
+        "piece": 0,
+        "x1": -1310,
+        "x2": -1054,
+        "y1": 497,
+        "y2": 497,
+        "layerId": 4,
+        "groupId": 4
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/12",
+      "index": 14,
+      "name": "Octopus",
+      "position": {},
+      "bounds": {
+        "x": -1278,
+        "y": 497,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -1278,
+          "y": 497,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 497,
+        "right": -1277,
+        "bottom": 498,
+        "left": -1278
+      },
+      "flip": false
+    },
+    {
+      "x": -1532,
+      "y": 231,
+      "walkAreaX1": -1944,
+      "walkAreaX2": -786,
+      "id": 12,
+      "footholdId": 53,
+      "foothold": {
+        "id": 53,
+        "next": 0,
+        "prev": 56,
+        "piece": 0,
+        "x1": -1594,
+        "x2": -1309,
+        "y1": 231,
+        "y2": 231,
+        "layerId": 3,
+        "groupId": 11
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/12",
+      "index": 0,
+      "name": "Octopus",
+      "position": {},
+      "bounds": {
+        "x": -1532,
+        "y": 231,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -1532,
+          "y": 231,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 231,
+        "right": -1531,
+        "bottom": 232,
+        "left": -1532
+      },
+      "flip": false
+    },
+    {
+      "x": -1281,
+      "y": 171,
+      "walkAreaX1": -1944,
+      "walkAreaX2": -786,
+      "id": 9,
+      "footholdId": 55,
+      "foothold": {
+        "id": 55,
+        "next": 0,
+        "prev": 0,
+        "piece": 0,
+        "x1": -1355,
+        "x2": -1239,
+        "y1": 171,
+        "y2": 171,
+        "layerId": 3,
+        "groupId": 11
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/9",
+      "index": 15,
+      "name": "Orange Mushroom",
+      "position": {},
+      "bounds": {
+        "x": -1281,
+        "y": 171,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -1281,
+          "y": 171,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 171,
+        "right": -1280,
+        "bottom": 172,
+        "left": -1281
+      },
+      "flip": false
+    },
+    {
+      "x": -1050,
+      "y": 437,
+      "walkAreaX1": -1942,
+      "walkAreaX2": -789,
+      "id": 9,
+      "footholdId": 44,
+      "foothold": {
+        "id": 44,
+        "next": 0,
+        "prev": 0,
+        "piece": 0,
+        "x1": -1108,
+        "x2": -992,
+        "y1": 437,
+        "y2": 437,
+        "layerId": 4,
+        "groupId": 4
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/9",
+      "index": 16,
+      "name": "Orange Mushroom",
+      "position": {},
+      "bounds": {
+        "x": -1050,
+        "y": 437,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -1050,
+          "y": 437,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 437,
+        "right": -1049,
+        "bottom": 438,
+        "left": -1050
+      },
+      "flip": false
+    },
+    {
+      "x": -1694,
+      "y": 436,
+      "walkAreaX1": -1727,
+      "walkAreaX2": -1651,
+      "id": 9,
+      "footholdId": 45,
+      "foothold": {
+        "id": 45,
+        "next": 0,
+        "prev": 0,
+        "piece": 0,
+        "x1": -1747,
+        "x2": -1631,
+        "y1": 436,
+        "y2": 436,
+        "layerId": 4,
+        "groupId": 9
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/9",
+      "index": 17,
+      "name": "Orange Mushroom",
+      "position": {},
+      "bounds": {
+        "x": -1694,
+        "y": 436,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -1694,
+          "y": 436,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 436,
+        "right": -1693,
+        "bottom": 437,
+        "left": -1694
+      },
+      "flip": false
+    },
+    {
+      "x": -1468,
+      "y": 726,
+      "walkAreaX1": -2130,
+      "walkAreaX2": -750,
+      "id": 9,
+      "footholdId": 11,
+      "foothold": {
+        "id": 11,
+        "next": 16,
+        "prev": 15,
+        "piece": -1,
+        "x1": -1485,
+        "x2": -1450,
+        "y1": 726,
+        "y2": 726,
+        "layerId": 4,
+        "groupId": 0
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/9",
+      "index": 18,
+      "name": "Orange Mushroom",
+      "position": {},
+      "bounds": {
+        "x": -1468,
+        "y": 726,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -1468,
+          "y": 726,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 726,
+        "right": -1467,
+        "bottom": 727,
+        "left": -1468
+      },
+      "flip": false
+    },
+    {
+      "x": -1898,
+      "y": 786,
+      "walkAreaX1": -2130,
+      "walkAreaX2": -750,
+      "id": 9,
+      "footholdId": 19,
+      "foothold": {
+        "id": 19,
+        "next": 25,
+        "prev": 24,
+        "piece": -1,
+        "x1": -1935,
+        "x2": -1845,
+        "y1": 786,
+        "y2": 786,
+        "layerId": 4,
+        "groupId": 0
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/9",
+      "index": 19,
+      "name": "Orange Mushroom",
+      "position": {},
+      "bounds": {
+        "x": -1898,
+        "y": 786,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -1898,
+          "y": 786,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 786,
+        "right": -1897,
+        "bottom": 787,
+        "left": -1898
+      },
+      "flip": false
+    },
+    {
+      "x": -852,
+      "y": 666,
+      "walkAreaX1": -2130,
+      "walkAreaX2": -750,
+      "id": 9,
+      "footholdId": 1,
+      "foothold": {
+        "id": 1,
+        "next": 30,
+        "prev": 2,
+        "piece": -1,
+        "x1": -855,
+        "x2": -800,
+        "y1": 666,
+        "y2": 666,
+        "layerId": 4,
+        "groupId": 0
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/9",
+      "index": 20,
+      "name": "Orange Mushroom",
+      "position": {},
+      "bounds": {
+        "x": -852,
+        "y": 666,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -852,
+          "y": 666,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 666,
+        "right": -851,
+        "bottom": 667,
+        "left": -852
+      },
+      "flip": false
+    }
+  ],
+  "mobRate": 1.8000004291534424,
+  "isTown": false,
+  "isSwim": false,
+  "mapMark": "KerningCity",
+  "miniMap": {
+    "centerX": 2140,
+    "centerY": 455,
+    "height": 1431,
+    "width": 1400,
+    "magnification": 4,
+    "canvas": "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"
+  },
+  "footholds": {
+    "23": {
+      "id": 23,
+      "next": 26,
+      "prev": 22,
+      "piece": -1,
+      "x1": -2150,
+      "x2": -2080,
+      "y1": 786,
+      "y2": 786,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "2": {
+      "id": 2,
+      "next": 1,
+      "prev": 4,
+      "piece": -1,
+      "x1": -945,
+      "x2": -855,
+      "y1": 666,
+      "y2": 666,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "34": {
+      "id": 34,
+      "next": 0,
+      "prev": 36,
+      "piece": -1,
+      "x1": -730,
+      "x2": -730,
+      "y1": 990,
+      "y2": 1050,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "45": {
+      "id": 45,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -1747,
+      "x2": -1631,
+      "y1": 436,
+      "y2": 436,
+      "layerId": 4,
+      "groupId": 9
+    },
+    "56": {
+      "id": 56,
+      "next": 53,
+      "prev": 0,
+      "piece": 0,
+      "x1": -1964,
+      "x2": -1594,
+      "y1": 231,
+      "y2": 231,
+      "layerId": 3,
+      "groupId": 11
+    },
+    "19": {
+      "id": 19,
+      "next": 25,
+      "prev": 24,
+      "piece": -1,
+      "x1": -1935,
+      "x2": -1845,
+      "y1": 786,
+      "y2": 786,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "10": {
+      "id": 10,
+      "next": 6,
+      "prev": 9,
+      "piece": -1,
+      "x1": -1160,
+      "x2": -1160,
+      "y1": 726,
+      "y2": 690,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "21": {
+      "id": 21,
+      "next": 14,
+      "prev": 20,
+      "piece": -1,
+      "x1": -1520,
+      "x2": -1520,
+      "y1": 786,
+      "y2": 751,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "32": {
+      "id": 32,
+      "next": 33,
+      "prev": 31,
+      "piece": -1,
+      "x1": -730,
+      "x2": -730,
+      "y1": 666,
+      "y2": 691,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "43": {
+      "id": 43,
+      "next": 41,
+      "prev": 42,
+      "piece": 0,
+      "x1": -1580,
+      "x2": -1564,
+      "y1": 497,
+      "y2": 497,
+      "layerId": 4,
+      "groupId": 4
+    },
+    "4": {
+      "id": 4,
+      "next": 2,
+      "prev": 8,
+      "piece": -1,
+      "x1": -1035,
+      "x2": -945,
+      "y1": 666,
+      "y2": 666,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "54": {
+      "id": 54,
+      "next": 57,
+      "prev": 0,
+      "piece": 0,
+      "x1": -1285,
+      "x2": -903,
+      "y1": 231,
+      "y2": 231,
+      "layerId": 3,
+      "groupId": 11
+    },
+    "30": {
+      "id": 30,
+      "next": 31,
+      "prev": 1,
+      "piece": -1,
+      "x1": -800,
+      "x2": -765,
+      "y1": 666,
+      "y2": 666,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "41": {
+      "id": 41,
+      "next": 40,
+      "prev": 43,
+      "piece": 0,
+      "x1": -1564,
+      "x2": -1310,
+      "y1": 497,
+      "y2": 497,
+      "layerId": 4,
+      "groupId": 4
+    },
+    "52": {
+      "id": 52,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -991,
+      "x2": -927,
+      "y1": 139,
+      "y2": 139,
+      "layerId": 2,
+      "groupId": 12
+    },
+    "6": {
+      "id": 6,
+      "next": 7,
+      "prev": 10,
+      "piece": -1,
+      "x1": -1160,
+      "x2": -1160,
+      "y1": 690,
+      "y2": 666,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "50": {
+      "id": 50,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -1032,
+      "x2": -912,
+      "y1": 190,
+      "y2": 190,
+      "layerId": 2,
+      "groupId": 12
+    },
+    "16": {
+      "id": 16,
+      "next": 13,
+      "prev": 11,
+      "piece": -1,
+      "x1": -1450,
+      "x2": -1395,
+      "y1": 726,
+      "y2": 726,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "27": {
+      "id": 27,
+      "next": 3,
+      "prev": 0,
+      "piece": -1,
+      "x1": -2150,
+      "x2": -2150,
+      "y1": 1050,
+      "y2": 990,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "14": {
+      "id": 14,
+      "next": 15,
+      "prev": 21,
+      "piece": -1,
+      "x1": -1520,
+      "x2": -1520,
+      "y1": 751,
+      "y2": 726,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "18": {
+      "id": 18,
+      "next": 17,
+      "prev": 25,
+      "piece": -1,
+      "x1": -1755,
+      "x2": -1665,
+      "y1": 786,
+      "y2": 786,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "25": {
+      "id": 25,
+      "next": 18,
+      "prev": 19,
+      "piece": -1,
+      "x1": -1845,
+      "x2": -1755,
+      "y1": 786,
+      "y2": 786,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "29": {
+      "id": 29,
+      "next": 22,
+      "prev": 28,
+      "piece": -1,
+      "x1": -2150,
+      "x2": -2150,
+      "y1": 870,
+      "y2": 811,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "5": {
+      "id": 5,
+      "next": 8,
+      "prev": 7,
+      "piece": -1,
+      "x1": -1125,
+      "x2": -1090,
+      "y1": 666,
+      "y2": 666,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "12": {
+      "id": 12,
+      "next": 9,
+      "prev": 13,
+      "piece": -1,
+      "x1": -1305,
+      "x2": -1215,
+      "y1": 726,
+      "y2": 726,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "38": {
+      "id": 38,
+      "next": 36,
+      "prev": 37,
+      "piece": -1,
+      "x1": -730,
+      "x2": -730,
+      "y1": 870,
+      "y2": 930,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "49": {
+      "id": 49,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -1082,
+      "x2": -1038,
+      "y1": 173,
+      "y2": 173,
+      "layerId": 2,
+      "groupId": 12
+    },
+    "51": {
+      "id": 51,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -1042,
+      "x2": -871,
+      "y1": 210,
+      "y2": 210,
+      "layerId": 2,
+      "groupId": 12
+    },
+    "7": {
+      "id": 7,
+      "next": 5,
+      "prev": 6,
+      "piece": -1,
+      "x1": -1160,
+      "x2": -1125,
+      "y1": 666,
+      "y2": 666,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "17": {
+      "id": 17,
+      "next": 20,
+      "prev": 18,
+      "piece": -1,
+      "x1": -1665,
+      "x2": -1575,
+      "y1": 786,
+      "y2": 786,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "15": {
+      "id": 15,
+      "next": 11,
+      "prev": 14,
+      "piece": -1,
+      "x1": -1520,
+      "x2": -1485,
+      "y1": 726,
+      "y2": 726,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "26": {
+      "id": 26,
+      "next": 24,
+      "prev": 23,
+      "piece": -1,
+      "x1": -2080,
+      "x2": -2025,
+      "y1": 786,
+      "y2": 786,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "37": {
+      "id": 37,
+      "next": 38,
+      "prev": 35,
+      "piece": -1,
+      "x1": -730,
+      "x2": -730,
+      "y1": 810,
+      "y2": 870,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "13": {
+      "id": 13,
+      "next": 12,
+      "prev": 16,
+      "piece": -1,
+      "x1": -1395,
+      "x2": -1305,
+      "y1": 726,
+      "y2": 726,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "1": {
+      "id": 1,
+      "next": 30,
+      "prev": 2,
+      "piece": -1,
+      "x1": -855,
+      "x2": -800,
+      "y1": 666,
+      "y2": 666,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "24": {
+      "id": 24,
+      "next": 19,
+      "prev": 26,
+      "piece": -1,
+      "x1": -2025,
+      "x2": -1935,
+      "y1": 786,
+      "y2": 786,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "35": {
+      "id": 35,
+      "next": 37,
+      "prev": 33,
+      "piece": -1,
+      "x1": -730,
+      "x2": -730,
+      "y1": 750,
+      "y2": 810,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "28": {
+      "id": 28,
+      "next": 29,
+      "prev": 3,
+      "piece": -1,
+      "x1": -2150,
+      "x2": -2150,
+      "y1": 930,
+      "y2": 870,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "46": {
+      "id": 46,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -1654,
+      "x2": -1538,
+      "y1": -95,
+      "y2": -95,
+      "layerId": 2,
+      "groupId": 13
+    },
+    "39": {
+      "id": 39,
+      "next": 0,
+      "prev": 40,
+      "piece": 0,
+      "x1": -1054,
+      "x2": -769,
+      "y1": 497,
+      "y2": 497,
+      "layerId": 4,
+      "groupId": 4
+    },
+    "57": {
+      "id": 57,
+      "next": 0,
+      "prev": 54,
+      "piece": 0,
+      "x1": -903,
+      "x2": -766,
+      "y1": 231,
+      "y2": 231,
+      "layerId": 3,
+      "groupId": 11
+    },
+    "9": {
+      "id": 9,
+      "next": 10,
+      "prev": 12,
+      "piece": -1,
+      "x1": -1215,
+      "x2": -1160,
+      "y1": 726,
+      "y2": 726,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "11": {
+      "id": 11,
+      "next": 16,
+      "prev": 15,
+      "piece": -1,
+      "x1": -1485,
+      "x2": -1450,
+      "y1": 726,
+      "y2": 726,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "22": {
+      "id": 22,
+      "next": 23,
+      "prev": 29,
+      "piece": -1,
+      "x1": -2150,
+      "x2": -2150,
+      "y1": 811,
+      "y2": 786,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "33": {
+      "id": 33,
+      "next": 35,
+      "prev": 32,
+      "piece": -1,
+      "x1": -730,
+      "x2": -730,
+      "y1": 691,
+      "y2": 750,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "3": {
+      "id": 3,
+      "next": 28,
+      "prev": 27,
+      "piece": -1,
+      "x1": -2150,
+      "x2": -2150,
+      "y1": 990,
+      "y2": 930,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "44": {
+      "id": 44,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -1108,
+      "x2": -992,
+      "y1": 437,
+      "y2": 437,
+      "layerId": 4,
+      "groupId": 4
+    },
+    "55": {
+      "id": 55,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -1355,
+      "x2": -1239,
+      "y1": 171,
+      "y2": 171,
+      "layerId": 3,
+      "groupId": 11
+    },
+    "48": {
+      "id": 48,
+      "next": 47,
+      "prev": 0,
+      "piece": 0,
+      "x1": -1730,
+      "x2": -1581,
+      "y1": -35,
+      "y2": -35,
+      "layerId": 2,
+      "groupId": 13
+    },
+    "20": {
+      "id": 20,
+      "next": 21,
+      "prev": 17,
+      "piece": -1,
+      "x1": -1575,
+      "x2": -1520,
+      "y1": 786,
+      "y2": 786,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "31": {
+      "id": 31,
+      "next": 32,
+      "prev": 30,
+      "piece": -1,
+      "x1": -765,
+      "x2": -730,
+      "y1": 666,
+      "y2": 666,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "42": {
+      "id": 42,
+      "next": 43,
+      "prev": 0,
+      "piece": 0,
+      "x1": -1962,
+      "x2": -1580,
+      "y1": 497,
+      "y2": 497,
+      "layerId": 4,
+      "groupId": 4
+    },
+    "53": {
+      "id": 53,
+      "next": 0,
+      "prev": 56,
+      "piece": 0,
+      "x1": -1594,
+      "x2": -1309,
+      "y1": 231,
+      "y2": 231,
+      "layerId": 3,
+      "groupId": 11
+    },
+    "40": {
+      "id": 40,
+      "next": 39,
+      "prev": 41,
+      "piece": 0,
+      "x1": -1310,
+      "x2": -1054,
+      "y1": 497,
+      "y2": 497,
+      "layerId": 4,
+      "groupId": 4
+    },
+    "36": {
+      "id": 36,
+      "next": 34,
+      "prev": 38,
+      "piece": -1,
+      "x1": -730,
+      "x2": -730,
+      "y1": 930,
+      "y2": 990,
+      "layerId": 4,
+      "groupId": 0
+    },
+    "47": {
+      "id": 47,
+      "next": 0,
+      "prev": 48,
+      "piece": 0,
+      "x1": -1581,
+      "x2": -1296,
+      "y1": -35,
+      "y2": -35,
+      "layerId": 2,
+      "groupId": 13
+    },
+    "8": {
+      "id": 8,
+      "next": 4,
+      "prev": 5,
+      "piece": -1,
+      "x1": -1090,
+      "x2": -1035,
+      "y1": 666,
+      "y2": 666,
+      "layerId": 4,
+      "groupId": 0
+    }
+  },
+  "vrBounds": {
+    "x": -2140,
+    "y": -455,
+    "width": 1400,
+    "height": 1431,
+    "location": {
+      "x": -2140,
+      "y": -455,
+      "isEmpty": false
+    },
+    "size": {
+      "width": 1400,
+      "height": 1431,
+      "isEmpty": false
+    },
+    "isEmpty": false,
+    "top": -455,
+    "right": -740,
+    "bottom": 976,
+    "left": -2140
+  },
+  "returnMapName": {
+    "name": "Kerning City",
+    "streetName": "Victoria Road",
+    "id": 10003000,
+    "names": {
+      "en": "Kerning City",
+      "es": "Ciudad de Kerning",
+      "ko": "\ucee4\ub2dd\uc2dc\ud2f0"
+    }
+  },
+  "ladderRopes": [
+    {
+      "x": -1324,
+      "y1": -33,
+      "y2": 142,
+      "isLadder": false
+    },
+    {
+      "x": -1713,
+      "y1": 233,
+      "y2": 408,
+      "isLadder": false
+    },
+    {
+      "x": -1013,
+      "y1": 233,
+      "y2": 408,
+      "isLadder": false
+    },
+    {
+      "x": -1200,
+      "y1": 499,
+      "y2": 673,
+      "isLadder": false
+    }
+  ],
+  "name": "Northern Top of Construction Site",
+  "streetName": "Hidden Street",
+  "id": 10003081,
+  "names": {
+    "en": "Northern Top of Construction Site",
+    "es": "Parte superior norte del sitio de construcci\u00f3n",
+    "ko": "\uacf5\uc0ac\uc7a5 \ubd81\ucabd \uaf2d\ub300\uae30"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": 9990002,
+  "linksTo": 9990000,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 30,
+    "maxHP": 2100000000,
+    "maxMP": 100,
+    "physicalDamage": 166,
+    "physicalDefense": 15,
+    "magicDamage": 166,
+    "magicDefense": 15,
+    "accuracy": 1,
+    "evasion": 0,
+    "minimumPushDamage": 99999,
+    "elementalAttributes": "S2",
+    "summonType": 1,
+    "revivesMonsterId": [],
+    "linksToOtherMob": 9990000
+  },
+  "name": "Test(Poison)",
+  "framebooks": {
+    "stand": 1,
+    "hit1": 1,
+    "die1": 6
+  },
+  "foundAt": []
+}

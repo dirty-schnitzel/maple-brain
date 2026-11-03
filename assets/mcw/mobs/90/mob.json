@@ -1,0 +1,32 @@
+{
+  "id": 90,
+  "linksTo": 18,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 200,
+    "maxHP": 9999,
+    "maxMP": 0,
+    "speed": 0,
+    "physicalDamage": 1,
+    "physicalDefense": 999,
+    "magicDamage": 0,
+    "magicDefense": 999,
+    "accuracy": 999,
+    "evasion": 999,
+    "exp": 0,
+    "isUndead": false,
+    "minimumPushDamage": 9999,
+    "summonType": 1,
+    "revivesMonsterId": [],
+    "linksToOtherMob": 18,
+    "isInvincible": true
+  },
+  "name": "Super Jr. Necki",
+  "framebooks": {
+    "move": 3,
+    "stand": 3,
+    "hit1": 1,
+    "die1": 3
+  },
+  "foundAt": []
+}

@@ -1,0 +1,29 @@
+{
+  "id": 2,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 1,
+    "maxHP": 45,
+    "maxMP": 30,
+    "speed": -65,
+    "physicalDamage": 3,
+    "physicalDefense": 0,
+    "magicDamage": 0,
+    "magicDefense": 0,
+    "accuracy": 33,
+    "evasion": 0,
+    "exp": 2,
+    "isUndead": false,
+    "minimumPushDamage": 1,
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Snail",
+  "framebooks": {
+    "move": 5,
+    "stand": 1,
+    "hit1": 1,
+    "die1": 9
+  },
+  "foundAt": []
+}

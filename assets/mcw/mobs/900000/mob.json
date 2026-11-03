@@ -1,0 +1,32 @@
+{
+  "id": 900000,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 20,
+    "maxHP": 1855,
+    "maxMP": 30,
+    "speed": 5,
+    "physicalDamage": 86,
+    "physicalDefense": 0,
+    "magicDamage": 0,
+    "magicDefense": 0,
+    "accuracy": 85,
+    "evasion": 6,
+    "exp": 64,
+    "minimumPushDamage": 300,
+    "hpRecovery": 10,
+    "mpRecovery": 5,
+    "summonType": 1,
+    "revivesMonsterId": [],
+    "removeAfterTime": 180
+  },
+  "name": "Orange Slime",
+  "framebooks": {
+    "move": 7,
+    "stand": 4,
+    "jump": 1,
+    "hit1": 1,
+    "die1": 4
+  },
+  "foundAt": []
+}

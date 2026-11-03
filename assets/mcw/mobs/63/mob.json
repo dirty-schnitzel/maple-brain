@@ -1,0 +1,33 @@
+{
+  "id": 63,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 59,
+    "maxHP": 4834,
+    "maxMP": 150,
+    "speed": -70,
+    "physicalDamage": 331,
+    "physicalDefense": 0,
+    "magicDamage": 331,
+    "magicDefense": 0,
+    "accuracy": 122,
+    "evasion": 32,
+    "exp": 201,
+    "isUndead": true,
+    "minimumPushDamage": 975,
+    "hpRecovery": 55,
+    "mpRecovery": 10,
+    "elementalAttributes": "F3H3S2",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Sporewood",
+  "framebooks": {
+    "stand": 6,
+    "move": 12,
+    "attack1": 12,
+    "hit1": 1,
+    "die1": 8
+  },
+  "foundAt": []
+}

@@ -1,0 +1,30 @@
+{
+  "id": 1,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 1,
+    "maxHP": 30,
+    "maxMP": 30,
+    "speed": -60,
+    "physicalDamage": 1,
+    "physicalDefense": 0,
+    "magicDamage": 0,
+    "magicDefense": 0,
+    "accuracy": 33,
+    "evasion": 0,
+    "exp": 1,
+    "isUndead": false,
+    "minimumPushDamage": 1,
+    "summonType": 1,
+    "revivesMonsterId": [],
+    "noAttack": true
+  },
+  "name": "Tutorial Jr. Sentinel",
+  "framebooks": {
+    "move": 4,
+    "stand": 4,
+    "hit1": 1,
+    "die1": 5
+  },
+  "foundAt": []
+}

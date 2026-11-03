@@ -1,0 +1,514 @@
+{
+  "backgroundMusic": "Bgm01/BadGuys",
+  "isReturnMap": false,
+  "returnMap": 10003000,
+  "portals": [
+    {
+      "portalName": "sp",
+      "toName": "",
+      "type": 0,
+      "toMap": 999999999,
+      "x": 201,
+      "y": 170,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": 201,
+        "y": 170,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 201,
+          "y": 170,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 170,
+        "right": 202,
+        "bottom": 171,
+        "left": 201
+      }
+    },
+    {
+      "portalName": "out00",
+      "toName": "in04",
+      "type": 2,
+      "toMap": 10003000,
+      "x": 297,
+      "y": 179,
+      "linkToMap": "/map/10003000",
+      "toMapName": {
+        "name": "Kerning City",
+        "streetName": "Victoria Road",
+        "id": 10003000
+      },
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": false,
+      "bounds": {
+        "x": 297,
+        "y": 179,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 297,
+          "y": 179,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 179,
+        "right": 298,
+        "bottom": 180,
+        "left": 297
+      }
+    },
+    {
+      "portalName": "out01",
+      "toName": "in04_1",
+      "type": 1,
+      "toMap": 10003000,
+      "x": 310,
+      "y": -46,
+      "linkToMap": "/map/10003000",
+      "toMapName": {
+        "name": "Kerning City",
+        "streetName": "Victoria Road",
+        "id": 10003000
+      },
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": false,
+      "bounds": {
+        "x": 310,
+        "y": -46,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 310,
+          "y": -46,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": -46,
+        "right": 311,
+        "bottom": -45,
+        "left": 310
+      }
+    },
+    null
+  ],
+  "npcs": [
+    {
+      "x": 189,
+      "y": -46,
+      "walkAreaX1": 139,
+      "walkAreaX2": 239,
+      "id": 412,
+      "footholdId": 25,
+      "foothold": {
+        "id": 25,
+        "next": 26,
+        "prev": 24,
+        "piece": 0,
+        "x1": 47,
+        "x2": 353,
+        "y1": -46,
+        "y2": -46,
+        "layerId": 2,
+        "groupId": 2
+      },
+      "hidden": false,
+      "type": 0,
+      "link": "/npc/412",
+      "index": 0,
+      "position": {},
+      "bounds": {
+        "x": 189,
+        "y": -46,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 189,
+          "y": -46,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": -46,
+        "right": 190,
+        "bottom": -45,
+        "left": 189
+      },
+      "flip": false
+    }
+  ],
+  "mobs": [],
+  "mobRate": 1,
+  "isTown": true,
+  "isSwim": false,
+  "mapMark": "KerningCity",
+  "footholds": {
+    "20": {
+      "id": 20,
+      "next": 21,
+      "prev": 19,
+      "piece": 0,
+      "x1": -356,
+      "x2": -126,
+      "y1": 219,
+      "y2": 219,
+      "layerId": 2,
+      "groupId": 2
+    },
+    "26": {
+      "id": 26,
+      "next": 0,
+      "prev": 25,
+      "piece": 0,
+      "x1": 353,
+      "x2": 353,
+      "y1": -46,
+      "y2": -287,
+      "layerId": 2,
+      "groupId": 2
+    },
+    "12": {
+      "id": 12,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 70,
+      "x2": 197,
+      "y1": 50,
+      "y2": 50,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "8": {
+      "id": 8,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 119,
+      "x2": 158,
+      "y1": -100,
+      "y2": -100,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "3": {
+      "id": 3,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -26,
+      "x2": 63,
+      "y1": 116,
+      "y2": 116,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "11": {
+      "id": 11,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -7,
+      "x2": 100,
+      "y1": -137,
+      "y2": -137,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "1": {
+      "id": 1,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 17,
+      "x2": 106,
+      "y1": 158,
+      "y2": 158,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "10": {
+      "id": 10,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 220,
+      "x2": 259,
+      "y1": -119,
+      "y2": -119,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "6": {
+      "id": 6,
+      "next": 7,
+      "prev": 0,
+      "piece": 0,
+      "x1": -76,
+      "x2": -68,
+      "y1": 61,
+      "y2": 54,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "17": {
+      "id": 17,
+      "next": 18,
+      "prev": 16,
+      "piece": 0,
+      "x1": -281,
+      "x2": -245,
+      "y1": -103,
+      "y2": -137,
+      "layerId": 2,
+      "groupId": 2
+    },
+    "22": {
+      "id": 22,
+      "next": 23,
+      "prev": 21,
+      "piece": 0,
+      "x1": -16,
+      "x2": 353,
+      "y1": 180,
+      "y2": 180,
+      "layerId": 2,
+      "groupId": 2
+    },
+    "4": {
+      "id": 4,
+      "next": 5,
+      "prev": 0,
+      "piece": 0,
+      "x1": -127,
+      "x2": -127,
+      "y1": -104,
+      "y2": 95,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "21": {
+      "id": 21,
+      "next": 22,
+      "prev": 20,
+      "piece": 0,
+      "x1": -126,
+      "x2": -16,
+      "y1": 219,
+      "y2": 180,
+      "layerId": 2,
+      "groupId": 2
+    },
+    "2": {
+      "id": 2,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -5,
+      "x2": 84,
+      "y1": 137,
+      "y2": 137,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "14": {
+      "id": 14,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -187,
+      "x2": -137,
+      "y1": 71,
+      "y2": 71,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "7": {
+      "id": 7,
+      "next": 0,
+      "prev": 6,
+      "piece": 0,
+      "x1": -68,
+      "x2": 30,
+      "y1": 54,
+      "y2": 54,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "13": {
+      "id": 13,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 83,
+      "x2": 219,
+      "y1": 143,
+      "y2": 143,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "5": {
+      "id": 5,
+      "next": 0,
+      "prev": 4,
+      "piece": 0,
+      "x1": -127,
+      "x2": 42,
+      "y1": 95,
+      "y2": 95,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "19": {
+      "id": 19,
+      "next": 20,
+      "prev": 0,
+      "piece": 0,
+      "x1": -356,
+      "x2": -356,
+      "y1": -271,
+      "y2": 219,
+      "layerId": 2,
+      "groupId": 2
+    },
+    "25": {
+      "id": 25,
+      "next": 26,
+      "prev": 24,
+      "piece": 0,
+      "x1": 47,
+      "x2": 353,
+      "y1": -46,
+      "y2": -46,
+      "layerId": 2,
+      "groupId": 2
+    },
+    "18": {
+      "id": 18,
+      "next": 0,
+      "prev": 17,
+      "piece": 0,
+      "x1": -245,
+      "x2": -3,
+      "y1": -137,
+      "y2": -137,
+      "layerId": 2,
+      "groupId": 2
+    },
+    "24": {
+      "id": 24,
+      "next": 25,
+      "prev": 0,
+      "piece": 0,
+      "x1": 47,
+      "x2": 47,
+      "y1": -130,
+      "y2": -46,
+      "layerId": 2,
+      "groupId": 2
+    },
+    "23": {
+      "id": 23,
+      "next": 26,
+      "prev": 22,
+      "piece": 0,
+      "x1": 353,
+      "x2": 353,
+      "y1": 180,
+      "y2": -46,
+      "layerId": 2,
+      "groupId": 2
+    },
+    "9": {
+      "id": 9,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 149,
+      "x2": 188,
+      "y1": -128,
+      "y2": -128,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "16": {
+      "id": 16,
+      "next": 17,
+      "prev": 15,
+      "piece": 0,
+      "x1": -285,
+      "x2": -281,
+      "y1": -68,
+      "y2": -103,
+      "layerId": 2,
+      "groupId": 2
+    },
+    "15": {
+      "id": 15,
+      "next": 16,
+      "prev": 0,
+      "piece": 0,
+      "x1": -285,
+      "x2": -285,
+      "y1": 99,
+      "y2": -68,
+      "layerId": 2,
+      "groupId": 2
+    }
+  },
+  "vrBounds": {
+    "x": -400,
+    "y": -300,
+    "width": 800,
+    "height": 600,
+    "location": {
+      "x": -400,
+      "y": -300,
+      "isEmpty": false
+    },
+    "size": {
+      "width": 800,
+      "height": 600,
+      "isEmpty": false
+    },
+    "isEmpty": false,
+    "top": -300,
+    "right": 400,
+    "bottom": 300,
+    "left": -400
+  },
+  "returnMapName": {
+    "name": "Kerning City",
+    "streetName": "Victoria Road",
+    "id": 10003000
+  },
+  "ladderRopes": [],
+  "name": "Niora Hospital",
+  "streetName": "Victoria Road",
+  "id": 10003004
+}

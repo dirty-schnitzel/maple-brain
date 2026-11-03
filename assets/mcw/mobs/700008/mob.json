@@ -1,0 +1,36 @@
+{
+  "id": 700008,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 65,
+    "maxHP": 116580,
+    "maxMP": 250,
+    "speed": -30,
+    "physicalDamage": 807,
+    "physicalDefense": 10,
+    "magicDamage": 887,
+    "magicDefense": 20,
+    "accuracy": 154,
+    "evasion": 45,
+    "exp": 1064,
+    "isUndead": false,
+    "minimumPushDamage": 5250,
+    "hpRecovery": 1160,
+    "mpRecovery": 25,
+    "elementalAttributes": "H3",
+    "summonType": 1,
+    "revivesMonsterId": [],
+    "isBoss": true,
+    "isAutoAggro": true
+  },
+  "name": "Faust",
+  "framebooks": {
+    "move": 6,
+    "stand": 12,
+    "attack1": 12,
+    "skill1": 13,
+    "hit1": 1,
+    "die1": 11
+  },
+  "foundAt": []
+}

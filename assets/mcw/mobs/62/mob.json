@@ -1,0 +1,31 @@
+{
+  "id": 62,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 56,
+    "maxHP": 3520,
+    "maxMP": 90,
+    "speed": -10,
+    "physicalDamage": 293,
+    "physicalDefense": 20,
+    "magicDamage": 0,
+    "magicDefense": 10,
+    "accuracy": 134,
+    "evasion": 34,
+    "exp": 183,
+    "isUndead": true,
+    "minimumPushDamage": 325,
+    "elementalAttributes": "S2H3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Rotten Mushroom",
+  "framebooks": {
+    "move": 5,
+    "stand": 2,
+    "jump": 1,
+    "hit1": 1,
+    "die1": 3
+  },
+  "foundAt": []
+}

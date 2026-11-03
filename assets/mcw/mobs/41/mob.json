@@ -1,0 +1,30 @@
+{
+  "id": 41,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 46,
+    "maxHP": 2671,
+    "maxMP": 100,
+    "speed": -50,
+    "physicalDamage": 243,
+    "physicalDefense": 30,
+    "magicDamage": 243,
+    "magicDefense": 0,
+    "accuracy": 125,
+    "evasion": 25,
+    "exp": 111,
+    "isUndead": false,
+    "minimumPushDamage": 450,
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Tortie",
+  "framebooks": {
+    "move": 4,
+    "stand": 1,
+    "attack1": 2,
+    "hit1": 1,
+    "die1": 3
+  },
+  "foundAt": []
+}

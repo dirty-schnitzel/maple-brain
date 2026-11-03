@@ -1,0 +1,31 @@
+{
+  "id": 35,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 37,
+    "maxHP": 1336,
+    "maxMP": 100,
+    "speed": 25,
+    "physicalDamage": 203,
+    "physicalDefense": 0,
+    "magicDamage": 222,
+    "magicDefense": 30,
+    "accuracy": 116,
+    "evasion": 27,
+    "exp": 75,
+    "isUndead": false,
+    "minimumPushDamage": 125,
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Lupin",
+  "framebooks": {
+    "move": 4,
+    "stand": 1,
+    "attack1": 10,
+    "jump": 1,
+    "hit1": 1,
+    "die1": 3
+  },
+  "foundAt": []
+}

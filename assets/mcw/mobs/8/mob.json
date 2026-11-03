@@ -1,0 +1,30 @@
+{
+  "id": 8,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 7,
+    "maxHP": 128,
+    "maxMP": 0,
+    "speed": 0,
+    "physicalDamage": 15,
+    "physicalDefense": 0,
+    "magicDamage": 0,
+    "magicDefense": 0,
+    "accuracy": 54,
+    "evasion": 0,
+    "exp": 13,
+    "isUndead": false,
+    "minimumPushDamage": 1,
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Pig",
+  "framebooks": {
+    "move": 3,
+    "stand": 3,
+    "jump": 1,
+    "hit1": 1,
+    "die1": 3
+  },
+  "foundAt": []
+}

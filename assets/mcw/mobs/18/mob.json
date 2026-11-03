@@ -1,0 +1,29 @@
+{
+  "id": 18,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 21,
+    "maxHP": 272,
+    "maxMP": 30,
+    "speed": 10,
+    "physicalDamage": 92,
+    "physicalDefense": 0,
+    "magicDamage": 0,
+    "magicDefense": 30,
+    "accuracy": 102,
+    "evasion": 14,
+    "exp": 39,
+    "isUndead": false,
+    "minimumPushDamage": 1,
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Jr. Necki",
+  "framebooks": {
+    "move": 3,
+    "stand": 3,
+    "hit1": 1,
+    "die1": 3
+  },
+  "foundAt": []
+}

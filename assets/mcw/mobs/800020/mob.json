@@ -1,0 +1,31 @@
+{
+  "id": 800020,
+  "linksTo": 17,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 11,
+    "maxHP": 218,
+    "maxMP": 30,
+    "flySpeed": -28,
+    "physicalDamage": 30,
+    "physicalDefense": 15,
+    "magicDamage": 0,
+    "magicDefense": 15,
+    "accuracy": 60,
+    "evasion": 5,
+    "exp": 36,
+    "isUndead": false,
+    "minimumPushDamage": 1,
+    "summonType": 1,
+    "revivesMonsterId": [],
+    "linksToOtherMob": 17,
+    "hideName": true
+  },
+  "name": "Stirge",
+  "framebooks": {
+    "fly": 2,
+    "hit1": 1,
+    "die1": 4
+  },
+  "foundAt": []
+}

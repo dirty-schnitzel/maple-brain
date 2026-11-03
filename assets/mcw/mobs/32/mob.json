@@ -1,0 +1,31 @@
+{
+  "id": 32,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 34,
+    "maxHP": 982,
+    "maxMP": 70,
+    "speed": 0,
+    "physicalDamage": 170,
+    "physicalDefense": 30,
+    "magicDamage": 0,
+    "magicDefense": 0,
+    "accuracy": 112,
+    "evasion": 25,
+    "exp": 66,
+    "isUndead": true,
+    "minimumPushDamage": 75,
+    "elementalAttributes": "H3F3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Jr. Wraith",
+  "framebooks": {
+    "move": 5,
+    "stand": 1,
+    "jump": 1,
+    "hit1": 1,
+    "die1": 6
+  },
+  "foundAt": []
+}

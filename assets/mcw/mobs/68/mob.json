@@ -1,0 +1,31 @@
+{
+  "id": 68,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 63,
+    "maxHP": 5976,
+    "maxMP": 0,
+    "speed": -40,
+    "physicalDamage": 320,
+    "physicalDefense": 15,
+    "magicDamage": 0,
+    "magicDefense": 15,
+    "accuracy": 152,
+    "evasion": 37,
+    "exp": 242,
+    "isUndead": true,
+    "minimumPushDamage": 1125,
+    "elementalAttributes": "H3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Officer Skeleton",
+  "framebooks": {
+    "move": 4,
+    "stand": 4,
+    "attack1": 8,
+    "hit1": 1,
+    "die1": 6
+  },
+  "foundAt": []
+}

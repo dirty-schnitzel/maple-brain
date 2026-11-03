@@ -1,0 +1,29 @@
+{
+  "id": 64,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 24,
+    "maxHP": 479,
+    "maxMP": 0,
+    "speed": -30,
+    "physicalDamage": 124,
+    "physicalDefense": 30,
+    "magicDamage": 0,
+    "magicDefense": 0,
+    "accuracy": 99,
+    "evasion": 14,
+    "exp": 45,
+    "isUndead": false,
+    "minimumPushDamage": 40,
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Rocky Mask",
+  "framebooks": {
+    "move": 6,
+    "stand": 6,
+    "hit1": 1,
+    "die1": 8
+  },
+  "foundAt": []
+}

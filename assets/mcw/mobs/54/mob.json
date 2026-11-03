@@ -1,0 +1,29 @@
+{
+  "id": 54,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 39,
+    "maxHP": 1377,
+    "maxMP": 50,
+    "speed": -10,
+    "physicalDamage": 232,
+    "physicalDefense": 10,
+    "magicDamage": 0,
+    "magicDefense": 10,
+    "accuracy": 118,
+    "evasion": 25,
+    "exp": 82,
+    "isUndead": false,
+    "minimumPushDamage": 125,
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Glowshroom",
+  "framebooks": {
+    "move": 4,
+    "stand": 3,
+    "hit1": 1,
+    "die1": 4
+  },
+  "foundAt": []
+}

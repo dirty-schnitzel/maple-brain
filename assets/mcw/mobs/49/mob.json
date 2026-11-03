@@ -1,0 +1,30 @@
+{
+  "id": 49,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 58,
+    "maxHP": 5428,
+    "maxMP": 150,
+    "speed": -50,
+    "physicalDamage": 297,
+    "physicalDefense": 0,
+    "magicDamage": 0,
+    "magicDefense": 30,
+    "accuracy": 121,
+    "evasion": 31,
+    "exp": 192,
+    "minimumPushDamage": 975,
+    "elementalAttributes": "S2F2H3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Dark Stone Golem",
+  "framebooks": {
+    "move": 4,
+    "stand": 3,
+    "skill1": 9,
+    "hit1": 1,
+    "die1": 7
+  },
+  "foundAt": []
+}

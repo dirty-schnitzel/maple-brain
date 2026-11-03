@@ -1,0 +1,30 @@
+{
+  "id": 6,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 5,
+    "maxHP": 133,
+    "maxMP": 30,
+    "speed": -70,
+    "physicalDamage": 11,
+    "physicalDefense": 30,
+    "magicDamage": 0,
+    "magicDefense": 0,
+    "accuracy": 45,
+    "evasion": 0,
+    "exp": 10,
+    "isUndead": false,
+    "minimumPushDamage": 1,
+    "elementalAttributes": "F3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Stump",
+  "framebooks": {
+    "move": 4,
+    "stand": 1,
+    "hit1": 1,
+    "die1": 3
+  },
+  "foundAt": []
+}

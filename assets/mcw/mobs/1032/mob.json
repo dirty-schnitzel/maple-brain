@@ -1,0 +1,27 @@
+{
+  "id": 1032,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 41,
+    "maxHP": 1419,
+    "maxMP": 60,
+    "flySpeed": -20,
+    "physicalDamage": 198,
+    "physicalDefense": 0,
+    "magicDamage": 0,
+    "magicDefense": 30,
+    "accuracy": 133,
+    "evasion": 29,
+    "exp": 89,
+    "minimumPushDamage": 175,
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Flyeye",
+  "framebooks": {
+    "fly": 3,
+    "hit1": 1,
+    "die1": 10
+  },
+  "foundAt": []
+}

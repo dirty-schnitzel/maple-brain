@@ -1,0 +1,36 @@
+{
+  "id": 810000,
+  "linksTo": 700004,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 20,
+    "maxHP": 7420,
+    "maxMP": 30,
+    "speed": -40,
+    "physicalDamage": 252,
+    "physicalDefense": 20,
+    "magicDamage": 0,
+    "magicDefense": 10,
+    "accuracy": 97,
+    "evasion": 4,
+    "exp": 148,
+    "isUndead": false,
+    "minimumPushDamage": 1400,
+    "hpRecovery": 74,
+    "mpRecovery": 1,
+    "summonType": 1,
+    "revivesMonsterId": [],
+    "linksToOtherMob": 700004,
+    "isBoss": true,
+    "isAutoAggro": true
+  },
+  "name": "Mano",
+  "framebooks": {
+    "move": 6,
+    "stand": 9,
+    "skill1": 10,
+    "hit1": 1,
+    "die1": 9
+  },
+  "foundAt": []
+}

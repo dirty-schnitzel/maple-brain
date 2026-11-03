@@ -1,0 +1,37 @@
+{
+  "id": 700007,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 35,
+    "maxHP": 19220,
+    "maxMP": 150,
+    "speed": -60,
+    "physicalDamage": 477,
+    "physicalDefense": 20,
+    "magicDamage": 524,
+    "magicDefense": 10,
+    "accuracy": 114,
+    "evasion": 24,
+    "exp": 276,
+    "isUndead": false,
+    "minimumPushDamage": 2500,
+    "hpRecovery": 192,
+    "mpRecovery": 15,
+    "elementalAttributes": "F3L2",
+    "summonType": 1,
+    "revivesMonsterId": [],
+    "isBoss": true,
+    "isAutoAggro": true
+  },
+  "name": "Stumpy",
+  "framebooks": {
+    "move": 6,
+    "stand": 6,
+    "attack1": 24,
+    "attack2": 24,
+    "skill1": 18,
+    "hit1": 1,
+    "die1": 12
+  },
+  "foundAt": []
+}

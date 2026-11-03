@@ -1,0 +1,29 @@
+{
+  "id": 29,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 31,
+    "maxHP": 853,
+    "maxMP": 0,
+    "speed": -40,
+    "physicalDamage": 176,
+    "physicalDefense": 10,
+    "magicDamage": 0,
+    "magicDefense": 0,
+    "accuracy": 110,
+    "evasion": 21,
+    "exp": 58,
+    "minimumPushDamage": 75,
+    "elementalAttributes": "I2F3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Ligator",
+  "framebooks": {
+    "move": 4,
+    "stand": 3,
+    "hit1": 1,
+    "die1": 2
+  },
+  "foundAt": []
+}

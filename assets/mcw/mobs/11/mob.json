@@ -1,0 +1,30 @@
+{
+  "id": 11,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 11,
+    "maxHP": 236,
+    "maxMP": 30,
+    "speed": -70,
+    "physicalDamage": 34,
+    "physicalDefense": 30,
+    "magicDamage": 0,
+    "magicDefense": 0,
+    "accuracy": 61,
+    "evasion": 5,
+    "exp": 21,
+    "isUndead": false,
+    "minimumPushDamage": 25,
+    "elementalAttributes": "F3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Dark Stump",
+  "framebooks": {
+    "move": 4,
+    "stand": 1,
+    "hit1": 1,
+    "die1": 3
+  },
+  "foundAt": []
+}

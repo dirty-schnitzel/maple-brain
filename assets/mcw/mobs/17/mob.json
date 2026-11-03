@@ -1,0 +1,28 @@
+{
+  "id": 17,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 20,
+    "maxHP": 296,
+    "maxMP": 30,
+    "flySpeed": -20,
+    "physicalDamage": 86,
+    "physicalDefense": 0,
+    "magicDamage": 0,
+    "magicDefense": 30,
+    "accuracy": 99,
+    "evasion": 13,
+    "exp": 37,
+    "isUndead": false,
+    "minimumPushDamage": 1,
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Stirge",
+  "framebooks": {
+    "fly": 2,
+    "hit1": 1,
+    "die1": 4
+  },
+  "foundAt": []
+}

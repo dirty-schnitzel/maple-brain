@@ -1,0 +1,39 @@
+{
+  "id": 810001,
+  "linksTo": 800003,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 32,
+    "maxHP": 16820,
+    "maxMP": 100,
+    "speed": -20,
+    "physicalDamage": 288,
+    "physicalDefense": 15,
+    "magicDamage": 288,
+    "magicDefense": 15,
+    "accuracy": 121,
+    "evasion": 4,
+    "exp": 240,
+    "isUndead": false,
+    "minimumPushDamage": 1750,
+    "hpRecovery": 168,
+    "mpRecovery": 10,
+    "elementalAttributes": "I2F2L2H2",
+    "summonType": 0,
+    "revivesMonsterId": [],
+    "linksToOtherMob": 800003,
+    "isBoss": true,
+    "isAutoAggro": true
+  },
+  "name": "King Slime",
+  "framebooks": {
+    "move": 7,
+    "stand": 2,
+    "jump": 1,
+    "attack1": 8,
+    "skill1": 11,
+    "hit1": 1,
+    "die1": 8
+  },
+  "foundAt": []
+}

@@ -1,0 +1,29 @@
+{
+  "id": 45,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 50,
+    "maxHP": 3218,
+    "maxMP": 150,
+    "speed": -10,
+    "physicalDamage": 287,
+    "physicalDefense": 15,
+    "magicDamage": 0,
+    "magicDefense": 15,
+    "accuracy": 129,
+    "evasion": 27,
+    "exp": 133,
+    "minimumPushDamage": 550,
+    "elementalAttributes": "F2I2",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Drake",
+  "framebooks": {
+    "move": 4,
+    "stand": 1,
+    "hit1": 1,
+    "die1": 8
+  },
+  "foundAt": []
+}

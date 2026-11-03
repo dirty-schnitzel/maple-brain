@@ -1,0 +1,30 @@
+{
+  "id": 10,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 10,
+    "maxHP": 172,
+    "maxMP": 0,
+    "speed": 5,
+    "physicalDamage": 27,
+    "physicalDefense": 0,
+    "magicDamage": 0,
+    "magicDefense": 0,
+    "accuracy": 64,
+    "evasion": 6,
+    "exp": 19,
+    "isUndead": false,
+    "minimumPushDamage": 25,
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Ribbon Pig",
+  "framebooks": {
+    "move": 3,
+    "stand": 3,
+    "jump": 1,
+    "hit1": 1,
+    "die1": 3
+  },
+  "foundAt": []
+}

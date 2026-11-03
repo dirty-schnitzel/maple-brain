@@ -1,0 +1,31 @@
+{
+  "id": 44,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 49,
+    "maxHP": 2899,
+    "maxMP": 50,
+    "speed": 30,
+    "physicalDamage": 257,
+    "physicalDefense": 15,
+    "magicDamage": 0,
+    "magicDefense": 15,
+    "accuracy": 128,
+    "evasion": 30,
+    "exp": 127,
+    "isUndead": false,
+    "minimumPushDamage": 225,
+    "elementalAttributes": "L3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Clang",
+  "framebooks": {
+    "move": 4,
+    "stand": 2,
+    "jump": 1,
+    "hit1": 1,
+    "die1": 4
+  },
+  "foundAt": []
+}

@@ -1,0 +1,31 @@
+{
+  "id": 59,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 47,
+    "maxHP": 2285,
+    "maxMP": 80,
+    "speed": -30,
+    "physicalDamage": 248,
+    "physicalDefense": 20,
+    "magicDamage": 0,
+    "magicDefense": 10,
+    "accuracy": 126,
+    "evasion": 29,
+    "exp": 117,
+    "isUndead": false,
+    "minimumPushDamage": 225,
+    "elementalAttributes": "S2I2F3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Rafflesia",
+  "framebooks": {
+    "stand": 6,
+    "move": 6,
+    "hit1": 1,
+    "die1": 10,
+    "jump": 1
+  },
+  "foundAt": []
+}

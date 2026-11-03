@@ -1,0 +1,29 @@
+{
+  "id": 19,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 22,
+    "maxHP": 403,
+    "maxMP": 30,
+    "speed": -20,
+    "physicalDamage": 110,
+    "physicalDefense": 10,
+    "magicDamage": 0,
+    "magicDefense": 0,
+    "accuracy": 94,
+    "evasion": 13,
+    "exp": 41,
+    "isUndead": false,
+    "minimumPushDamage": 40,
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Horny Mushroom",
+  "framebooks": {
+    "move": 4,
+    "stand": 3,
+    "hit1": 1,
+    "die1": 4
+  },
+  "foundAt": []
+}

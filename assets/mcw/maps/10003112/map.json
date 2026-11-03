@@ -1,0 +1,175 @@
+{
+  "backgroundMusic": "Bgm02/JungleBook",
+  "isReturnMap": false,
+  "returnMap": 10003000,
+  "portals": [
+    {
+      "portalName": "sp",
+      "toName": "",
+      "type": 0,
+      "toMap": 999999999,
+      "x": 254,
+      "y": 166,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": 254,
+        "y": 166,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 254,
+          "y": 166,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 166,
+        "right": 255,
+        "bottom": 167,
+        "left": 254
+      }
+    },
+    null
+  ],
+  "npcs": [],
+  "mobs": [
+    {
+      "x": 4,
+      "y": 189,
+      "walkAreaX1": -380,
+      "walkAreaX2": 380,
+      "id": 700006,
+      "footholdId": 1,
+      "foothold": {
+        "id": 1,
+        "next": 0,
+        "prev": 0,
+        "piece": 0,
+        "x1": -400,
+        "x2": 400,
+        "y1": 189,
+        "y2": 189,
+        "layerId": 1,
+        "groupId": 3
+      },
+      "hidden": false,
+      "type": 1,
+      "link": "/mob/700006",
+      "index": 0,
+      "position": {},
+      "bounds": {
+        "x": 4,
+        "y": 189,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 4,
+          "y": 189,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 189,
+        "right": 5,
+        "bottom": 190,
+        "left": 4
+      },
+      "flip": false
+    }
+  ],
+  "mobRate": 1,
+  "isTown": false,
+  "isSwim": false,
+  "mapMark": "KerningCity",
+  "footholds": {
+    "2": {
+      "id": 2,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -189,
+      "x2": -45,
+      "y1": -10,
+      "y2": -10,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "1": {
+      "id": 1,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -400,
+      "x2": 400,
+      "y1": 189,
+      "y2": 189,
+      "layerId": 1,
+      "groupId": 3
+    },
+    "3": {
+      "id": 3,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": 90,
+      "x2": 234,
+      "y1": -9,
+      "y2": -9,
+      "layerId": 1,
+      "groupId": 3
+    }
+  },
+  "vrBounds": {
+    "x": -390,
+    "y": -370,
+    "width": 780,
+    "height": 749,
+    "location": {
+      "x": -390,
+      "y": -370,
+      "isEmpty": false
+    },
+    "size": {
+      "width": 780,
+      "height": 749,
+      "isEmpty": false
+    },
+    "isEmpty": false,
+    "top": -370,
+    "right": 390,
+    "bottom": 379,
+    "left": -390
+  },
+  "returnMapName": {
+    "name": "Kerning City",
+    "streetName": "Victoria Road",
+    "id": 10003000
+  },
+  "ladderRopes": [
+    {
+      "x": 151,
+      "y1": -7,
+      "y2": 187,
+      "isLadder": false
+    },
+    {
+      "x": -107,
+      "y1": -8,
+      "y2": 189,
+      "isLadder": false
+    }
+  ],
+  "name": "Cabin of the Forsaken",
+  "streetName": "Hidden Street",
+  "id": 10003112
+}

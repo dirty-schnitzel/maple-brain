@@ -1,0 +1,27 @@
+{
+  "id": 910000,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 30,
+    "maxHP": 99999999,
+    "maxMP": 9999,
+    "physicalDamage": 166,
+    "physicalDefense": 15,
+    "magicDamage": 166,
+    "magicDefense": 15,
+    "accuracy": 108,
+    "evasion": 0,
+    "minimumPushDamage": 99999999,
+    "hpRecovery": 999999,
+    "mpRecovery": 99,
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Straw Traning Dummy",
+  "framebooks": {
+    "stand": 1,
+    "hit1": 1,
+    "die1": 6
+  },
+  "foundAt": []
+}

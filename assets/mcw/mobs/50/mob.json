@@ -1,0 +1,30 @@
+{
+  "id": 50,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 60,
+    "maxHP": 5184,
+    "maxMP": 120,
+    "speed": 0,
+    "physicalDamage": 306,
+    "physicalDefense": 15,
+    "magicDamage": 336,
+    "magicDefense": 15,
+    "accuracy": 150,
+    "evasion": 35,
+    "exp": 211,
+    "minimumPushDamage": 750,
+    "elementalAttributes": "F2I3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Red Drake",
+  "framebooks": {
+    "move": 4,
+    "stand": 1,
+    "attack1": 2,
+    "hit1": 1,
+    "die1": 8
+  },
+  "foundAt": []
+}

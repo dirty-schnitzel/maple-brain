@@ -1,0 +1,30 @@
+{
+  "id": 60,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 50,
+    "maxHP": 2682,
+    "maxMP": 80,
+    "speed": -10,
+    "physicalDamage": 234,
+    "physicalDefense": 0,
+    "magicDamage": 0,
+    "magicDefense": 20,
+    "accuracy": 129,
+    "evasion": 30,
+    "exp": 133,
+    "isUndead": false,
+    "minimumPushDamage": 275,
+    "elementalAttributes": "I3S2",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Duskmander",
+  "framebooks": {
+    "stand": 4,
+    "move": 4,
+    "hit1": 1,
+    "die1": 7
+  },
+  "foundAt": []
+}

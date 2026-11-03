@@ -1,0 +1,37 @@
+{
+  "id": 700001,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 80,
+    "maxHP": 325400,
+    "maxMP": 500,
+    "speed": -20,
+    "physicalDamage": 972,
+    "physicalDefense": 15,
+    "magicDamage": 1069,
+    "magicDefense": 15,
+    "accuracy": 163,
+    "evasion": 49,
+    "exp": 2188,
+    "isUndead": false,
+    "minimumPushDamage": 6750,
+    "hpRecovery": 1627,
+    "mpRecovery": 50,
+    "elementalAttributes": "S1H3",
+    "summonType": 0,
+    "revivesMonsterId": [],
+    "isBoss": true,
+    "isAutoAggro": true
+  },
+  "name": "Jr. Balrog",
+  "framebooks": {
+    "move": 5,
+    "stand": 2,
+    "attack1": 12,
+    "attack2": 4,
+    "attack3": 4,
+    "hit1": 1,
+    "die1": 3
+  },
+  "foundAt": []
+}

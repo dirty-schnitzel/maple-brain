@@ -1,0 +1,36 @@
+{
+  "id": 700002,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 55,
+    "maxHP": 66640,
+    "maxMP": 220,
+    "speed": 5,
+    "physicalDamage": 697,
+    "physicalDefense": 10,
+    "magicDamage": 766,
+    "magicDefense": 20,
+    "accuracy": 146,
+    "evasion": 37,
+    "exp": 668,
+    "isUndead": true,
+    "minimumPushDamage": 4250,
+    "hpRecovery": 666,
+    "mpRecovery": 22,
+    "elementalAttributes": "H3",
+    "summonType": 0,
+    "revivesMonsterId": [],
+    "isBoss": true,
+    "isAutoAggro": true
+  },
+  "name": "Zombie Mushmom",
+  "framebooks": {
+    "move": 6,
+    "stand": 1,
+    "jump": 1,
+    "attack1": 5,
+    "hit1": 1,
+    "die1": 5
+  },
+  "foundAt": []
+}

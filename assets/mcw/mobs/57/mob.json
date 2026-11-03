@@ -1,0 +1,30 @@
+{
+  "id": 57,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 43,
+    "maxHP": 2069,
+    "maxMP": 80,
+    "speed": 0,
+    "physicalDamage": 252,
+    "physicalDefense": 0,
+    "magicDamage": 0,
+    "magicDefense": 20,
+    "accuracy": 123,
+    "evasion": 27,
+    "exp": 98,
+    "isUndead": false,
+    "minimumPushDamage": 175,
+    "elementalAttributes": "I2L3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Aqumander",
+  "framebooks": {
+    "stand": 4,
+    "move": 4,
+    "hit1": 1,
+    "die1": 7
+  },
+  "foundAt": []
+}

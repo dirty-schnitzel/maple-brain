@@ -1,0 +1,31 @@
+{
+  "id": 37,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 40,
+    "maxHP": 1894,
+    "maxMP": 50,
+    "speed": 5,
+    "physicalDamage": 237,
+    "physicalDefense": 0,
+    "magicDamage": 0,
+    "magicDefense": 30,
+    "accuracy": 120,
+    "evasion": 25,
+    "exp": 85,
+    "isUndead": false,
+    "minimumPushDamage": 175,
+    "elementalAttributes": "I2F3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Cold Eye",
+  "framebooks": {
+    "move": 4,
+    "stand": 3,
+    "jump": 1,
+    "hit1": 1,
+    "die1": 3
+  },
+  "foundAt": []
+}

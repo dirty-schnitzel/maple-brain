@@ -1,0 +1,31 @@
+{
+  "id": 800023,
+  "linksTo": 1032,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 13,
+    "maxHP": 242,
+    "maxMP": 10,
+    "flySpeed": -40,
+    "physicalDamage": 42,
+    "physicalDefense": 15,
+    "magicDamage": 0,
+    "magicDefense": 15,
+    "accuracy": 67,
+    "evasion": 6,
+    "exp": 10,
+    "isUndead": false,
+    "minimumPushDamage": 0,
+    "summonType": 1,
+    "revivesMonsterId": [],
+    "linksToOtherMob": 1032,
+    "hideName": true
+  },
+  "name": "Flyeye",
+  "framebooks": {
+    "fly": 3,
+    "hit1": 1,
+    "die1": 10
+  },
+  "foundAt": []
+}

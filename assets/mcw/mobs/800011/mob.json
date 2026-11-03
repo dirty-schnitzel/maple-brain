@@ -1,0 +1,33 @@
+{
+  "id": 800011,
+  "linksTo": 21,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 30,
+    "maxHP": 718,
+    "maxMP": 30,
+    "speed": 0,
+    "physicalDamage": 204,
+    "physicalDefense": 15,
+    "magicDamage": 0,
+    "magicDefense": 15,
+    "accuracy": 108,
+    "evasion": 20,
+    "exp": 56,
+    "isUndead": true,
+    "minimumPushDamage": 225,
+    "elementalAttributes": "H3",
+    "summonType": 1,
+    "revivesMonsterId": [],
+    "linksToOtherMob": 21
+  },
+  "name": "Zombie Mushroom",
+  "framebooks": {
+    "move": 4,
+    "stand": 2,
+    "jump": 1,
+    "hit1": 1,
+    "die1": 3
+  },
+  "foundAt": []
+}

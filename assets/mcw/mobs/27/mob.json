@@ -1,0 +1,38 @@
+{
+  "id": 27,
+  "linksTo": 25,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 29,
+    "maxHP": 593,
+    "maxMP": 175,
+    "speed": 10,
+    "physicalDamage": 127,
+    "physicalDefense": 0,
+    "magicDamage": 0,
+    "magicDefense": 500,
+    "accuracy": 116,
+    "evasion": 20,
+    "exp": 54,
+    "isUndead": false,
+    "minimumPushDamage": 200,
+    "elementalAttributes": "H2L2S3",
+    "summonType": 1,
+    "revivesMonsterId": [],
+    "linksToOtherMob": 25
+  },
+  "name": "Fairy 3",
+  "framebooks": {
+    "move": 4,
+    "skill1": 9,
+    "stand": 4,
+    "hit1": 1,
+    "die1": 7
+  },
+  "foundAt": [],
+  "names": {
+    "en": "Fairy 3",
+    "es": "Hada 3",
+    "ko": "\uc694\uc815 3"
+  }
+}

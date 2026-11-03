@@ -1,0 +1,5440 @@
+{
+  "maps": {
+    "1": {
+      "fetched": "2026-11-01T22:19:20+00:00",
+      "footholds": 67,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "Mushroom Town - West Entrance",
+      "render": false,
+      "street": "Maple Road"
+    },
+    "10": {
+      "fetched": "2026-11-01T22:19:20+00:00",
+      "footholds": 41,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Mushroom Town",
+      "render": false,
+      "street": "Maple Road"
+    },
+    "1000": {
+      "fetched": "2026-11-01T22:19:30+00:00",
+      "footholds": 399,
+      "ladderRopes": 13,
+      "mobs": [
+        2,
+        3,
+        4,
+        5,
+        9
+      ],
+      "name": "The Field West of Amherst",
+      "render": false,
+      "street": "Rainbow Street"
+    },
+    "10000000": {
+      "fetched": "2026-11-01T22:19:35+00:00",
+      "footholds": 475,
+      "ladderRopes": 17,
+      "mobs": [],
+      "name": "Lith Harbor",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10000001": {
+      "fetched": "2026-11-01T22:19:35+00:00",
+      "footholds": 27,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "Lith Harbor Armor Shop",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10000002": {
+      "fetched": "2026-11-01T22:19:35+00:00",
+      "footholds": 32,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Lith Harbor Department Store",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10000003": {
+      "fetched": "2026-11-01T22:19:36+00:00",
+      "footholds": 27,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "Lith Harbor Weapon Shop",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10000010": {
+      "fetched": "2026-11-01T22:19:37+00:00",
+      "footholds": 150,
+      "ladderRopes": 1,
+      "mobs": [
+        3,
+        5,
+        7
+      ],
+      "name": "Right Around Lith Harbor",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10000011": {
+      "fetched": "2026-11-01T22:19:38+00:00",
+      "footholds": 214,
+      "ladderRopes": 5,
+      "mobs": [
+        2,
+        3,
+        5,
+        6,
+        7
+      ],
+      "name": "Thicket Around the Beach I",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10000012": {
+      "fetched": "2026-11-01T22:19:39+00:00",
+      "footholds": 261,
+      "ladderRopes": 8,
+      "mobs": [
+        2,
+        7,
+        8,
+        9
+      ],
+      "name": "Thicket Around the Beach II",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10000013": {
+      "fetched": "2026-11-01T22:19:42+00:00",
+      "footholds": 99,
+      "ladderRopes": 3,
+      "mobs": [
+        2,
+        3,
+        5,
+        6,
+        9,
+        700004
+      ],
+      "name": "Thicket Around the Beach III",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10000020": {
+      "fetched": "2026-11-01T22:19:44+00:00",
+      "footholds": 852,
+      "ladderRopes": 20,
+      "mobs": [
+        2,
+        3,
+        5,
+        7,
+        8,
+        9,
+        10
+      ],
+      "name": "3-Way Road-Split",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10000021": {
+      "fetched": "2026-11-01T22:19:45+00:00",
+      "footholds": 175,
+      "ladderRopes": 4,
+      "mobs": [
+        3,
+        5,
+        8,
+        10,
+        24
+      ],
+      "name": "The Pig Beach",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10000022": {
+      "fetched": "2026-11-01T22:19:46+00:00",
+      "footholds": 305,
+      "ladderRopes": 9,
+      "mobs": [
+        2,
+        3,
+        4,
+        5,
+        7,
+        8,
+        9,
+        10
+      ],
+      "name": "Beach Hunting Ground",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10001000": {
+      "fetched": "2026-11-01T22:19:46+00:00",
+      "footholds": 302,
+      "ladderRopes": 2,
+      "mobs": [],
+      "name": "Henesys",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001001": {
+      "fetched": "2026-11-01T22:19:46+00:00",
+      "footholds": 39,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "Henesys Townstreet",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001002": {
+      "fetched": "2026-11-01T22:19:47+00:00",
+      "footholds": 114,
+      "ladderRopes": 4,
+      "mobs": [
+        9
+      ],
+      "name": "An Empty House",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10001003": {
+      "fetched": "2026-11-01T22:19:47+00:00",
+      "footholds": 103,
+      "ladderRopes": 2,
+      "mobs": [
+        24
+      ],
+      "name": "Pig Park",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10001004": {
+      "fetched": "2026-11-01T22:19:48+00:00",
+      "footholds": 116,
+      "ladderRopes": 5,
+      "mobs": [
+        24
+      ],
+      "name": "Pig Park II",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10001005": {
+      "fetched": "2026-11-01T22:19:52+00:00",
+      "footholds": 53,
+      "ladderRopes": 3,
+      "mobs": [
+        24,
+        26,
+        700000
+      ],
+      "name": "Someone Else's House",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10001006": {
+      "fetched": "2026-11-01T22:19:52+00:00",
+      "footholds": 54,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "The Resting Spot, Pig Park",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10001007": {
+      "fetched": "2026-11-01T22:19:52+00:00",
+      "footholds": 23,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Henesys Town Hall",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001008": {
+      "fetched": "2026-11-01T22:19:52+00:00",
+      "footholds": 37,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "Victoria Road",
+      "render": false,
+      "street": "Yellow Mushroom House"
+    },
+    "10001010": {
+      "fetched": "2026-11-01T22:19:54+00:00",
+      "footholds": 184,
+      "ladderRopes": 8,
+      "mobs": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        9,
+        13
+      ],
+      "name": "Henesys Hunting Ground I",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001011": {
+      "fetched": "2026-11-01T22:19:54+00:00",
+      "footholds": 179,
+      "ladderRopes": 8,
+      "mobs": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        9,
+        13
+      ],
+      "name": "Henesys Hunting Ground II",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001012": {
+      "fetched": "2026-11-01T22:19:55+00:00",
+      "footholds": 179,
+      "ladderRopes": 7,
+      "mobs": [
+        3,
+        5,
+        6,
+        7,
+        9,
+        13
+      ],
+      "name": "Henesys Hunting Ground III",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001020": {
+      "fetched": "2026-11-01T22:19:55+00:00",
+      "footholds": 348,
+      "ladderRopes": 18,
+      "mobs": [
+        3,
+        5,
+        6,
+        7,
+        8,
+        10
+      ],
+      "name": "A Hill West of Henesys ",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001021": {
+      "fetched": "2026-11-01T22:19:56+00:00",
+      "footholds": 90,
+      "ladderRopes": 5,
+      "mobs": [
+        4,
+        5,
+        9
+      ],
+      "name": "Mushroom Garden",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10001030": {
+      "fetched": "2026-11-01T22:19:56+00:00",
+      "footholds": 220,
+      "ladderRopes": 12,
+      "mobs": [
+        2,
+        3,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "name": "Forest West of Henesys",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001040": {
+      "fetched": "2026-11-01T22:19:57+00:00",
+      "footholds": 199,
+      "ladderRopes": 4,
+      "mobs": [],
+      "name": "Henesys Market",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001041": {
+      "fetched": "2026-11-01T22:19:57+00:00",
+      "footholds": 50,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Henesys Weapon Store",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001042": {
+      "fetched": "2026-11-01T22:19:57+00:00",
+      "footholds": 35,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Henesys Department Store",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001043": {
+      "fetched": "2026-11-01T22:19:58+00:00",
+      "footholds": 26,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "Henesys Plastic Surgery",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001044": {
+      "fetched": "2026-11-01T22:19:58+00:00",
+      "footholds": 38,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Henesys Hair Salon",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001045": {
+      "fetched": "2026-11-01T22:19:58+00:00",
+      "footholds": 29,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Henesys Skin-Care",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001050": {
+      "fetched": "2026-11-01T22:19:58+00:00",
+      "footholds": 195,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "Henesys Park",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001051": {
+      "fetched": "2026-11-01T22:19:59+00:00",
+      "footholds": 33,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Bowman Instructional School",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001052": {
+      "fetched": "2026-11-01T22:19:59+00:00",
+      "footholds": 414,
+      "ladderRopes": 4,
+      "mobs": [],
+      "name": "Pet-Walking Road",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001060": {
+      "fetched": "2026-11-01T22:20:00+00:00",
+      "footholds": 192,
+      "ladderRopes": 5,
+      "mobs": [
+        3,
+        4,
+        5,
+        7,
+        8,
+        9,
+        10
+      ],
+      "name": "The Hill East of Henesys",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001070": {
+      "fetched": "2026-11-01T22:57:55+00:00",
+      "footholds": 93,
+      "ladderRopes": 2,
+      "mobs": [
+        8,
+        10
+      ],
+      "name": "The Rain-Forest East of Henesys",
+      "render": true,
+      "street": "Victoria Road"
+    },
+    "10001080": {
+      "fetched": "2026-11-01T22:20:01+00:00",
+      "footholds": 504,
+      "ladderRopes": 15,
+      "mobs": [
+        2,
+        3,
+        4,
+        5,
+        7,
+        8,
+        9,
+        10,
+        16
+      ],
+      "name": "The Forest East of Henesys",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001081": {
+      "fetched": "2026-11-01T22:20:02+00:00",
+      "footholds": 92,
+      "ladderRopes": 3,
+      "mobs": [
+        3,
+        5,
+        7,
+        16
+      ],
+      "name": "The Blue Mushroom Forest",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10001082": {
+      "fetched": "2026-11-01T22:20:04+00:00",
+      "footholds": 652,
+      "ladderRopes": 11,
+      "mobs": [
+        92
+      ],
+      "name": "Utah's Pig Farm",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10001090": {
+      "fetched": "2026-11-01T22:20:04+00:00",
+      "footholds": 345,
+      "ladderRopes": 16,
+      "mobs": [
+        3,
+        4,
+        5,
+        7,
+        8,
+        9,
+        10,
+        16,
+        24
+      ],
+      "name": "The Road to the Dungeon",
+      "render": false,
+      "street": "Warning Street"
+    },
+    "10001100": {
+      "fetched": "2026-11-01T22:20:11+00:00",
+      "footholds": 279,
+      "ladderRopes": 9,
+      "mobs": [
+        7,
+        13,
+        16,
+        24,
+        35,
+        48
+      ],
+      "name": "Henesys Dungeon Entrance",
+      "render": false,
+      "street": "Warning Street"
+    },
+    "10001101": {
+      "fetched": "2026-11-01T22:20:16+00:00",
+      "footholds": 97,
+      "ladderRopes": 3,
+      "mobs": [
+        16,
+        28,
+        35,
+        48
+      ],
+      "name": "The Breathing Rock",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10001102": {
+      "fetched": "2026-11-01T22:20:16+00:00",
+      "footholds": 114,
+      "ladderRopes": 3,
+      "mobs": [
+        16,
+        28,
+        48
+      ],
+      "name": "The Entrance of Golem's Temple",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001103": {
+      "fetched": "2026-11-01T22:20:16+00:00",
+      "footholds": 92,
+      "ladderRopes": 3,
+      "mobs": [
+        16,
+        28,
+        35,
+        48
+      ],
+      "name": "Golem's Temple I",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001104": {
+      "fetched": "2026-11-01T22:20:17+00:00",
+      "footholds": 96,
+      "ladderRopes": 3,
+      "mobs": [
+        16,
+        28,
+        35,
+        48
+      ],
+      "name": "Golem's Temple II",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001105": {
+      "fetched": "2026-11-01T22:20:17+00:00",
+      "footholds": 110,
+      "ladderRopes": 3,
+      "mobs": [
+        16,
+        28,
+        35,
+        48
+      ],
+      "name": "Golem's Temple III",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10001106": {
+      "fetched": "2026-11-01T22:20:17+00:00",
+      "footholds": 84,
+      "ladderRopes": 2,
+      "mobs": [
+        16,
+        28,
+        48
+      ],
+      "name": "Golem's Temple IV",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002000": {
+      "fetched": "2026-11-01T22:20:18+00:00",
+      "footholds": 1176,
+      "ladderRopes": 23,
+      "mobs": [],
+      "name": "Ellinia",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002001": {
+      "fetched": "2026-11-01T22:20:18+00:00",
+      "footholds": 27,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "Ellinia Weapon Store",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002002": {
+      "fetched": "2026-11-01T22:20:18+00:00",
+      "footholds": 32,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Ellinia Department Store",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002003": {
+      "fetched": "2026-11-01T22:20:19+00:00",
+      "footholds": 27,
+      "ladderRopes": 2,
+      "mobs": [],
+      "name": "Magic Library",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002004": {
+      "fetched": "2026-11-01T22:20:19+00:00",
+      "footholds": 97,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Marr's Forest",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10002005": {
+      "fetched": "2026-11-01T22:20:19+00:00",
+      "footholds": 30,
+      "ladderRopes": 2,
+      "mobs": [],
+      "name": "The Circulation Desk",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10002010": {
+      "fetched": "2026-11-01T22:20:20+00:00",
+      "footholds": 371,
+      "ladderRopes": 12,
+      "mobs": [
+        6,
+        7,
+        11,
+        13
+      ],
+      "name": "The Field South of Ellinia",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002020": {
+      "fetched": "2026-11-01T22:20:20+00:00",
+      "footholds": 283,
+      "ladderRopes": 16,
+      "mobs": [
+        2,
+        7,
+        13
+      ],
+      "name": "The Forest of Wisdom",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002021": {
+      "fetched": "2026-11-01T22:20:20+00:00",
+      "footholds": 224,
+      "ladderRopes": 12,
+      "mobs": [
+        13,
+        35
+      ],
+      "name": "Monkey Forest I",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10002022": {
+      "fetched": "2026-11-01T22:20:25+00:00",
+      "footholds": 406,
+      "ladderRopes": 10,
+      "mobs": [
+        31,
+        38
+      ],
+      "name": "Tree Dungeon, Monkey Forest I",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002023": {
+      "fetched": "2026-11-01T22:20:25+00:00",
+      "footholds": 183,
+      "ladderRopes": 9,
+      "mobs": [
+        35,
+        38
+      ],
+      "name": "Monkey Forest II",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002024": {
+      "fetched": "2026-11-01T22:20:25+00:00",
+      "footholds": 403,
+      "ladderRopes": 10,
+      "mobs": [
+        31,
+        38
+      ],
+      "name": "Tree Dungeon, Monkey Forest II",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10002025": {
+      "fetched": "2026-11-01T22:20:27+00:00",
+      "footholds": 175,
+      "ladderRopes": 11,
+      "mobs": [
+        38,
+        47
+      ],
+      "name": "The Forest of Evil I",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10002026": {
+      "fetched": "2026-11-01T22:20:28+00:00",
+      "footholds": 277,
+      "ladderRopes": 11,
+      "mobs": [
+        38,
+        47
+      ],
+      "name": "The Forest of Evil II",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10002027": {
+      "fetched": "2026-11-01T22:20:29+00:00",
+      "footholds": 151,
+      "ladderRopes": 9,
+      "mobs": [
+        7,
+        13,
+        19,
+        35
+      ],
+      "name": "Downstairs at the Forest",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10002030": {
+      "fetched": "2026-11-01T22:20:31+00:00",
+      "footholds": 886,
+      "ladderRopes": 7,
+      "mobs": [
+        2,
+        6,
+        7,
+        13,
+        15
+      ],
+      "name": "The Forest South of Ellinia",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002031": {
+      "fetched": "2026-11-01T22:20:31+00:00",
+      "footholds": 370,
+      "ladderRopes": 0,
+      "mobs": [
+        7
+      ],
+      "name": "Dungeon, Southern Forest I",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002032": {
+      "fetched": "2026-11-01T22:20:32+00:00",
+      "footholds": 372,
+      "ladderRopes": 7,
+      "mobs": [
+        7,
+        13
+      ],
+      "name": "Dungeon, Southern Forest II",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002033": {
+      "fetched": "2026-11-01T22:20:32+00:00",
+      "footholds": 349,
+      "ladderRopes": 8,
+      "mobs": [
+        7,
+        13
+      ],
+      "name": "Dungeon, Southern Forest III",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002034": {
+      "fetched": "2026-11-01T22:20:32+00:00",
+      "footholds": 347,
+      "ladderRopes": 7,
+      "mobs": [
+        7,
+        13,
+        16,
+        19
+      ],
+      "name": "Dungeon, Southern Forest IV",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002040": {
+      "fetched": "2026-11-01T22:20:33+00:00",
+      "footholds": 363,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "The Forest of Patience <Step 1>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10002041": {
+      "fetched": "2026-11-01T22:20:33+00:00",
+      "footholds": 508,
+      "ladderRopes": 4,
+      "mobs": [],
+      "name": "The Forest of Patience <Step 2>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10002042": {
+      "fetched": "2026-11-01T22:20:34+00:00",
+      "footholds": 390,
+      "ladderRopes": 5,
+      "mobs": [],
+      "name": "The Forest of Patience <Step 3>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10002043": {
+      "fetched": "2026-11-01T22:20:35+00:00",
+      "footholds": 233,
+      "ladderRopes": 0,
+      "mobs": [
+        90
+      ],
+      "name": "The Forest of Patience <Step 4>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10002044": {
+      "fetched": "2026-11-01T22:20:36+00:00",
+      "footholds": 338,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "The Forest of Patience <Step 5>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10002050": {
+      "fetched": "2026-11-01T22:20:36+00:00",
+      "footholds": 326,
+      "ladderRopes": 3,
+      "mobs": [
+        2,
+        6,
+        7
+      ],
+      "name": "The Field Up North of Ellinia",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002060": {
+      "fetched": "2026-11-01T22:20:36+00:00",
+      "footholds": 246,
+      "ladderRopes": 3,
+      "mobs": [
+        6,
+        7,
+        11
+      ],
+      "name": "The Tree That Grew I",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002061": {
+      "fetched": "2026-11-01T22:20:37+00:00",
+      "footholds": 306,
+      "ladderRopes": 4,
+      "mobs": [
+        6,
+        7,
+        11
+      ],
+      "name": "The Tree That Grew II",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002062": {
+      "fetched": "2026-11-01T22:20:37+00:00",
+      "footholds": 259,
+      "ladderRopes": 3,
+      "mobs": [
+        6,
+        11,
+        13
+      ],
+      "name": "The Tree That Grew III",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002070": {
+      "fetched": "2026-11-01T22:20:38+00:00",
+      "footholds": 1110,
+      "ladderRopes": 17,
+      "mobs": [
+        2,
+        6,
+        7,
+        15
+      ],
+      "name": "The Forest North of Ellinia",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002071": {
+      "fetched": "2026-11-01T22:20:38+00:00",
+      "footholds": 601,
+      "ladderRopes": 3,
+      "mobs": [],
+      "name": "The Tree Tunnel At the Forest Up North",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002072": {
+      "fetched": "2026-11-01T22:20:39+00:00",
+      "footholds": 439,
+      "ladderRopes": 6,
+      "mobs": [
+        7,
+        19
+      ],
+      "name": "Tree Dungeon, Forest Up North I",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002073": {
+      "fetched": "2026-11-01T22:20:39+00:00",
+      "footholds": 396,
+      "ladderRopes": 6,
+      "mobs": [
+        7,
+        13,
+        19
+      ],
+      "name": "Tree Dungeon, Forest Up North II",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002074": {
+      "fetched": "2026-11-01T22:20:40+00:00",
+      "footholds": 419,
+      "ladderRopes": 6,
+      "mobs": [
+        7,
+        13,
+        19
+      ],
+      "name": "Tree Dungeon, Forest Up North III",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002075": {
+      "fetched": "2026-11-01T22:20:40+00:00",
+      "footholds": 368,
+      "ladderRopes": 5,
+      "mobs": [
+        7,
+        13
+      ],
+      "name": "Tree Dungeon, Forest Up North IV",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002076": {
+      "fetched": "2026-11-01T22:20:41+00:00",
+      "footholds": 375,
+      "ladderRopes": 5,
+      "mobs": [
+        7,
+        13,
+        19
+      ],
+      "name": "Tree Dungeon, Forest Up North V",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002080": {
+      "fetched": "2026-11-01T22:20:44+00:00",
+      "footholds": 247,
+      "ladderRopes": 9,
+      "mobs": [
+        27,
+        31
+      ],
+      "name": "Tree Dungeon, Forest Up North VI",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002081": {
+      "fetched": "2026-11-01T22:20:45+00:00",
+      "footholds": 254,
+      "ladderRopes": 10,
+      "mobs": [
+        27,
+        31,
+        37
+      ],
+      "name": "Tree Dungeon, Forest Up North VII",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002082": {
+      "fetched": "2026-11-01T22:20:46+00:00",
+      "footholds": 245,
+      "ladderRopes": 10,
+      "mobs": [
+        31
+      ],
+      "name": "Tree Dungeon, Forest Up North VIII",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002083": {
+      "fetched": "2026-11-01T22:20:46+00:00",
+      "footholds": 240,
+      "ladderRopes": 13,
+      "mobs": [
+        31
+      ],
+      "name": "Tree Dungeon, Forest Up North IX",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002090": {
+      "fetched": "2026-11-01T22:20:47+00:00",
+      "footholds": 13,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Ellinia Station",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10002091": {
+      "fetched": "2026-11-01T22:20:47+00:00",
+      "footholds": 26,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Before Takeoff <To Orbis>",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10003000": {
+      "fetched": "2026-11-01T22:20:48+00:00",
+      "footholds": 730,
+      "ladderRopes": 27,
+      "mobs": [],
+      "name": "Kerning City",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10003001": {
+      "fetched": "2026-11-01T22:20:48+00:00",
+      "footholds": 30,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "Kerning City Self-Defence Item Store",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10003002": {
+      "fetched": "2026-11-01T22:20:48+00:00",
+      "footholds": 30,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Kerning City Pharmacy",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10003003": {
+      "fetched": "2026-11-01T22:20:48+00:00",
+      "footholds": 40,
+      "ladderRopes": 2,
+      "mobs": [],
+      "name": "Thieves' Hideout",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10003004": {
+      "fetched": "2026-11-01T22:20:49+00:00",
+      "footholds": 26,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Niora Hospital",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10003005": {
+      "fetched": "2026-11-01T22:20:49+00:00",
+      "footholds": 32,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "Kerning City Hair Salon",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10003006": {
+      "fetched": "2026-11-01T22:20:49+00:00",
+      "footholds": 27,
+      "ladderRopes": 4,
+      "mobs": [],
+      "name": "Kerning City Repair Shop",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10003007": {
+      "fetched": "2026-11-01T22:20:50+00:00",
+      "footholds": 45,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "Kerning City Civic Center",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10003008": {
+      "fetched": "2026-11-01T22:20:50+00:00",
+      "footholds": 36,
+      "ladderRopes": 2,
+      "mobs": [],
+      "name": "Backalley Semi-Basement",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10003010": {
+      "fetched": "2026-11-01T22:20:52+00:00",
+      "footholds": 477,
+      "ladderRopes": 14,
+      "mobs": [
+        3,
+        6,
+        9,
+        12,
+        13
+      ],
+      "name": "Kerning City Construction Site",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10003011": {
+      "fetched": "2026-11-01T22:20:52+00:00",
+      "footholds": 61,
+      "ladderRopes": 4,
+      "mobs": [
+        9,
+        12,
+        16
+      ],
+      "name": "Caution Falling Down",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10003020": {
+      "fetched": "2026-11-01T22:20:52+00:00",
+      "footholds": 331,
+      "ladderRopes": 14,
+      "mobs": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        13,
+        24
+      ],
+      "name": "L Forest I",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10003030": {
+      "fetched": "2026-11-01T22:20:53+00:00",
+      "footholds": 222,
+      "ladderRopes": 9,
+      "mobs": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        13,
+        16,
+        35
+      ],
+      "name": "L Forest II",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10003040": {
+      "fetched": "2026-11-01T22:20:53+00:00",
+      "footholds": 400,
+      "ladderRopes": 20,
+      "mobs": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        10,
+        13,
+        16
+      ],
+      "name": "L Forest III",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10003050": {
+      "fetched": "2026-11-01T22:20:54+00:00",
+      "footholds": 188,
+      "ladderRopes": 6,
+      "mobs": [
+        3,
+        4,
+        5,
+        7,
+        8,
+        9,
+        10
+      ],
+      "name": "Kerning City Middle Forest I",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10003051": {
+      "fetched": "2026-11-01T22:20:54+00:00",
+      "footholds": 147,
+      "ladderRopes": 8,
+      "mobs": [
+        3,
+        4,
+        5,
+        7,
+        8,
+        9,
+        10,
+        13
+      ],
+      "name": "Kerning City Middle Forest II",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10003052": {
+      "fetched": "2026-11-01T22:20:55+00:00",
+      "footholds": 162,
+      "ladderRopes": 7,
+      "mobs": [
+        2,
+        3,
+        5,
+        7,
+        8,
+        9,
+        10,
+        13
+      ],
+      "name": "Kerning City Middle Forest III",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10003060": {
+      "fetched": "2026-11-01T22:20:55+00:00",
+      "footholds": 17,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Subway Ticketing Booth",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10003061": {
+      "fetched": "2026-11-01T22:20:57+00:00",
+      "footholds": 296,
+      "ladderRopes": 18,
+      "mobs": [
+        14
+      ],
+      "name": "Line 1 <Area 1>",
+      "render": false,
+      "street": "Kerning City Subway"
+    },
+    "10003062": {
+      "fetched": "2026-11-01T22:20:59+00:00",
+      "footholds": 280,
+      "ladderRopes": 12,
+      "mobs": [
+        17
+      ],
+      "name": "Transfer Area",
+      "render": false,
+      "street": "Kerning City Subway"
+    },
+    "10003063": {
+      "fetched": "2026-11-01T22:21:01+00:00",
+      "footholds": 298,
+      "ladderRopes": 14,
+      "mobs": [
+        17,
+        32
+      ],
+      "name": "Line 1 <Area 2>",
+      "render": false,
+      "street": "Kerning City Subway"
+    },
+    "10003064": {
+      "fetched": "2026-11-01T22:21:03+00:00",
+      "footholds": 299,
+      "ladderRopes": 20,
+      "mobs": [
+        17,
+        32,
+        43
+      ],
+      "name": "Line 1 <Area 3>",
+      "render": false,
+      "street": "Kerning City Subway"
+    },
+    "10003065": {
+      "fetched": "2026-11-01T22:21:03+00:00",
+      "footholds": 294,
+      "ladderRopes": 18,
+      "mobs": [
+        43
+      ],
+      "name": "Line 1 <Area 4>",
+      "render": false,
+      "street": "Kerning City Subway"
+    },
+    "10003066": {
+      "fetched": "2026-11-01T22:21:05+00:00",
+      "footholds": 294,
+      "ladderRopes": 15,
+      "mobs": [
+        18,
+        32
+      ],
+      "name": "Line 2 <Area 1>",
+      "render": false,
+      "street": "Kerning City Subway"
+    },
+    "10003067": {
+      "fetched": "2026-11-01T22:21:05+00:00",
+      "footholds": 299,
+      "ladderRopes": 14,
+      "mobs": [
+        18,
+        32,
+        43
+      ],
+      "name": "Line 2 <Area 2>",
+      "render": false,
+      "street": "Kerning City Subway"
+    },
+    "10003068": {
+      "fetched": "2026-11-01T22:21:06+00:00",
+      "footholds": 297,
+      "ladderRopes": 16,
+      "mobs": [
+        43
+      ],
+      "name": "Line 2 <Area 3>",
+      "render": false,
+      "street": "Kerning City Subway"
+    },
+    "10003070": {
+      "fetched": "2026-11-01T22:21:06+00:00",
+      "footholds": 281,
+      "ladderRopes": 15,
+      "mobs": [
+        3,
+        6,
+        9,
+        11,
+        13
+      ],
+      "name": "Sunset Sky",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10003080": {
+      "fetched": "2026-11-01T22:21:06+00:00",
+      "footholds": 302,
+      "ladderRopes": 11,
+      "mobs": [
+        5,
+        9,
+        11,
+        12,
+        15,
+        16
+      ],
+      "name": "Construction Site North of Kerning City",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10003081": {
+      "fetched": "2026-11-01T22:21:07+00:00",
+      "footholds": 57,
+      "ladderRopes": 4,
+      "mobs": [
+        9,
+        12,
+        16
+      ],
+      "name": "Northern Top of Construction Site",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10003090": {
+      "fetched": "2026-11-01T22:21:08+00:00",
+      "footholds": 207,
+      "ladderRopes": 25,
+      "mobs": [
+        7,
+        18,
+        19,
+        29
+      ],
+      "name": "The Swamp of Despair I",
+      "render": false,
+      "street": "Warning Street"
+    },
+    "10003091": {
+      "fetched": "2026-11-01T22:21:09+00:00",
+      "footholds": 230,
+      "ladderRopes": 24,
+      "mobs": [
+        7,
+        18,
+        19,
+        29
+      ],
+      "name": "The Swamp of Despair II",
+      "render": false,
+      "street": "Warning Street"
+    },
+    "10003092": {
+      "fetched": "2026-11-01T22:21:09+00:00",
+      "footholds": 184,
+      "ladderRopes": 19,
+      "mobs": [
+        7,
+        18,
+        29
+      ],
+      "name": "The Swamp of Despair III",
+      "render": false,
+      "street": "Warning Street"
+    },
+    "10003093": {
+      "fetched": "2026-11-01T22:21:15+00:00",
+      "footholds": 223,
+      "ladderRopes": 39,
+      "mobs": [
+        7,
+        18,
+        29,
+        46
+      ],
+      "name": "Dangerous Croko I",
+      "render": false,
+      "street": "Warning Street"
+    },
+    "10003094": {
+      "fetched": "2026-11-01T22:21:15+00:00",
+      "footholds": 237,
+      "ladderRopes": 37,
+      "mobs": [
+        7,
+        18,
+        46
+      ],
+      "name": "Dangerous Croko II",
+      "render": false,
+      "street": "Warning Street"
+    },
+    "10003095": {
+      "fetched": "2026-11-01T22:21:16+00:00",
+      "footholds": 192,
+      "ladderRopes": 15,
+      "mobs": [
+        18,
+        35
+      ],
+      "name": "Monkey Swamp I",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10003096": {
+      "fetched": "2026-11-01T22:21:16+00:00",
+      "footholds": 146,
+      "ladderRopes": 6,
+      "mobs": [
+        18,
+        35,
+        38
+      ],
+      "name": "Monkey Swamp II",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10003097": {
+      "fetched": "2026-11-01T22:21:16+00:00",
+      "footholds": 146,
+      "ladderRopes": 4,
+      "mobs": [
+        18,
+        38
+      ],
+      "name": "Monkey Swamp III",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10003098": {
+      "fetched": "2026-11-01T22:21:17+00:00",
+      "footholds": 3,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "The Hermit's Cabin",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10003100": {
+      "fetched": "2026-11-01T22:21:17+00:00",
+      "footholds": 1060,
+      "ladderRopes": 18,
+      "mobs": [
+        90
+      ],
+      "name": "B1 <Area 1>",
+      "render": false,
+      "street": "Line 3 Construction Site"
+    },
+    "10003101": {
+      "fetched": "2026-11-01T22:21:19+00:00",
+      "footholds": 320,
+      "ladderRopes": 3,
+      "mobs": [
+        93
+      ],
+      "name": "B1 <Area 2>",
+      "render": false,
+      "street": "Line 3 Construction Site"
+    },
+    "10003102": {
+      "fetched": "2026-11-01T22:21:19+00:00",
+      "footholds": 131,
+      "ladderRopes": 1,
+      "mobs": [
+        14
+      ],
+      "name": "B1 <Subway Depot>",
+      "render": false,
+      "street": "Line 3 Construction Site"
+    },
+    "10003103": {
+      "fetched": "2026-11-01T22:21:20+00:00",
+      "footholds": 535,
+      "ladderRopes": 6,
+      "mobs": [],
+      "name": "B2 <Area 1>",
+      "render": false,
+      "street": "Line 3 Construction Site"
+    },
+    "10003104": {
+      "fetched": "2026-11-01T22:21:20+00:00",
+      "footholds": 651,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "B2 <Area 2>",
+      "render": false,
+      "street": "Line 3 Construction Site"
+    },
+    "10003105": {
+      "fetched": "2026-11-01T22:21:22+00:00",
+      "footholds": 131,
+      "ladderRopes": 1,
+      "mobs": [
+        32,
+        33
+      ],
+      "name": "B2 <Subway Depot>",
+      "render": false,
+      "street": "Line 3 Construction Site"
+    },
+    "10003106": {
+      "fetched": "2026-11-01T22:21:23+00:00",
+      "footholds": 652,
+      "ladderRopes": 6,
+      "mobs": [
+        93
+      ],
+      "name": "B3 <Area 1>",
+      "render": false,
+      "street": "Line 3 Construction Site"
+    },
+    "10003107": {
+      "fetched": "2026-11-01T22:21:23+00:00",
+      "footholds": 300,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "B3 <Area 2>",
+      "render": false,
+      "street": "Line 3 Construction Site"
+    },
+    "10003108": {
+      "fetched": "2026-11-01T22:21:24+00:00",
+      "footholds": 559,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "B3 <Area 3>",
+      "render": false,
+      "street": "Line 3 Construction Site"
+    },
+    "10003109": {
+      "fetched": "2026-11-01T22:21:27+00:00",
+      "footholds": 131,
+      "ladderRopes": 1,
+      "mobs": [
+        33,
+        34,
+        43
+      ],
+      "name": "B3 <Subway Depot>",
+      "render": false,
+      "street": "Line 3 Construction Site"
+    },
+    "10003110": {
+      "fetched": "2026-11-01T22:21:27+00:00",
+      "footholds": 110,
+      "ladderRopes": 7,
+      "mobs": [
+        18,
+        29
+      ],
+      "name": "The Murky Swamp I",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10003111": {
+      "fetched": "2026-11-01T22:21:28+00:00",
+      "footholds": 113,
+      "ladderRopes": 6,
+      "mobs": [
+        18,
+        29
+      ],
+      "name": "The Murky Swamp II",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10003112": {
+      "fetched": "2026-11-01T22:21:32+00:00",
+      "footholds": 3,
+      "ladderRopes": 2,
+      "mobs": [
+        700006
+      ],
+      "name": "Cabin of the Forsaken",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10004000": {
+      "fetched": "2026-11-01T22:21:32+00:00",
+      "footholds": 490,
+      "ladderRopes": 16,
+      "mobs": [],
+      "name": "Perion",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004001": {
+      "fetched": "2026-11-01T22:21:33+00:00",
+      "footholds": 27,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "Perion Weapon Store",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004002": {
+      "fetched": "2026-11-01T22:21:33+00:00",
+      "footholds": 38,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Perion Department Store",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004003": {
+      "fetched": "2026-11-01T22:21:34+00:00",
+      "footholds": 47,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Warriors' Sanctuary",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004010": {
+      "fetched": "2026-11-01T22:21:34+00:00",
+      "footholds": 141,
+      "ladderRopes": 2,
+      "mobs": [
+        3,
+        6,
+        11,
+        13
+      ],
+      "name": "West Street Corner of Perion",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004020": {
+      "fetched": "2026-11-01T22:21:34+00:00",
+      "footholds": 198,
+      "ladderRopes": 5,
+      "mobs": [
+        5,
+        6,
+        15
+      ],
+      "name": "West Rocky Mountain I",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004021": {
+      "fetched": "2026-11-01T22:21:35+00:00",
+      "footholds": 191,
+      "ladderRopes": 4,
+      "mobs": [
+        5,
+        6,
+        11,
+        15
+      ],
+      "name": "West Rocky Mountain II",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004022": {
+      "fetched": "2026-11-01T22:21:36+00:00",
+      "footholds": 243,
+      "ladderRopes": 5,
+      "mobs": [
+        5,
+        6,
+        11,
+        13,
+        15,
+        20
+      ],
+      "name": "West Rocky Mountain III",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004023": {
+      "fetched": "2026-11-01T22:21:38+00:00",
+      "footholds": 219,
+      "ladderRopes": 4,
+      "mobs": [
+        15,
+        20,
+        22,
+        35
+      ],
+      "name": "West Rocky Mountain IV",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004030": {
+      "fetched": "2026-11-01T22:21:39+00:00",
+      "footholds": 407,
+      "ladderRopes": 9,
+      "mobs": [
+        2,
+        3,
+        5,
+        6,
+        11,
+        13
+      ],
+      "name": "West Domain of Perion",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004040": {
+      "fetched": "2026-11-01T18:26:58+00:00",
+      "footholds": 221,
+      "ladderRopes": 28,
+      "mobs": [
+        2,
+        3,
+        5,
+        6,
+        11
+      ],
+      "name": "Perion Street Corner",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004041": {
+      "fetched": "2026-11-01T22:21:39+00:00",
+      "footholds": 236,
+      "ladderRopes": 8,
+      "mobs": [
+        20,
+        22,
+        33,
+        34
+      ],
+      "name": "Land of Wild Boar",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10004042": {
+      "fetched": "2026-11-01T22:21:40+00:00",
+      "footholds": 147,
+      "ladderRopes": 2,
+      "mobs": [
+        6,
+        11,
+        15,
+        20
+      ],
+      "name": "Over the Wall",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10004050": {
+      "fetched": "2026-11-01T20:27:42+00:00",
+      "footholds": 134,
+      "ladderRopes": 6,
+      "mobs": [
+        3,
+        5,
+        6,
+        11
+      ],
+      "name": "East Rocky Mountain I",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004051": {
+      "fetched": "2026-11-01T22:21:40+00:00",
+      "footholds": 100,
+      "ladderRopes": 4,
+      "mobs": [
+        5,
+        6,
+        15
+      ],
+      "name": "East Rocky Mountain II",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004052": {
+      "fetched": "2026-11-01T22:21:40+00:00",
+      "footholds": 110,
+      "ladderRopes": 7,
+      "mobs": [
+        5,
+        6,
+        11,
+        15
+      ],
+      "name": "East Rocky Mountain III",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004053": {
+      "fetched": "2026-11-01T22:21:41+00:00",
+      "footholds": 134,
+      "ladderRopes": 7,
+      "mobs": [
+        2,
+        11,
+        15,
+        20
+      ],
+      "name": "East Rocky Mountain IV",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004054": {
+      "fetched": "2026-11-01T22:21:42+00:00",
+      "footholds": 138,
+      "ladderRopes": 5,
+      "mobs": [
+        5,
+        11,
+        20,
+        30
+      ],
+      "name": "East Rocky Mountain V",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004055": {
+      "fetched": "2026-11-01T22:21:42+00:00",
+      "footholds": 79,
+      "ladderRopes": 5,
+      "mobs": [
+        11,
+        15,
+        20,
+        30,
+        35
+      ],
+      "name": "East Rocky Mountain VI",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004056": {
+      "fetched": "2026-11-01T22:21:44+00:00",
+      "footholds": 121,
+      "ladderRopes": 9,
+      "mobs": [
+        20,
+        30,
+        40
+      ],
+      "name": "East Rocky Mountain VII",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004057": {
+      "fetched": "2026-11-01T22:21:50+00:00",
+      "footholds": 72,
+      "ladderRopes": 2,
+      "mobs": [
+        15,
+        20,
+        33,
+        34,
+        700007
+      ],
+      "name": "Parched Land",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004060": {
+      "fetched": "2026-11-01T22:21:51+00:00",
+      "footholds": 86,
+      "ladderRopes": 4,
+      "mobs": [
+        2,
+        5,
+        6,
+        11,
+        13
+      ],
+      "name": "Rocky Road I",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004070": {
+      "fetched": "2026-11-01T22:21:51+00:00",
+      "footholds": 86,
+      "ladderRopes": 4,
+      "mobs": [
+        2,
+        5,
+        6,
+        11,
+        15,
+        20,
+        22
+      ],
+      "name": "Rocky Road II",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004080": {
+      "fetched": "2026-11-01T22:21:51+00:00",
+      "footholds": 83,
+      "ladderRopes": 3,
+      "mobs": [
+        5,
+        6,
+        15,
+        20,
+        22
+      ],
+      "name": "Rocky Road III",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004090": {
+      "fetched": "2026-11-01T22:21:52+00:00",
+      "footholds": 551,
+      "ladderRopes": 31,
+      "mobs": [
+        2,
+        3,
+        5,
+        6,
+        11,
+        13,
+        15,
+        20
+      ],
+      "name": "East Domain of Perion",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004091": {
+      "fetched": "2026-11-01T22:21:52+00:00",
+      "footholds": 111,
+      "ladderRopes": 7,
+      "mobs": [
+        11,
+        15,
+        20,
+        22
+      ],
+      "name": "The Land of Wild Boar II",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10004100": {
+      "fetched": "2026-11-01T22:21:53+00:00",
+      "footholds": 320,
+      "ladderRopes": 14,
+      "mobs": [
+        3,
+        5,
+        11,
+        15,
+        20,
+        22,
+        30
+      ],
+      "name": "Deep Valley I",
+      "render": false,
+      "street": "Warning Street"
+    },
+    "10004101": {
+      "fetched": "2026-11-01T22:21:53+00:00",
+      "footholds": 123,
+      "ladderRopes": 6,
+      "mobs": [
+        30,
+        40
+      ],
+      "name": "Dangerous Valley",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10004102": {
+      "fetched": "2026-11-01T22:22:03+00:00",
+      "footholds": 137,
+      "ladderRopes": 9,
+      "mobs": [
+        30,
+        40,
+        50
+      ],
+      "name": "Dangerous Valley II",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10004110": {
+      "fetched": "2026-11-01T22:22:04+00:00",
+      "footholds": 146,
+      "ladderRopes": 4,
+      "mobs": [
+        11,
+        15,
+        20,
+        22,
+        30
+      ],
+      "name": "Deep Valley II",
+      "render": false,
+      "street": "Warning Street"
+    },
+    "10004111": {
+      "fetched": "2026-11-01T22:22:04+00:00",
+      "footholds": 180,
+      "ladderRopes": 5,
+      "mobs": [
+        20,
+        30
+      ],
+      "name": "The Burnt Land I",
+      "render": false,
+      "street": "Warning Street"
+    },
+    "10004112": {
+      "fetched": "2026-11-01T22:22:04+00:00",
+      "footholds": 147,
+      "ladderRopes": 3,
+      "mobs": [
+        20,
+        30
+      ],
+      "name": "The Burnt Land II",
+      "render": false,
+      "street": "Warning Street"
+    },
+    "10004113": {
+      "fetched": "2026-11-01T22:22:05+00:00",
+      "footholds": 120,
+      "ladderRopes": 3,
+      "mobs": [
+        20,
+        30
+      ],
+      "name": "The Burnt Land III",
+      "render": false,
+      "street": "Warning Street"
+    },
+    "10004114": {
+      "fetched": "2026-11-01T22:22:05+00:00",
+      "footholds": 125,
+      "ladderRopes": 5,
+      "mobs": [
+        20,
+        30,
+        35
+      ],
+      "name": "The Burnt Land IV",
+      "render": false,
+      "street": "Warning Street"
+    },
+    "10004115": {
+      "fetched": "2026-11-01T22:22:05+00:00",
+      "footholds": 134,
+      "ladderRopes": 5,
+      "mobs": [
+        20,
+        30,
+        35
+      ],
+      "name": "The Burnt Land V",
+      "render": false,
+      "street": "Warning Street"
+    },
+    "10004120": {
+      "fetched": "2026-11-01T22:22:06+00:00",
+      "footholds": 135,
+      "ladderRopes": 6,
+      "mobs": [
+        11,
+        15,
+        20,
+        22,
+        30
+      ],
+      "name": "Deep Valley III",
+      "render": false,
+      "street": "Warning Street"
+    },
+    "10004121": {
+      "fetched": "2026-11-01T22:22:06+00:00",
+      "footholds": 137,
+      "ladderRopes": 4,
+      "mobs": [
+        11,
+        20,
+        22,
+        30
+      ],
+      "name": "Perion Dungeon Entrance",
+      "render": false,
+      "street": "Warning Street"
+    },
+    "10004130": {
+      "fetched": "2026-11-01T22:22:10+00:00",
+      "footholds": 137,
+      "ladderRopes": 16,
+      "mobs": [
+        39,
+        42
+      ],
+      "name": "Excavation Site I",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004131": {
+      "fetched": "2026-11-01T22:22:17+00:00",
+      "footholds": 176,
+      "ladderRopes": 24,
+      "mobs": [
+        39,
+        42,
+        64
+      ],
+      "name": "Excavation Site II",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004132": {
+      "fetched": "2026-11-01T22:22:17+00:00",
+      "footholds": 96,
+      "ladderRopes": 7,
+      "mobs": [
+        42,
+        64
+      ],
+      "name": "Excavation Site III",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004133": {
+      "fetched": "2026-11-01T22:22:18+00:00",
+      "footholds": 177,
+      "ladderRopes": 10,
+      "mobs": [],
+      "name": "Excavation Site <Camp>",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004134": {
+      "fetched": "2026-11-01T22:22:32+00:00",
+      "footholds": 162,
+      "ladderRopes": 8,
+      "mobs": [
+        65,
+        66
+      ],
+      "name": "Remains <Tomb> I",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004135": {
+      "fetched": "2026-11-01T22:22:34+00:00",
+      "footholds": 123,
+      "ladderRopes": 9,
+      "mobs": [
+        65,
+        66,
+        67
+      ],
+      "name": "Remains <Tomb> II",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004136": {
+      "fetched": "2026-11-01T22:22:35+00:00",
+      "footholds": 99,
+      "ladderRopes": 6,
+      "mobs": [
+        65,
+        66,
+        67
+      ],
+      "name": "Remains <Tomb> III",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004137": {
+      "fetched": "2026-11-01T22:22:40+00:00",
+      "footholds": 146,
+      "ladderRopes": 12,
+      "mobs": [
+        68,
+        69
+      ],
+      "name": "Remains <Tomb> IV",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004138": {
+      "fetched": "2026-11-01T22:22:40+00:00",
+      "footholds": 117,
+      "ladderRopes": 8,
+      "mobs": [
+        68,
+        69
+      ],
+      "name": "Remains <Cliff>",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004140": {
+      "fetched": "2026-11-01T22:22:41+00:00",
+      "footholds": 184,
+      "ladderRopes": 4,
+      "mobs": [
+        67,
+        68
+      ],
+      "name": "Camp 1",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004141": {
+      "fetched": "2026-11-01T22:22:41+00:00",
+      "footholds": 184,
+      "ladderRopes": 3,
+      "mobs": [
+        67,
+        68
+      ],
+      "name": "Camp 2",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10004142": {
+      "fetched": "2026-11-01T22:22:41+00:00",
+      "footholds": 164,
+      "ladderRopes": 1,
+      "mobs": [
+        67,
+        68
+      ],
+      "name": "Camp 3",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "10005000": {
+      "fetched": "2026-11-01T22:22:42+00:00",
+      "footholds": 122,
+      "ladderRopes": 3,
+      "mobs": [],
+      "name": "Sleepywood",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005001": {
+      "fetched": "2026-11-01T22:22:42+00:00",
+      "footholds": 55,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Sleepywood Hotel",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005002": {
+      "fetched": "2026-11-01T22:22:42+00:00",
+      "footholds": 65,
+      "ladderRopes": 2,
+      "mobs": [],
+      "name": "Regular Sauna",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005003": {
+      "fetched": "2026-11-01T22:22:42+00:00",
+      "footholds": 65,
+      "ladderRopes": 2,
+      "mobs": [],
+      "name": "VIP Sauna",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005010": {
+      "fetched": "2026-11-01T22:22:43+00:00",
+      "footholds": 306,
+      "ladderRopes": 16,
+      "mobs": [
+        7,
+        11,
+        12,
+        13,
+        18,
+        19
+      ],
+      "name": "Swampy Land in a Deep Forest",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005011": {
+      "fetched": "2026-11-01T22:22:44+00:00",
+      "footholds": 230,
+      "ladderRopes": 13,
+      "mobs": [
+        2,
+        7,
+        12,
+        13,
+        18,
+        31,
+        33
+      ],
+      "name": "Hunting Ground in the Deep Forest I",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005012": {
+      "fetched": "2026-11-01T22:22:44+00:00",
+      "footholds": 166,
+      "ladderRopes": 12,
+      "mobs": [
+        2,
+        7,
+        19,
+        31,
+        35
+      ],
+      "name": "Hunting Ground in the Deep Forest II",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005020": {
+      "fetched": "2026-11-01T22:22:44+00:00",
+      "footholds": 543,
+      "ladderRopes": 16,
+      "mobs": [
+        2,
+        6,
+        7,
+        11,
+        13,
+        19,
+        20
+      ],
+      "name": "Deep Forest",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005030": {
+      "fetched": "2026-11-01T22:22:45+00:00",
+      "footholds": 163,
+      "ladderRopes": 14,
+      "mobs": [
+        7,
+        12,
+        18,
+        20
+      ],
+      "name": "Damp Tree-Forest",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005031": {
+      "fetched": "2026-11-01T22:22:45+00:00",
+      "footholds": 82,
+      "ladderRopes": 9,
+      "mobs": [
+        7,
+        12,
+        18
+      ],
+      "name": "Damp Forest",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005040": {
+      "fetched": "2026-11-01T22:22:45+00:00",
+      "footholds": 206,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "The Deep Forest of Patience <Step 1>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10005041": {
+      "fetched": "2026-11-01T22:22:46+00:00",
+      "footholds": 295,
+      "ladderRopes": 3,
+      "mobs": [],
+      "name": "The Deep Forest of Patience <Step 2>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10005042": {
+      "fetched": "2026-11-01T22:22:46+00:00",
+      "footholds": 326,
+      "ladderRopes": 2,
+      "mobs": [],
+      "name": "The Deep Forest of Patience <Step 3>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10005043": {
+      "fetched": "2026-11-01T22:22:46+00:00",
+      "footholds": 372,
+      "ladderRopes": 3,
+      "mobs": [],
+      "name": "The Deep Forest of Patience <Step 4>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10005044": {
+      "fetched": "2026-11-01T22:22:50+00:00",
+      "footholds": 318,
+      "ladderRopes": 15,
+      "mobs": [
+        90,
+        91
+      ],
+      "name": "The Deep Forest of Patience <Step 5>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10005045": {
+      "fetched": "2026-11-01T22:22:50+00:00",
+      "footholds": 277,
+      "ladderRopes": 6,
+      "mobs": [],
+      "name": "The Deep Forest of Patience <Step 6>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10005046": {
+      "fetched": "2026-11-01T22:22:51+00:00",
+      "footholds": 459,
+      "ladderRopes": 4,
+      "mobs": [],
+      "name": "The Deep Forest of Patience <Step 7>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10005050": {
+      "fetched": "2026-11-01T22:22:51+00:00",
+      "footholds": 119,
+      "ladderRopes": 6,
+      "mobs": [
+        7,
+        12,
+        13,
+        18,
+        19,
+        31,
+        35
+      ],
+      "name": "Sleepy Dungeon I",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005051": {
+      "fetched": "2026-11-01T22:22:51+00:00",
+      "footholds": 144,
+      "ladderRopes": 8,
+      "mobs": [
+        7,
+        13,
+        18,
+        19,
+        20,
+        31,
+        35
+      ],
+      "name": "Sleepy Dungeon II",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005052": {
+      "fetched": "2026-11-01T22:23:07+00:00",
+      "footholds": 136,
+      "ladderRopes": 9,
+      "mobs": [
+        18,
+        31,
+        33,
+        35,
+        49
+      ],
+      "name": "Sleepy Dungeon III",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005053": {
+      "fetched": "2026-11-01T22:23:07+00:00",
+      "footholds": 119,
+      "ladderRopes": 5,
+      "mobs": [
+        18,
+        31,
+        33,
+        34,
+        49
+      ],
+      "name": "Sleepy Dungeon IV",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005054": {
+      "fetched": "2026-11-01T22:23:07+00:00",
+      "footholds": 254,
+      "ladderRopes": 12,
+      "mobs": [
+        7,
+        18,
+        31,
+        33,
+        34,
+        35,
+        49
+      ],
+      "name": "Sleepy Dungeon V",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005060": {
+      "fetched": "2026-11-01T22:23:09+00:00",
+      "footholds": 405,
+      "ladderRopes": 11,
+      "mobs": [
+        19,
+        21
+      ],
+      "name": "Ant Tunnel I",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005061": {
+      "fetched": "2026-11-01T22:23:10+00:00",
+      "footholds": 482,
+      "ladderRopes": 18,
+      "mobs": [
+        19,
+        21
+      ],
+      "name": "Ant Tunnel II",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005062": {
+      "fetched": "2026-11-01T22:23:10+00:00",
+      "footholds": 654,
+      "ladderRopes": 22,
+      "mobs": [
+        19,
+        21
+      ],
+      "name": "Ant Tunnel III",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005063": {
+      "fetched": "2026-11-01T22:23:10+00:00",
+      "footholds": 497,
+      "ladderRopes": 13,
+      "mobs": [
+        19,
+        21
+      ],
+      "name": "Ant Tunnel IV",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005064": {
+      "fetched": "2026-11-01T22:23:11+00:00",
+      "footholds": 446,
+      "ladderRopes": 14,
+      "mobs": [
+        17,
+        19,
+        21
+      ],
+      "name": "Dark Cave",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005065": {
+      "fetched": "2026-11-01T22:23:11+00:00",
+      "footholds": 613,
+      "ladderRopes": 11,
+      "mobs": [
+        17,
+        19,
+        21
+      ],
+      "name": "Dangerous Steam",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005066": {
+      "fetched": "2026-11-01T22:23:42+00:00",
+      "footholds": 527,
+      "ladderRopes": 16,
+      "mobs": [
+        19,
+        21,
+        23,
+        34
+      ],
+      "name": "Deep Ant Tunnel I",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005067": {
+      "fetched": "2026-11-01T22:23:43+00:00",
+      "footholds": 537,
+      "ladderRopes": 21,
+      "mobs": [
+        19,
+        21,
+        23
+      ],
+      "name": "Deep Ant Tunnel II",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005070": {
+      "fetched": "2026-11-01T22:23:43+00:00",
+      "footholds": 928,
+      "ladderRopes": 20,
+      "mobs": [
+        19,
+        21,
+        23
+      ],
+      "name": "Ant Tunnel Park",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005071": {
+      "fetched": "2026-11-01T22:23:44+00:00",
+      "footholds": 499,
+      "ladderRopes": 10,
+      "mobs": [
+        23,
+        34
+      ],
+      "name": "The Cave of Evil Eye I",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005072": {
+      "fetched": "2026-11-01T22:23:44+00:00",
+      "footholds": 360,
+      "ladderRopes": 10,
+      "mobs": [
+        23,
+        34
+      ],
+      "name": "The Cave of Evil Eye II",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005073": {
+      "fetched": "2026-11-01T22:23:45+00:00",
+      "footholds": 313,
+      "ladderRopes": 9,
+      "mobs": [
+        23,
+        34
+      ],
+      "name": "The Cave of Evil Eye III",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005074": {
+      "fetched": "2026-11-01T22:23:45+00:00",
+      "footholds": 385,
+      "ladderRopes": 7,
+      "mobs": [
+        23,
+        34
+      ],
+      "name": "The Cave of Evil Eye IV",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005075": {
+      "fetched": "2026-11-01T22:23:47+00:00",
+      "footholds": 266,
+      "ladderRopes": 16,
+      "mobs": [
+        19,
+        34,
+        45
+      ],
+      "name": "Drake Hunting Ground",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005076": {
+      "fetched": "2026-11-01T22:23:48+00:00",
+      "footholds": 1345,
+      "ladderRopes": 27,
+      "mobs": [
+        37,
+        45
+      ],
+      "name": "The Tunnel That Lost Light I",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005077": {
+      "fetched": "2026-11-01T22:23:57+00:00",
+      "footholds": 810,
+      "ladderRopes": 23,
+      "mobs": [
+        37,
+        45,
+        51
+      ],
+      "name": "The Tunnel That Lost Light II",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005078": {
+      "fetched": "2026-11-01T22:24:16+00:00",
+      "footholds": 223,
+      "ladderRopes": 10,
+      "mobs": [
+        21,
+        34,
+        700002
+      ],
+      "name": "The Grave of Mushmom",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005080": {
+      "fetched": "2026-11-01T22:24:17+00:00",
+      "footholds": 26,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "Another Entrance",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005090": {
+      "fetched": "2026-11-01T22:24:17+00:00",
+      "footholds": 657,
+      "ladderRopes": 15,
+      "mobs": [
+        2,
+        37,
+        45,
+        51
+      ],
+      "name": "Drake's Meal Table",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005091": {
+      "fetched": "2026-11-01T22:24:18+00:00",
+      "footholds": 207,
+      "ladderRopes": 7,
+      "mobs": [
+        37,
+        51
+      ],
+      "name": "Wild Kargo's Area",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005100": {
+      "fetched": "2026-11-01T22:24:18+00:00",
+      "footholds": 423,
+      "ladderRopes": 4,
+      "mobs": [
+        37
+      ],
+      "name": "Another Path",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005101": {
+      "fetched": "2026-11-01T22:24:36+00:00",
+      "footholds": 128,
+      "ladderRopes": 3,
+      "mobs": [
+        37,
+        52
+      ],
+      "name": "Sanctuary Entrance I",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005102": {
+      "fetched": "2026-11-01T22:24:36+00:00",
+      "footholds": 132,
+      "ladderRopes": 3,
+      "mobs": [
+        37,
+        52
+      ],
+      "name": "Sanctuary Entrance II",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005103": {
+      "fetched": "2026-11-01T22:24:40+00:00",
+      "footholds": 133,
+      "ladderRopes": 7,
+      "mobs": [
+        37,
+        52,
+        53
+      ],
+      "name": "Sanctuary Entrance III",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005104": {
+      "fetched": "2026-11-01T22:24:40+00:00",
+      "footholds": 123,
+      "ladderRopes": 4,
+      "mobs": [
+        37,
+        52,
+        53
+      ],
+      "name": "Sanctuary Entrance IV",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10005105": {
+      "fetched": "2026-11-01T22:24:42+00:00",
+      "footholds": 192,
+      "ladderRopes": 4,
+      "mobs": [
+        700001
+      ],
+      "name": "The Cursed Sanctuary",
+      "render": false,
+      "street": "Dungeon"
+    },
+    "10007000": {
+      "fetched": "2026-11-01T22:24:43+00:00",
+      "footholds": 171,
+      "ladderRopes": 2,
+      "mobs": [],
+      "name": "Florina Beach",
+      "render": false,
+      "street": "Florina Road"
+    },
+    "10007010": {
+      "fetched": "2026-11-01T22:24:44+00:00",
+      "footholds": 228,
+      "ladderRopes": 14,
+      "mobs": [
+        35,
+        36
+      ],
+      "name": "A Look-Out Shed Around the Beach",
+      "render": false,
+      "street": "Florina Road"
+    },
+    "10007020": {
+      "fetched": "2026-11-01T22:24:45+00:00",
+      "footholds": 382,
+      "ladderRopes": 11,
+      "mobs": [
+        35,
+        36
+      ],
+      "name": "Lorang Lorang",
+      "render": false,
+      "street": "Florina Road"
+    },
+    "10007021": {
+      "fetched": "2026-11-01T22:24:46+00:00",
+      "footholds": 290,
+      "ladderRopes": 1,
+      "mobs": [
+        36,
+        41
+      ],
+      "name": "Lorang Lorang Lorang",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "10007030": {
+      "fetched": "2026-11-01T22:24:48+00:00",
+      "footholds": 152,
+      "ladderRopes": 10,
+      "mobs": [
+        36,
+        44
+      ],
+      "name": "Lorang and Clang",
+      "render": false,
+      "street": "Florina Road"
+    },
+    "10007031": {
+      "fetched": "2026-11-01T22:24:49+00:00",
+      "footholds": 140,
+      "ladderRopes": 6,
+      "mobs": [
+        36,
+        41,
+        44
+      ],
+      "name": "Clang and Lorang",
+      "render": false,
+      "street": "Florina Road"
+    },
+    "10007040": {
+      "fetched": "2026-11-01T22:24:49+00:00",
+      "footholds": 115,
+      "ladderRopes": 7,
+      "mobs": [
+        41,
+        44
+      ],
+      "name": "Hot Sand",
+      "render": false,
+      "street": "Florina Road"
+    },
+    "1001": {
+      "fetched": "2026-11-01T22:19:30+00:00",
+      "footholds": 225,
+      "ladderRopes": 6,
+      "mobs": [
+        2,
+        3,
+        4,
+        5,
+        9
+      ],
+      "name": "In a Small Forest",
+      "render": false,
+      "street": "Rainbow Street"
+    },
+    "1002": {
+      "fetched": "2026-11-01T22:19:31+00:00",
+      "footholds": 122,
+      "ladderRopes": 7,
+      "mobs": [
+        2,
+        3,
+        5,
+        9
+      ],
+      "name": "Dangerous Forest",
+      "render": false,
+      "street": "Rainbow Street"
+    },
+    "1003": {
+      "fetched": "2026-11-01T22:19:31+00:00",
+      "footholds": 150,
+      "ladderRopes": 3,
+      "mobs": [
+        2,
+        4,
+        9
+      ],
+      "name": "Mushroom Garden",
+      "render": false,
+      "street": "Rainbow Street"
+    },
+    "1004": {
+      "fetched": "2026-11-01T22:19:31+00:00",
+      "footholds": 196,
+      "ladderRopes": 11,
+      "mobs": [
+        2,
+        3,
+        5
+      ],
+      "name": "Snail Garden",
+      "render": false,
+      "street": "Rainbow Street"
+    },
+    "1005": {
+      "fetched": "2026-11-01T22:19:32+00:00",
+      "footholds": 260,
+      "ladderRopes": 10,
+      "mobs": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "name": "Hunting Ground Middle of the Forest I",
+      "render": false,
+      "street": "Rainbow Street"
+    },
+    "1006": {
+      "fetched": "2026-11-01T22:19:32+00:00",
+      "footholds": 209,
+      "ladderRopes": 10,
+      "mobs": [
+        2,
+        3,
+        4,
+        5,
+        9
+      ],
+      "name": "Hunting Ground Middle of the Forest II",
+      "render": false,
+      "street": "Rainbow Street"
+    },
+    "1010": {
+      "fetched": "2026-11-01T22:19:32+00:00",
+      "footholds": 114,
+      "ladderRopes": 3,
+      "mobs": [],
+      "name": "Amherst",
+      "render": false,
+      "street": "Rainbow Street"
+    },
+    "1011": {
+      "fetched": "2026-11-01T22:19:33+00:00",
+      "footholds": 27,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "Amherst Weapon Store",
+      "render": false,
+      "street": "Rainbow Street"
+    },
+    "1012": {
+      "fetched": "2026-11-01T22:19:33+00:00",
+      "footholds": 41,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "Amherst Townstreet",
+      "render": false,
+      "street": "Rainbow Street"
+    },
+    "1013": {
+      "fetched": "2026-11-01T22:19:33+00:00",
+      "footholds": 35,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Amherst Department Store",
+      "render": false,
+      "street": "Rainbow Street"
+    },
+    "1014": {
+      "fetched": "2026-11-01T22:19:34+00:00",
+      "footholds": 177,
+      "ladderRopes": 11,
+      "mobs": [
+        2,
+        3,
+        5,
+        9
+      ],
+      "name": "Snail Field of Flowers",
+      "render": false,
+      "street": "Rainbow Street"
+    },
+    "1020": {
+      "fetched": "2026-11-01T22:19:34+00:00",
+      "footholds": 253,
+      "ladderRopes": 12,
+      "mobs": [
+        2,
+        3,
+        5,
+        9
+      ],
+      "name": "The Field East of Amherst",
+      "render": false,
+      "street": "Rainbow Street"
+    },
+    "1021": {
+      "fetched": "2026-11-01T22:19:35+00:00",
+      "footholds": 134,
+      "ladderRopes": 5,
+      "mobs": [
+        2,
+        3,
+        5,
+        9
+      ],
+      "name": "Tomato Field",
+      "render": false,
+      "street": "Rainbow Street"
+    },
+    "20": {
+      "fetched": "2026-11-01T22:19:21+00:00",
+      "footholds": 51,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "Mushroom Town",
+      "render": false,
+      "street": "Maple Road"
+    },
+    "21": {
+      "fetched": "2026-11-01T22:19:21+00:00",
+      "footholds": 37,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "Mushroom Town Townstreet",
+      "render": false,
+      "street": "Maple Road"
+    },
+    "30": {
+      "fetched": "2026-11-01T22:19:27+00:00",
+      "footholds": 139,
+      "ladderRopes": 4,
+      "mobs": [
+        1
+      ],
+      "name": "East Entrance to Mushroom Town",
+      "render": false,
+      "street": "Maple Road"
+    },
+    "40": {
+      "fetched": "2026-11-01T22:19:27+00:00",
+      "footholds": 218,
+      "ladderRopes": 13,
+      "mobs": [
+        2
+      ],
+      "name": "Snail Hunting Ground I",
+      "render": false,
+      "street": "Maple Road"
+    },
+    "41": {
+      "fetched": "2026-11-01T22:19:28+00:00",
+      "footholds": 296,
+      "ladderRopes": 8,
+      "mobs": [
+        2,
+        3
+      ],
+      "name": "Snail Hunting Ground II",
+      "render": false,
+      "street": "Maple Road"
+    },
+    "42": {
+      "fetched": "2026-11-01T07:41:53+00:00",
+      "footholds": 196,
+      "ladderRopes": 10,
+      "mobs": [
+        2,
+        3,
+        5
+      ],
+      "name": "Snail Hunting Ground III",
+      "render": true,
+      "street": "Maple Road"
+    },
+    "50": {
+      "fetched": "2026-11-01T11:22:39+00:00",
+      "footholds": 162,
+      "ladderRopes": 8,
+      "mobs": [
+        3,
+        4,
+        5
+      ],
+      "name": "A Split Road",
+      "render": false,
+      "street": "Maple Road"
+    },
+    "60": {
+      "fetched": "2026-11-01T22:19:28+00:00",
+      "footholds": 205,
+      "ladderRopes": 7,
+      "mobs": [],
+      "name": "Southperry",
+      "render": false,
+      "street": "Maple Road"
+    },
+    "61": {
+      "fetched": "2026-11-01T22:19:28+00:00",
+      "footholds": 27,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "Southperry Armor Store",
+      "render": false,
+      "street": "Maple Road"
+    },
+    "80000000": {
+      "fetched": "2026-11-01T22:24:50+00:00",
+      "footholds": 150,
+      "ladderRopes": 6,
+      "mobs": [
+        800000
+      ],
+      "name": "1st Accompaniment <1st Stage>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80000100": {
+      "fetched": "2026-11-01T22:24:51+00:00",
+      "footholds": 67,
+      "ladderRopes": 7,
+      "mobs": [],
+      "name": "1st Accompaniment <2nd Stage>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80000200": {
+      "fetched": "2026-11-01T22:24:51+00:00",
+      "footholds": 77,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "1st Accompaniment <3rd Stage>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80000300": {
+      "fetched": "2026-11-01T22:24:51+00:00",
+      "footholds": 121,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "1st Accompaniment <4th stage>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80000400": {
+      "fetched": "2026-11-01T22:24:57+00:00",
+      "footholds": 140,
+      "ladderRopes": 5,
+      "mobs": [
+        800001,
+        800002,
+        800003
+      ],
+      "name": "1st Accompaniment <Last Stage>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80000500": {
+      "fetched": "2026-11-01T22:24:57+00:00",
+      "footholds": 112,
+      "ladderRopes": 6,
+      "mobs": [
+        13,
+        19
+      ],
+      "name": "1st Accompaniment <Bonus>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80000600": {
+      "fetched": "2026-11-01T22:24:58+00:00",
+      "footholds": 27,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "1st Accompaniment <Exit>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80001000": {
+      "fetched": "2026-11-01T22:25:01+00:00",
+      "footholds": 334,
+      "ladderRopes": 15,
+      "mobs": [
+        800010,
+        800011
+      ],
+      "name": "Ant Tunnel For Bowman",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80001100": {
+      "fetched": "2026-11-01T22:25:06+00:00",
+      "footholds": 311,
+      "ladderRopes": 11,
+      "mobs": [
+        800012,
+        800013
+      ],
+      "name": "Magician's Tree Dungeon",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80001200": {
+      "fetched": "2026-11-01T22:25:09+00:00",
+      "footholds": 159,
+      "ladderRopes": 6,
+      "mobs": [
+        800014,
+        800015
+      ],
+      "name": "Thief's Construction Site",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80001300": {
+      "fetched": "2026-11-01T22:25:14+00:00",
+      "footholds": 132,
+      "ladderRopes": 6,
+      "mobs": [
+        800016,
+        800017
+      ],
+      "name": "Warrior's Rocky Mountain",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80002000": {
+      "fetched": "2026-11-01T22:25:14+00:00",
+      "footholds": 104,
+      "ladderRopes": 3,
+      "mobs": [],
+      "name": "Free Market Entrance",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80002001": {
+      "fetched": "2026-11-01T22:25:15+00:00",
+      "footholds": 75,
+      "ladderRopes": 4,
+      "mobs": [],
+      "name": "Free Market <1>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80002002": {
+      "fetched": "2026-11-01T22:25:15+00:00",
+      "footholds": 75,
+      "ladderRopes": 4,
+      "mobs": [],
+      "name": "Free Market <2>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80002003": {
+      "fetched": "2026-11-01T22:25:15+00:00",
+      "footholds": 75,
+      "ladderRopes": 4,
+      "mobs": [],
+      "name": "Free Market <3>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80002004": {
+      "fetched": "2026-11-01T22:25:15+00:00",
+      "footholds": 75,
+      "ladderRopes": 4,
+      "mobs": [],
+      "name": "Free Market <4>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80002005": {
+      "fetched": "2026-11-01T22:25:16+00:00",
+      "footholds": 76,
+      "ladderRopes": 4,
+      "mobs": [],
+      "name": "Free Market <5>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80002006": {
+      "fetched": "2026-11-01T22:25:16+00:00",
+      "footholds": 76,
+      "ladderRopes": 4,
+      "mobs": [],
+      "name": "Free Market <6>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80002007": {
+      "fetched": "2026-11-01T22:25:16+00:00",
+      "footholds": 73,
+      "ladderRopes": 5,
+      "mobs": [],
+      "name": "Free Market <7>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80002008": {
+      "fetched": "2026-11-01T22:25:17+00:00",
+      "footholds": 73,
+      "ladderRopes": 5,
+      "mobs": [],
+      "name": "Free Market <8>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80002009": {
+      "fetched": "2026-11-01T22:25:17+00:00",
+      "footholds": 73,
+      "ladderRopes": 5,
+      "mobs": [],
+      "name": "Free Market <9>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80002010": {
+      "fetched": "2026-11-01T22:25:18+00:00",
+      "footholds": 73,
+      "ladderRopes": 5,
+      "mobs": [],
+      "name": "Free Market <10>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80002011": {
+      "fetched": "2026-11-01T22:25:18+00:00",
+      "footholds": 73,
+      "ladderRopes": 5,
+      "mobs": [],
+      "name": "Free Market <11>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80002012": {
+      "fetched": "2026-11-01T22:25:18+00:00",
+      "footholds": 73,
+      "ladderRopes": 5,
+      "mobs": [],
+      "name": "Free Market <12>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80002013": {
+      "fetched": "2026-11-01T22:25:19+00:00",
+      "footholds": 76,
+      "ladderRopes": 4,
+      "mobs": [],
+      "name": "Free Market <13>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80002014": {
+      "fetched": "2026-11-01T22:25:19+00:00",
+      "footholds": 76,
+      "ladderRopes": 4,
+      "mobs": [],
+      "name": "Free Market <14>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80002015": {
+      "fetched": "2026-11-01T22:25:19+00:00",
+      "footholds": 76,
+      "ladderRopes": 4,
+      "mobs": [],
+      "name": "Free Market <15>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80002016": {
+      "fetched": "2026-11-01T22:25:20+00:00",
+      "footholds": 76,
+      "ladderRopes": 4,
+      "mobs": [],
+      "name": "Free Market <16>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80002017": {
+      "fetched": "2026-11-01T22:25:20+00:00",
+      "footholds": 73,
+      "ladderRopes": 5,
+      "mobs": [],
+      "name": "Free Market <17>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80002018": {
+      "fetched": "2026-11-01T22:25:20+00:00",
+      "footholds": 73,
+      "ladderRopes": 5,
+      "mobs": [],
+      "name": "Free Market <18>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80002019": {
+      "fetched": "2026-11-01T22:25:21+00:00",
+      "footholds": 73,
+      "ladderRopes": 5,
+      "mobs": [],
+      "name": "Free Market <19>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80002020": {
+      "fetched": "2026-11-01T22:25:21+00:00",
+      "footholds": 73,
+      "ladderRopes": 5,
+      "mobs": [],
+      "name": "Free Market <20>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80003000": {
+      "fetched": "2026-11-01T22:26:16+00:00",
+      "footholds": 234,
+      "ladderRopes": 15,
+      "mobs": [
+        800020,
+        800021,
+        800022,
+        800023,
+        800024,
+        800025
+      ],
+      "name": "Primrose Hill",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80003100": {
+      "fetched": "2026-11-01T22:26:17+00:00",
+      "footholds": 45,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Shortcut",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80003200": {
+      "fetched": "2026-11-01T22:26:17+00:00",
+      "footholds": 191,
+      "ladderRopes": 17,
+      "mobs": [
+        8,
+        10
+      ],
+      "name": "Pig Town",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80003300": {
+      "fetched": "2026-11-01T22:26:18+00:00",
+      "footholds": 26,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Back to Town",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "80003400": {
+      "fetched": "2026-11-01T22:26:18+00:00",
+      "footholds": 45,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Shortcut",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "88000000": {
+      "fetched": "2026-11-01T22:26:18+00:00",
+      "footholds": 38,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "Yellow Mushroom House",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "88001000": {
+      "fetched": "2026-11-01T22:26:19+00:00",
+      "footholds": 36,
+      "ladderRopes": 2,
+      "mobs": [],
+      "name": "Backalley Semi-Basement",
+      "render": false,
+      "street": "Victoria Road"
+    },
+    "89000000": {
+      "fetched": "2026-11-01T22:26:19+00:00",
+      "footholds": 1,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Truth Booth",
+      "render": false,
+      "street": "Truth Booth"
+    },
+    "90000000": {
+      "fetched": "2026-11-01T22:26:20+00:00",
+      "footholds": 225,
+      "ladderRopes": 9,
+      "mobs": [],
+      "name": "Maple Hill",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "900000000": {
+      "fetched": "2026-11-01T22:26:49+00:00",
+      "footholds": 48,
+      "ladderRopes": 2,
+      "mobs": [],
+      "name": "The Manager's Room",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "900000003": {
+      "fetched": "2026-11-01T22:26:49+00:00",
+      "footholds": 18,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "White Room",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90040000": {
+      "fetched": "2026-11-01T22:26:20+00:00",
+      "footholds": 136,
+      "ladderRopes": 3,
+      "mobs": [],
+      "name": "Physical Fitness Test <Waiting Room>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90040001": {
+      "fetched": "2026-11-01T22:26:20+00:00",
+      "footholds": 442,
+      "ladderRopes": 17,
+      "mobs": [
+        90
+      ],
+      "name": "Physical Fitness Test <Level 1>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90040002": {
+      "fetched": "2026-11-01T22:26:21+00:00",
+      "footholds": 357,
+      "ladderRopes": 3,
+      "mobs": [],
+      "name": "Physical Fitness Test <Level 2>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90040003": {
+      "fetched": "2026-11-01T22:26:21+00:00",
+      "footholds": 570,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "Physical Fitness Test <Level 3>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90040004": {
+      "fetched": "2026-11-01T22:26:22+00:00",
+      "footholds": 408,
+      "ladderRopes": 5,
+      "mobs": [
+        90
+      ],
+      "name": "Physical Fitness Test <Level 4>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90040010": {
+      "fetched": "2026-11-01T22:26:22+00:00",
+      "footholds": 159,
+      "ladderRopes": 5,
+      "mobs": [],
+      "name": "Physical Fitness Test <Easy Waiting Room>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90040011": {
+      "fetched": "2026-11-01T22:26:23+00:00",
+      "footholds": 356,
+      "ladderRopes": 2,
+      "mobs": [],
+      "name": "Physical Fitness Test <Easy Level 1>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90040012": {
+      "fetched": "2026-11-01T22:26:23+00:00",
+      "footholds": 387,
+      "ladderRopes": 5,
+      "mobs": [],
+      "name": "Physical Fitness Test <Easy Level 2>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90040013": {
+      "fetched": "2026-11-01T22:26:23+00:00",
+      "footholds": 441,
+      "ladderRopes": 12,
+      "mobs": [],
+      "name": "Physical Fitness Test <Easy Level 3>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90040020": {
+      "fetched": "2026-11-01T22:26:24+00:00",
+      "footholds": 146,
+      "ladderRopes": 3,
+      "mobs": [],
+      "name": "Physical Fitness Test <Normal Waiting Room>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90040021": {
+      "fetched": "2026-11-01T22:26:24+00:00",
+      "footholds": 350,
+      "ladderRopes": 7,
+      "mobs": [],
+      "name": "Physical Fitness Test <Normal Level 1>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90040022": {
+      "fetched": "2026-11-01T22:26:25+00:00",
+      "footholds": 484,
+      "ladderRopes": 10,
+      "mobs": [],
+      "name": "Physical Fitness Test <Normal Level 2>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90040023": {
+      "fetched": "2026-11-01T22:26:25+00:00",
+      "footholds": 1360,
+      "ladderRopes": 6,
+      "mobs": [],
+      "name": "Physical Fitness Test <Normal Level 3>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90040101": {
+      "fetched": "2026-11-01T22:26:26+00:00",
+      "footholds": 324,
+      "ladderRopes": 17,
+      "mobs": [],
+      "name": "Up and Up <Level 1>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90040102": {
+      "fetched": "2026-11-01T22:26:26+00:00",
+      "footholds": 465,
+      "ladderRopes": 36,
+      "mobs": [],
+      "name": "Up and Up <Level 2>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90040103": {
+      "fetched": "2026-11-01T22:26:27+00:00",
+      "footholds": 649,
+      "ladderRopes": 52,
+      "mobs": [],
+      "name": "Up and Up <Level 3>",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90040200": {
+      "fetched": "2026-11-01T22:26:31+00:00",
+      "footholds": 706,
+      "ladderRopes": 3,
+      "mobs": [],
+      "name": "Coconut Harvest",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90040201": {
+      "fetched": "2026-11-01T22:26:47+00:00",
+      "footholds": 706,
+      "ladderRopes": 3,
+      "mobs": [
+        94
+      ],
+      "name": "Coconut Harvest",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90040202": {
+      "fetched": "2026-11-01T22:26:47+00:00",
+      "footholds": 706,
+      "ladderRopes": 3,
+      "mobs": [
+        94
+      ],
+      "name": "Coconut Harvest",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90040203": {
+      "fetched": "2026-11-01T22:26:47+00:00",
+      "footholds": 706,
+      "ladderRopes": 3,
+      "mobs": [],
+      "name": "G* Coconut Season",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90050000": {
+      "fetched": "2026-11-01T22:26:48+00:00",
+      "footholds": 61,
+      "ladderRopes": 1,
+      "mobs": [],
+      "name": "Leaving the Event",
+      "render": false,
+      "street": "Hidden Street"
+    },
+    "90050001": {
+      "fetched": "2026-11-01T22:26:48+00:00",
+      "footholds": 56,
+      "ladderRopes": 0,
+      "mobs": [],
+      "name": "Receiving the Reward For the Event",
+      "render": false,
+      "street": "Hidden Street"
+    }
+  },
+  "mobs": {
+    "1": {
+      "fetched": "2026-11-01T22:19:27+00:00",
+      "framebooks": {
+        "die1": 5,
+        "hit1": 1,
+        "move": 4,
+        "stand": 4
+      },
+      "frames": 14,
+      "level": 1,
+      "name": "Tutorial Jr. Sentinel"
+    },
+    "10": {
+      "fetched": "2026-11-01T22:19:44+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "jump": 1,
+        "move": 3,
+        "stand": 3
+      },
+      "frames": 11,
+      "level": 10,
+      "name": "Ribbon Pig"
+    },
+    "1032": {
+      "fetched": "2026-11-01T22:28:36+00:00",
+      "framebooks": {
+        "die1": 10,
+        "fly": 3,
+        "hit1": 1
+      },
+      "frames": 14,
+      "level": 41,
+      "name": "Flyeye"
+    },
+    "11": {
+      "fetched": "2026-11-01T18:26:58+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "move": 4,
+        "stand": 1
+      },
+      "frames": 9,
+      "level": 11,
+      "name": "Dark Stump"
+    },
+    "12": {
+      "fetched": "2026-11-01T22:20:52+00:00",
+      "framebooks": {
+        "die1": 4,
+        "hit1": 1,
+        "move": 5,
+        "stand": 5
+      },
+      "frames": 15,
+      "level": 12,
+      "name": "Octopus"
+    },
+    "13": {
+      "fetched": "2026-11-01T22:19:54+00:00",
+      "framebooks": {
+        "die1": 4,
+        "hit1": 1,
+        "move": 4,
+        "stand": 3
+      },
+      "frames": 12,
+      "level": 14,
+      "name": "Green Mushroom"
+    },
+    "14": {
+      "fetched": "2026-11-01T22:20:57+00:00",
+      "framebooks": {
+        "die1": 4,
+        "hit1": 1,
+        "jump": 1,
+        "move": 7,
+        "stand": 3
+      },
+      "frames": 16,
+      "level": 15,
+      "name": "Bubbling"
+    },
+    "15": {
+      "fetched": "2026-11-01T22:20:31+00:00",
+      "framebooks": {
+        "die1": 4,
+        "hit1": 1,
+        "move": 4,
+        "stand": 1
+      },
+      "frames": 10,
+      "level": 17,
+      "name": "Axe Stump"
+    },
+    "16": {
+      "fetched": "2026-11-01T22:20:01+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "jump": 1,
+        "move": 3,
+        "stand": 2
+      },
+      "frames": 10,
+      "level": 19,
+      "name": "Blue Mushroom"
+    },
+    "17": {
+      "fetched": "2026-11-01T22:20:59+00:00",
+      "framebooks": {
+        "die1": 4,
+        "fly": 2,
+        "hit1": 1
+      },
+      "frames": 7,
+      "level": 20,
+      "name": "Stirge"
+    },
+    "18": {
+      "fetched": "2026-11-01T22:21:05+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "move": 3,
+        "stand": 3
+      },
+      "frames": 10,
+      "level": 21,
+      "name": "Jr. Necki"
+    },
+    "19": {
+      "fetched": "2026-11-01T22:20:29+00:00",
+      "framebooks": {
+        "die1": 4,
+        "hit1": 1,
+        "move": 4,
+        "stand": 3
+      },
+      "frames": 12,
+      "level": 22,
+      "name": "Horny Mushroom"
+    },
+    "2": {
+      "fetched": "2026-11-01T07:41:49+00:00",
+      "framebooks": {
+        "die1": 9,
+        "hit1": 1,
+        "move": 5,
+        "stand": 1
+      },
+      "frames": 16,
+      "level": 1,
+      "name": "Snail"
+    },
+    "20": {
+      "fetched": "2026-11-01T22:21:36+00:00",
+      "framebooks": {
+        "die1": 4,
+        "hit1": 1,
+        "move": 4,
+        "stand": 1
+      },
+      "frames": 10,
+      "level": 23,
+      "name": "Dark Axe Stump"
+    },
+    "21": {
+      "fetched": "2026-11-01T22:23:09+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "jump": 1,
+        "move": 4,
+        "stand": 2
+      },
+      "frames": 11,
+      "level": 24,
+      "name": "Zombie Mushroom"
+    },
+    "22": {
+      "fetched": "2026-11-01T22:21:38+00:00",
+      "framebooks": {
+        "die1": 2,
+        "hit1": 1,
+        "jump": 1,
+        "move": 3,
+        "stand": 6
+      },
+      "frames": 13,
+      "level": 25,
+      "name": "Wild Boar"
+    },
+    "23": {
+      "fetched": "2026-11-01T22:23:42+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "jump": 1,
+        "move": 4,
+        "stand": 3
+      },
+      "frames": 12,
+      "level": 27,
+      "name": "Evil Eye"
+    },
+    "24": {
+      "fetched": "2026-11-01T22:19:45+00:00",
+      "framebooks": {
+        "die1": 2,
+        "hit1": 1,
+        "jump": 1,
+        "move": 3,
+        "skill1": 9,
+        "stand": 3
+      },
+      "frames": 19,
+      "level": 28,
+      "name": "Iron Hog"
+    },
+    "25": {
+      "fetched": "2026-11-01T22:28:16+00:00",
+      "framebooks": {
+        "die1": 7,
+        "hit1": 1,
+        "move": 4,
+        "skill1": 9,
+        "stand": 4
+      },
+      "frames": 25,
+      "level": 29,
+      "name": "Fairy 1"
+    },
+    "26": {
+      "fetched": "2026-11-01T22:19:50+00:00",
+      "framebooks": {
+        "die1": 7,
+        "hit1": 1,
+        "move": 4,
+        "skill1": 9,
+        "stand": 4
+      },
+      "frames": 25,
+      "level": 29,
+      "name": "Fairy 2"
+    },
+    "27": {
+      "fetched": "2026-11-01T22:20:44+00:00",
+      "framebooks": {
+        "die1": 7,
+        "hit1": 1,
+        "move": 4,
+        "skill1": 9,
+        "stand": 4
+      },
+      "frames": 25,
+      "level": 29,
+      "name": "Fairy 3"
+    },
+    "28": {
+      "fetched": "2026-11-01T22:20:16+00:00",
+      "framebooks": {
+        "die1": 7,
+        "hit1": 1,
+        "move": 4,
+        "skill1": 9,
+        "stand": 4
+      },
+      "frames": 25,
+      "level": 29,
+      "name": "Fairy 4"
+    },
+    "29": {
+      "fetched": "2026-11-01T22:21:08+00:00",
+      "framebooks": {
+        "die1": 2,
+        "hit1": 1,
+        "move": 4,
+        "stand": 3
+      },
+      "frames": 10,
+      "level": 31,
+      "name": "Ligator"
+    },
+    "3": {
+      "fetched": "2026-11-01T07:41:52+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "move": 4,
+        "revive": 13,
+        "stand": 1
+      },
+      "frames": 22,
+      "level": 2,
+      "name": "Blue Snail"
+    },
+    "30": {
+      "fetched": "2026-11-01T22:21:42+00:00",
+      "framebooks": {
+        "die1": 2,
+        "hit1": 1,
+        "jump": 1,
+        "move": 3,
+        "stand": 6
+      },
+      "frames": 13,
+      "level": 32,
+      "name": "Fire Boar"
+    },
+    "31": {
+      "fetched": "2026-11-01T22:20:23+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "jump": 1,
+        "move": 4,
+        "stand": 3
+      },
+      "frames": 12,
+      "level": 33,
+      "name": "Curse Eye"
+    },
+    "32": {
+      "fetched": "2026-11-01T22:21:01+00:00",
+      "framebooks": {
+        "die1": 6,
+        "hit1": 1,
+        "jump": 1,
+        "move": 5,
+        "stand": 1
+      },
+      "frames": 14,
+      "level": 34,
+      "name": "Jr. Wraith"
+    },
+    "33": {
+      "fetched": "2026-11-01T22:21:22+00:00",
+      "framebooks": {
+        "die1": 8,
+        "hit1": 1,
+        "move": 6,
+        "skill1": 6,
+        "stand": 6
+      },
+      "frames": 27,
+      "level": 35,
+      "name": "Jr. Boogie 1"
+    },
+    "34": {
+      "fetched": "2026-11-01T22:21:27+00:00",
+      "framebooks": {
+        "die1": 8,
+        "hit1": 1,
+        "move": 6,
+        "skill1": 6,
+        "stand": 6
+      },
+      "frames": 27,
+      "level": 35,
+      "name": "Jr. Boogie 2"
+    },
+    "35": {
+      "fetched": "2026-11-01T22:20:08+00:00",
+      "framebooks": {
+        "attack1": 10,
+        "die1": 3,
+        "hit1": 1,
+        "jump": 1,
+        "move": 4,
+        "stand": 1
+      },
+      "frames": 20,
+      "level": 37,
+      "name": "Lupin"
+    },
+    "36": {
+      "fetched": "2026-11-01T22:24:44+00:00",
+      "framebooks": {
+        "die1": 4,
+        "hit1": 1,
+        "jump": 1,
+        "move": 4,
+        "stand": 2
+      },
+      "frames": 12,
+      "level": 38,
+      "name": "Lorang"
+    },
+    "37": {
+      "fetched": "2026-11-01T22:20:45+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "jump": 1,
+        "move": 4,
+        "stand": 3
+      },
+      "frames": 12,
+      "level": 40,
+      "name": "Cold Eye"
+    },
+    "38": {
+      "fetched": "2026-11-01T22:20:25+00:00",
+      "framebooks": {
+        "attack1": 11,
+        "die1": 3,
+        "hit1": 1,
+        "jump": 1,
+        "move": 4,
+        "stand": 1
+      },
+      "frames": 21,
+      "level": 41,
+      "name": "Zombie Lupin"
+    },
+    "39": {
+      "fetched": "2026-11-01T22:22:08+00:00",
+      "framebooks": {
+        "die1": 5,
+        "hit1": 1,
+        "move": 4,
+        "stand": 5
+      },
+      "frames": 15,
+      "level": 19,
+      "name": "Ghost Stump"
+    },
+    "4": {
+      "fetched": "2026-11-01T11:22:39+00:00",
+      "framebooks": {
+        "die1": 4,
+        "hit1": 1,
+        "move": 4,
+        "stand": 3
+      },
+      "frames": 12,
+      "level": 3,
+      "name": "Shroom"
+    },
+    "40": {
+      "fetched": "2026-11-01T22:21:44+00:00",
+      "framebooks": {
+        "die1": 8,
+        "hit1": 1,
+        "move": 4,
+        "stand": 1
+      },
+      "frames": 14,
+      "level": 45,
+      "name": "Copper Drake"
+    },
+    "41": {
+      "fetched": "2026-11-01T22:24:46+00:00",
+      "framebooks": {
+        "attack1": 2,
+        "die1": 3,
+        "hit1": 1,
+        "move": 4,
+        "stand": 1
+      },
+      "frames": 11,
+      "level": 46,
+      "name": "Tortie"
+    },
+    "42": {
+      "fetched": "2026-11-01T22:22:10+00:00",
+      "framebooks": {
+        "die1": 8,
+        "hit1": 1,
+        "move": 6,
+        "stand": 6
+      },
+      "frames": 21,
+      "level": 23,
+      "name": "Wooden Mask"
+    },
+    "43": {
+      "fetched": "2026-11-01T22:21:03+00:00",
+      "framebooks": {
+        "die1": 6,
+        "hit1": 1,
+        "jump": 1,
+        "move": 4,
+        "stand": 1
+      },
+      "frames": 13,
+      "level": 48,
+      "name": "Wraith"
+    },
+    "44": {
+      "fetched": "2026-11-01T22:24:48+00:00",
+      "framebooks": {
+        "die1": 4,
+        "hit1": 1,
+        "jump": 1,
+        "move": 4,
+        "stand": 2
+      },
+      "frames": 12,
+      "level": 49,
+      "name": "Clang"
+    },
+    "45": {
+      "fetched": "2026-11-01T22:23:47+00:00",
+      "framebooks": {
+        "die1": 8,
+        "hit1": 1,
+        "move": 4,
+        "stand": 1
+      },
+      "frames": 14,
+      "level": 50,
+      "name": "Drake"
+    },
+    "46": {
+      "fetched": "2026-11-01T22:21:15+00:00",
+      "framebooks": {
+        "die1": 2,
+        "hit1": 1,
+        "move": 4,
+        "stand": 3
+      },
+      "frames": 10,
+      "level": 52,
+      "name": "Croco"
+    },
+    "47": {
+      "fetched": "2026-11-01T22:20:27+00:00",
+      "framebooks": {
+        "die1": 3,
+        "fly": 4,
+        "hit1": 1
+      },
+      "frames": 8,
+      "level": 55,
+      "name": "Malady"
+    },
+    "48": {
+      "fetched": "2026-11-01T22:20:11+00:00",
+      "framebooks": {
+        "die1": 7,
+        "hit1": 1,
+        "move": 4,
+        "skill1": 10,
+        "stand": 3
+      },
+      "frames": 25,
+      "level": 56,
+      "name": "Stone Golem"
+    },
+    "49": {
+      "fetched": "2026-11-01T22:23:07+00:00",
+      "framebooks": {
+        "die1": 7,
+        "hit1": 1,
+        "move": 4,
+        "skill1": 9,
+        "stand": 3
+      },
+      "frames": 24,
+      "level": 58,
+      "name": "Dark Stone Golem"
+    },
+    "5": {
+      "fetched": "2026-11-01T07:41:53+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "move": 4,
+        "stand": 1
+      },
+      "frames": 9,
+      "level": 4,
+      "name": "Red Snail"
+    },
+    "50": {
+      "fetched": "2026-11-01T22:22:03+00:00",
+      "framebooks": {
+        "attack1": 2,
+        "die1": 8,
+        "hit1": 1,
+        "move": 4,
+        "stand": 1
+      },
+      "frames": 16,
+      "level": 60,
+      "name": "Red Drake"
+    },
+    "51": {
+      "fetched": "2026-11-01T22:23:57+00:00",
+      "framebooks": {
+        "die1": 5,
+        "hit1": 1,
+        "jump": 1,
+        "move": 5,
+        "stand": 1
+      },
+      "frames": 13,
+      "level": 62,
+      "name": "Wild Kargo"
+    },
+    "52": {
+      "fetched": "2026-11-01T22:24:36+00:00",
+      "framebooks": {
+        "attack1": 7,
+        "die1": 10,
+        "hit1": 1,
+        "move": 6,
+        "stand": 8
+      },
+      "frames": 32,
+      "level": 70,
+      "name": "Tauromacis"
+    },
+    "53": {
+      "fetched": "2026-11-01T22:24:40+00:00",
+      "framebooks": {
+        "attack1": 5,
+        "attack2": 11,
+        "die1": 10,
+        "hit1": 1,
+        "move": 6,
+        "stand": 8
+      },
+      "frames": 41,
+      "level": 75,
+      "name": "Taurospear"
+    },
+    "54": {
+      "fetched": "2026-11-01T22:28:18+00:00",
+      "framebooks": {
+        "die1": 4,
+        "hit1": 1,
+        "move": 4,
+        "stand": 3
+      },
+      "frames": 12,
+      "level": 39,
+      "name": "Glowshroom"
+    },
+    "55": {
+      "fetched": "2026-11-01T22:28:20+00:00",
+      "framebooks": {
+        "die1": 10,
+        "hit1": 1,
+        "jump": 1,
+        "move": 6,
+        "stand": 6
+      },
+      "frames": 24,
+      "level": 40,
+      "name": "Raffle"
+    },
+    "56": {
+      "fetched": "2026-11-01T22:28:21+00:00",
+      "framebooks": {
+        "die1": 4,
+        "fly": 2,
+        "hit1": 1
+      },
+      "frames": 7,
+      "level": 42,
+      "name": "Golden Stirge"
+    },
+    "57": {
+      "fetched": "2026-11-01T22:28:22+00:00",
+      "framebooks": {
+        "die1": 7,
+        "hit1": 1,
+        "move": 4,
+        "stand": 4
+      },
+      "frames": 16,
+      "level": 43,
+      "name": "Aqumander"
+    },
+    "58": {
+      "fetched": "2026-11-01T22:28:23+00:00",
+      "framebooks": {
+        "die1": 4,
+        "hit1": 1,
+        "move": 5,
+        "stand": 5
+      },
+      "frames": 15,
+      "level": 45,
+      "name": "Echopus"
+    },
+    "59": {
+      "fetched": "2026-11-01T22:28:25+00:00",
+      "framebooks": {
+        "die1": 10,
+        "hit1": 1,
+        "jump": 1,
+        "move": 6,
+        "stand": 6
+      },
+      "frames": 24,
+      "level": 47,
+      "name": "Rafflesia"
+    },
+    "6": {
+      "fetched": "2026-11-01T18:26:56+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "move": 4,
+        "stand": 1
+      },
+      "frames": 9,
+      "level": 5,
+      "name": "Stump"
+    },
+    "60": {
+      "fetched": "2026-11-01T22:28:29+00:00",
+      "framebooks": {
+        "die1": 7,
+        "hit1": 1,
+        "move": 4,
+        "stand": 4
+      },
+      "frames": 16,
+      "level": 50,
+      "name": "Duskmander"
+    },
+    "61": {
+      "fetched": "2026-11-01T22:28:31+00:00",
+      "framebooks": {
+        "attack1": 12,
+        "die1": 7,
+        "hit1": 1,
+        "move": 6,
+        "stand": 6
+      },
+      "frames": 32,
+      "level": 54,
+      "name": "Myewood"
+    },
+    "62": {
+      "fetched": "2026-11-01T22:28:33+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "jump": 1,
+        "move": 5,
+        "stand": 2
+      },
+      "frames": 12,
+      "level": 56,
+      "name": "Rotten Mushroom"
+    },
+    "63": {
+      "fetched": "2026-11-01T22:28:35+00:00",
+      "framebooks": {
+        "attack1": 12,
+        "die1": 8,
+        "hit1": 1,
+        "move": 12,
+        "stand": 6
+      },
+      "frames": 39,
+      "level": 59,
+      "name": "Sporewood"
+    },
+    "64": {
+      "fetched": "2026-11-01T22:22:17+00:00",
+      "framebooks": {
+        "die1": 8,
+        "hit1": 1,
+        "move": 6,
+        "stand": 6
+      },
+      "frames": 21,
+      "level": 24,
+      "name": "Rocky Mask"
+    },
+    "65": {
+      "fetched": "2026-11-01T22:22:22+00:00",
+      "framebooks": {
+        "die1": 6,
+        "hit1": 1,
+        "jump": 1,
+        "move": 5,
+        "stand": 3
+      },
+      "frames": 16,
+      "level": 44,
+      "name": "Skeledog"
+    },
+    "66": {
+      "fetched": "2026-11-01T22:22:32+00:00",
+      "framebooks": {
+        "die1": 6,
+        "hit1": 1,
+        "jump": 1,
+        "move": 5,
+        "stand": 3
+      },
+      "frames": 16,
+      "level": 47,
+      "name": "Mummydog"
+    },
+    "67": {
+      "fetched": "2026-11-01T22:22:34+00:00",
+      "framebooks": {
+        "attack1": 8,
+        "die1": 6,
+        "hit1": 1,
+        "move": 4,
+        "stand": 4
+      },
+      "frames": 23,
+      "level": 57,
+      "name": "Skeleton Soldier"
+    },
+    "68": {
+      "fetched": "2026-11-01T22:22:37+00:00",
+      "framebooks": {
+        "attack1": 8,
+        "die1": 6,
+        "hit1": 1,
+        "move": 4,
+        "stand": 4
+      },
+      "frames": 23,
+      "level": 63,
+      "name": "Officer Skeleton"
+    },
+    "69": {
+      "fetched": "2026-11-01T22:22:40+00:00",
+      "framebooks": {
+        "die1": 11,
+        "hit1": 1,
+        "move": 4,
+        "skill1": 12,
+        "stand": 4
+      },
+      "frames": 32,
+      "level": 73,
+      "name": "Commander Skeleton"
+    },
+    "7": {
+      "fetched": "2026-11-01T22:19:37+00:00",
+      "framebooks": {
+        "die1": 4,
+        "hit1": 1,
+        "jump": 1,
+        "move": 7,
+        "stand": 3
+      },
+      "frames": 16,
+      "level": 6,
+      "name": "Slime"
+    },
+    "700000": {
+      "fetched": "2026-11-01T22:19:52+00:00",
+      "framebooks": {
+        "attack1": 5,
+        "die1": 6,
+        "hit1": 1,
+        "jump": 1,
+        "move": 6,
+        "stand": 1
+      },
+      "frames": 20,
+      "level": 40,
+      "name": "Mushmom"
+    },
+    "700001": {
+      "fetched": "2026-11-01T22:24:42+00:00",
+      "framebooks": {
+        "attack1": 12,
+        "attack2": 4,
+        "attack3": 4,
+        "die1": 3,
+        "hit1": 1,
+        "move": 5,
+        "stand": 2
+      },
+      "frames": 31,
+      "level": 80,
+      "name": "Jr. Balrog"
+    },
+    "700002": {
+      "fetched": "2026-11-01T22:24:16+00:00",
+      "framebooks": {
+        "attack1": 5,
+        "die1": 5,
+        "hit1": 1,
+        "jump": 1,
+        "move": 6,
+        "stand": 1
+      },
+      "frames": 19,
+      "level": 55,
+      "name": "Zombie Mushmom"
+    },
+    "700003": {
+      "fetched": "2026-11-01T22:28:42+00:00",
+      "framebooks": {
+        "attack1": 18,
+        "attack2": 19,
+        "die1": 10,
+        "hit1": 1,
+        "jump": 1,
+        "move": 6,
+        "stand": 4
+      },
+      "frames": 59,
+      "level": 60,
+      "name": "Rotten Mushmom"
+    },
+    "700004": {
+      "fetched": "2026-11-01T22:19:42+00:00",
+      "framebooks": {
+        "die1": 9,
+        "hit1": 1,
+        "move": 6,
+        "skill1": 10,
+        "stand": 9
+      },
+      "frames": 35,
+      "level": 20,
+      "name": "Mano"
+    },
+    "700005": {
+      "fetched": "2026-11-01T22:28:44+00:00",
+      "framebooks": {
+        "attack1": 8,
+        "attack2": 5,
+        "die1": 10,
+        "fly": 4,
+        "hit1": 1,
+        "stand": 4
+      },
+      "frames": 32,
+      "level": 100,
+      "name": "Crimson Balrog"
+    },
+    "700006": {
+      "fetched": "2026-11-01T22:21:32+00:00",
+      "framebooks": {
+        "die1": 8,
+        "hit1": 1,
+        "move": 6,
+        "skill1": 15,
+        "skill2": 9,
+        "stand": 6
+      },
+      "frames": 45,
+      "level": 48,
+      "name": "Shade"
+    },
+    "700007": {
+      "fetched": "2026-11-01T22:21:50+00:00",
+      "framebooks": {
+        "attack1": 24,
+        "attack2": 24,
+        "die1": 12,
+        "hit1": 1,
+        "move": 6,
+        "skill1": 18,
+        "stand": 6
+      },
+      "frames": 91,
+      "level": 35,
+      "name": "Stumpy"
+    },
+    "700008": {
+      "fetched": "2026-11-01T22:28:48+00:00",
+      "framebooks": {
+        "attack1": 12,
+        "die1": 11,
+        "hit1": 1,
+        "move": 6,
+        "skill1": 13,
+        "stand": 12
+      },
+      "frames": 55,
+      "level": 65,
+      "name": "Faust"
+    },
+    "8": {
+      "fetched": "2026-11-01T22:19:39+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "jump": 1,
+        "move": 3,
+        "stand": 3
+      },
+      "frames": 11,
+      "level": 7,
+      "name": "Pig"
+    },
+    "800000": {
+      "fetched": "2026-11-01T22:24:50+00:00",
+      "framebooks": {
+        "die1": 2,
+        "hit1": 1,
+        "move": 4,
+        "stand": 3
+      },
+      "frames": 10,
+      "level": 21,
+      "name": "Ligator"
+    },
+    "800001": {
+      "fetched": "2026-11-01T22:24:53+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "move": 3,
+        "stand": 3
+      },
+      "frames": 10,
+      "level": 25,
+      "name": "Jr. Necki"
+    },
+    "800002": {
+      "fetched": "2026-11-01T22:24:54+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "jump": 1,
+        "move": 4,
+        "stand": 3
+      },
+      "frames": 12,
+      "level": 29,
+      "name": "Curse Eye"
+    },
+    "800003": {
+      "fetched": "2026-11-01T22:24:57+00:00",
+      "framebooks": {
+        "attack1": 8,
+        "die1": 8,
+        "hit1": 1,
+        "jump": 1,
+        "move": 7,
+        "skill1": 11,
+        "stand": 2
+      },
+      "frames": 38,
+      "level": 32,
+      "name": "King Slime"
+    },
+    "800010": {
+      "fetched": "2026-11-01T22:25:00+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "jump": 1,
+        "move": 4,
+        "stand": 3
+      },
+      "frames": 12,
+      "level": 30,
+      "name": "Evil Eye"
+    },
+    "800011": {
+      "fetched": "2026-11-01T22:25:01+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "jump": 1,
+        "move": 4,
+        "stand": 2
+      },
+      "frames": 11,
+      "level": 30,
+      "name": "Zombie Mushroom"
+    },
+    "800012": {
+      "fetched": "2026-11-01T22:25:04+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "jump": 1,
+        "move": 4,
+        "stand": 3
+      },
+      "frames": 12,
+      "level": 30,
+      "name": "Curse Eye"
+    },
+    "800013": {
+      "fetched": "2026-11-01T22:25:06+00:00",
+      "framebooks": {
+        "die1": 4,
+        "hit1": 1,
+        "move": 4,
+        "stand": 3
+      },
+      "frames": 12,
+      "level": 30,
+      "name": "Horny Mushroom"
+    },
+    "800014": {
+      "fetched": "2026-11-01T22:25:08+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "jump": 1,
+        "move": 4,
+        "stand": 3
+      },
+      "frames": 12,
+      "level": 30,
+      "name": "Cold Eye"
+    },
+    "800015": {
+      "fetched": "2026-11-01T22:25:09+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "jump": 1,
+        "move": 3,
+        "stand": 2
+      },
+      "frames": 10,
+      "level": 30,
+      "name": "Blue Mushroom"
+    },
+    "800016": {
+      "fetched": "2026-11-01T22:25:11+00:00",
+      "framebooks": {
+        "die1": 2,
+        "hit1": 1,
+        "jump": 1,
+        "move": 3,
+        "stand": 6
+      },
+      "frames": 13,
+      "level": 30,
+      "name": "Fire Boar"
+    },
+    "800017": {
+      "fetched": "2026-11-01T22:25:14+00:00",
+      "framebooks": {
+        "attack1": 10,
+        "die1": 3,
+        "hit1": 1,
+        "jump": 1,
+        "move": 4,
+        "stand": 1
+      },
+      "frames": 20,
+      "level": 30,
+      "name": "Lupin"
+    },
+    "800019": {
+      "fetched": "2026-11-01T22:28:49+00:00",
+      "framebooks": {
+        "die1": 8,
+        "hit1": 7,
+        "stand": 6
+      },
+      "frames": 21,
+      "level": 30,
+      "name": "Moon Bunny"
+    },
+    "800020": {
+      "fetched": "2026-11-01T22:25:41+00:00",
+      "framebooks": {
+        "die1": 4,
+        "fly": 2,
+        "hit1": 1
+      },
+      "frames": 7,
+      "level": 11,
+      "name": "Stirge"
+    },
+    "800021": {
+      "fetched": "2026-11-01T22:25:42+00:00",
+      "framebooks": {
+        "die1": 4,
+        "fly": 2,
+        "hit1": 1
+      },
+      "frames": 7,
+      "level": 11,
+      "name": "Stirge"
+    },
+    "800022": {
+      "fetched": "2026-11-01T22:25:44+00:00",
+      "framebooks": {
+        "die1": 10,
+        "fly": 3,
+        "hit1": 1
+      },
+      "frames": 14,
+      "level": 13,
+      "name": "Flyeye"
+    },
+    "800023": {
+      "fetched": "2026-11-01T22:25:46+00:00",
+      "framebooks": {
+        "die1": 10,
+        "fly": 3,
+        "hit1": 1
+      },
+      "frames": 14,
+      "level": 13,
+      "name": "Flyeye"
+    },
+    "800024": {
+      "fetched": "2026-11-01T22:26:13+00:00",
+      "framebooks": {
+        "die1": 5,
+        "fly": 8,
+        "hit1": 1
+      },
+      "frames": 14,
+      "level": 15,
+      "name": "Goblin Fire"
+    },
+    "800025": {
+      "fetched": "2026-11-01T22:26:16+00:00",
+      "framebooks": {
+        "die1": 5,
+        "fly": 8,
+        "hit1": 1
+      },
+      "frames": 14,
+      "level": 15,
+      "name": "Goblin Fire"
+    },
+    "810000": {
+      "fetched": "2026-11-01T22:28:51+00:00",
+      "framebooks": {
+        "die1": 9,
+        "hit1": 1,
+        "move": 6,
+        "skill1": 10,
+        "stand": 9
+      },
+      "frames": 35,
+      "level": 20,
+      "name": "Mano"
+    },
+    "810001": {
+      "fetched": "2026-11-01T22:28:54+00:00",
+      "framebooks": {
+        "attack1": 8,
+        "die1": 8,
+        "hit1": 1,
+        "jump": 1,
+        "move": 7,
+        "skill1": 11,
+        "stand": 2
+      },
+      "frames": 38,
+      "level": 32,
+      "name": "King Slime"
+    },
+    "810002": {
+      "fetched": "2026-11-01T22:28:55+00:00",
+      "framebooks": {
+        "attack1": 5,
+        "die1": 6,
+        "hit1": 1,
+        "jump": 1,
+        "move": 6,
+        "stand": 1
+      },
+      "frames": 20,
+      "level": 40,
+      "name": "Mushmom"
+    },
+    "810003": {
+      "fetched": "2026-11-01T22:28:58+00:00",
+      "framebooks": {
+        "attack1": 5,
+        "die1": 5,
+        "hit1": 1,
+        "jump": 1,
+        "move": 6,
+        "stand": 1
+      },
+      "frames": 19,
+      "level": 55,
+      "name": "Zombie Mushmom"
+    },
+    "810004": {
+      "fetched": "2026-11-01T22:29:02+00:00",
+      "framebooks": {
+        "attack1": 18,
+        "attack2": 19,
+        "die1": 10,
+        "hit1": 1,
+        "jump": 1,
+        "move": 6,
+        "stand": 4
+      },
+      "frames": 59,
+      "level": 60,
+      "name": "Rotten Mushmom"
+    },
+    "810005": {
+      "fetched": "2026-11-01T22:29:05+00:00",
+      "framebooks": {
+        "attack1": 12,
+        "attack2": 4,
+        "attack3": 4,
+        "die1": 3,
+        "hit1": 1,
+        "move": 5,
+        "stand": 2
+      },
+      "frames": 31,
+      "level": 80,
+      "name": "Jr. Balrog"
+    },
+    "9": {
+      "fetched": "2026-11-01T22:19:30+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "jump": 1,
+        "move": 3,
+        "stand": 2
+      },
+      "frames": 10,
+      "level": 8,
+      "name": "Orange Mushroom"
+    },
+    "90": {
+      "fetched": "2026-11-01T22:20:35+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "move": 3,
+        "stand": 3
+      },
+      "frames": 10,
+      "level": 200,
+      "name": "Super Jr. Necki"
+    },
+    "900000": {
+      "fetched": "2026-11-01T22:29:07+00:00",
+      "framebooks": {
+        "die1": 4,
+        "hit1": 1,
+        "jump": 1,
+        "move": 7,
+        "stand": 4
+      },
+      "frames": 17,
+      "level": 20,
+      "name": "Orange Slime"
+    },
+    "91": {
+      "fetched": "2026-11-01T22:22:50+00:00",
+      "framebooks": {
+        "die1": 4,
+        "hit1": 1,
+        "jump": 1,
+        "move": 7,
+        "stand": 3
+      },
+      "frames": 16,
+      "level": 200,
+      "name": "Super Slime"
+    },
+    "910000": {
+      "fetched": "2026-11-01T22:29:08+00:00",
+      "framebooks": {
+        "die1": 6,
+        "hit1": 1,
+        "stand": 1
+      },
+      "frames": 8,
+      "level": 30,
+      "name": "Straw Traning Dummy"
+    },
+    "92": {
+      "fetched": "2026-11-01T22:20:04+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "jump": 1,
+        "move": 3,
+        "stand": 3
+      },
+      "frames": 11,
+      "level": 200,
+      "name": "Super Ribbon Pig"
+    },
+    "93": {
+      "fetched": "2026-11-01T22:21:19+00:00",
+      "framebooks": {
+        "die1": 4,
+        "fly": 2,
+        "hit1": 1
+      },
+      "frames": 7,
+      "level": 200,
+      "name": "Super Stirge"
+    },
+    "94": {
+      "fetched": "2026-11-01T22:26:47+00:00",
+      "framebooks": {
+        "die1": 3,
+        "hit1": 1,
+        "move": 3,
+        "stand": 3
+      },
+      "frames": 10,
+      "level": 200,
+      "name": "Ultra Jr. Necki 1"
+    },
+    "9990000": {
+      "fetched": "2026-11-01T22:29:10+00:00",
+      "framebooks": {
+        "die1": 6,
+        "hit1": 1,
+        "stand": 1
+      },
+      "frames": 8,
+      "level": 30,
+      "name": "Test(Basic)"
+    },
+    "9990001": {
+      "fetched": "2026-11-01T22:29:11+00:00",
+      "framebooks": {
+        "die1": 6,
+        "hit1": 1,
+        "stand": 1
+      },
+      "frames": 8,
+      "level": 30,
+      "name": "Test(Fire)"
+    },
+    "9990002": {
+      "fetched": "2026-11-01T22:29:12+00:00",
+      "framebooks": {
+        "die1": 6,
+        "hit1": 1,
+        "stand": 1
+      },
+      "frames": 8,
+      "level": 30,
+      "name": "Test(Poison)"
+    },
+    "9990003": {
+      "fetched": "2026-11-01T22:29:14+00:00",
+      "framebooks": {
+        "die1": 6,
+        "hit1": 1,
+        "stand": 1
+      },
+      "frames": 8,
+      "level": 30,
+      "name": "Test(Ice)"
+    },
+    "9990004": {
+      "fetched": "2026-11-01T22:29:15+00:00",
+      "framebooks": {
+        "die1": 6,
+        "hit1": 1,
+        "stand": 1
+      },
+      "frames": 8,
+      "level": 30,
+      "name": "Test(Lightning)"
+    },
+    "9990005": {
+      "fetched": "2026-11-01T22:29:16+00:00",
+      "framebooks": {
+        "die1": 6,
+        "hit1": 1,
+        "stand": 1
+      },
+      "frames": 8,
+      "level": 30,
+      "name": "Test(Undead)"
+    }
+  },
+  "region": "MCW",
+  "source": "https://maplestory.io/api",
+  "version": "1"
+}

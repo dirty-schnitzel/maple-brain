@@ -1,0 +1,447 @@
+{
+  "backgroundMusic": "Bgm03/Subway",
+  "isReturnMap": false,
+  "returnMap": 10003000,
+  "portals": [
+    {
+      "portalName": "sp",
+      "toName": "",
+      "type": 0,
+      "toMap": 999999999,
+      "x": -250,
+      "y": -180,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": -250,
+        "y": -180,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -250,
+          "y": -180,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": -180,
+        "right": -249,
+        "bottom": -179,
+        "left": -250
+      }
+    },
+    {
+      "portalName": "out01",
+      "toName": "",
+      "type": 1,
+      "toMap": 999999999,
+      "x": 287,
+      "y": 186,
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": true,
+      "bounds": {
+        "x": 287,
+        "y": 186,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 287,
+          "y": 186,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 186,
+        "right": 288,
+        "bottom": 187,
+        "left": 287
+      }
+    },
+    {
+      "portalName": "out00",
+      "toName": "sub00",
+      "type": 2,
+      "toMap": 10003000,
+      "x": -212,
+      "y": -165,
+      "linkToMap": "/map/10003000",
+      "toMapName": {
+        "name": "Kerning City",
+        "streetName": "Victoria Road",
+        "id": 10003000
+      },
+      "isStarForcePortal": false,
+      "index": 0,
+      "unknownExit": false,
+      "bounds": {
+        "x": -212,
+        "y": -165,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": -212,
+          "y": -165,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": -165,
+        "right": -211,
+        "bottom": -164,
+        "left": -212
+      }
+    },
+    null
+  ],
+  "npcs": [
+    {
+      "x": 71,
+      "y": 187,
+      "walkAreaX1": 21,
+      "walkAreaX2": 121,
+      "id": 417,
+      "footholdId": 16,
+      "foothold": {
+        "id": 16,
+        "next": 17,
+        "prev": 15,
+        "piece": 0,
+        "x1": -399,
+        "x2": 389,
+        "y1": 187,
+        "y2": 187,
+        "layerId": 3,
+        "groupId": 0
+      },
+      "hidden": false,
+      "type": 0,
+      "link": "/npc/417",
+      "index": 0,
+      "position": {},
+      "bounds": {
+        "x": 71,
+        "y": 187,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 71,
+          "y": 187,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 187,
+        "right": 72,
+        "bottom": 188,
+        "left": 71
+      },
+      "flip": false
+    },
+    {
+      "x": 272,
+      "y": 187,
+      "walkAreaX1": 222,
+      "walkAreaX2": 322,
+      "id": 418,
+      "footholdId": 16,
+      "foothold": {
+        "id": 16,
+        "next": 17,
+        "prev": 15,
+        "piece": 0,
+        "x1": -399,
+        "x2": 389,
+        "y1": 187,
+        "y2": 187,
+        "layerId": 3,
+        "groupId": 0
+      },
+      "hidden": false,
+      "type": 0,
+      "link": "/npc/418",
+      "index": 1,
+      "position": {},
+      "bounds": {
+        "x": 272,
+        "y": 187,
+        "width": 1,
+        "height": 1,
+        "location": {
+          "x": 272,
+          "y": 187,
+          "isEmpty": false
+        },
+        "size": {
+          "width": 1,
+          "height": 1,
+          "isEmpty": false
+        },
+        "isEmpty": false,
+        "top": 187,
+        "right": 273,
+        "bottom": 188,
+        "left": 272
+      },
+      "flip": false
+    }
+  ],
+  "mobs": [],
+  "mobRate": 1,
+  "isTown": false,
+  "isSwim": false,
+  "mapMark": "KerningCity",
+  "footholds": {
+    "12": {
+      "id": 12,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -314,
+      "x2": -142,
+      "y1": 106,
+      "y2": 106,
+      "layerId": 2,
+      "groupId": 3
+    },
+    "8": {
+      "id": 8,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -394,
+      "x2": -231,
+      "y1": -6,
+      "y2": -6,
+      "layerId": 2,
+      "groupId": 3
+    },
+    "3": {
+      "id": 3,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -347,
+      "x2": -224,
+      "y1": -103,
+      "y2": -103,
+      "layerId": 1,
+      "groupId": 2
+    },
+    "11": {
+      "id": 11,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -337,
+      "x2": -165,
+      "y1": 78,
+      "y2": 78,
+      "layerId": 2,
+      "groupId": 3
+    },
+    "1": {
+      "id": 1,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -389,
+      "x2": -280,
+      "y1": -43,
+      "y2": -43,
+      "layerId": 1,
+      "groupId": 2
+    },
+    "10": {
+      "id": 10,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -359,
+      "x2": -187,
+      "y1": 50,
+      "y2": 50,
+      "layerId": 2,
+      "groupId": 3
+    },
+    "6": {
+      "id": 6,
+      "next": 0,
+      "prev": 5,
+      "piece": 0,
+      "x1": -161,
+      "x2": -161,
+      "y1": -163,
+      "y2": -296,
+      "layerId": 1,
+      "groupId": 2
+    },
+    "17": {
+      "id": 17,
+      "next": 0,
+      "prev": 16,
+      "piece": 0,
+      "x1": 389,
+      "x2": 389,
+      "y1": 187,
+      "y2": -296,
+      "layerId": 3,
+      "groupId": 0
+    },
+    "4": {
+      "id": 4,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -319,
+      "x2": -196,
+      "y1": -133,
+      "y2": -133,
+      "layerId": 1,
+      "groupId": 2
+    },
+    "2": {
+      "id": 2,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -376,
+      "x2": -253,
+      "y1": -73,
+      "y2": -73,
+      "layerId": 1,
+      "groupId": 2
+    },
+    "14": {
+      "id": 14,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -270,
+      "x2": -98,
+      "y1": 162,
+      "y2": 162,
+      "layerId": 2,
+      "groupId": 3
+    },
+    "7": {
+      "id": 7,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -167,
+      "x2": 175,
+      "y1": -13,
+      "y2": -13,
+      "layerId": 1,
+      "groupId": 2
+    },
+    "13": {
+      "id": 13,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -293,
+      "x2": -121,
+      "y1": 134,
+      "y2": 134,
+      "layerId": 2,
+      "groupId": 3
+    },
+    "5": {
+      "id": 5,
+      "next": 6,
+      "prev": 0,
+      "piece": 0,
+      "x1": -292,
+      "x2": -161,
+      "y1": -163,
+      "y2": -163,
+      "layerId": 1,
+      "groupId": 2
+    },
+    "9": {
+      "id": 9,
+      "next": 0,
+      "prev": 0,
+      "piece": 0,
+      "x1": -380,
+      "x2": -208,
+      "y1": 22,
+      "y2": 22,
+      "layerId": 2,
+      "groupId": 3
+    },
+    "16": {
+      "id": 16,
+      "next": 17,
+      "prev": 15,
+      "piece": 0,
+      "x1": -399,
+      "x2": 389,
+      "y1": 187,
+      "y2": 187,
+      "layerId": 3,
+      "groupId": 0
+    },
+    "15": {
+      "id": 15,
+      "next": 16,
+      "prev": 0,
+      "piece": 0,
+      "x1": -399,
+      "x2": -399,
+      "y1": -295,
+      "y2": 187,
+      "layerId": 3,
+      "groupId": 0
+    }
+  },
+  "vrBounds": {
+    "x": -400,
+    "y": -300,
+    "width": 800,
+    "height": 600,
+    "location": {
+      "x": -400,
+      "y": -300,
+      "isEmpty": false
+    },
+    "size": {
+      "width": 800,
+      "height": 600,
+      "isEmpty": false
+    },
+    "isEmpty": false,
+    "top": -300,
+    "right": 400,
+    "bottom": 300,
+    "left": -400
+  },
+  "returnMapName": {
+    "name": "Kerning City",
+    "streetName": "Victoria Road",
+    "id": 10003000
+  },
+  "ladderRopes": [],
+  "name": "Subway Ticketing Booth",
+  "streetName": "Victoria Road",
+  "id": 10003060
+}

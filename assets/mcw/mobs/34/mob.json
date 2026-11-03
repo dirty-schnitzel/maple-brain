@@ -1,0 +1,32 @@
+{
+  "id": 34,
+  "linksTo": 33,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 35,
+    "maxHP": 1395,
+    "maxMP": 300,
+    "speed": -15,
+    "physicalDamage": 154,
+    "physicalDefense": 50,
+    "magicDamage": 0,
+    "magicDefense": 50,
+    "accuracy": 125,
+    "evasion": 26,
+    "exp": 69,
+    "minimumPushDamage": 300,
+    "elementalAttributes": "S2",
+    "summonType": 1,
+    "revivesMonsterId": [],
+    "linksToOtherMob": 33
+  },
+  "name": "Jr. Boogie 2",
+  "framebooks": {
+    "move": 6,
+    "skill1": 6,
+    "stand": 6,
+    "hit1": 1,
+    "die1": 8
+  },
+  "foundAt": []
+}

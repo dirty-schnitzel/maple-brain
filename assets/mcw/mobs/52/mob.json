@@ -1,0 +1,33 @@
+{
+  "id": 52,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 70,
+    "maxHP": 9328,
+    "maxMP": 120,
+    "speed": 30,
+    "physicalDamage": 386,
+    "physicalDefense": 25,
+    "magicDamage": 386,
+    "magicDefense": 5,
+    "accuracy": 144,
+    "evasion": 41,
+    "exp": 337,
+    "isUndead": false,
+    "minimumPushDamage": 1425,
+    "hpRecovery": 97,
+    "mpRecovery": 12,
+    "elementalAttributes": "L2I3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Tauromacis",
+  "framebooks": {
+    "move": 6,
+    "stand": 8,
+    "attack1": 7,
+    "hit1": 1,
+    "die1": 10
+  },
+  "foundAt": []
+}

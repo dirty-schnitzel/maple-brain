@@ -1,0 +1,34 @@
+{
+  "id": 53,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 75,
+    "maxHP": 12535,
+    "maxMP": 150,
+    "speed": 35,
+    "physicalDamage": 410,
+    "physicalDefense": 5,
+    "magicDamage": 410,
+    "magicDefense": 25,
+    "accuracy": 147,
+    "evasion": 48,
+    "exp": 429,
+    "isUndead": false,
+    "minimumPushDamage": 1575,
+    "hpRecovery": 120,
+    "mpRecovery": 15,
+    "elementalAttributes": "L2I3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Taurospear",
+  "framebooks": {
+    "move": 6,
+    "stand": 8,
+    "attack1": 5,
+    "attack2": 11,
+    "hit1": 1,
+    "die1": 10
+  },
+  "foundAt": []
+}

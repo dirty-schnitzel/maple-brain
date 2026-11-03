@@ -1,0 +1,30 @@
+{
+  "id": 20,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 23,
+    "maxHP": 547,
+    "maxMP": 30,
+    "speed": -50,
+    "physicalDamage": 117,
+    "physicalDefense": 30,
+    "magicDamage": 0,
+    "magicDefense": 0,
+    "accuracy": 87,
+    "evasion": 11,
+    "exp": 43,
+    "isUndead": false,
+    "minimumPushDamage": 40,
+    "elementalAttributes": "F3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Dark Axe Stump",
+  "framebooks": {
+    "move": 4,
+    "stand": 1,
+    "hit1": 1,
+    "die1": 4
+  },
+  "foundAt": []
+}

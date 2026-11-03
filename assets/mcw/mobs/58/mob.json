@@ -1,0 +1,30 @@
+{
+  "id": 58,
+  "meta": {
+    "isBodyAttack": true,
+    "level": 45,
+    "maxHP": 2163,
+    "maxMP": 80,
+    "speed": 0,
+    "physicalDamage": 239,
+    "physicalDefense": 10,
+    "magicDamage": 0,
+    "magicDefense": 20,
+    "accuracy": 124,
+    "evasion": 28,
+    "exp": 107,
+    "isUndead": false,
+    "minimumPushDamage": 225,
+    "elementalAttributes": "L3",
+    "summonType": 1,
+    "revivesMonsterId": []
+  },
+  "name": "Echopus",
+  "framebooks": {
+    "move": 5,
+    "stand": 5,
+    "hit1": 1,
+    "die1": 4
+  },
+  "foundAt": []
+}
