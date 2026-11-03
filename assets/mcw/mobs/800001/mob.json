@@ -1,31 +1,276 @@
 {
-  "id": 800001,
-  "linksTo": 18,
-  "meta": {
-    "isBodyAttack": true,
-    "level": 25,
-    "maxHP": 765,
-    "maxMP": 30,
-    "speed": 10,
-    "physicalDamage": 139,
-    "physicalDefense": 0,
-    "magicDamage": 0,
-    "magicDefense": 30,
-    "accuracy": 111,
-    "evasion": 12,
-    "exp": 80,
-    "isUndead": false,
-    "minimumPushDamage": 1,
-    "summonType": 1,
-    "revivesMonsterId": [],
-    "linksToOtherMob": 18
-  },
-  "name": "Jr. Necki",
-  "framebooks": {
-    "move": 3,
-    "stand": 3,
-    "hit1": 1,
-    "die1": 3
-  },
-  "foundAt": []
+ "id": 800001,
+ "name": "Jr. Necki",
+ "link": 18,
+ "info": {
+  "level": 25,
+  "exp": 80,
+  "maxHP": 765,
+  "maxMP": 30,
+  "bodyAttack": 1,
+  "speed": 10,
+  "PADamage": 139,
+  "PDDamage": 0,
+  "MADamage": 0,
+  "MDDamage": 30,
+  "acc": 111,
+  "eva": 12,
+  "undead": 0,
+  "pushed": 1,
+  "fs": 10.0,
+  "summonType": 1,
+  "hideLevel": 0,
+  "link": "0000018"
+ },
+ "framebooks": {
+  "move": 3,
+  "stand": 3,
+  "hit1": 1,
+  "die1": 3
+ },
+ "frames": {
+  "move": [
+   {
+    "n": 0,
+    "file": "move_0.png",
+    "size": [
+     31,
+     28
+    ],
+    "origin": [
+     15,
+     28
+    ],
+    "lt": [
+     -15,
+     -28
+    ],
+    "rb": [
+     16,
+     0
+    ],
+    "head": [
+     -6,
+     -26
+    ],
+    "delay": null
+   },
+   {
+    "n": 1,
+    "file": "move_1.png",
+    "size": [
+     33,
+     28
+    ],
+    "origin": [
+     16,
+     28
+    ],
+    "lt": [
+     -5,
+     -28
+    ],
+    "rb": [
+     28,
+     0
+    ],
+    "head": [
+     -6,
+     -26
+    ],
+    "delay": null
+   },
+   {
+    "n": 2,
+    "file": "move_2.png",
+    "size": [
+     28,
+     28
+    ],
+    "origin": [
+     14,
+     28
+    ],
+    "lt": [
+     5,
+     -28
+    ],
+    "rb": [
+     33,
+     0
+    ],
+    "head": [
+     -6,
+     -26
+    ],
+    "delay": null
+   }
+  ],
+  "stand": [
+   {
+    "n": 0,
+    "file": "stand_0.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     14,
+     28
+    ],
+    "lt": [
+     -14,
+     -28
+    ],
+    "rb": [
+     14,
+     0
+    ],
+    "head": [
+     -6,
+     -26
+    ],
+    "delay": 500,
+    "_inlink": "move/2"
+   },
+   {
+    "n": 1,
+    "file": "stand_1.png",
+    "size": [
+     31,
+     28
+    ],
+    "origin": [
+     15,
+     28
+    ],
+    "lt": [
+     -15,
+     -28
+    ],
+    "rb": [
+     16,
+     0
+    ],
+    "head": [
+     -6,
+     -26
+    ],
+    "delay": 150
+   },
+   {
+    "n": 2,
+    "file": "stand_2.png",
+    "size": [
+     31,
+     28
+    ],
+    "origin": [
+     15,
+     28
+    ],
+    "lt": [
+     -15,
+     -28
+    ],
+    "rb": [
+     16,
+     0
+    ],
+    "head": [
+     -6,
+     -26
+    ],
+    "delay": 80
+   }
+  ],
+  "hit1": [
+   {
+    "n": 0,
+    "file": "hit1_0.png",
+    "size": [
+     22,
+     37
+    ],
+    "origin": [
+     11,
+     37
+    ],
+    "lt": [
+     -11,
+     -37
+    ],
+    "rb": [
+     11,
+     0
+    ],
+    "head": [
+     6,
+     -29
+    ],
+    "delay": 600
+   }
+  ],
+  "die1": [
+   {
+    "n": 0,
+    "file": "die1_0.png",
+    "size": [
+     28,
+     29
+    ],
+    "origin": [
+     14,
+     29
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -6,
+     -26
+    ],
+    "delay": 300
+   },
+   {
+    "n": 1,
+    "file": "die1_1.png",
+    "size": [
+     46,
+     32
+    ],
+    "origin": [
+     23,
+     32
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -17,
+     -12
+    ],
+    "delay": 150
+   },
+   {
+    "n": 2,
+    "file": "die1_2.png",
+    "size": [
+     46,
+     18
+    ],
+    "origin": [
+     23,
+     18
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -17,
+     -12
+    ],
+    "delay": 500,
+    "a0": 255,
+    "a1": 0
+   }
+  ]
+ }
 }

@@ -1,29 +1,281 @@
 {
-  "id": 29,
-  "meta": {
-    "isBodyAttack": true,
-    "level": 31,
-    "maxHP": 853,
-    "maxMP": 0,
-    "speed": -40,
-    "physicalDamage": 176,
-    "physicalDefense": 10,
-    "magicDamage": 0,
-    "magicDefense": 0,
-    "accuracy": 110,
-    "evasion": 21,
-    "exp": 58,
-    "minimumPushDamage": 75,
-    "elementalAttributes": "I2F3",
-    "summonType": 1,
-    "revivesMonsterId": []
-  },
-  "name": "Ligator",
-  "framebooks": {
-    "move": 4,
-    "stand": 3,
-    "hit1": 1,
-    "die1": 2
-  },
-  "foundAt": []
+ "id": 29,
+ "name": "Ligator",
+ "link": null,
+ "info": {
+  "level": 31,
+  "exp": 58,
+  "maxHP": 853,
+  "maxMP": 0,
+  "speed": -40,
+  "bodyAttack": 1,
+  "PADamage": 176,
+  "PDDamage": 10,
+  "MADamage": 0,
+  "MDDamage": 0,
+  "acc": 110,
+  "eva": 21,
+  "pushed": 75,
+  "elemAttr": "I2F3",
+  "fs": 10.0,
+  "summonType": 1,
+  "hideLevel": 0
+ },
+ "framebooks": {
+  "move": 4,
+  "stand": 3,
+  "hit1": 1,
+  "die1": 2
+ },
+ "frames": {
+  "move": [
+   {
+    "n": 0,
+    "file": "move_0.png",
+    "size": [
+     83,
+     29
+    ],
+    "origin": [
+     41,
+     29
+    ],
+    "lt": [
+     -41,
+     -29
+    ],
+    "rb": [
+     42,
+     0
+    ],
+    "head": [
+     -13,
+     -27
+    ],
+    "delay": 200
+   },
+   {
+    "n": 1,
+    "file": "move_1.png",
+    "size": [
+     80,
+     29
+    ],
+    "origin": [
+     39,
+     29
+    ],
+    "lt": [
+     -39,
+     -29
+    ],
+    "rb": [
+     41,
+     0
+    ],
+    "head": [
+     -13,
+     -27
+    ],
+    "delay": 180
+   },
+   {
+    "n": 2,
+    "file": "move_2.png",
+    "size": [
+     83,
+     29
+    ],
+    "origin": [
+     41,
+     29
+    ],
+    "lt": [
+     -41,
+     -29
+    ],
+    "rb": [
+     42,
+     0
+    ],
+    "head": [
+     -13,
+     -27
+    ],
+    "delay": 200,
+    "same": "move_0.png"
+   },
+   {
+    "n": 3,
+    "file": "move_3.png",
+    "size": [
+     87,
+     29
+    ],
+    "origin": [
+     43,
+     29
+    ],
+    "lt": [
+     -43,
+     -29
+    ],
+    "rb": [
+     44,
+     0
+    ],
+    "head": [
+     -13,
+     -27
+    ],
+    "delay": 180
+   }
+  ],
+  "stand": [
+   {
+    "n": 0,
+    "file": "stand_0.png",
+    "size": [
+     86,
+     29
+    ],
+    "origin": [
+     43,
+     29
+    ],
+    "lt": [
+     -43,
+     -29
+    ],
+    "rb": [
+     43,
+     0
+    ],
+    "head": [
+     -13,
+     -27
+    ],
+    "delay": 500
+   },
+   {
+    "n": 1,
+    "file": "stand_1.png",
+    "size": [
+     80,
+     29
+    ],
+    "origin": [
+     43,
+     29
+    ],
+    "lt": [
+     -43,
+     -29
+    ],
+    "rb": [
+     37,
+     0
+    ],
+    "head": [
+     -13,
+     -27
+    ],
+    "delay": 100
+   },
+   {
+    "n": 2,
+    "file": "stand_2.png",
+    "size": [
+     83,
+     29
+    ],
+    "origin": [
+     43,
+     29
+    ],
+    "lt": [
+     -43,
+     -29
+    ],
+    "rb": [
+     40,
+     0
+    ],
+    "head": [
+     -13,
+     -27
+    ],
+    "delay": 150
+   }
+  ],
+  "hit1": [
+   {
+    "n": 0,
+    "file": "hit1_0.png",
+    "size": [
+     91,
+     47
+    ],
+    "origin": [
+     39,
+     47
+    ],
+    "lt": [
+     -39,
+     -47
+    ],
+    "rb": [
+     52,
+     0
+    ],
+    "head": [
+     5,
+     -32
+    ],
+    "delay": 600
+   }
+  ],
+  "die1": [
+   {
+    "n": 0,
+    "file": "die1_0.png",
+    "size": [
+     92,
+     39
+    ],
+    "origin": [
+     46,
+     39
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -14,
+     -27
+    ],
+    "delay": 180
+   },
+   {
+    "n": 1,
+    "file": "die1_1.png",
+    "size": [
+     88,
+     41
+    ],
+    "origin": [
+     44,
+     41
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -14,
+     -19
+    ],
+    "delay": 300,
+    "a0": 255,
+    "a1": 0
+   }
+  ]
+ }
 }

@@ -1,425 +1,220 @@
 {
-  "backgroundMusic": "Bgm00/Silence",
-  "isReturnMap": false,
+ "id": 89000000,
+ "name": "Truth Booth",
+ "streetName": "Truth Booth",
+ "mobRate": 1.0,
+ "isTown": true,
+ "returnMap": 89000000,
+ "footholds": {
+  "1": {
+   "id": 1,
+   "x1": -400,
+   "y1": 189,
+   "x2": 400,
+   "y2": 189,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  }
+ },
+ "ladderRopes": [],
+ "mobs": [],
+ "npcs": [
+  {
+   "index": 0,
+   "id": 800016,
+   "x": 144,
+   "y": 189,
+   "spriteY": 179,
+   "footholdId": 1,
+   "walkAreaX1": 94,
+   "walkAreaX2": 194,
+   "hidden": false,
+   "flip": false,
+   "mobTime": 0
+  }
+ ],
+ "portals": [
+  {
+   "index": 0,
+   "portalName": "sp",
+   "type": 0,
+   "x": -182,
+   "y": 175,
+   "toMap": 999999999,
+   "toName": "",
+   "horizontalImpact": 0
+  },
+  {
+   "index": 1,
+   "portalName": "sp",
+   "type": 0,
+   "x": -147,
+   "y": 176,
+   "toMap": 999999999,
+   "toName": "",
+   "horizontalImpact": 0
+  },
+  {
+   "index": 2,
+   "portalName": "sp",
+   "type": 0,
+   "x": -110,
+   "y": 175,
+   "toMap": 999999999,
+   "toName": "",
+   "horizontalImpact": 0
+  },
+  {
+   "index": 3,
+   "portalName": "sp",
+   "type": 0,
+   "x": -75,
+   "y": 176,
+   "toMap": 999999999,
+   "toName": "",
+   "horizontalImpact": 0
+  },
+  {
+   "index": 4,
+   "portalName": "sp",
+   "type": 0,
+   "x": -43,
+   "y": 177,
+   "toMap": 999999999,
+   "toName": "",
+   "horizontalImpact": 0
+  },
+  {
+   "index": 5,
+   "portalName": "sp",
+   "type": 0,
+   "x": -12,
+   "y": 178,
+   "toMap": 999999999,
+   "toName": "",
+   "horizontalImpact": 0
+  },
+  {
+   "index": 6,
+   "portalName": "sp",
+   "type": 0,
+   "x": 18,
+   "y": 178,
+   "toMap": 999999999,
+   "toName": "",
+   "horizontalImpact": 0
+  },
+  {
+   "index": 7,
+   "portalName": "sp",
+   "type": 0,
+   "x": 49,
+   "y": 179,
+   "toMap": 999999999,
+   "toName": "",
+   "horizontalImpact": 0
+  },
+  {
+   "index": 8,
+   "portalName": "sp",
+   "type": 0,
+   "x": 80,
+   "y": 180,
+   "toMap": 999999999,
+   "toName": "",
+   "horizontalImpact": 0
+  },
+  {
+   "index": 9,
+   "portalName": "sp",
+   "type": 0,
+   "x": -216,
+   "y": 176,
+   "toMap": 999999999,
+   "toName": "",
+   "horizontalImpact": 0
+  }
+ ],
+ "vrBounds": {
+  "left": -254,
+  "top": -450,
+  "right": 254,
+  "bottom": 400
+ },
+ "info": {
+  "version": 10,
+  "cloud": 0,
+  "town": 1,
+  "swim": 0,
   "returnMap": 89000000,
-  "portals": [
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -182,
-      "y": 175,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -182,
-        "y": 175,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -182,
-          "y": 175,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 175,
-        "right": -181,
-        "bottom": 176,
-        "left": -182
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -147,
-      "y": 176,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -147,
-        "y": 176,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -147,
-          "y": 176,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 176,
-        "right": -146,
-        "bottom": 177,
-        "left": -147
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -110,
-      "y": 175,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -110,
-        "y": 175,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -110,
-          "y": 175,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 175,
-        "right": -109,
-        "bottom": 176,
-        "left": -110
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -75,
-      "y": 176,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -75,
-        "y": 176,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -75,
-          "y": 176,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 176,
-        "right": -74,
-        "bottom": 177,
-        "left": -75
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -43,
-      "y": 177,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -43,
-        "y": 177,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -43,
-          "y": 177,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 177,
-        "right": -42,
-        "bottom": 178,
-        "left": -43
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -12,
-      "y": 178,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -12,
-        "y": 178,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -12,
-          "y": 178,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 178,
-        "right": -11,
-        "bottom": 179,
-        "left": -12
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": 18,
-      "y": 178,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": 18,
-        "y": 178,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": 18,
-          "y": 178,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 178,
-        "right": 19,
-        "bottom": 179,
-        "left": 18
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": 49,
-      "y": 179,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": 49,
-        "y": 179,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": 49,
-          "y": 179,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 179,
-        "right": 50,
-        "bottom": 180,
-        "left": 49
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": 80,
-      "y": 180,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": 80,
-        "y": 180,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": 80,
-          "y": 180,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 180,
-        "right": 81,
-        "bottom": 181,
-        "left": 80
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -216,
-      "y": 176,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -216,
-        "y": 176,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -216,
-          "y": 176,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 176,
-        "right": -215,
-        "bottom": 177,
-        "left": -216
-      }
-    }
-  ],
-  "npcs": [
-    {
-      "x": 144,
-      "y": 189,
-      "walkAreaX1": 94,
-      "walkAreaX2": 194,
-      "id": 800016,
-      "footholdId": 1,
-      "foothold": {
-        "id": 1,
-        "next": 0,
-        "prev": 0,
-        "piece": 0,
-        "x1": -400,
-        "x2": 400,
-        "y1": 189,
-        "y2": 189,
-        "layerId": 1,
-        "groupId": 1
-      },
-      "hidden": false,
-      "type": 0,
-      "link": "/npc/800016",
-      "index": 0,
-      "position": {},
-      "bounds": {
-        "x": 144,
-        "y": 189,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": 144,
-          "y": 189,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 189,
-        "right": 145,
-        "bottom": 190,
-        "left": 144
-      },
-      "flip": false
-    }
-  ],
-  "mobs": [],
-  "mobRate": 1,
-  "isTown": true,
-  "isSwim": false,
+  "forcedReturn": 89000000,
+  "mobRate": 1.0,
+  "bgm": "Bgm00/Silence",
   "mapMark": "None",
-  "footholds": {
-    "1": {
-      "id": 1,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -400,
-      "x2": 400,
-      "y1": 189,
-      "y2": 189,
-      "layerId": 1,
-      "groupId": 1
-    }
-  },
-  "vrBounds": {
-    "x": -254,
-    "y": -450,
-    "width": 508,
-    "height": 850,
-    "location": {
-      "x": -254,
-      "y": -450,
-      "isEmpty": false
-    },
-    "size": {
-      "width": 508,
-      "height": 850,
-      "isEmpty": false
-    },
-    "isEmpty": false,
-    "top": -450,
-    "right": 254,
-    "bottom": 400,
-    "left": -254
-  },
-  "returnMapName": {
-    "name": "Truth Booth",
-    "streetName": "Truth Booth",
-    "id": 89000000
-  },
-  "ladderRopes": [],
-  "name": "Truth Booth",
-  "streetName": "Truth Booth",
-  "id": 89000000
+  "fly": 0,
+  "standAlone": 1,
+  "partyStandAlone": 0,
+  "quarterView": 0,
+  "reviveCurField": 1,
+  "noMapCmd": 0,
+  "hideMinimap": 1,
+  "noChair": 1,
+  "limitUseShop": 1,
+  "fieldLimit": 1324345087,
+  "AmbientBGM": "",
+  "AmbientBGMv": 100,
+  "fieldScript": "",
+  "onFirstUserEnter": "",
+  "onUserEnter": "",
+  "limitUseTrunk": 1,
+  "offSoulAbsorption": 1,
+  "noHekatonEffect": 1,
+  "blockScriptItem": 1,
+  "vanishPet": 1,
+  "vanishAndroid": 1,
+  "vanishDragon": 1,
+  "limitUserEffectField": 1,
+  "limitSpeedAndJump": 1,
+  "fieldType": 218,
+  "VRTop": -450,
+  "VRLeft": -254,
+  "VRBottom": 400,
+  "VRRight": 254,
+  "LBBottom": 40,
+  "limitUI": {
+   "0": 0,
+   "1": 1,
+   "2": 2,
+   "3": 3,
+   "4": 4,
+   "5": 5,
+   "6": 6,
+   "7": 7,
+   "8": 8,
+   "9": 10,
+   "10": 20,
+   "11": 30,
+   "12": 40,
+   "13": 42,
+   "14": 51,
+   "15": 55,
+   "16": 73,
+   "17": 125,
+   "18": 138,
+   "19": 201,
+   "20": 202,
+   "21": 203,
+   "22": 267,
+   "23": 1105,
+   "24": 276,
+   "25": 277,
+   "26": 1163,
+   "27": 1454,
+   "28": 1456,
+   "29": 27
+  }
+ }
 }

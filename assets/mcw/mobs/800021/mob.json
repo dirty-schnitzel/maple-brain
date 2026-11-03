@@ -1,31 +1,182 @@
 {
-  "id": 800021,
-  "linksTo": 17,
-  "meta": {
-    "isBodyAttack": true,
-    "level": 11,
-    "maxHP": 242,
-    "maxMP": 30,
-    "flySpeed": -33,
-    "physicalDamage": 30,
-    "physicalDefense": 15,
-    "magicDamage": 0,
-    "magicDefense": 15,
-    "accuracy": 60,
-    "evasion": 5,
-    "exp": 36,
-    "isUndead": false,
-    "minimumPushDamage": 1,
-    "summonType": 1,
-    "revivesMonsterId": [],
-    "linksToOtherMob": 17,
-    "hideName": true
-  },
-  "name": "Stirge",
-  "framebooks": {
-    "fly": 2,
-    "hit1": 1,
-    "die1": 4
-  },
-  "foundAt": []
+ "id": 800021,
+ "name": "Stirge",
+ "link": 17,
+ "info": {
+  "bodyAttack": 1,
+  "level": 11,
+  "exp": 36,
+  "maxHP": 242,
+  "maxMP": 30,
+  "flySpeed": -33,
+  "PADamage": 30,
+  "PDDamage": 15,
+  "MADamage": 0,
+  "MDDamage": 15,
+  "acc": 60,
+  "eva": 5,
+  "undead": 0,
+  "pushed": 1,
+  "fs": 10.0,
+  "summonType": 1,
+  "hideName": 1,
+  "link": "0000017"
+ },
+ "framebooks": {
+  "fly": 2,
+  "hit1": 1,
+  "die1": 4
+ },
+ "frames": {
+  "fly": [
+   {
+    "n": 0,
+    "file": "fly_0.png",
+    "size": [
+     46,
+     30
+    ],
+    "origin": [
+     23,
+     50
+    ],
+    "lt": [
+     -23,
+     -50
+    ],
+    "rb": [
+     23,
+     -20
+    ],
+    "head": null,
+    "delay": 150
+   },
+   {
+    "n": 1,
+    "file": "fly_1.png",
+    "size": [
+     32,
+     43
+    ],
+    "origin": [
+     16,
+     62
+    ],
+    "lt": [
+     -16,
+     -62
+    ],
+    "rb": [
+     16,
+     -19
+    ],
+    "head": null,
+    "delay": 150
+   }
+  ],
+  "hit1": [
+   {
+    "n": 0,
+    "file": "hit1_0.png",
+    "size": [
+     34,
+     44
+    ],
+    "origin": [
+     17,
+     62
+    ],
+    "lt": [
+     -17,
+     -62
+    ],
+    "rb": [
+     17,
+     -18
+    ],
+    "head": null,
+    "delay": 600
+   }
+  ],
+  "die1": [
+   {
+    "n": 0,
+    "file": "die1_0.png",
+    "size": [
+     24,
+     47
+    ],
+    "origin": [
+     12,
+     67
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     1,
+     -7
+    ],
+    "delay": 130
+   },
+   {
+    "n": 1,
+    "file": "die1_1.png",
+    "size": [
+     21,
+     47
+    ],
+    "origin": [
+     10,
+     67
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     1,
+     -7
+    ],
+    "delay": 130
+   },
+   {
+    "n": 2,
+    "file": "die1_2.png",
+    "size": [
+     24,
+     47
+    ],
+    "origin": [
+     12,
+     67
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     1,
+     -7
+    ],
+    "delay": 130
+   },
+   {
+    "n": 3,
+    "file": "die1_3.png",
+    "size": [
+     21,
+     47
+    ],
+    "origin": [
+     10,
+     67
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     1,
+     -7
+    ],
+    "delay": 300,
+    "a0": 255,
+    "a1": 0
+   }
+  ]
+ }
 }

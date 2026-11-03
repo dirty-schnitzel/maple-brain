@@ -1,31 +1,334 @@
 {
-  "id": 800023,
-  "linksTo": 1032,
-  "meta": {
-    "isBodyAttack": true,
-    "level": 13,
-    "maxHP": 242,
-    "maxMP": 10,
-    "flySpeed": -40,
-    "physicalDamage": 42,
-    "physicalDefense": 15,
-    "magicDamage": 0,
-    "magicDefense": 15,
-    "accuracy": 67,
-    "evasion": 6,
-    "exp": 10,
-    "isUndead": false,
-    "minimumPushDamage": 0,
-    "summonType": 1,
-    "revivesMonsterId": [],
-    "linksToOtherMob": 1032,
-    "hideName": true
-  },
-  "name": "Flyeye",
-  "framebooks": {
-    "fly": 3,
-    "hit1": 1,
-    "die1": 10
-  },
-  "foundAt": []
+ "id": 800023,
+ "name": "Flyeye",
+ "link": 1032,
+ "info": {
+  "bodyAttack": 1,
+  "level": 13,
+  "maxHP": 242,
+  "maxMP": 10,
+  "flySpeed": -40,
+  "PADamage": 42,
+  "PDDamage": 15,
+  "MADamage": 0,
+  "MDDamage": 15,
+  "acc": 67,
+  "eva": 6,
+  "exp": 10,
+  "undead": 0,
+  "pushed": 0,
+  "fs": 10.0,
+  "summonType": 1,
+  "hideName": 1,
+  "link": "0001032"
+ },
+ "framebooks": {
+  "fly": 3,
+  "hit1": 1,
+  "die1": 10
+ },
+ "frames": {
+  "fly": [
+   {
+    "n": 0,
+    "file": "fly_0.png",
+    "size": [
+     38,
+     40
+    ],
+    "origin": [
+     19,
+     40
+    ],
+    "lt": [
+     -19,
+     -40
+    ],
+    "rb": [
+     19,
+     0
+    ],
+    "head": [
+     -5,
+     -37
+    ],
+    "delay": 130
+   },
+   {
+    "n": 1,
+    "file": "fly_1.png",
+    "size": [
+     57,
+     28
+    ],
+    "origin": [
+     26,
+     45
+    ],
+    "lt": [
+     -26,
+     -45
+    ],
+    "rb": [
+     31,
+     -17
+    ],
+    "head": [
+     -5,
+     -34
+    ],
+    "delay": 100
+   },
+   {
+    "n": 2,
+    "file": "fly_2.png",
+    "size": [
+     85,
+     35
+    ],
+    "origin": [
+     35,
+     51
+    ],
+    "lt": [
+     -35,
+     -51
+    ],
+    "rb": [
+     48,
+     -16
+    ],
+    "head": [
+     -5,
+     -31
+    ],
+    "delay": 130
+   }
+  ],
+  "hit1": [
+   {
+    "n": 0,
+    "file": "hit1_0.png",
+    "size": [
+     57,
+     64
+    ],
+    "origin": [
+     24,
+     82
+    ],
+    "lt": [
+     -13,
+     -74
+    ],
+    "rb": [
+     27,
+     -19
+    ],
+    "head": [
+     -4,
+     -35
+    ],
+    "delay": 600
+   }
+  ],
+  "die1": [
+   {
+    "n": 0,
+    "file": "die1_0.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     24,
+     82
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -4,
+     -35
+    ],
+    "delay": 130,
+    "_inlink": "hit1/0"
+   },
+   {
+    "n": 1,
+    "file": "die1_1.png",
+    "size": [
+     42,
+     56
+    ],
+    "origin": [
+     15,
+     75
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -4,
+     -35
+    ],
+    "delay": 130
+   },
+   {
+    "n": 2,
+    "file": "die1_2.png",
+    "size": [
+     42,
+     56
+    ],
+    "origin": [
+     15,
+     75
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -4,
+     -35
+    ],
+    "delay": 130
+   },
+   {
+    "n": 3,
+    "file": "die1_3.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     15,
+     75
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -4,
+     -35
+    ],
+    "delay": 130,
+    "_inlink": "die1/1"
+   },
+   {
+    "n": 4,
+    "file": "die1_4.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     15,
+     75
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -4,
+     -35
+    ],
+    "delay": 130,
+    "_inlink": "die1/2"
+   },
+   {
+    "n": 5,
+    "file": "die1_5.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     15,
+     75
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -4,
+     -35
+    ],
+    "delay": 200,
+    "_inlink": "die1/1"
+   },
+   {
+    "n": 6,
+    "file": "die1_6.png",
+    "size": [
+     42,
+     58
+    ],
+    "origin": [
+     15,
+     74
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -4,
+     -35
+    ],
+    "delay": 130
+   },
+   {
+    "n": 7,
+    "file": "die1_7.png",
+    "size": [
+     42,
+     63
+    ],
+    "origin": [
+     15,
+     72
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -4,
+     -26
+    ],
+    "delay": 130
+   },
+   {
+    "n": 8,
+    "file": "die1_8.png",
+    "size": [
+     42,
+     73
+    ],
+    "origin": [
+     15,
+     71
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -4,
+     -15
+    ],
+    "delay": 130
+   },
+   {
+    "n": 9,
+    "file": "die1_9.png",
+    "size": [
+     42,
+     88
+    ],
+    "origin": [
+     15,
+     70
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -4,
+     0
+    ],
+    "delay": 300,
+    "a0": 255,
+    "a1": 0
+   }
+  ]
+ }
 }

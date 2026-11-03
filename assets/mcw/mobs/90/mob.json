@@ -1,32 +1,277 @@
 {
-  "id": 90,
-  "linksTo": 18,
-  "meta": {
-    "isBodyAttack": true,
-    "level": 200,
-    "maxHP": 9999,
-    "maxMP": 0,
-    "speed": 0,
-    "physicalDamage": 1,
-    "physicalDefense": 999,
-    "magicDamage": 0,
-    "magicDefense": 999,
-    "accuracy": 999,
-    "evasion": 999,
-    "exp": 0,
-    "isUndead": false,
-    "minimumPushDamage": 9999,
-    "summonType": 1,
-    "revivesMonsterId": [],
-    "linksToOtherMob": 18,
-    "isInvincible": true
-  },
-  "name": "Super Jr. Necki",
-  "framebooks": {
-    "move": 3,
-    "stand": 3,
-    "hit1": 1,
-    "die1": 3
-  },
-  "foundAt": []
+ "id": 90,
+ "name": "Super Jr. Necki",
+ "link": 18,
+ "info": {
+  "bodyAttack": 1,
+  "level": 200,
+  "maxHP": 9999,
+  "maxMP": 0,
+  "speed": 0,
+  "PADamage": 1,
+  "PDDamage": 999,
+  "MADamage": 0,
+  "MDDamage": 999,
+  "acc": 999,
+  "eva": 999,
+  "exp": 0,
+  "undead": 0,
+  "pushed": 9999,
+  "link": "0000018",
+  "fs": 10.0,
+  "summonType": 1,
+  "invincible": 1,
+  "hideLevel": 0
+ },
+ "framebooks": {
+  "move": 3,
+  "stand": 3,
+  "hit1": 1,
+  "die1": 3
+ },
+ "frames": {
+  "move": [
+   {
+    "n": 0,
+    "file": "move_0.png",
+    "size": [
+     31,
+     28
+    ],
+    "origin": [
+     15,
+     28
+    ],
+    "lt": [
+     -15,
+     -28
+    ],
+    "rb": [
+     16,
+     0
+    ],
+    "head": [
+     -6,
+     -26
+    ],
+    "delay": null
+   },
+   {
+    "n": 1,
+    "file": "move_1.png",
+    "size": [
+     33,
+     28
+    ],
+    "origin": [
+     16,
+     28
+    ],
+    "lt": [
+     -5,
+     -28
+    ],
+    "rb": [
+     28,
+     0
+    ],
+    "head": [
+     -6,
+     -26
+    ],
+    "delay": null
+   },
+   {
+    "n": 2,
+    "file": "move_2.png",
+    "size": [
+     28,
+     28
+    ],
+    "origin": [
+     14,
+     28
+    ],
+    "lt": [
+     5,
+     -28
+    ],
+    "rb": [
+     33,
+     0
+    ],
+    "head": [
+     -6,
+     -26
+    ],
+    "delay": null
+   }
+  ],
+  "stand": [
+   {
+    "n": 0,
+    "file": "stand_0.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     14,
+     28
+    ],
+    "lt": [
+     -14,
+     -28
+    ],
+    "rb": [
+     14,
+     0
+    ],
+    "head": [
+     -6,
+     -26
+    ],
+    "delay": 500,
+    "_inlink": "move/2"
+   },
+   {
+    "n": 1,
+    "file": "stand_1.png",
+    "size": [
+     31,
+     28
+    ],
+    "origin": [
+     15,
+     28
+    ],
+    "lt": [
+     -15,
+     -28
+    ],
+    "rb": [
+     16,
+     0
+    ],
+    "head": [
+     -6,
+     -26
+    ],
+    "delay": 150
+   },
+   {
+    "n": 2,
+    "file": "stand_2.png",
+    "size": [
+     31,
+     28
+    ],
+    "origin": [
+     15,
+     28
+    ],
+    "lt": [
+     -15,
+     -28
+    ],
+    "rb": [
+     16,
+     0
+    ],
+    "head": [
+     -6,
+     -26
+    ],
+    "delay": 80
+   }
+  ],
+  "hit1": [
+   {
+    "n": 0,
+    "file": "hit1_0.png",
+    "size": [
+     22,
+     37
+    ],
+    "origin": [
+     11,
+     37
+    ],
+    "lt": [
+     -11,
+     -37
+    ],
+    "rb": [
+     11,
+     0
+    ],
+    "head": [
+     6,
+     -29
+    ],
+    "delay": 600
+   }
+  ],
+  "die1": [
+   {
+    "n": 0,
+    "file": "die1_0.png",
+    "size": [
+     28,
+     29
+    ],
+    "origin": [
+     14,
+     29
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -6,
+     -26
+    ],
+    "delay": 300
+   },
+   {
+    "n": 1,
+    "file": "die1_1.png",
+    "size": [
+     46,
+     32
+    ],
+    "origin": [
+     23,
+     32
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -17,
+     -12
+    ],
+    "delay": 150
+   },
+   {
+    "n": 2,
+    "file": "die1_2.png",
+    "size": [
+     46,
+     18
+    ],
+    "origin": [
+     23,
+     18
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -17,
+     -12
+    ],
+    "delay": 500,
+    "a0": 255,
+    "a1": 0
+   }
+  ]
+ }
 }

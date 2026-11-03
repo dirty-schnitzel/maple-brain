@@ -1,178 +1,347 @@
-"""Local copy of MapleStory Classic World game data (maps, mob sprites) from the maplestory.io API.
+"""MapleStory Classic World game data, built from the game's own client files: the bot's single source of game data.
 
-Downloaded once with `python -m maplebot assets update MAP_ID ...`; the bot itself only reads the local files.
-Layout under assets/mcw/ (see assets/README.md):
-    manifest.json                  source, region/version, what was fetched when
-    maps/<id>/map.json             raw API map (footholds, ladderRopes, mobs, portals, miniMap, vrBounds)
-    maps/<id>/minimap.png          the miniMap canvas, decoded
-    maps/<id>/render.png           whole-map picture (only with --render)
-    mobs/<id>/mob.json             raw API mob (stats, framebooks)
-    mobs/<id>/<anim>_<n>.png       one animation frame, RGBA, facing left (as the game stores it)
+`tools/cwdata/export.ps1` exports a copy of the client's Data folder with HaRepacker's MapleLib to XML + PNG;
+`python -m maplebot assets build` turns that export into what the bot reads at run time (see assets/README.md):
+    manifest.json               where it came from, when it was built; per map / mob: name and counts
+    changes.txt                 what the last build changed vs the one before (after a game patch: what to re-check)
+    maps/<id>/map.json          footholds, ladderRopes, mobs (spawns), npcs, portals, miniMap (+ canvas as base64),
+                                vrBounds, info (the client's map info, as is)
+    maps/<id>/minimap.png       the miniMap canvas
+    mobs/<id>/mob.json          info (stats, the client's names), framebooks (anim -> frame count), frames (per frame:
+                                origin = the mob's feet in the PNG, lt/rb body box and head relative to the feet, delay ms;
+                                `same`: a frame the client reuses, e.g. stand_0 is move_0)
+    mobs/<id>/<anim>_<n>.png    one animation frame, RGBA, facing left: the client's canvas as is
+Ids are the client's without the zero padding (map 000000042 -> 42, mob 0000002 -> 2). map.json's field names
+(footholds / ladderRopes / mobs / miniMap ...) are the ones the bot has always read (the layout of the maplestory.io
+copy this replaced on 2026-11-03).
 """
 import base64
 import json
+import shutil
 import time
-import urllib.error
-import urllib.request
-from concurrent.futures import ThreadPoolExecutor
+import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Callable
 
-API = "https://maplestory.io/api"
-REGION, VERSION = "MCW", "1"   # MapleStory Classic World; its ids differ from GMS (Snail = 2, not 100100)
 ROOT = Path(__file__).resolve().parents[1] / "assets" / "mcw"
-
-Getter = Callable[[str], bytes]
-
-
-def http_get(url: str, tries: int = 4) -> bytes:
-    """GET with retry and a growing back-off (plain download, no need for humanized timing)."""
-    for i in range(tries):
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "maplebot-assets/1"})
-            with urllib.request.urlopen(req, timeout=30) as r:
-                return r.read()
-        except urllib.error.HTTPError as e:
-            if e.code == 404 or i == tries - 1:
-                raise
-        except (urllib.error.URLError, TimeoutError):
-            if i == tries - 1:
-                raise
-        time.sleep(1.5 * 2 ** i)
-    raise RuntimeError("unreachable")
+EXPORT = Path(r"C:\Users\Yoav\dev\cw-data\export")       # tools/cwdata/export.ps1's default output
 
 
-def _url(path: str) -> str:
-    return f"{API}/{REGION}/{VERSION}/{path}"
+# ------------------------------------------------------------------ the exporter's XML (WzClassicXmlSerializer)
+def _node(e: ET.Element):
+    tag = e.tag
+    if tag in ("imgdir", "canvas", "extended"):
+        d = {c.get("name"): _node(c) for c in e}
+        if tag == "canvas":
+            d["_size"] = [int(e.get("width")), int(e.get("height"))]
+        return d
+    if tag in ("int", "short", "long"):
+        return int(e.get("value"))
+    if tag in ("float", "double"):
+        return float(e.get("value"))
+    if tag == "string":
+        return e.get("value")
+    if tag == "vector":
+        return [int(e.get("x")), int(e.get("y"))]
+    if tag == "uol":
+        return {"_uol": e.get("value")}
+    return None                                         # null, sound: nothing the bot needs
 
 
+def load_xml(path: Path) -> dict:
+    """One exported .img.xml -> nested dicts (canvases: their properties + `_size`; pixels are separate PNGs)."""
+    return _node(ET.parse(path).getroot())
+
+
+def _int_keys(d: dict) -> list:
+    return sorted((k for k in d if k.lstrip("-").isdigit()), key=int)
+
+
+# ------------------------------------------------------------------ maps
+def map_names(string_map: dict) -> dict:
+    """String/Map.img ({region: {padded id: {streetName, mapName}}}) -> {id: (street, name)}."""
+    out = {}
+    for region in string_map.values():
+        for k, v in (region or {}).items():
+            if k.isdigit() and isinstance(v, dict):
+                out[int(k)] = (v.get("streetName"), v.get("mapName"))
+    return out
+
+
+def _footholds(img: dict) -> dict:
+    fh = {}
+    for layer, groups in (img.get("foothold") or {}).items():
+        for group, segs in (groups or {}).items():
+            for fid, f in (segs or {}).items():
+                if fid in fh:
+                    raise ValueError(f"foothold {fid} twice (layers {fh[fid]['layerId']} and {layer})")
+                fh[fid] = {"id": int(fid), **f, "layerId": int(layer), "groupId": int(group)}
+    return {k: fh[k] for k in sorted(fh, key=int)}
+
+
+def _life(img: dict) -> tuple[list, list]:
+    """life -> (mobs, npcs). y = the foothold's height under the spawn (`cy`; the client's `y` is where the sprite
+    is first drawn); walkAreaX1/X2 = rx0/rx1, the x range the mob may wander."""
+    named = {"id", "x", "y", "cy", "fh", "rx0", "rx1", "hide", "f", "mobTime", "type"}
+    mobs, npcs = [], []
+    life = img.get("life") or {}
+    for k in _int_keys(life):
+        v = life[k]
+        e = {"index": int(k), "id": int(v["id"]), "x": v["x"], "y": v.get("cy", v["y"]), "spriteY": v["y"],
+             "footholdId": v.get("fh"), "walkAreaX1": v.get("rx0"), "walkAreaX2": v.get("rx1"),
+             "hidden": bool(v.get("hide", 0)), "flip": bool(v.get("f", 0)), "mobTime": v.get("mobTime", 0),
+             **{kk: vv for kk, vv in v.items() if kk not in named}}
+        {"m": mobs, "n": npcs}.get(v.get("type"), []).append(e)
+    return mobs, npcs
+
+
+def _portals(img: dict) -> list:
+    named = {"pn", "pt", "x", "y", "tm", "tn"}
+    p = img.get("portal") or {}
+    return [{"index": int(k), "portalName": v.get("pn"), "type": v.get("pt"), "x": v.get("x"), "y": v.get("y"),
+             "toMap": v.get("tm"), "toName": v.get("tn"), **{kk: vv for kk, vv in v.items() if kk not in named}}
+            for k, v in ((k, p[k]) for k in _int_keys(p))]
+
+
+def _ropes(img: dict) -> list:
+    r = img.get("ladderRope") or {}
+    return [{"index": int(k), "x": v["x"], "y1": v["y1"], "y2": v["y2"], "isLadder": bool(v.get("l", 0)),
+             **{kk: vv for kk, vv in v.items() if kk not in ("x", "y1", "y2", "l")}}
+            for k, v in ((k, r[k]) for k in _int_keys(r))]
+
+
+def map_json(img: dict, map_id: int, names: dict, minimap_png: bytes | None) -> dict:
+    """One exported map image -> map.json."""
+    info = img.get("info") or {}
+    street, name = names.get(map_id, (None, None))
+    mobs, npcs = _life(img)
+    m = {"id": map_id, "name": name, "streetName": street,
+         "mobRate": info.get("mobRate"), "isTown": bool(info.get("town", 0)), "returnMap": info.get("returnMap"),
+         "footholds": _footholds(img), "ladderRopes": _ropes(img), "mobs": mobs, "npcs": npcs,
+         "portals": _portals(img)}
+    mm = img.get("miniMap")
+    if mm:
+        m["miniMap"] = {"centerX": mm.get("centerX"), "centerY": mm.get("centerY"), "width": mm.get("width"),
+                        "height": mm.get("height"), "magnification": mm.get("mag")}
+        if minimap_png:
+            m["miniMap"]["canvas"] = base64.b64encode(minimap_png).decode("ascii")
+    if "VRLeft" in info:
+        m["vrBounds"] = {"left": info["VRLeft"], "top": info["VRTop"], "right": info["VRRight"],
+                         "bottom": info["VRBottom"]}
+    m["info"] = info
+    return m
+
+
+# ------------------------------------------------------------------ mobs
+def _resolve(img: dict, anim: str, node) -> tuple | None:
+    """A UOL frame -> (anim, n, canvas props) of the frame it points at. The path is relative to the anim holding the
+    link: '0' = frame 0 of the same anim, '../move/0' = move's frame 0. Chains are followed; None if it leads nowhere."""
+    for _ in range(8):
+        if not (isinstance(node, dict) and "_uol" in node):
+            return None
+        path = [anim]
+        for part in node["_uol"].split("/"):
+            path = path[:-1] if part == ".." else path + [part]
+        if len(path) != 2 or not path[1].isdigit():
+            return None
+        anim, node = path[0], (img.get(path[0]) or {}).get(path[1])
+        if isinstance(node, dict) and "_size" in node:
+            return anim, int(path[1]), node
+    return None
+
+
+def _anims(img: dict) -> dict:
+    """{anim: [(n, source anim, source n, canvas props)]}: every node of numbered canvases (frames), in the client's
+    order. UOL frames ('stand/0' -> '../move/0') resolved to the frame they point at."""
+    out = {}
+    for anim, v in img.items():
+        if anim == "info" or not isinstance(v, dict) or "_uol" in v:
+            continue
+        frames = []
+        for k in _int_keys(v):
+            c = v[k]
+            if isinstance(c, dict) and "_uol" in c:
+                r = _resolve(img, anim, c)
+                if r is not None:
+                    frames.append((int(k), r[0], r[1], r[2]))
+            elif isinstance(c, dict) and "_size" in c:
+                frames.append((int(k), anim, int(k), c))
+        if frames:
+            out[anim] = frames
+    return out
+
+
+def build_mob(img: dict, mob_id: int, name: str | None, png_dir: Path, out_dir: Path, linked: dict | None = None,
+              linked_png_dir: Path | None = None) -> dict:
+    """mob.json + trimmed frame PNGs into out_dir. A mob whose info has `link` (and no frames of its own) is drawn
+    with the linked mob's frames, as the game does. Returns the manifest entry."""
+    info = img.get("info") or {}
+    anims = _anims(img)
+    if not anims and linked is not None:
+        anims, png_dir = _anims(linked), linked_png_dir
+    out_dir.mkdir(parents=True, exist_ok=True)
+    frames, books = {}, {}
+    for anim, fr in anims.items():
+        books[anim] = len(fr)
+        for i, (n, src_anim, src_n, c) in enumerate(fr):   # files 0..count-1 in play order (client numbers can skip)
+            src = png_dir / f"{src_anim}_{src_n}.png"
+            if not src.exists():
+                raise FileNotFoundError(f"mob {mob_id}: no frame picture {src}")
+            shutil.copyfile(src, out_dir / f"{anim}_{i}.png")         # the client's canvas as is (not trimmed)
+            frames.setdefault(anim, []).append(
+                {"n": n, "file": f"{anim}_{i}.png", "size": c["_size"], "origin": c.get("origin"), "lt": c.get("lt"),
+                 "rb": c.get("rb"), "head": c.get("head"), "delay": c.get("delay"),
+                 **({"same": f"{src_anim}_{src_n}.png"} if (src_anim, src_n) != (anim, n) else {}),
+                 **{k: v for k, v in c.items() if k not in ("origin", "lt", "rb", "head", "delay", "_size", "_hash")
+                    and not isinstance(v, dict)}})
+    m = {"id": mob_id, "name": name, "link": int(info["link"]) if info.get("link") else None,
+         "info": info, "framebooks": books, "frames": frames}
+    (out_dir / "mob.json").write_text(json.dumps(m, indent=1), encoding="utf-8")
+    return {"name": name, "level": info.get("level"), "framebooks": books,
+            "frames": sum(books.values()), "link": m["link"]}
+
+
+# ------------------------------------------------------------------ everything
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
 def load_manifest(root: Path = ROOT) -> dict:
     p = root / "manifest.json"
-    if p.exists():
-        return json.loads(p.read_text(encoding="utf-8"))
-    return {"source": API, "region": REGION, "version": VERSION, "maps": {}, "mobs": {}}
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else {"maps": {}, "mobs": {}}
 
 
-def save_manifest(m: dict, root: Path = ROOT) -> None:
-    root.mkdir(parents=True, exist_ok=True)
-    (root / "manifest.json").write_text(json.dumps(m, indent=2, sort_keys=True), encoding="utf-8")
+def build(export: Path = EXPORT, root: Path = ROOT, log=print) -> dict:
+    """The whole game from a client export into `root` (rebuilt from scratch next to it, then swapped in: never a
+    half-built or stale mix). Returns the manifest."""
+    export, root = Path(export), Path(root)
+    for need in ("Map", "Mob", "String/Map.img.xml", "String/Mob.img.xml"):
+        if not (export / need).exists():
+            raise FileNotFoundError(f"{export / need} missing - run tools/cwdata/export.ps1 first")
+    new = root.with_name(root.name + ".new")
+    if new.exists():
+        shutil.rmtree(new)
+    man = {"source": "Classic World client files, exported by tools/cwdata/export.ps1", "export": str(export),
+           "built": _now(), "maps": {}, "mobs": {}}
+    names = map_names(load_xml(export / "String" / "Map.img.xml"))
+    mob_names = {int(k): v.get("name") for k, v in load_xml(export / "String" / "Mob.img.xml").items()
+                 if k.isdigit() and isinstance(v, dict)}
+
+    mob_xml = {int(p.name.split(".")[0]): p for p in (export / "Mob").glob("*.img.xml")}
+    imgs = {}
+
+    def mob_img(i):
+        if i not in imgs:
+            imgs[i] = load_xml(mob_xml[i])
+        return imgs[i]
+
+    for i in sorted(mob_xml):
+        img = mob_img(i)
+        link = (img.get("info") or {}).get("link")
+        linked = mob_img(int(link)) if link and int(link) in mob_xml else None
+        man["mobs"][str(i)] = build_mob(img, i, mob_names.get(i), export / "Mob" / "png" / f"{i:07d}",
+                                        new / "mobs" / str(i), linked,
+                                        export / "Mob" / "png" / f"{int(link):07d}" if link else None)
+    log(f"mobs: {len(man['mobs'])}, {sum(e['frames'] for e in man['mobs'].values())} frames")
+
+    for p in sorted((export / "Map").glob("Map?/*.img.xml")):
+        mid = int(p.name.split(".")[0])
+        mini = export / "Map" / "minimap" / f"{p.name.split('.')[0]}.png"
+        m = map_json(load_xml(p), mid, names, mini.read_bytes() if mini.exists() else None)
+        d = new / "maps" / str(mid)
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "map.json").write_text(json.dumps(m, indent=1), encoding="utf-8")
+        if mini.exists():
+            shutil.copyfile(mini, d / "minimap.png")
+        mob_ids = sorted({x["id"] for x in m["mobs"]})
+        missing = [x for x in mob_ids if str(x) not in man["mobs"]]
+        if missing:
+            log(f"map {mid}: spawns mobs {missing} that aren't in the client's Mob data")
+        man["maps"][str(mid)] = {"name": m["name"], "street": m["streetName"], "mobs": mob_ids,
+                                 "footholds": len(m["footholds"]), "ladderRopes": len(m["ladderRopes"]),
+                                 "minimap": mini.exists()}
+    log(f"maps: {len(man['maps'])}, {sum(e['minimap'] for e in man['maps'].values())} with a minimap")
+
+    (new / "manifest.json").write_text(json.dumps(man, indent=1, sort_keys=True), encoding="utf-8")
+    report = changes(root, new)
+    head = f"assets/mcw rebuilt {man['built']} from {export}: changes vs the previous build"
+    (new / "changes.txt").write_text("\n".join([head, *report, ""]), encoding="utf-8")
+    for line in report[:40]:
+        log(f"  {line}")
+    if len(report) > 40:
+        log(f"  ... {len(report) - 40} more lines in changes.txt")
+    old = root.with_name(root.name + ".old")
+    if old.exists():
+        shutil.rmtree(old)
+    if root.exists():
+        _rename(root, old)
+    try:
+        _rename(new, root)
+    except OSError:
+        if old.exists():
+            _rename(old, root)                       # put the previous assets back
+        raise
+    if old.exists():
+        shutil.rmtree(old, ignore_errors=True)
+    log(f"built {root} from {export}")
+    return man
 
 
-def fetch_mob(mob_id: int, root: Path = ROOT, get: Getter = http_get, force: bool = False,
-              workers: int = 8) -> dict:
-    """mob.json + every frame of every animation. Returns the manifest entry."""
-    d = root / "mobs" / str(mob_id)
-    d.mkdir(parents=True, exist_ok=True)
-    info = json.loads(get(_url(f"mob/{mob_id}")))
-    (d / "mob.json").write_text(json.dumps(info, indent=2), encoding="utf-8")
-    jobs = [(anim, n) for anim, count in (info.get("framebooks") or {}).items() for n in range(count)]
-
-    def one(job):
-        anim, n = job
-        p = d / f"{anim}_{n}.png"
-        if force or not p.exists():
-            p.write_bytes(get(_url(f"mob/{mob_id}/render/{anim}/{n}")))
-        return p.name
-
-    with ThreadPoolExecutor(workers) as ex:
-        files = sorted(ex.map(one, jobs))
-    return {"name": info.get("name"), "level": (info.get("meta") or {}).get("level"),
-            "framebooks": info.get("framebooks") or {}, "frames": len(files), "fetched": _now()}
+def _differs(a: Path, b: Path) -> bool:
+    return not (a.exists() and b.exists() and a.read_bytes() == b.read_bytes())
 
 
-def fetch_map(map_id: int, root: Path = ROOT, get: Getter = http_get, force: bool = False,
-              render: bool = False, log=print) -> dict:
-    """map.json, minimap.png, optionally render.png, and every mob that spawns there. Updates manifest.json."""
-    man = load_manifest(root)
-    d = root / "maps" / str(map_id)
-    d.mkdir(parents=True, exist_ok=True)
-    m = json.loads(get(_url(f"map/{map_id}")))
-    (d / "map.json").write_text(json.dumps(m, indent=2), encoding="utf-8")
-    canvas = (m.get("miniMap") or {}).get("canvas")
-    if canvas:
-        (d / "minimap.png").write_bytes(base64.b64decode(canvas))
-    if render and (force or not (d / "render.png").exists()):
-        (d / "render.png").write_bytes(get(_url(f"map/{map_id}/render")))
-    mob_ids = sorted({int(x["id"]) for x in m.get("mobs") or []})
-    for mid in mob_ids:
-        if not force and str(mid) in man["mobs"]:
-            log(f"  mob {mid} {man['mobs'][str(mid)]['name']}: have it")
-            continue
-        man["mobs"][str(mid)] = e = fetch_mob(mid, root, get, force)
-        log(f"  mob {mid} {e['name']}: {e['frames']} frames")
-    man["maps"][str(map_id)] = {
-        "name": m.get("name"), "street": m.get("streetName"), "mobs": mob_ids,
-        "footholds": len(m.get("footholds") or {}), "ladderRopes": len(m.get("ladderRopes") or []),
-        "render": (d / "render.png").exists(), "fetched": _now()}
-    save_manifest(man, root)
-    log(f"map {map_id} {m.get('streetName')} / {m.get('name')}: {len(mob_ids)} mob types -> {d}")
-    return man["maps"][str(map_id)]
+def changes(old: Path, new: Path) -> list[str]:
+    """What a rebuild changes, one line per map / mob (after a game patch: the list of things to look at again).
+    Maps: which parts of map.json differ (footholds, mobs, miniMap ...) and the minimap picture; mobs: info values
+    old -> new, framebooks, which frame pictures differ."""
+    if not (old / "manifest.json").exists():
+        return ["first build (nothing to compare with)"]
+    out = []
+    for kind, fname in (("maps", "map.json"), ("mobs", "mob.json")):
+        a = {p.parent.name for p in (old / kind).glob(f"*/{fname}")}
+        b = {p.parent.name for p in (new / kind).glob(f"*/{fname}")}
+        for label, ids in (("added", b - a), ("removed", a - b)):
+            if ids:
+                out.append(f"{kind} {label}: {' '.join(sorted(ids, key=int))}")
+        for i in sorted(a & b, key=int):
+            ja, jb = (json.loads((r / kind / i / fname).read_text(encoding="utf-8")) for r in (old, new))
+            what = []
+            for k in sorted(set(ja) | set(jb)):
+                if ja.get(k) == jb.get(k) or (kind == "mobs" and k == "frames"):
+                    continue
+                if kind == "mobs" and k == "info":
+                    ia, ib = ja.get(k) or {}, jb.get(k) or {}
+                    what += [f"{f} {ia.get(f)} -> {ib.get(f)}" for f in sorted(set(ia) | set(ib)) if ia.get(f) != ib.get(f)]
+                else:
+                    what.append(k)
+            if kind == "mobs" and ja.get("frames") != jb.get("frames") and ja.get("framebooks") == jb.get("framebooks"):
+                what.append("frame origins/boxes/delays")
+            pics = sorted({p.name for r in (old, new) for p in (r / kind / i).glob("*.png")})
+            pics = [n for n in pics if _differs(old / kind / i / n, new / kind / i / n)]
+            if pics:
+                what.append(f"pictures {', '.join(pics[:4])}" + (f" (+{len(pics) - 4})" if len(pics) > 4 else ""))
+            if what:
+                out.append(f"{kind[:-1]} {i} {jb.get('name') or ''}: {'; '.join(what)}")
+    return out or ["no changes"]
 
 
-def list_maps(get: Getter = http_get) -> list[dict]:
-    """Every Classic World map: [{id, name, streetName}] (347 on 2026-11-01)."""
-    return json.loads(get(_url("map")))
-
-
-def fetch_all(root: Path = ROOT, get: Getter = http_get, force: bool = False, log=print) -> dict:
-    """The whole game once: every map (map.json + minimap), then every mob (sprites). Resumable: maps already
-    complete on disk are skipped unless `force`; a map that fails is logged and skipped (run it again later).
-    Returns {"fetched": n, "skipped": n, "failed": {id: error}}."""
-    maps = list_maps(get)
-    done = {"fetched": 0, "skipped": 0, "failed": {}}
-    for i, e in enumerate(maps, 1):
-        mid = int(e["id"])
-        if not force and have_map(mid, root):
-            done["skipped"] += 1
-            continue
+def _rename(src: Path, dst: Path, tries: int = 20) -> None:
+    """Windows: a folder full of just-written files is often briefly locked (virus scan, indexer) -> retry."""
+    for i in range(tries):
         try:
-            fetch_map(mid, root, get, force, log=lambda m: log(f"[{i}/{len(maps)}] {m}"))
-            done["fetched"] += 1
-        except Exception as ex:                                   # noqa: BLE001 - 404, timeout ...: keep going
-            done["failed"][mid] = repr(ex)
-            log(f"[{i}/{len(maps)}] map {mid} {e.get('name')}: FAILED {ex!r}")
-    log(f"all maps: {done['fetched']} fetched, {done['skipped']} already there, {len(done['failed'])} failed")
-    # then every mob of the game, also those no map spawns (event/quest/boss mobs)
-    man = load_manifest(root)
-    mobs = json.loads(get(_url("mob")))
-    todo = [int(e["id"]) for e in mobs if force or not (root / "mobs" / str(int(e["id"])) / "mob.json").exists()]
-    for i, mid in enumerate(todo, 1):
-        try:
-            man["mobs"][str(mid)] = e = fetch_mob(mid, root, get, force)
-            log(f"[mob {i}/{len(todo)}] {mid} {e['name']}: {e['frames']} frames")
-        except Exception as ex:                                   # noqa: BLE001
-            done["failed"][f"mob {mid}"] = repr(ex)
-            log(f"[mob {i}/{len(todo)}] {mid}: FAILED {ex!r}")
-        if i % 20 == 0:
-            save_manifest(man, root)
-    save_manifest(man, root)
-    log(f"all mobs: {len(mobs)} in the game, {len(todo)} fetched now, "
-        f"{sum(1 for k in done['failed'] if str(k).startswith('mob'))} failed")
-    return done
+            src.rename(dst)
+            return
+        except PermissionError:
+            if i == tries - 1:
+                raise
+            time.sleep(0.5)
 
 
 def have_map(map_id: int, root: Path = ROOT) -> bool:
-    """map.json and every mob that spawns there are on disk."""
+    """map.json and every mob that spawns there are in the assets."""
     mj = root / "maps" / str(map_id) / "map.json"
     if not mj.exists():
         return False
     m = json.loads(mj.read_text(encoding="utf-8"))
     return all((root / "mobs" / str(int(x["id"])) / "mob.json").exists() for x in m.get("mobs") or [])
-
-
-def ensure_map(map_id: int, root: Path = ROOT, get: Getter = http_get, log=print) -> bool:
-    """Download the map (and its mobs) the first time it's used, so any map works with just --map <id>.
-    True = downloaded now, False = already there."""
-    if have_map(map_id, root):
-        return False
-    log(f"map {map_id} isn't downloaded yet -> fetching it and its mobs from maplestory.io (once)")
-    man = load_manifest(root)                      # a mob listed but missing on disk: fetch it again
-    man["mobs"] = {k: v for k, v in man["mobs"].items() if (root / "mobs" / k / "mob.json").exists()}
-    save_manifest(man, root)
-    fetch_map(map_id, root, get, log=log)
-    return True

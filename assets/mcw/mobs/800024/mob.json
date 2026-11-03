@@ -1,29 +1,360 @@
 {
-  "id": 800024,
-  "meta": {
-    "isBodyAttack": true,
-    "level": 15,
-    "maxHP": 310,
-    "maxMP": 30,
-    "flySpeed": -50,
-    "physicalDamage": 54,
-    "physicalDefense": 25,
-    "magicDamage": 0,
-    "magicDefense": 5,
-    "accuracy": 74,
-    "evasion": 7,
-    "exp": 49,
-    "isUndead": false,
-    "minimumPushDamage": 0,
-    "summonType": 1,
-    "revivesMonsterId": [],
-    "hideName": true
-  },
-  "name": "Goblin Fire",
-  "framebooks": {
-    "fly": 8,
-    "hit1": 1,
-    "die1": 5
-  },
-  "foundAt": []
+ "id": 800024,
+ "name": "Goblin Fire",
+ "link": null,
+ "info": {
+  "bodyAttack": 1,
+  "level": 15,
+  "exp": 49,
+  "maxHP": 310,
+  "maxMP": 30,
+  "flySpeed": -50,
+  "PADamage": 54,
+  "PDDamage": 25,
+  "MADamage": 0,
+  "MDDamage": 5,
+  "acc": 74,
+  "eva": 7,
+  "undead": 0,
+  "pushed": 0,
+  "fs": 10.0,
+  "summonType": 1,
+  "hideName": 1
+ },
+ "framebooks": {
+  "fly": 8,
+  "hit1": 1,
+  "die1": 5
+ },
+ "frames": {
+  "fly": [
+   {
+    "n": 0,
+    "file": "fly_0.png",
+    "size": [
+     40,
+     49
+    ],
+    "origin": [
+     18,
+     61
+    ],
+    "lt": [
+     -18,
+     -61
+    ],
+    "rb": [
+     22,
+     -12
+    ],
+    "head": [
+     -3,
+     -36
+    ],
+    "delay": 100
+   },
+   {
+    "n": 1,
+    "file": "fly_1.png",
+    "size": [
+     39,
+     48
+    ],
+    "origin": [
+     17,
+     61
+    ],
+    "lt": [
+     -17,
+     -61
+    ],
+    "rb": [
+     22,
+     -13
+    ],
+    "head": [
+     -3,
+     -35
+    ],
+    "delay": 100
+   },
+   {
+    "n": 2,
+    "file": "fly_2.png",
+    "size": [
+     41,
+     46
+    ],
+    "origin": [
+     19,
+     60
+    ],
+    "lt": [
+     -19,
+     -60
+    ],
+    "rb": [
+     22,
+     -14
+    ],
+    "head": [
+     -3,
+     -37
+    ],
+    "delay": 100
+   },
+   {
+    "n": 3,
+    "file": "fly_3.png",
+    "size": [
+     41,
+     50
+    ],
+    "origin": [
+     18,
+     65
+    ],
+    "lt": [
+     -18,
+     -66
+    ],
+    "rb": [
+     23,
+     -15
+    ],
+    "head": [
+     -1,
+     -41
+    ],
+    "delay": 100
+   },
+   {
+    "n": 4,
+    "file": "fly_4.png",
+    "size": [
+     42,
+     50
+    ],
+    "origin": [
+     18,
+     66
+    ],
+    "lt": [
+     -18,
+     -66
+    ],
+    "rb": [
+     24,
+     -16
+    ],
+    "head": [
+     -2,
+     -40
+    ],
+    "delay": 100
+   },
+   {
+    "n": 5,
+    "file": "fly_5.png",
+    "size": [
+     41,
+     48
+    ],
+    "origin": [
+     19,
+     62
+    ],
+    "lt": [
+     -19,
+     -62
+    ],
+    "rb": [
+     22,
+     -14
+    ],
+    "head": [
+     -3,
+     -38
+    ],
+    "delay": 100
+   },
+   {
+    "n": 6,
+    "file": "fly_6.png",
+    "size": [
+     41,
+     49
+    ],
+    "origin": [
+     19,
+     62
+    ],
+    "lt": [
+     -19,
+     -62
+    ],
+    "rb": [
+     22,
+     -13
+    ],
+    "head": [
+     -4,
+     -37
+    ],
+    "delay": 100
+   },
+   {
+    "n": 7,
+    "file": "fly_7.png",
+    "size": [
+     41,
+     48
+    ],
+    "origin": [
+     19,
+     58
+    ],
+    "lt": [
+     -19,
+     -58
+    ],
+    "rb": [
+     22,
+     -10
+    ],
+    "head": [
+     -4,
+     -35
+    ],
+    "delay": 100
+   }
+  ],
+  "hit1": [
+   {
+    "n": 0,
+    "file": "hit1_0.png",
+    "size": [
+     40,
+     50
+    ],
+    "origin": [
+     15,
+     61
+    ],
+    "lt": [
+     -15,
+     -62
+    ],
+    "rb": [
+     25,
+     -11
+    ],
+    "head": [
+     5,
+     -40
+    ],
+    "delay": 600
+   }
+  ],
+  "die1": [
+   {
+    "n": 0,
+    "file": "die1_0.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     15,
+     61
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     5,
+     -36
+    ],
+    "delay": 100,
+    "_inlink": "fly/3"
+   },
+   {
+    "n": 1,
+    "file": "die1_1.png",
+    "size": [
+     42,
+     50
+    ],
+    "origin": [
+     15,
+     60
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     5,
+     -36
+    ],
+    "delay": 100
+   },
+   {
+    "n": 2,
+    "file": "die1_2.png",
+    "size": [
+     41,
+     48
+    ],
+    "origin": [
+     15,
+     57
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     5,
+     -36
+    ],
+    "delay": 100
+   },
+   {
+    "n": 3,
+    "file": "die1_3.png",
+    "size": [
+     41,
+     49
+    ],
+    "origin": [
+     15,
+     57
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     5,
+     -36
+    ],
+    "delay": 100
+   },
+   {
+    "n": 4,
+    "file": "die1_4.png",
+    "size": [
+     41,
+     48
+    ],
+    "origin": [
+     15,
+     55
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     5,
+     -36
+    ],
+    "delay": 100,
+    "a0": 255,
+    "a1": 0
+   }
+  ]
+ }
 }

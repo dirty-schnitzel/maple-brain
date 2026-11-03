@@ -1,31 +1,411 @@
 {
-  "id": 66,
-  "meta": {
-    "isBodyAttack": true,
-    "level": 47,
-    "maxHP": 2513,
-    "maxMP": 0,
-    "speed": 10,
-    "physicalDamage": 248,
-    "physicalDefense": 15,
-    "magicDamage": 0,
-    "magicDefense": 15,
-    "accuracy": 138,
-    "evasion": 29,
-    "exp": 117,
-    "isUndead": true,
-    "minimumPushDamage": 337,
-    "elementalAttributes": "H3",
-    "summonType": 1,
-    "revivesMonsterId": []
-  },
-  "name": "Mummydog",
-  "framebooks": {
-    "move": 5,
-    "stand": 3,
-    "jump": 1,
-    "hit1": 1,
-    "die1": 6
-  },
-  "foundAt": []
+ "id": 66,
+ "name": "Mummydog",
+ "link": null,
+ "info": {
+  "level": 47,
+  "exp": 117,
+  "maxHP": 2513,
+  "maxMP": 0,
+  "speed": 10,
+  "bodyAttack": 1,
+  "PADamage": 248,
+  "PDDamage": 15,
+  "MADamage": 0,
+  "MDDamage": 15,
+  "acc": 138,
+  "eva": 29,
+  "undead": 1,
+  "pushed": 337,
+  "elemAttr": "H3",
+  "fs": 10.0,
+  "summonType": 1
+ },
+ "framebooks": {
+  "move": 5,
+  "stand": 3,
+  "jump": 1,
+  "hit1": 1,
+  "die1": 6
+ },
+ "frames": {
+  "move": [
+   {
+    "n": 0,
+    "file": "move_0.png",
+    "size": [
+     78,
+     57
+    ],
+    "origin": [
+     35,
+     57
+    ],
+    "lt": [
+     -37,
+     -56
+    ],
+    "rb": [
+     35,
+     0
+    ],
+    "head": [
+     -16,
+     -56
+    ],
+    "delay": 140
+   },
+   {
+    "n": 1,
+    "file": "move_1.png",
+    "size": [
+     78,
+     48
+    ],
+    "origin": [
+     35,
+     54
+    ],
+    "lt": [
+     -37,
+     -53
+    ],
+    "rb": [
+     41,
+     -12
+    ],
+    "head": [
+     -16,
+     -53
+    ],
+    "delay": 140
+   },
+   {
+    "n": 2,
+    "file": "move_2.png",
+    "size": [
+     66,
+     51
+    ],
+    "origin": [
+     35,
+     51
+    ],
+    "lt": [
+     -37,
+     -50
+    ],
+    "rb": [
+     29,
+     0
+    ],
+    "head": [
+     -16,
+     -50
+    ],
+    "delay": 140
+   },
+   {
+    "n": 3,
+    "file": "move_3.png",
+    "size": [
+     65,
+     50
+    ],
+    "origin": [
+     35,
+     50
+    ],
+    "lt": [
+     -37,
+     -49
+    ],
+    "rb": [
+     24,
+     0
+    ],
+    "head": [
+     -16,
+     -49
+    ],
+    "delay": 140
+   },
+   {
+    "n": 4,
+    "file": "move_4.png",
+    "size": [
+     68,
+     58
+    ],
+    "origin": [
+     35,
+     58
+    ],
+    "lt": [
+     -37,
+     -57
+    ],
+    "rb": [
+     29,
+     0
+    ],
+    "head": [
+     -16,
+     -57
+    ],
+    "delay": 140
+   }
+  ],
+  "stand": [
+   {
+    "n": 0,
+    "file": "stand_0.png",
+    "size": [
+     65,
+     58
+    ],
+    "origin": [
+     33,
+     58
+    ],
+    "lt": [
+     -33,
+     -57
+    ],
+    "rb": [
+     32,
+     0
+    ],
+    "head": [
+     -12,
+     -57
+    ],
+    "delay": 180
+   },
+   {
+    "n": 1,
+    "file": "stand_1.png",
+    "size": [
+     70,
+     56
+    ],
+    "origin": [
+     35,
+     56
+    ],
+    "lt": [
+     -35,
+     -55
+    ],
+    "rb": [
+     33,
+     0
+    ],
+    "head": [
+     -14,
+     -55
+    ],
+    "delay": 180
+   },
+   {
+    "n": 2,
+    "file": "stand_2.png",
+    "size": [
+     65,
+     57
+    ],
+    "origin": [
+     34,
+     57
+    ],
+    "lt": [
+     -34,
+     -56
+    ],
+    "rb": [
+     31,
+     0
+    ],
+    "head": [
+     -13,
+     -56
+    ],
+    "delay": 180
+   }
+  ],
+  "jump": [
+   {
+    "n": 0,
+    "file": "jump_0.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     37,
+     43
+    ],
+    "lt": [
+     -37,
+     -43
+    ],
+    "rb": [
+     41,
+     0
+    ],
+    "head": [
+     -16,
+     -42
+    ],
+    "delay": 140,
+    "_inlink": "move/1"
+   }
+  ],
+  "hit1": [
+   {
+    "n": 0,
+    "file": "hit1_0.png",
+    "size": [
+     72,
+     74
+    ],
+    "origin": [
+     38,
+     74
+    ],
+    "lt": [
+     -24,
+     -64
+    ],
+    "rb": [
+     30,
+     0
+    ],
+    "head": [
+     -5,
+     -64
+    ],
+    "delay": 600
+   }
+  ],
+  "die1": [
+   {
+    "n": 0,
+    "file": "die1_0.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     38,
+     74
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -5,
+     -64
+    ],
+    "delay": 180,
+    "_inlink": "hit1/0"
+   },
+   {
+    "n": 1,
+    "file": "die1_1.png",
+    "size": [
+     82,
+     71
+    ],
+    "origin": [
+     43,
+     71
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     0,
+     -66
+    ],
+    "delay": 180
+   },
+   {
+    "n": 2,
+    "file": "die1_2.png",
+    "size": [
+     87,
+     69
+    ],
+    "origin": [
+     46,
+     68
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     3,
+     -65
+    ],
+    "delay": 180
+   },
+   {
+    "n": 3,
+    "file": "die1_3.png",
+    "size": [
+     60,
+     65
+    ],
+    "origin": [
+     16,
+     65
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     5,
+     -64
+    ],
+    "delay": 180
+   },
+   {
+    "n": 4,
+    "file": "die1_4.png",
+    "size": [
+     59,
+     60
+    ],
+    "origin": [
+     14,
+     60
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     7,
+     -59
+    ],
+    "delay": 180
+   },
+   {
+    "n": 5,
+    "file": "die1_5.png",
+    "size": [
+     57,
+     51
+    ],
+    "origin": [
+     12,
+     46
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     9,
+     -45
+    ],
+    "delay": 300,
+    "a0": 255,
+    "a1": 0
+   }
+  ]
+ }
 }

@@ -1,5 +1,5 @@
 """python -m maplebot run <out_dir> [--seconds 60] [--attack space] [--jump shift]
-   python -m maplebot assets update <map_id> ... | --all [--force] [--render]
+   python -m maplebot assets build [--export DIR]   (game data from the client export, see assets/README.md)
 
 Must run elevated (the game is elevated; Windows drops simulated keys from a lower-integrity process).
 """
@@ -41,24 +41,17 @@ def main(argv=None) -> int:
     w = sub.add_parser("watch", help="no hunt: siren if the Lie Detector shows up (keep running between runs)")
     w.add_argument("out", type=Path, nargs="?", default=Path("runs/watch"))
     w.add_argument("--seconds", type=float, default=4 * 3600)
-    s = sub.add_parser("assets", help="download Classic World game data into assets/mcw (see assets/README.md)")
-    s.add_argument("action", choices=["update"])
-    s.add_argument("maps", type=int, nargs="*", help="map ids, e.g. 42 = Snail Hunting Ground III")
-    s.add_argument("--all", action="store_true", help="every map and every mob of the game (resumable)")
-    s.add_argument("--force", action="store_true", help="re-download even what's already there")
-    s.add_argument("--render", action="store_true", help="also save the whole-map picture (~1 MB per map)")
+    s = sub.add_parser("assets", help="rebuild assets/mcw from the client export (tools/cwdata/export.ps1; "
+                       "see assets/README.md)")
+    s.add_argument("action", choices=["build"])
+    s.add_argument("--export", type=Path, default=None, help="the export folder (default: export.ps1's)")
     a = ap.parse_args(argv)
     if a.cmd == "watch":
         from .runtime.runner import watch
         return watch(a.out, a.seconds)
     if a.cmd == "assets":
-        from .gamedata import fetch_all, fetch_map
-        if a.all:
-            return 1 if fetch_all(force=a.force)["failed"] else 0
-        if not a.maps:
-            ap.error("give map ids or --all")
-        for mid in a.maps:
-            fetch_map(mid, force=a.force, render=a.render)
+        from .gamedata import EXPORT, build
+        build(a.export or EXPORT)
         return 0
     if a.cmd in ("run", "serve"):
         from .config import Config

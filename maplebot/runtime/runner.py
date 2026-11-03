@@ -104,20 +104,19 @@ def _map_name(map_id: int) -> str:
 
 
 def _load_map(rig: "Rig", map_id: int, say) -> bool:
-    """Make `map_id` the hunt's map: sprites + locator (cached), cfg.perception.map_id. Downloads it if it's somehow
-    missing (`assets update --all` normally has every map)."""
+    """Make `map_id` the hunt's map: sprites + locator (cached), cfg.perception.map_id. False if assets/mcw doesn't
+    have it (every map of the client is there; a new one after a patch needs `assets build`)."""
     cfg = rig.cfg
     if rig.maps is None:
         rig.maps = {}
     if map_id not in rig.maps:
-        from ..gamedata import ensure_map
+        from ..gamedata import have_map
         from ..nav.localize import MinimapLocator
         from ..nav.navmap import NavMap
         from ..perception.sprites import SpriteDetector
-        try:
-            ensure_map(map_id, ASSETS / "mcw", log=say)
-        except Exception as e:                                    # noqa: BLE001 - offline, bad id ...
-            say(f"couldn't download map {map_id}: {e} - try `assets update {map_id}`")
+        if not have_map(map_id, ASSETS / "mcw"):
+            say(f"map {map_id} isn't in assets/mcw (wrong id? new map after a game patch: re-export the client "
+                "and run `assets build`, see assets/README.md)")
             return False
         sprites = SpriteDetector.for_map(map_id, ASSETS / "mcw", min_score=cfg.perception.sprite_score)
         navmap = NavMap.for_map(map_id, ASSETS / "mcw", cfg.nav)
@@ -181,7 +180,7 @@ def _setup(cfg: Config, say, focus: bool):
             say(f"no --map: the map is recognised from the minimap at every start ({len(rig.ident.canvases)} maps)")
         else:
             rig.ident = None
-            say("no --map and no minimaps on disk (`assets update --all`): mobs are only known by HP bars, motion "
+            say("no --map and no minimaps on disk (`assets build`): mobs are only known by HP bars, motion "
                 "and the learned library")
     return rig
 

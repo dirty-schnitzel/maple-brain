@@ -1,812 +1,514 @@
 {
-  "backgroundMusic": "Bgm00/FloralLife",
-  "isReturnMap": false,
+ "id": 10001043,
+ "name": "Henesys Plastic Surgery",
+ "streetName": "Victoria Road",
+ "mobRate": 1.0,
+ "isTown": true,
+ "returnMap": 10001000,
+ "footholds": {
+  "1": {
+   "id": 1,
+   "x1": 186,
+   "y1": -25,
+   "x2": 252,
+   "y2": -25,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 0
+  },
+  "2": {
+   "id": 2,
+   "x1": 254,
+   "y1": -25,
+   "x2": 301,
+   "y2": -25,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 0
+  },
+  "3": {
+   "id": 3,
+   "x1": -165,
+   "y1": -56,
+   "x2": 168,
+   "y2": -56,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 0
+  },
+  "4": {
+   "id": 4,
+   "x1": 207,
+   "y1": -59,
+   "x2": 244,
+   "y2": -59,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 0
+  },
+  "5": {
+   "id": 5,
+   "x1": 214,
+   "y1": -93,
+   "x2": 268,
+   "y2": -93,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 0
+  },
+  "6": {
+   "id": 6,
+   "x1": 255,
+   "y1": -108,
+   "x2": 318,
+   "y2": -108,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 0
+  },
+  "7": {
+   "id": 7,
+   "x1": -88,
+   "y1": 154,
+   "x2": -24,
+   "y2": 154,
+   "prev": 0,
+   "next": 8,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 0
+  },
+  "8": {
+   "id": 8,
+   "x1": -24,
+   "y1": 154,
+   "x2": -24,
+   "y2": 81,
+   "prev": 7,
+   "next": 9,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 0
+  },
+  "9": {
+   "id": 9,
+   "x1": -24,
+   "y1": 81,
+   "x2": -91,
+   "y2": 81,
+   "prev": 8,
+   "next": 10,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 0
+  },
+  "10": {
+   "id": 10,
+   "x1": -91,
+   "y1": 81,
+   "x2": -91,
+   "y2": 154,
+   "prev": 9,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 0
+  },
+  "11": {
+   "id": 11,
+   "x1": -305,
+   "y1": -26,
+   "x2": -183,
+   "y2": -26,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 0
+  },
+  "12": {
+   "id": 12,
+   "x1": -400,
+   "y1": 181,
+   "x2": 400,
+   "y2": 181,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 2,
+   "groupId": 1
+  },
+  "13": {
+   "id": 13,
+   "x1": -21,
+   "y1": 20,
+   "x2": -21,
+   "y2": 164,
+   "prev": 16,
+   "next": 14,
+   "piece": 0,
+   "layerId": 2,
+   "groupId": 1
+  },
+  "14": {
+   "id": 14,
+   "x1": -21,
+   "y1": 164,
+   "x2": -100,
+   "y2": 164,
+   "prev": 13,
+   "next": 15,
+   "piece": 0,
+   "layerId": 2,
+   "groupId": 1
+  },
+  "15": {
+   "id": 15,
+   "x1": -100,
+   "y1": 164,
+   "x2": -100,
+   "y2": 20,
+   "prev": 14,
+   "next": 16,
+   "piece": 0,
+   "layerId": 2,
+   "groupId": 1
+  },
+  "16": {
+   "id": 16,
+   "x1": -100,
+   "y1": 20,
+   "x2": -21,
+   "y2": 20,
+   "prev": 15,
+   "next": 17,
+   "piece": 0,
+   "layerId": 2,
+   "groupId": 1
+  },
+  "17": {
+   "id": 17,
+   "x1": -21,
+   "y1": 20,
+   "x2": -18,
+   "y2": 20,
+   "prev": 16,
+   "next": 0,
+   "piece": 0,
+   "layerId": 2,
+   "groupId": 1
+  },
+  "18": {
+   "id": 18,
+   "x1": -7,
+   "y1": 120,
+   "x2": 27,
+   "y2": 120,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 2,
+   "groupId": 1
+  },
+  "19": {
+   "id": 19,
+   "x1": 160,
+   "y1": 160,
+   "x2": 194,
+   "y2": 160,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 2,
+   "groupId": 1
+  },
+  "20": {
+   "id": 20,
+   "x1": 171,
+   "y1": 135,
+   "x2": 205,
+   "y2": 135,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 2,
+   "groupId": 1
+  },
+  "21": {
+   "id": 21,
+   "x1": 181,
+   "y1": 110,
+   "x2": 215,
+   "y2": 110,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 2,
+   "groupId": 1
+  },
+  "22": {
+   "id": 22,
+   "x1": 192,
+   "y1": 85,
+   "x2": 226,
+   "y2": 85,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 2,
+   "groupId": 1
+  },
+  "23": {
+   "id": 23,
+   "x1": 201,
+   "y1": 62,
+   "x2": 235,
+   "y2": 62,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 2,
+   "groupId": 1
+  },
+  "24": {
+   "id": 24,
+   "x1": 212,
+   "y1": 37,
+   "x2": 246,
+   "y2": 37,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 2,
+   "groupId": 1
+  },
+  "25": {
+   "id": 25,
+   "x1": 222,
+   "y1": 12,
+   "x2": 256,
+   "y2": 12,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 2,
+   "groupId": 1
+  },
+  "26": {
+   "id": 26,
+   "x1": 233,
+   "y1": -13,
+   "x2": 267,
+   "y2": -13,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 2,
+   "groupId": 1
+  }
+ },
+ "ladderRopes": [
+  {
+   "index": 1,
+   "x": -174,
+   "y1": -219,
+   "y2": -84,
+   "isLadder": false,
+   "uf": 0,
+   "page": 3,
+   "piece": 0
+  }
+ ],
+ "mobs": [],
+ "npcs": [
+  {
+   "index": 0,
+   "id": 213,
+   "x": -51,
+   "y": 154,
+   "spriteY": 153,
+   "footholdId": 7,
+   "walkAreaX1": -101,
+   "walkAreaX2": -1,
+   "hidden": false,
+   "flip": true,
+   "mobTime": 0
+  },
+  {
+   "index": 1,
+   "id": 214,
+   "x": 52,
+   "y": 181,
+   "spriteY": 179,
+   "footholdId": 12,
+   "walkAreaX1": 2,
+   "walkAreaX2": 102,
+   "hidden": false,
+   "flip": false,
+   "mobTime": 0
+  }
+ ],
+ "portals": [
+  {
+   "index": 0,
+   "portalName": "sp",
+   "type": 0,
+   "x": -197,
+   "y": 118,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 1,
+   "portalName": "sp",
+   "type": 0,
+   "x": -358,
+   "y": 113,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 2,
+   "portalName": "sp",
+   "type": 0,
+   "x": 316,
+   "y": 115,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 3,
+   "portalName": "sp",
+   "type": 0,
+   "x": 258,
+   "y": 129,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 4,
+   "portalName": "sp",
+   "type": 0,
+   "x": 366,
+   "y": 128,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 5,
+   "portalName": "sp",
+   "type": 0,
+   "x": -127,
+   "y": -81,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 6,
+   "portalName": "sp",
+   "type": 0,
+   "x": -45,
+   "y": -82,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 7,
+   "portalName": "sp",
+   "type": 0,
+   "x": 28,
+   "y": -78,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 8,
+   "portalName": "sp",
+   "type": 0,
+   "x": 114,
+   "y": -82,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 9,
+   "portalName": "sp",
+   "type": 0,
+   "x": -282,
+   "y": -42,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 10,
+   "portalName": "sp",
+   "type": 0,
+   "x": -225,
+   "y": -44,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 11,
+   "portalName": "out00",
+   "type": 2,
+   "x": -288,
+   "y": 179,
+   "toMap": 10001040,
+   "toName": "in04"
+  }
+ ],
+ "vrBounds": {
+  "left": -400,
+  "top": -300,
+  "right": 400,
+  "bottom": 300
+ },
+ "info": {
+  "version": 10,
+  "cloud": 0,
+  "town": 1,
   "returnMap": 10001000,
-  "portals": [
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -197,
-      "y": 118,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -197,
-        "y": 118,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -197,
-          "y": 118,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 118,
-        "right": -196,
-        "bottom": 119,
-        "left": -197
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -358,
-      "y": 113,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -358,
-        "y": 113,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -358,
-          "y": 113,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 113,
-        "right": -357,
-        "bottom": 114,
-        "left": -358
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": 316,
-      "y": 115,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": 316,
-        "y": 115,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": 316,
-          "y": 115,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 115,
-        "right": 317,
-        "bottom": 116,
-        "left": 316
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": 258,
-      "y": 129,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": 258,
-        "y": 129,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": 258,
-          "y": 129,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 129,
-        "right": 259,
-        "bottom": 130,
-        "left": 258
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": 366,
-      "y": 128,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": 366,
-        "y": 128,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": 366,
-          "y": 128,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 128,
-        "right": 367,
-        "bottom": 129,
-        "left": 366
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -127,
-      "y": -81,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -127,
-        "y": -81,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -127,
-          "y": -81,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": -81,
-        "right": -126,
-        "bottom": -80,
-        "left": -127
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -45,
-      "y": -82,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -45,
-        "y": -82,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -45,
-          "y": -82,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": -82,
-        "right": -44,
-        "bottom": -81,
-        "left": -45
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": 28,
-      "y": -78,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": 28,
-        "y": -78,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": 28,
-          "y": -78,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": -78,
-        "right": 29,
-        "bottom": -77,
-        "left": 28
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": 114,
-      "y": -82,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": 114,
-        "y": -82,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": 114,
-          "y": -82,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": -82,
-        "right": 115,
-        "bottom": -81,
-        "left": 114
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -282,
-      "y": -42,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -282,
-        "y": -42,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -282,
-          "y": -42,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": -42,
-        "right": -281,
-        "bottom": -41,
-        "left": -282
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -225,
-      "y": -44,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -225,
-        "y": -44,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -225,
-          "y": -44,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": -44,
-        "right": -224,
-        "bottom": -43,
-        "left": -225
-      }
-    },
-    null
-  ],
-  "npcs": [
-    {
-      "x": -51,
-      "y": 154,
-      "walkAreaX1": -101,
-      "walkAreaX2": -1,
-      "id": 213,
-      "footholdId": 7,
-      "foothold": {
-        "id": 7,
-        "next": 8,
-        "prev": 0,
-        "piece": 0,
-        "x1": -88,
-        "x2": -24,
-        "y1": 154,
-        "y2": 154,
-        "layerId": 1,
-        "groupId": 0
-      },
-      "hidden": false,
-      "type": 0,
-      "link": "/npc/213",
-      "index": 0,
-      "position": {},
-      "bounds": {
-        "x": -51,
-        "y": 154,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -51,
-          "y": 154,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 154,
-        "right": -50,
-        "bottom": 155,
-        "left": -51
-      },
-      "flip": true
-    },
-    {
-      "x": 52,
-      "y": 181,
-      "walkAreaX1": 2,
-      "walkAreaX2": 102,
-      "id": 214,
-      "footholdId": 12,
-      "foothold": {
-        "id": 12,
-        "next": 0,
-        "prev": 0,
-        "piece": 0,
-        "x1": -400,
-        "x2": 400,
-        "y1": 181,
-        "y2": 181,
-        "layerId": 2,
-        "groupId": 1
-      },
-      "hidden": false,
-      "type": 0,
-      "link": "/npc/214",
-      "index": 1,
-      "position": {},
-      "bounds": {
-        "x": 52,
-        "y": 181,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": 52,
-          "y": 181,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 181,
-        "right": 53,
-        "bottom": 182,
-        "left": 52
-      },
-      "flip": false
-    }
-  ],
-  "mobs": [],
-  "mobRate": 1,
-  "isTown": true,
-  "isSwim": false,
+  "mobRate": 1.0,
+  "bgm": "Bgm00/FloralLife",
+  "VRTop": -300,
+  "VRLeft": -400,
+  "VRBottom": 300,
+  "VRRight": 400,
+  "mapDesc": "",
+  "forcedReturn": 999999999,
+  "hideMinimap": 0,
+  "moveLimit": 0,
   "mapMark": "Henesys",
-  "footholds": {
-    "20": {
-      "id": 20,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 171,
-      "x2": 205,
-      "y1": 135,
-      "y2": 135,
-      "layerId": 2,
-      "groupId": 1
-    },
-    "26": {
-      "id": 26,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 233,
-      "x2": 267,
-      "y1": -13,
-      "y2": -13,
-      "layerId": 2,
-      "groupId": 1
-    },
-    "12": {
-      "id": 12,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -400,
-      "x2": 400,
-      "y1": 181,
-      "y2": 181,
-      "layerId": 2,
-      "groupId": 1
-    },
-    "8": {
-      "id": 8,
-      "next": 9,
-      "prev": 7,
-      "piece": 0,
-      "x1": -24,
-      "x2": -24,
-      "y1": 154,
-      "y2": 81,
-      "layerId": 1,
-      "groupId": 0
-    },
-    "3": {
-      "id": 3,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -165,
-      "x2": 168,
-      "y1": -56,
-      "y2": -56,
-      "layerId": 1,
-      "groupId": 0
-    },
-    "11": {
-      "id": 11,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -305,
-      "x2": -183,
-      "y1": -26,
-      "y2": -26,
-      "layerId": 1,
-      "groupId": 0
-    },
-    "1": {
-      "id": 1,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 186,
-      "x2": 252,
-      "y1": -25,
-      "y2": -25,
-      "layerId": 1,
-      "groupId": 0
-    },
-    "10": {
-      "id": 10,
-      "next": 0,
-      "prev": 9,
-      "piece": 0,
-      "x1": -91,
-      "x2": -91,
-      "y1": 81,
-      "y2": 154,
-      "layerId": 1,
-      "groupId": 0
-    },
-    "6": {
-      "id": 6,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 255,
-      "x2": 318,
-      "y1": -108,
-      "y2": -108,
-      "layerId": 1,
-      "groupId": 0
-    },
-    "17": {
-      "id": 17,
-      "next": 0,
-      "prev": 16,
-      "piece": 0,
-      "x1": -21,
-      "x2": -18,
-      "y1": 20,
-      "y2": 20,
-      "layerId": 2,
-      "groupId": 1
-    },
-    "22": {
-      "id": 22,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 192,
-      "x2": 226,
-      "y1": 85,
-      "y2": 85,
-      "layerId": 2,
-      "groupId": 1
-    },
-    "4": {
-      "id": 4,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 207,
-      "x2": 244,
-      "y1": -59,
-      "y2": -59,
-      "layerId": 1,
-      "groupId": 0
-    },
-    "21": {
-      "id": 21,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 181,
-      "x2": 215,
-      "y1": 110,
-      "y2": 110,
-      "layerId": 2,
-      "groupId": 1
-    },
-    "2": {
-      "id": 2,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 254,
-      "x2": 301,
-      "y1": -25,
-      "y2": -25,
-      "layerId": 1,
-      "groupId": 0
-    },
-    "14": {
-      "id": 14,
-      "next": 15,
-      "prev": 13,
-      "piece": 0,
-      "x1": -21,
-      "x2": -100,
-      "y1": 164,
-      "y2": 164,
-      "layerId": 2,
-      "groupId": 1
-    },
-    "7": {
-      "id": 7,
-      "next": 8,
-      "prev": 0,
-      "piece": 0,
-      "x1": -88,
-      "x2": -24,
-      "y1": 154,
-      "y2": 154,
-      "layerId": 1,
-      "groupId": 0
-    },
-    "13": {
-      "id": 13,
-      "next": 14,
-      "prev": 16,
-      "piece": 0,
-      "x1": -21,
-      "x2": -21,
-      "y1": 20,
-      "y2": 164,
-      "layerId": 2,
-      "groupId": 1
-    },
-    "5": {
-      "id": 5,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 214,
-      "x2": 268,
-      "y1": -93,
-      "y2": -93,
-      "layerId": 1,
-      "groupId": 0
-    },
-    "19": {
-      "id": 19,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 160,
-      "x2": 194,
-      "y1": 160,
-      "y2": 160,
-      "layerId": 2,
-      "groupId": 1
-    },
-    "25": {
-      "id": 25,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 222,
-      "x2": 256,
-      "y1": 12,
-      "y2": 12,
-      "layerId": 2,
-      "groupId": 1
-    },
-    "18": {
-      "id": 18,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -7,
-      "x2": 27,
-      "y1": 120,
-      "y2": 120,
-      "layerId": 2,
-      "groupId": 1
-    },
-    "24": {
-      "id": 24,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 212,
-      "x2": 246,
-      "y1": 37,
-      "y2": 37,
-      "layerId": 2,
-      "groupId": 1
-    },
-    "23": {
-      "id": 23,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 201,
-      "x2": 235,
-      "y1": 62,
-      "y2": 62,
-      "layerId": 2,
-      "groupId": 1
-    },
-    "9": {
-      "id": 9,
-      "next": 10,
-      "prev": 8,
-      "piece": 0,
-      "x1": -24,
-      "x2": -91,
-      "y1": 81,
-      "y2": 81,
-      "layerId": 1,
-      "groupId": 0
-    },
-    "16": {
-      "id": 16,
-      "next": 17,
-      "prev": 15,
-      "piece": 0,
-      "x1": -100,
-      "x2": -21,
-      "y1": 20,
-      "y2": 20,
-      "layerId": 2,
-      "groupId": 1
-    },
-    "15": {
-      "id": 15,
-      "next": 16,
-      "prev": 14,
-      "piece": 0,
-      "x1": -100,
-      "x2": -100,
-      "y1": 164,
-      "y2": 20,
-      "layerId": 2,
-      "groupId": 1
-    }
-  },
-  "vrBounds": {
-    "x": -400,
-    "y": -300,
-    "width": 800,
-    "height": 600,
-    "location": {
-      "x": -400,
-      "y": -300,
-      "isEmpty": false
-    },
-    "size": {
-      "width": 800,
-      "height": 600,
-      "isEmpty": false
-    },
-    "isEmpty": false,
-    "top": -300,
-    "right": 400,
-    "bottom": 300,
-    "left": -400
-  },
-  "returnMapName": {
-    "name": "Henesys",
-    "streetName": "Victoria Road",
-    "id": 10001000
-  },
-  "ladderRopes": [
-    {
-      "x": -174,
-      "y1": -219,
-      "y2": -84,
-      "isLadder": false
-    }
-  ],
-  "name": "Henesys Plastic Surgery",
-  "streetName": "Victoria Road",
-  "id": 10001043
+  "swim": 0,
+  "fly": 0,
+  "standAlone": 0,
+  "partyStandAlone": 0,
+  "quarterView": 0,
+  "noMapCmd": 0,
+  "fieldLimit": 0,
+  "fieldLimit2": 0,
+  "fieldType": 0,
+  "AmbientBGM": "",
+  "AmbientBGMv": 100,
+  "MRLeft": -400,
+  "MRTop": -300,
+  "MRRight": 400,
+  "MRBottom": 300,
+  "fieldScript": "",
+  "onFirstUserEnter": "",
+  "onUserEnter": ""
+ }
 }

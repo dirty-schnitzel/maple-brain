@@ -116,6 +116,8 @@ def _cover(S: np.ndarray, cover: float) -> list:
     left, reps = set(range(len(S))), []
     while left:
         i = max(range(len(S)), key=lambda i: (sum(S[i, j] >= cover for j in left), -i))
+        if not any(S[i, j] >= cover for j in left):
+            i = min(left)        # a flat picture doesn't even match itself (score -1): take it alone, never loop
         reps.append(i)
         left -= {j for j in left if S[i, j] >= cover} | {i}
     return reps

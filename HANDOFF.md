@@ -1,4 +1,4 @@
-# maplebot — session handoff (updated 2026-11-02, session 14: idle walks head for the densest spawns; session 13: loot OFF)
+# maplebot — session handoff (updated 2026-11-03, session 17: game data from the client files only; session 14: idle walks head for the densest spawns; session 13: loot OFF)
 
 ## Goal
 A **fully automated mob farmer** for **MapleStory Classic World** (official GMS Classic, launched 2026-10-21):
@@ -14,35 +14,44 @@ off: runs need `--loot --loot-sight` (`--loot-sight` alone is ignored). See the 
 **Jumping work continues in its own session: read 'Jumping work: START HERE' below** (live on the Rain-Forest).
 
 ## PRIORITIES (the user, 2026-11-03) - these two come before everything else below
-1. **Remove maplestory.io completely** (most important): all game data from our own client files.
-2. **Then the perception rework** (mob tracker in map coordinates): top priority right after 1.
+1. ~~Remove maplestory.io completely~~ **DONE (session 17, 2026-11-03, git branch `client-data`)**: all game data
+   comes from our own client files. See 'Priority 1: done' just below.
+2. **Now: the perception rework** (mob tracker in map coordinates). Frame origins (feet), body boxes and frame
+   delays are now in `assets/mcw/mobs/<id>/mob.json` -> `frames`.
 
-### Priority 1: replace maplestory.io with the client data (HaRepacker exports)
-Context: section 'TASK (2026-11-03): read Classic World's own game data' below. The headless exporter works
-(`tools/cwdata/`, memory note cw-client-data-harepacker). The client has everything we take from the API, and more:
-| Data | Client (checked in the exports) | Note |
-|---|---|---|
-| footholds, ladderRope, portal, life (spawns rx0/rx1 = walkArea, mobTime), miniMap centre/size/mag | `Map\Map\Map0\<9-digit id>.img` | API's `walkAreaX1/X2` = `rx0/rx1` |
-| minimap **picture** | `_outlink` -> `Map/Map/Map0/_Canvas/<id>.img/miniMap/canvas` | not exported yet: resolve `_Canvas` links (HaRepacker 9.0+ does) |
-| mob info (level, exp, maxHP, speed %, bodyAttack, pushed, fs, jump/fly ...) | `Mob\<7-digit id>.img` (`Packs\Mob_00000.ms`) | more fields than the API |
-| mob frames | same, per pose canvases with **origin (feet anchor), lt/rb (body box), head, delay** | pixels not exported yet (canvases carry `_hash`); the API had no origins |
-| render.png | - | not in the client (drawn from tiles); unused at runtime, drop it |
-Steps:
-1. Extend `tools/cwdata/export.ps1`: **all** maps (not just 4) and all mobs; PNG export of mob frames + resolved
-   minimap canvases; keep each frame's origin/lt/rb/head/delay.
-2. A converter (`maplebot/gamedata.py` rewritten, or `tools/cwdata/convert.py`, run with `python -I`) writes the SAME
-   `assets/mcw` layout the bot reads today (`maps/<id>/map.json` + `minimap.png`, `mobs/<id>/mob.json` + `<anim>_<n>.png`),
-   plus the new fields (frame origins/boxes/delays in mob.json). Ids: client ids are zero-padded (`010001070`,
-   `0000006`) -> same numbers as the API's MCW ids.
-3. **Diff before switching** (keep a copy of the API-built `assets/mcw` aside): footholds/ropes/spawns/portals/minimap
-   fields equal on every map; mob stats equal; sprite pixels equal (API PNGs are trimmed: compare after trimming). Run
-   `tests/test_identify.py` (map recognition from minimap pictures) + the full suite on the new assets.
-4. Remove the API: `gamedata.py` download code + `assets update` CLI (`__main__.py`), the runner's auto-download on
-   `--map` (`runtime/runner.py`), `tests/test_gamedata.py`; update `assets/README.md` (source = own client, how to
-   re-export after a patch). Files touching the data today: `maplebot/{gamedata,__main__}.py`, `runtime/runner.py`,
-   `nav/{navmap,identify,localize}.py`, `perception/sprites.py`, tests `test_{gamedata,identify,navmap,localize,sprites,
-   jump}.py`.
-5. After a game patch: re-copy `Data`, re-export, re-convert, re-diff (document in assets/README.md).
+### Priority 1: done - game data from the client files only (session 17, 2026-11-03)
+**Git (new, the user asked for it):** the project is a git repo now (`.gitignore`: runs/, captures/, caches, .idea).
+`main` = baseline before the refactor (`b143100`, assets/mcw = the maplestory.io copy); the work is on branch
+`client-data`. Back to the old state instantly: `git switch main`. Repo-local identity (the user's name/email),
+`core.autocrlf=false` (exact bytes). Not merged yet: the user decides (after a live run on the new assets).
+**Pipeline** (full guide: `assets/README.md` 'How it's made' + 'After a game patch'):
+`tools/cwdata/export.ps1` (~10 s; every map + minimap PNG, every mob + frame PNG, UOL/_inlink/_outlink resolved,
+String names) -> `C:\Users\Yoav\dev\cw-data\export` -> `python -m maplebot assets build` (~7 s;
+`maplebot/gamedata.py`, now the converter) -> `assets/mcw` (same layout and field names the bot always read, so no
+reader changed) + `changes.txt` (what the build changed vs the previous one). Removed: every download path
+(`assets update`, the runner's auto-download on a missing `--map` -> now says "isn't in assets/mcw ... assets build").
+**Diffed against the maplestory.io copy before switching** (every map/mob/frame): footholds, ropes, minimap fields
+and canvases, mob stats, sprite pixels all equal except where the API was wrong or older:
+- the API had dropped **502 portals** (every one with a destination) as null; the client has them all;
+- mob spawn `y` 1 px off on slopes on 132 maps: the API recomputed y from the foothold line, we keep the client's
+  `cy` (the client's `y` is where the sprite is first drawn: kept as `spriteY`);
+- mob 700006 Shade `skill2` frames 3-8: the API followed the client's frame links wrongly;
+- older data in the API: maxHP of mobs 40 41 44 45 (e.g. Copper Drake 2595 -> 2379 in the client), the minimap of
+  10001021, a few frames of mobs 39 / 700003 / 810004 (1-3 px different sizes); map 10006121 only in the client.
+- **Correction:** the API did NOT trim frame PNGs (an earlier note here said so): they are the client's raw
+  canvases, pixel-equal. Frame files are numbered 0..count-1 in play order (client numbers can skip: mob 39 stand
+  0,1,3,4,5; the client's number is kept as `n`). `pack_ignore.txt` in the Mob pack is not a mob (117 mobs, 2154
+  frames).
+- Found on the way: `sprites._cover` looped forever on flat one-colour poses (score -1 even on themselves; the
+  client has 1x1 placeholder frames) -> fixed + test.
+Tests: 959 green (new `test_gamedata.py` = the converter on a tiny fake export + checks on the real assets; 2 runner
+tests for the missing-map path). **Not live-tested yet** - the next live run is the check (same pictures and
+geometry, so no behaviour change is expected; recognition/sprite/navmap tests all pass on the new files).
+**After a game patch (the user, 2026-11-03):** reading the client doesn't make patches free. Re-copy `Data`,
+re-export, rebuild, run pytest, then **read `assets/mcw/changes.txt`** (+ `git diff --stat assets/mcw`) and look
+again at whatever the bot is tuned on that changed (footholds/ropes of the farming maps, minimap pictures for map
+recognition, mob frames for sprite detection, mob stats), then a short live run before long sessions. The export
+can also break on a new client format: HaRepacker may need an update. Steps in `assets/README.md`.
 
 ### Priority 2: perception rework - mob tracker in map coordinates (after priority 1)
 Replaces the 'HANDOFF TASK: complete refactor of targeting' research below as the next step (that section stays
@@ -98,7 +107,8 @@ named by tick n).
 ## TASK (2026-11-03): read Classic World's own game data with HaRepacker-resurrected
 **Why:** the user is exploring a rewrite (tracker in map coordinates, later maybe a simulator / a model that learns
 from their play). That needs the game's *real* rules: player physics, full mob stats, respawn times. maplestory.io
-(`assets/mcw`) serves only part of the data: no `Physics.img`, no per-spawn `mobTime`.
+(`assets/mcw`) serves only part of the data: no `Physics.img`, no per-spawn `mobTime`. (Session 17: assets/mcw
+is now built from the client - see 'Priority 1: done'.)
 
 **Findings so far (2026-11-03):**
 - Install: `C:\Nexon\Library\maplestorycw\appdata\Data\`, the modern layout: per-category folders with split `.wz` files
@@ -292,7 +302,7 @@ acc4..acc10. Commands (always from `C:\Users\Yoav\dev\maple-work`, elevated cons
 at 20 % are fine). EXP points are past 1,000 ("EXP. 1,201") - the reader handles the comma since session 9.
 Maps: Perion Street Corner `10004040` (Stump 6, Dark Stump 11, Snails); East Rocky Mountain I `10004050` (Blue
 Snail 3, Red Snail 5, Stump 6, Dark Stump 11; slopes, many platforms/ropes). Other maps: look up ids with
-`Invoke-RestMethod https://maplestory.io/api/MCW/1/map | ? name -like '*X*'`.
+`(gc assets\mcw\manifest.json | ConvertFrom-Json).maps.PSObject.Properties | ? { $_.Value.name -like '*X*' } | % { $_.Name + ' ' + $_.Value.street + ' / ' + $_.Value.name }`.
 
 **How to measure a run:** `tools/acc/analyze.py runs/X` -> EXP gains (true kills; must equal `kills`), outcomes,
 HP hits (drop >= 2 % within 0.4 s) with what we held and the target dx, every walk->swing (dx, closing speed, HP
@@ -329,7 +339,7 @@ Also useful: offline `SpriteDetector.find` on `frames/` vs live `sprite_mobs` (p
 The user: "init phase on F7: check the map; known -> go; unknown -> download it" -> chose **download everything
 upfront, all sprites too**, then recognise the map at runtime.
 - **`assets update --all`** (`gamedata.fetch_all`, resumable): 335 maps (12 "Up and Up" event maps 404 on the API)
-  + all 118 mobs (also ones no map spawns), 45 MB in `assets/mcw`.
+  + all 118 mobs (also ones no map spawns), 45 MB in `assets/mcw`. (Session 17: gone - `assets build` from the client.)
 - **`nav/identify.py` `MapIdentifier`**: the screen minimap is NOT the raw canvas (drawn semi-transparent + blurred:
   screen ~ 0.45-0.6 x canvas + offset; canvases ~40-50 % transparent), so colour error and plain correlation both
   failed (Henesys Townstreet - one house - "matched" every minimap). What works: (1) **window frame fit** - the
@@ -630,7 +640,7 @@ breaks or player reports for Lie Detectors (the user ruled both out).
 ### Session 8: Perion Street Corner (map 10004040), character is now a Warrior (Swordsman), 651 tests
 New map: `--map 10004040` (Victoria Road / Perion Street Corner; mobs Snail 2, Blue 3, Red 5, **Stump 6, Dark
 Stump 11** - hues 15-24 / 15-19, loaded fine). 221 footholds, 28 ropes. Find map ids:
-`Invoke-RestMethod https://maplestory.io/api/MCW/1/map | ? name -like '*X*'`. Skills: not built yet (the user has them now).
+`(gc assets\mcw\manifest.json | ConvertFrom-Json).maps.PSObject.Properties | ? { $_.Value.name -like '*X*' } | % { $_.Name + ' ' + $_.Value.street + ' / ' + $_.Value.name }`. Skills: not built yet (the user has them now).
 **perion1** (3 min, --loot-sight): 6 kills, 15 killed by others, 7 "lost before reaching", 16.8 fps (perceive
 median 44 ms). The user: "bad combat - indecisive targeting, other bots walk straight to the nearest mob";
 "barely any loot picked, but picked while moving (minor success)".
@@ -832,7 +842,7 @@ drops the blind sweeps missed).
   idle walk). Mobs outrank drops; a mob in reach interrupts looting. `pending_loot` (blind) is off in sight mode.
 - The old sweep LOOT still runs without --map (tests unchanged).
 - **Assets: `run/serve --map <id>` downloads the map and its mobs the first time** (`gamedata.ensure_map`);
-  `assets update` still works for refreshes.
+  `assets update` still works for refreshes. (Session 17: both gone - a missing map now says `assets build`.)
 - Tests: `tests/test_drops.py` (3 recorded sequences in `tests/fixtures/drops/` + synthetic bob/slide/still/
   climber/picked/hidden), `test_brain.py` `test_sight_*` (simulator `_sight_walk`: drops hidden under our body,
   Z picks only standing still within 30 px). Tools: `tools/loot/` (replay_drops, export_seq, probes).
@@ -892,11 +902,11 @@ drops the blind sweeps missed).
 
 ## Commands (from `C:\Users\Yoav\dev\maple-work`)
 ```powershell
-..\auto-maple\.venv\Scripts\python -m pytest                       # 884 tests, ~40 s, no game needed
+..\auto-maple\.venv\Scripts\python -m pytest                       # 959 tests, ~40 s, no game needed
 Get-Process python | ? Path -like '*auto-maple*'                    # make sure no bot is running
 ..\auto-maple\.venv\Scripts\python -m maplebot watch runs\watch --seconds 14400   # Lie Detector siren, no hunt (keep running)
 ..\auto-maple\.venv\Scripts\python -m maplebot run runs\NAME --seconds 90 --attack space --jump shift --pickup z --map 42
-..\auto-maple\.venv\Scripts\python -m maplebot assets update 42 [--force] [--render]   # game data (see below)
+..\auto-maple\.venv\Scripts\python -m maplebot assets build    # game data from the client export (assets/README.md)
 ```
 **Manual testing (the user's own sessions):** `python -m maplebot serve runs\manual --map 42` (same key options
 as `run`, plus `--frames`; loot is off unless `--loot`): loads once, **F7 = start a hunt, F8 = stop** (all keys released; rising/falling chirp),
@@ -909,13 +919,16 @@ actions, timings), `frames/` (JPG every 3rd tick + every Track/Stop/Forget). Run
 `| Select-Object -Last 80`. **Always pass `--map 42`** (sprite mode); without it the old motion/library mode runs.
 
 ## Game data (`assets/mcw/`, read `assets/README.md`)
-- From the **maplestory.io API, region `MCW` version `1`** (Classic World; its own ids: Snail 2, Blue Snail 3,
-  Red Snail 5; maps 40/41/42 = Snail Hunting Ground I/II/III). `maplebot/gamedata.py` downloads once; the bot only
-  reads local files. Only map 42 is downloaded (the user wants all maps later; `assets/README.md` = update guide).
-- `maps/42/map.json`: **footholds** (floor/wall/slope segments `x1,y1,x2,y2`, `prev/next` links, `groupId`),
-  **ladderRopes** (`x, y1, y2, isLadder`), mob spawns, portals, **miniMap** (`centerX/Y`, `magnification`,
-  canvas), `vrBounds`. `minimap.png`, `render.png` (whole map picture). No frame origins for sprites.
-- `mobs/<id>/<anim>_<n>.png`: every animation frame, RGBA, facing left.
+- **From the game's own client files only** (session 17; before: a maplestory.io copy). `tools/cwdata/export.ps1`
+  exports a copy of the client's Data folder, `python -m maplebot assets build` (`maplebot/gamedata.py`) converts
+  it; the bot only reads local files. All 336 maps (301 with a minimap) and 117 mobs. Classic World ids: Snail 2,
+  Blue Snail 3, Red Snail 5; maps 40/41/42 = Snail Hunting Ground I/II/III.
+- `maps/<id>/map.json`: **footholds** (`x1,y1,x2,y2`, `prev/next`, `layerId`, `groupId`), **ladderRopes**
+  (`x, y1, y2, isLadder`), mob spawns (`y` = ground, `walkAreaX1/X2`, `mobTime`), npcs, portals, **miniMap**
+  (`centerX/Y`, `magnification`, canvas), `vrBounds`, `info`. `minimap.png`.
+- `mobs/<id>/<anim>_<n>.png`: every animation frame, RGBA, facing left; `mob.json`: `info` (all client stats),
+  `frames` with each frame's **origin (feet), lt/rb body box, head, delay**.
+- Player physics (`Physics.img`, = v83) is in the export (`cw-data\export\Map\Physics.img.xml`), not in assets.
 
 ## Architecture
 | Module | Role |
@@ -924,7 +937,7 @@ actions, timings), `frames/` (JPG every 3rd tick + every Track/Stop/Forget). Run
 | `capture.py` | window lookup, dxcam capture (mss fallback) → BGR 1366x768, cursor position |
 | `keyboard.py` | SendInput scan codes, focus-guarded `Keyboard` (humanized press/gap/reaction), `bring_to_front` |
 | `humanize.py` | `Humanizer.vary(secs)` ±20 % triangular, `between(lo, hi)`, `count(lo, hi)` |
-| `gamedata.py` | API download → `assets/mcw` (+ CLI `assets update`) |
+| `gamedata.py` | client export → `assets/mcw` (+ CLI `assets build`, `changes.txt`) |
 | `perception/liedetector.py` | **Lie Detector** (anti-bot test) by its gold window title → `obs.lie_detector` |
 | `perception/hud.py` | UI mask; HP/MP/EXP fill; minimap dot; mob HP bars; **quickslots** (`SLOTS`, `slot_filled`) |
 | `perception/selfpos.py` | own name tag (template); partial match at the screen edges (`_at_edges`) |

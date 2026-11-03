@@ -1,30 +1,271 @@
 {
-  "id": 15,
-  "meta": {
-    "isBodyAttack": true,
-    "level": 17,
-    "maxHP": 371,
-    "maxMP": 30,
-    "speed": -50,
-    "physicalDamage": 75,
-    "physicalDefense": 30,
-    "magicDamage": 0,
-    "magicDefense": 0,
-    "accuracy": 72,
-    "evasion": 8,
-    "exp": 32,
-    "isUndead": false,
-    "minimumPushDamage": 30,
-    "elementalAttributes": "F3",
-    "summonType": 1,
-    "revivesMonsterId": []
-  },
-  "name": "Axe Stump",
-  "framebooks": {
-    "move": 4,
-    "stand": 1,
-    "hit1": 1,
-    "die1": 4
-  },
-  "foundAt": []
+ "id": 15,
+ "name": "Axe Stump",
+ "link": null,
+ "info": {
+  "level": 17,
+  "exp": 32,
+  "maxHP": 371,
+  "maxMP": 30,
+  "speed": -50,
+  "bodyAttack": 1,
+  "PADamage": 75,
+  "PDDamage": 30,
+  "MADamage": 0,
+  "MDDamage": 0,
+  "acc": 72,
+  "eva": 8,
+  "undead": 0,
+  "pushed": 30,
+  "elemAttr": "F3",
+  "fs": 10.0,
+  "summonType": 1,
+  "hideLevel": 0
+ },
+ "framebooks": {
+  "move": 4,
+  "stand": 1,
+  "hit1": 1,
+  "die1": 4
+ },
+ "frames": {
+  "move": [
+   {
+    "n": 0,
+    "file": "move_0.png",
+    "size": [
+     62,
+     74
+    ],
+    "origin": [
+     31,
+     74
+    ],
+    "lt": [
+     -31,
+     -51
+    ],
+    "rb": [
+     31,
+     0
+    ],
+    "head": [
+     -9,
+     -58
+    ],
+    "delay": 180
+   },
+   {
+    "n": 1,
+    "file": "move_1.png",
+    "size": [
+     66,
+     77
+    ],
+    "origin": [
+     31,
+     77
+    ],
+    "lt": [
+     -32,
+     -54
+    ],
+    "rb": [
+     34,
+     0
+    ],
+    "head": [
+     -9,
+     -58
+    ],
+    "delay": 180
+   },
+   {
+    "n": 2,
+    "file": "move_2.png",
+    "size": [
+     65,
+     73
+    ],
+    "origin": [
+     31,
+     73
+    ],
+    "lt": [
+     -31,
+     -51
+    ],
+    "rb": [
+     30,
+     0
+    ],
+    "head": [
+     -9,
+     -58
+    ],
+    "delay": 180
+   },
+   {
+    "n": 3,
+    "file": "move_3.png",
+    "size": [
+     74,
+     72
+    ],
+    "origin": [
+     34,
+     72
+    ],
+    "lt": [
+     -34,
+     -54
+    ],
+    "rb": [
+     31,
+     0
+    ],
+    "head": [
+     -9,
+     -58
+    ],
+    "delay": 180
+   }
+  ],
+  "stand": [
+   {
+    "n": 0,
+    "file": "stand_0.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     31,
+     74
+    ],
+    "lt": [
+     -31,
+     -51
+    ],
+    "rb": [
+     31,
+     0
+    ],
+    "head": [
+     -9,
+     -58
+    ],
+    "delay": null,
+    "_inlink": "move/0"
+   }
+  ],
+  "hit1": [
+   {
+    "n": 0,
+    "file": "hit1_0.png",
+    "size": [
+     59,
+     93
+    ],
+    "origin": [
+     28,
+     93
+    ],
+    "lt": [
+     -28,
+     -52
+    ],
+    "rb": [
+     31,
+     0
+    ],
+    "head": [
+     -9,
+     -58
+    ],
+    "delay": 600
+   }
+  ],
+  "die1": [
+   {
+    "n": 0,
+    "file": "die1_0.png",
+    "size": [
+     61,
+     92
+    ],
+    "origin": [
+     30,
+     92
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -8,
+     -56
+    ],
+    "delay": 250
+   },
+   {
+    "n": 1,
+    "file": "die1_1.png",
+    "size": [
+     58,
+     91
+    ],
+    "origin": [
+     31,
+     91
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -9,
+     -44
+    ],
+    "delay": 150
+   },
+   {
+    "n": 2,
+    "file": "die1_2.png",
+    "size": [
+     61,
+     84
+    ],
+    "origin": [
+     35,
+     84
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -12,
+     -26
+    ],
+    "delay": 150
+   },
+   {
+    "n": 3,
+    "file": "die1_3.png",
+    "size": [
+     61,
+     67
+    ],
+    "origin": [
+     35,
+     67
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -12,
+     -26
+    ],
+    "delay": 300,
+    "z": 0,
+    "a0": 255,
+    "a1": 0
+   }
+  ]
+ }
 }

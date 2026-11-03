@@ -1,30 +1,402 @@
 {
-  "id": 60,
-  "meta": {
-    "isBodyAttack": true,
-    "level": 50,
-    "maxHP": 2682,
-    "maxMP": 80,
-    "speed": -10,
-    "physicalDamage": 234,
-    "physicalDefense": 0,
-    "magicDamage": 0,
-    "magicDefense": 20,
-    "accuracy": 129,
-    "evasion": 30,
-    "exp": 133,
-    "isUndead": false,
-    "minimumPushDamage": 275,
-    "elementalAttributes": "I3S2",
-    "summonType": 1,
-    "revivesMonsterId": []
-  },
-  "name": "Duskmander",
-  "framebooks": {
-    "stand": 4,
-    "move": 4,
-    "hit1": 1,
-    "die1": 7
-  },
-  "foundAt": []
+ "id": 60,
+ "name": "Duskmander",
+ "link": null,
+ "info": {
+  "level": 50,
+  "exp": 133,
+  "maxHP": 2682,
+  "maxMP": 80,
+  "speed": -10,
+  "bodyAttack": 1,
+  "PADamage": 234,
+  "PDDamage": 0,
+  "MADamage": 0,
+  "MDDamage": 20,
+  "acc": 129,
+  "eva": 30,
+  "undead": 0,
+  "pushed": 275,
+  "elemAttr": "I3S2",
+  "fs": 10.0,
+  "summonType": 1,
+  "hideLevel": 0
+ },
+ "framebooks": {
+  "stand": 4,
+  "move": 4,
+  "hit1": 1,
+  "die1": 7
+ },
+ "frames": {
+  "stand": [
+   {
+    "n": 0,
+    "file": "stand_0.png",
+    "size": [
+     110,
+     51
+    ],
+    "origin": [
+     55,
+     51
+    ],
+    "lt": [
+     -55,
+     -51
+    ],
+    "rb": [
+     54,
+     -1
+    ],
+    "head": [
+     -41,
+     -43
+    ],
+    "delay": 120
+   },
+   {
+    "n": 1,
+    "file": "stand_1.png",
+    "size": [
+     110,
+     52
+    ],
+    "origin": [
+     58,
+     52
+    ],
+    "lt": [
+     -59,
+     -52
+    ],
+    "rb": [
+     51,
+     -1
+    ],
+    "head": [
+     -45,
+     -44
+    ],
+    "delay": 120
+   },
+   {
+    "n": 2,
+    "file": "stand_2.png",
+    "size": [
+     114,
+     48
+    ],
+    "origin": [
+     56,
+     48
+    ],
+    "lt": [
+     -57,
+     -49
+    ],
+    "rb": [
+     58,
+     0
+    ],
+    "head": [
+     -43,
+     -42
+    ],
+    "delay": 120
+   },
+   {
+    "n": 3,
+    "file": "stand_3.png",
+    "size": [
+     111,
+     50
+    ],
+    "origin": [
+     55,
+     50
+    ],
+    "lt": [
+     -56,
+     -51
+    ],
+    "rb": [
+     56,
+     0
+    ],
+    "head": [
+     -41,
+     -42
+    ],
+    "delay": 120
+   }
+  ],
+  "move": [
+   {
+    "n": 0,
+    "file": "move_0.png",
+    "size": [
+     105,
+     53
+    ],
+    "origin": [
+     52,
+     53
+    ],
+    "lt": [
+     -53,
+     -54
+    ],
+    "rb": [
+     53,
+     0
+    ],
+    "head": [
+     -39,
+     -44
+    ],
+    "delay": 120
+   },
+   {
+    "n": 1,
+    "file": "move_1.png",
+    "size": [
+     91,
+     58
+    ],
+    "origin": [
+     51,
+     57
+    ],
+    "lt": [
+     -52,
+     -58
+    ],
+    "rb": [
+     40,
+     1
+    ],
+    "head": [
+     -35,
+     -45
+    ],
+    "delay": 120
+   },
+   {
+    "n": 2,
+    "file": "move_2.png",
+    "size": [
+     95,
+     60
+    ],
+    "origin": [
+     51,
+     60
+    ],
+    "lt": [
+     -52,
+     -61
+    ],
+    "rb": [
+     44,
+     0
+    ],
+    "head": [
+     -38,
+     -44
+    ],
+    "delay": 120
+   },
+   {
+    "n": 3,
+    "file": "move_3.png",
+    "size": [
+     110,
+     52
+    ],
+    "origin": [
+     56,
+     51
+    ],
+    "lt": [
+     -57,
+     -52
+    ],
+    "rb": [
+     54,
+     1
+    ],
+    "head": [
+     -43,
+     -43
+    ],
+    "delay": 120
+   }
+  ],
+  "hit1": [
+   {
+    "n": 0,
+    "file": "hit1_0.png",
+    "size": [
+     138,
+     60
+    ],
+    "origin": [
+     74,
+     65
+    ],
+    "lt": [
+     -54,
+     -66
+    ],
+    "rb": [
+     61,
+     -5
+    ],
+    "head": [
+     -36,
+     -51
+    ],
+    "delay": 600
+   }
+  ],
+  "die1": [
+   {
+    "n": 0,
+    "file": "die1_0.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     74,
+     65
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     2,
+     -48
+    ],
+    "delay": 120,
+    "_inlink": "hit1/0"
+   },
+   {
+    "n": 1,
+    "file": "die1_1.png",
+    "size": [
+     140,
+     50
+    ],
+    "origin": [
+     77,
+     53
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     2,
+     -48
+    ],
+    "delay": 120
+   },
+   {
+    "n": 2,
+    "file": "die1_2.png",
+    "size": [
+     171,
+     43
+    ],
+    "origin": [
+     78,
+     33
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     2,
+     -48
+    ],
+    "delay": 120
+   },
+   {
+    "n": 3,
+    "file": "die1_3.png",
+    "size": [
+     176,
+     41
+    ],
+    "origin": [
+     79,
+     31
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     2,
+     -48
+    ],
+    "delay": 120
+   },
+   {
+    "n": 4,
+    "file": "die1_4.png",
+    "size": [
+     170,
+     41
+    ],
+    "origin": [
+     72,
+     31
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     2,
+     -48
+    ],
+    "delay": 120
+   },
+   {
+    "n": 5,
+    "file": "die1_5.png",
+    "size": [
+     172,
+     40
+    ],
+    "origin": [
+     73,
+     31
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     2,
+     -48
+    ],
+    "delay": 120
+   },
+   {
+    "n": 6,
+    "file": "die1_6.png",
+    "size": [
+     174,
+     40
+    ],
+    "origin": [
+     74,
+     31
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     2,
+     -48
+    ],
+    "delay": 300,
+    "a0": 255,
+    "a1": 0
+   }
+  ]
+ }
 }

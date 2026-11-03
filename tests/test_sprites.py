@@ -7,7 +7,7 @@ import pytest
 
 from maplebot.config import Config
 from maplebot.perception.perceiver import Perceiver
-from maplebot.perception.sprites import SpriteDetector, load_mob, signature_hues
+from maplebot.perception.sprites import SpriteDetector, _cover, load_mob, signature_hues
 
 ROOT = Path(__file__).resolve().parents[1]
 MCW = ROOT / "assets" / "mcw"
@@ -232,3 +232,11 @@ def test_quick_poses_cover_every_pose(pigs):
         q = pigs.quick[m.mob_id]
         covered = set(q) | {j for i in q for j in pigs.groups[m.mob_id][i]}
         assert covered == set(range(len(m.frames))) and len(q) < len(m.frames)
+
+
+def test_cover_ends_when_poses_match_nothing():
+    """A flat (one-colour) picture scores -1 even on itself: _cover looped forever (found 2026-11-03 building a fake
+    export in test_gamedata; the client has 1x1 placeholder frames)."""
+    assert _cover(np.full((3, 3), -1.0), 0.5) == [0, 1, 2]
+    S = np.array([[1.0, 0.9, -1.0], [0.9, 1.0, -1.0], [-1.0, -1.0, -1.0]])
+    assert _cover(S, 0.5) == [0, 2]

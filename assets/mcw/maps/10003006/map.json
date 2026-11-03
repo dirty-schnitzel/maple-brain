@@ -1,732 +1,533 @@
 {
-  "backgroundMusic": "Bgm01/BadGuys",
-  "isReturnMap": false,
+ "id": 10003006,
+ "name": "Kerning City Repair Shop",
+ "streetName": "Victoria Road",
+ "mobRate": 1.0,
+ "isTown": true,
+ "returnMap": 10003000,
+ "footholds": {
+  "1": {
+   "id": 1,
+   "x1": -35,
+   "y1": -182,
+   "x2": 351,
+   "y2": -182,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "2": {
+   "id": 2,
+   "x1": 169,
+   "y1": -206,
+   "x2": 296,
+   "y2": -206,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "3": {
+   "id": 3,
+   "x1": 190,
+   "y1": -227,
+   "x2": 317,
+   "y2": -227,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "4": {
+   "id": 4,
+   "x1": 211,
+   "y1": -248,
+   "x2": 338,
+   "y2": -248,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "5": {
+   "id": 5,
+   "x1": 28,
+   "y1": -203,
+   "x2": 90,
+   "y2": -203,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "6": {
+   "id": 6,
+   "x1": -117,
+   "y1": -299,
+   "x2": 181,
+   "y2": -299,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "7": {
+   "id": 7,
+   "x1": -84,
+   "y1": -362,
+   "x2": 2,
+   "y2": -362,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "8": {
+   "id": 8,
+   "x1": 31,
+   "y1": -350,
+   "x2": 125,
+   "y2": -350,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "9": {
+   "id": 9,
+   "x1": 48,
+   "y1": -390,
+   "x2": 120,
+   "y2": -390,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "10": {
+   "id": 10,
+   "x1": -336,
+   "y1": -248,
+   "x2": -60,
+   "y2": -248,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "11": {
+   "id": 11,
+   "x1": -334,
+   "y1": -370,
+   "x2": -234,
+   "y2": -370,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "12": {
+   "id": 12,
+   "x1": -223,
+   "y1": -370,
+   "x2": -123,
+   "y2": -370,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "13": {
+   "id": 13,
+   "x1": -334,
+   "y1": -312,
+   "x2": -234,
+   "y2": -312,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "14": {
+   "id": 14,
+   "x1": -223,
+   "y1": -312,
+   "x2": -123,
+   "y2": -312,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "15": {
+   "id": 15,
+   "x1": -337,
+   "y1": -501,
+   "x2": -337,
+   "y2": 180,
+   "prev": 0,
+   "next": 16,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "16": {
+   "id": 16,
+   "x1": -337,
+   "y1": 180,
+   "x2": 352,
+   "y2": 180,
+   "prev": 15,
+   "next": 17,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "17": {
+   "id": 17,
+   "x1": 352,
+   "y1": 180,
+   "x2": 352,
+   "y2": -425,
+   "prev": 16,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "18": {
+   "id": 18,
+   "x1": -336,
+   "y1": -128,
+   "x2": -60,
+   "y2": -128,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "19": {
+   "id": 19,
+   "x1": -336,
+   "y1": -8,
+   "x2": -60,
+   "y2": -8,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "20": {
+   "id": 20,
+   "x1": -332,
+   "y1": -181,
+   "x2": -295,
+   "y2": -181,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "21": {
+   "id": 21,
+   "x1": -313,
+   "y1": -72,
+   "x2": -240,
+   "y2": -72,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "22": {
+   "id": 22,
+   "x1": -227,
+   "y1": -42,
+   "x2": -171,
+   "y2": -42,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "23": {
+   "id": 23,
+   "x1": -171,
+   "y1": -38,
+   "x2": -130,
+   "y2": -38,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "24": {
+   "id": 24,
+   "x1": -322,
+   "y1": 130,
+   "x2": -193,
+   "y2": 130,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "25": {
+   "id": 25,
+   "x1": -296,
+   "y1": 79,
+   "x2": -213,
+   "y2": 79,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "26": {
+   "id": 26,
+   "x1": -33,
+   "y1": 157,
+   "x2": 60,
+   "y2": 157,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  },
+  "27": {
+   "id": 27,
+   "x1": 76,
+   "y1": 33,
+   "x2": 224,
+   "y2": 33,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 1
+  }
+ },
+ "ladderRopes": [
+  {
+   "index": 1,
+   "x": -99,
+   "y1": -126,
+   "y2": -14,
+   "isLadder": true,
+   "uf": 1,
+   "page": 2,
+   "piece": 0
+  },
+  {
+   "index": 2,
+   "x": -140,
+   "y1": -6,
+   "y2": 140,
+   "isLadder": true,
+   "uf": 1,
+   "page": 2,
+   "piece": 0
+  },
+  {
+   "index": 3,
+   "x": 132,
+   "y1": -297,
+   "y2": -184,
+   "isLadder": true,
+   "uf": 1,
+   "page": 2,
+   "piece": 0
+  },
+  {
+   "index": 4,
+   "x": -251,
+   "y1": -246,
+   "y2": -134,
+   "isLadder": true,
+   "uf": 1,
+   "page": 2,
+   "piece": 0
+  }
+ ],
+ "mobs": [],
+ "npcs": [
+  {
+   "index": 0,
+   "id": 415,
+   "x": 132,
+   "y": 33,
+   "spriteY": 29,
+   "footholdId": 27,
+   "walkAreaX1": 82,
+   "walkAreaX2": 182,
+   "hidden": false,
+   "flip": false,
+   "mobTime": 0
+  }
+ ],
+ "portals": [
+  {
+   "index": 0,
+   "portalName": "sp",
+   "type": 0,
+   "x": 127,
+   "y": -194,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 1,
+   "portalName": "sp",
+   "type": 0,
+   "x": 225,
+   "y": -215,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 2,
+   "portalName": "sp",
+   "type": 0,
+   "x": 27,
+   "y": -316,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 3,
+   "portalName": "sp",
+   "type": 0,
+   "x": -116,
+   "y": -258,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 4,
+   "portalName": "sp",
+   "type": 0,
+   "x": -199,
+   "y": -134,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 5,
+   "portalName": "sp",
+   "type": 0,
+   "x": -212,
+   "y": -17,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 6,
+   "portalName": "sp",
+   "type": 0,
+   "x": -161,
+   "y": 166,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 7,
+   "portalName": "sp",
+   "type": 0,
+   "x": 10,
+   "y": 143,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 8,
+   "portalName": "sp",
+   "type": 0,
+   "x": 131,
+   "y": 157,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 9,
+   "portalName": "out00",
+   "type": 1,
+   "x": 278,
+   "y": -248,
+   "toMap": 10003000,
+   "toName": "in06"
+  },
+  {
+   "index": 10,
+   "portalName": "out01",
+   "type": 1,
+   "x": 60,
+   "y": -202,
+   "toMap": 10003000,
+   "toName": "in06_1"
+  }
+ ],
+ "vrBounds": {
+  "left": -400,
+  "top": -490,
+  "right": 400,
+  "bottom": 300
+ },
+ "info": {
+  "version": 10,
+  "cloud": 0,
+  "mapDesc": "",
+  "town": 1,
   "returnMap": 10003000,
-  "portals": [
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": 127,
-      "y": -194,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": 127,
-        "y": -194,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": 127,
-          "y": -194,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": -194,
-        "right": 128,
-        "bottom": -193,
-        "left": 127
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": 225,
-      "y": -215,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": 225,
-        "y": -215,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": 225,
-          "y": -215,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": -215,
-        "right": 226,
-        "bottom": -214,
-        "left": 225
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": 27,
-      "y": -316,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": 27,
-        "y": -316,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": 27,
-          "y": -316,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": -316,
-        "right": 28,
-        "bottom": -315,
-        "left": 27
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -116,
-      "y": -258,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -116,
-        "y": -258,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -116,
-          "y": -258,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": -258,
-        "right": -115,
-        "bottom": -257,
-        "left": -116
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -199,
-      "y": -134,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -199,
-        "y": -134,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -199,
-          "y": -134,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": -134,
-        "right": -198,
-        "bottom": -133,
-        "left": -199
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -212,
-      "y": -17,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -212,
-        "y": -17,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -212,
-          "y": -17,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": -17,
-        "right": -211,
-        "bottom": -16,
-        "left": -212
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -161,
-      "y": 166,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -161,
-        "y": 166,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -161,
-          "y": 166,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 166,
-        "right": -160,
-        "bottom": 167,
-        "left": -161
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": 10,
-      "y": 143,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": 10,
-        "y": 143,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": 10,
-          "y": 143,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 143,
-        "right": 11,
-        "bottom": 144,
-        "left": 10
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": 131,
-      "y": 157,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": 131,
-        "y": 157,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": 131,
-          "y": 157,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 157,
-        "right": 132,
-        "bottom": 158,
-        "left": 131
-      }
-    },
-    null,
-    null
-  ],
-  "npcs": [
-    {
-      "x": 132,
-      "y": 33,
-      "walkAreaX1": 82,
-      "walkAreaX2": 182,
-      "id": 415,
-      "footholdId": 27,
-      "foothold": {
-        "id": 27,
-        "next": 0,
-        "prev": 0,
-        "piece": 0,
-        "x1": 76,
-        "x2": 224,
-        "y1": 33,
-        "y2": 33,
-        "layerId": 1,
-        "groupId": 1
-      },
-      "hidden": false,
-      "type": 0,
-      "link": "/npc/415",
-      "index": 0,
-      "position": {},
-      "bounds": {
-        "x": 132,
-        "y": 33,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": 132,
-          "y": 33,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 33,
-        "right": 133,
-        "bottom": 34,
-        "left": 132
-      },
-      "flip": false
-    }
-  ],
-  "mobs": [],
-  "mobRate": 1,
-  "isTown": true,
-  "isSwim": false,
+  "mobRate": 1.0,
+  "bgm": "Bgm01/BadGuys",
+  "VRTop": -490,
+  "VRLeft": -400,
+  "VRBottom": 300,
+  "VRRight": 400,
+  "forcedReturn": 999999999,
   "mapMark": "KerningCity",
-  "footholds": {
-    "20": {
-      "id": 20,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -332,
-      "x2": -295,
-      "y1": -181,
-      "y2": -181,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "27": {
-      "id": 27,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 76,
-      "x2": 224,
-      "y1": 33,
-      "y2": 33,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "26": {
-      "id": 26,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -33,
-      "x2": 60,
-      "y1": 157,
-      "y2": 157,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "12": {
-      "id": 12,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -223,
-      "x2": -123,
-      "y1": -370,
-      "y2": -370,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "8": {
-      "id": 8,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 31,
-      "x2": 125,
-      "y1": -350,
-      "y2": -350,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "3": {
-      "id": 3,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 190,
-      "x2": 317,
-      "y1": -227,
-      "y2": -227,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "11": {
-      "id": 11,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -334,
-      "x2": -234,
-      "y1": -370,
-      "y2": -370,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "1": {
-      "id": 1,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -35,
-      "x2": 351,
-      "y1": -182,
-      "y2": -182,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "10": {
-      "id": 10,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -336,
-      "x2": -60,
-      "y1": -248,
-      "y2": -248,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "6": {
-      "id": 6,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -117,
-      "x2": 181,
-      "y1": -299,
-      "y2": -299,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "17": {
-      "id": 17,
-      "next": 0,
-      "prev": 16,
-      "piece": 0,
-      "x1": 352,
-      "x2": 352,
-      "y1": 180,
-      "y2": -425,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "22": {
-      "id": 22,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -227,
-      "x2": -171,
-      "y1": -42,
-      "y2": -42,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "4": {
-      "id": 4,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 211,
-      "x2": 338,
-      "y1": -248,
-      "y2": -248,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "21": {
-      "id": 21,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -313,
-      "x2": -240,
-      "y1": -72,
-      "y2": -72,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "2": {
-      "id": 2,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 169,
-      "x2": 296,
-      "y1": -206,
-      "y2": -206,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "14": {
-      "id": 14,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -223,
-      "x2": -123,
-      "y1": -312,
-      "y2": -312,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "7": {
-      "id": 7,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -84,
-      "x2": 2,
-      "y1": -362,
-      "y2": -362,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "13": {
-      "id": 13,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -334,
-      "x2": -234,
-      "y1": -312,
-      "y2": -312,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "5": {
-      "id": 5,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 28,
-      "x2": 90,
-      "y1": -203,
-      "y2": -203,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "19": {
-      "id": 19,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -336,
-      "x2": -60,
-      "y1": -8,
-      "y2": -8,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "25": {
-      "id": 25,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -296,
-      "x2": -213,
-      "y1": 79,
-      "y2": 79,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "18": {
-      "id": 18,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -336,
-      "x2": -60,
-      "y1": -128,
-      "y2": -128,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "24": {
-      "id": 24,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -322,
-      "x2": -193,
-      "y1": 130,
-      "y2": 130,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "23": {
-      "id": 23,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -171,
-      "x2": -130,
-      "y1": -38,
-      "y2": -38,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "9": {
-      "id": 9,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 48,
-      "x2": 120,
-      "y1": -390,
-      "y2": -390,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "16": {
-      "id": 16,
-      "next": 17,
-      "prev": 15,
-      "piece": 0,
-      "x1": -337,
-      "x2": 352,
-      "y1": 180,
-      "y2": 180,
-      "layerId": 1,
-      "groupId": 1
-    },
-    "15": {
-      "id": 15,
-      "next": 16,
-      "prev": 0,
-      "piece": 0,
-      "x1": -337,
-      "x2": -337,
-      "y1": -501,
-      "y2": 180,
-      "layerId": 1,
-      "groupId": 1
-    }
-  },
-  "vrBounds": {
-    "x": -400,
-    "y": -490,
-    "width": 800,
-    "height": 790,
-    "location": {
-      "x": -400,
-      "y": -490,
-      "isEmpty": false
-    },
-    "size": {
-      "width": 800,
-      "height": 790,
-      "isEmpty": false
-    },
-    "isEmpty": false,
-    "top": -490,
-    "right": 400,
-    "bottom": 300,
-    "left": -400
-  },
-  "returnMapName": {
-    "name": "Kerning City",
-    "streetName": "Victoria Road",
-    "id": 10003000
-  },
-  "ladderRopes": [
-    {
-      "x": -99,
-      "y1": -126,
-      "y2": -14,
-      "isLadder": true
-    },
-    {
-      "x": -140,
-      "y1": -6,
-      "y2": 140,
-      "isLadder": true
-    },
-    {
-      "x": 132,
-      "y1": -297,
-      "y2": -184,
-      "isLadder": true
-    },
-    {
-      "x": -251,
-      "y1": -246,
-      "y2": -134,
-      "isLadder": true
-    }
-  ],
-  "name": "Kerning City Repair Shop",
-  "streetName": "Victoria Road",
-  "id": 10003006
+  "swim": 0,
+  "fly": 0,
+  "standAlone": 0,
+  "partyStandAlone": 0,
+  "quarterView": 0,
+  "noMapCmd": 0,
+  "hideMinimap": 0,
+  "fieldLimit": 0,
+  "fieldLimit2": 0,
+  "fieldType": 0,
+  "AmbientBGM": "",
+  "AmbientBGMv": 100,
+  "MRLeft": -400,
+  "MRTop": -490,
+  "MRRight": 400,
+  "MRBottom": 300,
+  "fieldScript": "",
+  "onFirstUserEnter": "",
+  "onUserEnter": ""
+ }
 }

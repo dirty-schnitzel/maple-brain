@@ -1,30 +1,390 @@
 {
-  "id": 39,
-  "meta": {
-    "isBodyAttack": true,
-    "level": 19,
-    "maxHP": 404,
-    "maxMP": 30,
-    "speed": -45,
-    "physicalDamage": 89,
-    "physicalDefense": 15,
-    "magicDamage": 0,
-    "magicDefense": 15,
-    "accuracy": 72,
-    "evasion": 7,
-    "exp": 35,
-    "isUndead": false,
-    "minimumPushDamage": 30,
-    "elementalAttributes": "F3",
-    "summonType": 1,
-    "revivesMonsterId": []
-  },
-  "name": "Ghost Stump",
-  "framebooks": {
-    "die1": 5,
-    "move": 4,
-    "stand": 5,
-    "hit1": 1
-  },
-  "foundAt": []
+ "id": 39,
+ "name": "Ghost Stump",
+ "link": null,
+ "info": {
+  "bodyAttack": 1,
+  "level": 19,
+  "exp": 35,
+  "maxHP": 404,
+  "maxMP": 30,
+  "speed": -45,
+  "PADamage": 89,
+  "PDDamage": 15,
+  "MADamage": 0,
+  "MDDamage": 15,
+  "acc": 72,
+  "eva": 7,
+  "undead": 0,
+  "pushed": 30,
+  "elemAttr": "F3",
+  "fs": 10.0,
+  "summonType": 1,
+  "hideLevel": 0
+ },
+ "framebooks": {
+  "die1": 5,
+  "move": 4,
+  "stand": 5,
+  "hit1": 1
+ },
+ "frames": {
+  "die1": [
+   {
+    "n": 0,
+    "file": "die1_0.png",
+    "size": [
+     74,
+     63
+    ],
+    "origin": [
+     30,
+     63
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -4,
+     -53
+    ],
+    "delay": 120
+   },
+   {
+    "n": 1,
+    "file": "die1_1.png",
+    "size": [
+     73,
+     53
+    ],
+    "origin": [
+     30,
+     53
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -6,
+     -42
+    ],
+    "delay": 120
+   },
+   {
+    "n": 2,
+    "file": "die1_2.png",
+    "size": [
+     74,
+     45
+    ],
+    "origin": [
+     30,
+     45
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -6,
+     -22
+    ],
+    "delay": 120
+   },
+   {
+    "n": 3,
+    "file": "die1_3.png",
+    "size": [
+     74,
+     45
+    ],
+    "origin": [
+     30,
+     45
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -6,
+     -22
+    ],
+    "delay": 120
+   },
+   {
+    "n": 4,
+    "file": "die1_4.png",
+    "size": [
+     74,
+     45
+    ],
+    "origin": [
+     30,
+     45
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -5,
+     -21
+    ],
+    "delay": 300,
+    "a0": 255,
+    "a1": 0
+   }
+  ],
+  "move": [
+   {
+    "n": 0,
+    "file": "move_0.png",
+    "size": [
+     78,
+     77
+    ],
+    "origin": [
+     31,
+     77
+    ],
+    "lt": [
+     -24,
+     -65
+    ],
+    "rb": [
+     31,
+     0
+    ],
+    "head": [
+     -8,
+     -58
+    ],
+    "delay": 180
+   },
+   {
+    "n": 1,
+    "file": "move_1.png",
+    "size": [
+     69,
+     80
+    ],
+    "origin": [
+     33,
+     80
+    ],
+    "lt": [
+     -33,
+     -71
+    ],
+    "rb": [
+     32,
+     0
+    ],
+    "head": [
+     -14,
+     -58
+    ],
+    "delay": 180
+   },
+   {
+    "n": 2,
+    "file": "move_2.png",
+    "size": [
+     73,
+     77
+    ],
+    "origin": [
+     31,
+     77
+    ],
+    "lt": [
+     -31,
+     -64
+    ],
+    "rb": [
+     30,
+     0
+    ],
+    "head": [
+     -15,
+     -58
+    ],
+    "delay": 180
+   },
+   {
+    "n": 3,
+    "file": "move_3.png",
+    "size": [
+     89,
+     70
+    ],
+    "origin": [
+     32,
+     70
+    ],
+    "lt": [
+     -28,
+     -60
+    ],
+    "rb": [
+     31,
+     0
+    ],
+    "head": [
+     -9,
+     -54
+    ],
+    "delay": 180
+   }
+  ],
+  "stand": [
+   {
+    "n": 0,
+    "file": "stand_0.png",
+    "size": [
+     78,
+     78
+    ],
+    "origin": [
+     31,
+     78
+    ],
+    "lt": [
+     -29,
+     -67
+    ],
+    "rb": [
+     31,
+     0
+    ],
+    "head": [
+     -8,
+     -59
+    ],
+    "delay": 100
+   },
+   {
+    "n": 1,
+    "file": "stand_1.png",
+    "size": [
+     78,
+     79
+    ],
+    "origin": [
+     31,
+     79
+    ],
+    "lt": [
+     -27,
+     -67
+    ],
+    "rb": [
+     31,
+     0
+    ],
+    "head": [
+     -8,
+     -60
+    ],
+    "delay": 200
+   },
+   {
+    "n": 3,
+    "file": "stand_2.png",
+    "size": [
+     78,
+     78
+    ],
+    "origin": [
+     31,
+     78
+    ],
+    "lt": [
+     -29,
+     -67
+    ],
+    "rb": [
+     31,
+     0
+    ],
+    "head": [
+     -8,
+     -59
+    ],
+    "delay": 100,
+    "same": "stand_0.png"
+   },
+   {
+    "n": 4,
+    "file": "stand_3.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     31,
+     77
+    ],
+    "lt": [
+     -28,
+     -64
+    ],
+    "rb": [
+     31,
+     0
+    ],
+    "head": [
+     -8,
+     -58
+    ],
+    "delay": 100,
+    "_inlink": "move/0"
+   },
+   {
+    "n": 5,
+    "file": "stand_4.png",
+    "size": [
+     78,
+     76
+    ],
+    "origin": [
+     31,
+     76
+    ],
+    "lt": [
+     -30,
+     -65
+    ],
+    "rb": [
+     31,
+     0
+    ],
+    "head": [
+     -8,
+     -57
+    ],
+    "delay": 100
+   }
+  ],
+  "hit1": [
+   {
+    "n": 0,
+    "file": "hit1_0.png",
+    "size": [
+     75,
+     77
+    ],
+    "origin": [
+     28,
+     77
+    ],
+    "lt": [
+     -28,
+     -61
+    ],
+    "rb": [
+     29,
+     0
+    ],
+    "head": [
+     -9,
+     -59
+    ],
+    "delay": 600
+   }
+  ]
+ }
 }

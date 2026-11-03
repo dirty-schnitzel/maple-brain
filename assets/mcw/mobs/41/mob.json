@@ -1,30 +1,312 @@
 {
-  "id": 41,
-  "meta": {
-    "isBodyAttack": true,
-    "level": 46,
-    "maxHP": 2671,
-    "maxMP": 100,
-    "speed": -50,
-    "physicalDamage": 243,
-    "physicalDefense": 30,
-    "magicDamage": 243,
-    "magicDefense": 0,
-    "accuracy": 125,
-    "evasion": 25,
-    "exp": 111,
-    "isUndead": false,
-    "minimumPushDamage": 450,
-    "summonType": 1,
-    "revivesMonsterId": []
-  },
-  "name": "Tortie",
-  "framebooks": {
-    "move": 4,
-    "stand": 1,
-    "attack1": 2,
-    "hit1": 1,
-    "die1": 3
-  },
-  "foundAt": []
+ "id": 41,
+ "name": "Tortie",
+ "link": null,
+ "info": {
+  "bodyAttack": 1,
+  "level": 46,
+  "exp": 111,
+  "maxHP": 2226,
+  "maxMP": 100,
+  "speed": -50,
+  "PADamage": 243,
+  "PDDamage": 30,
+  "MADamage": 243,
+  "MDDamage": 0,
+  "acc": 125,
+  "eva": 25,
+  "undead": 0,
+  "pushed": 450,
+  "fs": 10.0,
+  "summonType": 1,
+  "attack": {
+   "0": {
+    "action": 1,
+    "attackRatio": 125,
+    "type": 1,
+    "conMP": 2,
+    "magic": 1,
+    "afterDelay": 5000
+   }
+  }
+ },
+ "framebooks": {
+  "move": 4,
+  "stand": 1,
+  "attack1": 2,
+  "hit1": 1,
+  "die1": 3
+ },
+ "frames": {
+  "move": [
+   {
+    "n": 0,
+    "file": "move_0.png",
+    "size": [
+     65,
+     37
+    ],
+    "origin": [
+     32,
+     37
+    ],
+    "lt": [
+     -32,
+     -37
+    ],
+    "rb": [
+     33,
+     0
+    ],
+    "head": [
+     -20,
+     -35
+    ],
+    "delay": 180
+   },
+   {
+    "n": 1,
+    "file": "move_1.png",
+    "size": [
+     65,
+     37
+    ],
+    "origin": [
+     32,
+     37
+    ],
+    "lt": [
+     -32,
+     -37
+    ],
+    "rb": [
+     33,
+     0
+    ],
+    "head": [
+     -20,
+     -35
+    ],
+    "delay": 180
+   },
+   {
+    "n": 2,
+    "file": "move_2.png",
+    "size": [
+     63,
+     37
+    ],
+    "origin": [
+     32,
+     37
+    ],
+    "lt": [
+     -32,
+     -37
+    ],
+    "rb": [
+     31,
+     0
+    ],
+    "head": [
+     -20,
+     -35
+    ],
+    "delay": 180
+   },
+   {
+    "n": 3,
+    "file": "move_3.png",
+    "size": [
+     62,
+     37
+    ],
+    "origin": [
+     32,
+     37
+    ],
+    "lt": [
+     -32,
+     -37
+    ],
+    "rb": [
+     30,
+     0
+    ],
+    "head": [
+     -20,
+     -35
+    ],
+    "delay": 180
+   }
+  ],
+  "stand": [
+   {
+    "n": 0,
+    "file": "stand_0.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     32,
+     37
+    ],
+    "lt": [
+     -32,
+     -37
+    ],
+    "rb": [
+     33,
+     0
+    ],
+    "head": [
+     -20,
+     -35
+    ],
+    "delay": null,
+    "_inlink": "move/0"
+   }
+  ],
+  "attack1": [
+   {
+    "n": 0,
+    "file": "attack1_0.png",
+    "size": [
+     61,
+     38
+    ],
+    "origin": [
+     28,
+     38
+    ],
+    "lt": [
+     -28,
+     -38
+    ],
+    "rb": [
+     33,
+     0
+    ],
+    "head": [
+     -15,
+     -36
+    ],
+    "delay": 500
+   },
+   {
+    "n": 1,
+    "file": "attack1_1.png",
+    "size": [
+     74,
+     32
+    ],
+    "origin": [
+     41,
+     32
+    ],
+    "lt": [
+     -41,
+     -32
+    ],
+    "rb": [
+     33,
+     0
+    ],
+    "head": [
+     -29,
+     -28
+    ],
+    "delay": 500
+   }
+  ],
+  "hit1": [
+   {
+    "n": 0,
+    "file": "hit1_0.png",
+    "size": [
+     65,
+     47
+    ],
+    "origin": [
+     32,
+     47
+    ],
+    "lt": [
+     -32,
+     -47
+    ],
+    "rb": [
+     33,
+     0
+    ],
+    "head": [
+     -20,
+     -40
+    ],
+    "delay": 600
+   }
+  ],
+  "die1": [
+   {
+    "n": 0,
+    "file": "die1_0.png",
+    "size": [
+     61,
+     37
+    ],
+    "origin": [
+     30,
+     37
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -17,
+     -35
+    ],
+    "delay": 180
+   },
+   {
+    "n": 1,
+    "file": "die1_1.png",
+    "size": [
+     63,
+     32
+    ],
+    "origin": [
+     32,
+     32
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -19,
+     -27
+    ],
+    "delay": 180
+   },
+   {
+    "n": 2,
+    "file": "die1_2.png",
+    "size": [
+     65,
+     32
+    ],
+    "origin": [
+     34,
+     32
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -22,
+     -20
+    ],
+    "delay": 300,
+    "a0": 255,
+    "a1": 0
+   }
+  ]
+ }
 }

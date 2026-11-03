@@ -1,5 +1,5 @@
-"""Which map are we on? The on-screen minimap matched against every map's miniMap canvas (assets/mcw, downloaded
-once with `assets update --all`). Run once per hunt (F7), not per frame.
+"""Which map are we on? The on-screen minimap matched against every map's miniMap canvas (assets/mcw, built from
+the game's client files). Run once per hunt (F7), not per frame.
 
 What the screen shows is not the raw canvas: the game draws it semi-transparent and slightly blurred over a
 backdrop (screen ~ 0.45-0.6 x canvas + offset), and canvases are transparent where the map has nothing (~40-50 %;
@@ -140,7 +140,7 @@ class MapIdentifier:
         """One frame or a list of them (taken a moment apart): scores averaged over the frames where the window was
         found (a map that doesn't fit in one of them scores 0 there)."""
         if not self.canvases:
-            return MapMatch(None, why="no minimaps on disk (assets update --all)")
+            return MapMatch(None, why="no minimaps on disk (assets build)")
         if isinstance(frames, np.ndarray):
             frames = [frames]
         per = [f for f in (self.fits(fr) for fr in frames) if f]

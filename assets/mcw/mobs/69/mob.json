@@ -1,32 +1,793 @@
 {
-  "id": 69,
-  "meta": {
-    "isBodyAttack": true,
-    "level": 73,
-    "maxHP": 11915,
-    "maxMP": 0,
-    "speed": -20,
-    "physicalDamage": 320,
-    "physicalDefense": 15,
-    "magicDamage": 0,
-    "magicDefense": 15,
-    "accuracy": 160,
-    "evasion": 42,
-    "exp": 390,
-    "isUndead": true,
-    "minimumPushDamage": 1425,
-    "hpRecovery": 119,
-    "elementalAttributes": "H3I2S1",
-    "summonType": 1,
-    "revivesMonsterId": []
-  },
-  "name": "Commander Skeleton",
-  "framebooks": {
-    "move": 4,
-    "stand": 4,
-    "skill1": 12,
-    "hit1": 1,
-    "die1": 11
-  },
-  "foundAt": []
+ "id": 69,
+ "name": "Commander Skeleton",
+ "link": null,
+ "info": {
+  "level": 73,
+  "exp": 390,
+  "maxHP": 11915,
+  "maxMP": 0,
+  "speed": -20,
+  "bodyAttack": 1,
+  "PADamage": 320,
+  "PDDamage": 15,
+  "MADamage": 0,
+  "MDDamage": 15,
+  "acc": 160,
+  "eva": 42,
+  "undead": 1,
+  "pushed": 1425,
+  "hpRecovery": 119,
+  "elemAttr": "H3I2S1",
+  "fs": 10.0,
+  "summonType": 1,
+  "skill": {
+   "0": {
+    "skill": 131,
+    "action": 1,
+    "level": 1,
+    "effectAfter": 900
+   }
+  }
+ },
+ "framebooks": {
+  "move": 4,
+  "stand": 4,
+  "skill1": 12,
+  "hit1": 1,
+  "die1": 11
+ },
+ "frames": {
+  "move": [
+   {
+    "n": 0,
+    "file": "move_0.png",
+    "size": [
+     125,
+     126
+    ],
+    "origin": [
+     60,
+     132
+    ],
+    "lt": [
+     -61,
+     -133
+    ],
+    "rb": [
+     65,
+     -6
+    ],
+    "head": [
+     -7,
+     -111
+    ],
+    "delay": 200
+   },
+   {
+    "n": 1,
+    "file": "move_1.png",
+    "size": [
+     118,
+     130
+    ],
+    "origin": [
+     62,
+     130
+    ],
+    "lt": [
+     -63,
+     -131
+    ],
+    "rb": [
+     56,
+     0
+    ],
+    "head": [
+     -9,
+     -109
+    ],
+    "delay": 200
+   },
+   {
+    "n": 2,
+    "file": "move_2.png",
+    "size": [
+     125,
+     126
+    ],
+    "origin": [
+     60,
+     132
+    ],
+    "lt": [
+     -61,
+     -133
+    ],
+    "rb": [
+     65,
+     -6
+    ],
+    "head": [
+     -7,
+     -111
+    ],
+    "delay": 200
+   },
+   {
+    "n": 3,
+    "file": "move_3.png",
+    "size": [
+     118,
+     130
+    ],
+    "origin": [
+     62,
+     130
+    ],
+    "lt": [
+     -63,
+     -131
+    ],
+    "rb": [
+     56,
+     0
+    ],
+    "head": [
+     -9,
+     -109
+    ],
+    "delay": 200
+   }
+  ],
+  "stand": [
+   {
+    "n": 0,
+    "file": "stand_0.png",
+    "size": [
+     119,
+     134
+    ],
+    "origin": [
+     59,
+     134
+    ],
+    "lt": [
+     -60,
+     -135
+    ],
+    "rb": [
+     60,
+     0
+    ],
+    "head": [
+     -4,
+     -113
+    ],
+    "delay": 280
+   },
+   {
+    "n": 1,
+    "file": "stand_1.png",
+    "size": [
+     119,
+     132
+    ],
+    "origin": [
+     58,
+     132
+    ],
+    "lt": [
+     -60,
+     -133
+    ],
+    "rb": [
+     60,
+     0
+    ],
+    "head": [
+     -5,
+     -111
+    ],
+    "delay": 280
+   },
+   {
+    "n": 2,
+    "file": "stand_2.png",
+    "size": [
+     119,
+     130
+    ],
+    "origin": [
+     57,
+     130
+    ],
+    "lt": [
+     -60,
+     -131
+    ],
+    "rb": [
+     60,
+     0
+    ],
+    "head": [
+     -6,
+     -109
+    ],
+    "delay": 280
+   },
+   {
+    "n": 3,
+    "file": "stand_3.png",
+    "size": [
+     119,
+     132
+    ],
+    "origin": [
+     58,
+     132
+    ],
+    "lt": [
+     -60,
+     -133
+    ],
+    "rb": [
+     60,
+     0
+    ],
+    "head": [
+     -5,
+     -111
+    ],
+    "delay": 280
+   }
+  ],
+  "skill1": [
+   {
+    "n": 0,
+    "file": "skill1_0.png",
+    "size": [
+     119,
+     134
+    ],
+    "origin": [
+     59,
+     134
+    ],
+    "lt": [
+     -60,
+     -135
+    ],
+    "rb": [
+     60,
+     0
+    ],
+    "head": [
+     -4,
+     -113
+    ],
+    "delay": 130
+   },
+   {
+    "n": 1,
+    "file": "skill1_1.png",
+    "size": [
+     147,
+     132
+    ],
+    "origin": [
+     86,
+     132
+    ],
+    "lt": [
+     -59,
+     -133
+    ],
+    "rb": [
+     61,
+     0
+    ],
+    "head": [
+     -4,
+     -111
+    ],
+    "delay": 130
+   },
+   {
+    "n": 2,
+    "file": "skill1_2.png",
+    "size": [
+     150,
+     130
+    ],
+    "origin": [
+     88,
+     130
+    ],
+    "lt": [
+     -58,
+     -131
+    ],
+    "rb": [
+     62,
+     0
+    ],
+    "head": [
+     -4,
+     -109
+    ],
+    "delay": 130
+   },
+   {
+    "n": 3,
+    "file": "skill1_3.png",
+    "size": [
+     149,
+     132
+    ],
+    "origin": [
+     88,
+     132
+    ],
+    "lt": [
+     -59,
+     -133
+    ],
+    "rb": [
+     61,
+     0
+    ],
+    "head": [
+     -4,
+     -111
+    ],
+    "delay": 130
+   },
+   {
+    "n": 4,
+    "file": "skill1_4.png",
+    "size": [
+     148,
+     134
+    ],
+    "origin": [
+     88,
+     134
+    ],
+    "lt": [
+     -60,
+     -135
+    ],
+    "rb": [
+     60,
+     0
+    ],
+    "head": [
+     -4,
+     -113
+    ],
+    "delay": 130
+   },
+   {
+    "n": 5,
+    "file": "skill1_5.png",
+    "size": [
+     149,
+     132
+    ],
+    "origin": [
+     88,
+     132
+    ],
+    "lt": [
+     -59,
+     -133
+    ],
+    "rb": [
+     61,
+     0
+    ],
+    "head": [
+     -4,
+     -111
+    ],
+    "delay": 130
+   },
+   {
+    "n": 6,
+    "file": "skill1_6.png",
+    "size": [
+     150,
+     130
+    ],
+    "origin": [
+     88,
+     130
+    ],
+    "lt": [
+     -58,
+     -131
+    ],
+    "rb": [
+     62,
+     0
+    ],
+    "head": [
+     -4,
+     -109
+    ],
+    "delay": 130
+   },
+   {
+    "n": 7,
+    "file": "skill1_7.png",
+    "size": [
+     149,
+     132
+    ],
+    "origin": [
+     88,
+     132
+    ],
+    "lt": [
+     -59,
+     -133
+    ],
+    "rb": [
+     61,
+     0
+    ],
+    "head": [
+     -4,
+     -111
+    ],
+    "delay": 130
+   },
+   {
+    "n": 8,
+    "file": "skill1_8.png",
+    "size": [
+     119,
+     134
+    ],
+    "origin": [
+     59,
+     134
+    ],
+    "lt": [
+     -60,
+     -135
+    ],
+    "rb": [
+     60,
+     0
+    ],
+    "head": [
+     -4,
+     -113
+    ],
+    "delay": 280,
+    "same": "stand_0.png"
+   },
+   {
+    "n": 9,
+    "file": "skill1_9.png",
+    "size": [
+     119,
+     132
+    ],
+    "origin": [
+     58,
+     132
+    ],
+    "lt": [
+     -60,
+     -133
+    ],
+    "rb": [
+     60,
+     0
+    ],
+    "head": [
+     -5,
+     -111
+    ],
+    "delay": 280,
+    "same": "stand_1.png"
+   },
+   {
+    "n": 10,
+    "file": "skill1_10.png",
+    "size": [
+     119,
+     130
+    ],
+    "origin": [
+     57,
+     130
+    ],
+    "lt": [
+     -60,
+     -131
+    ],
+    "rb": [
+     60,
+     0
+    ],
+    "head": [
+     -6,
+     -109
+    ],
+    "delay": 280,
+    "same": "stand_2.png"
+   },
+   {
+    "n": 11,
+    "file": "skill1_11.png",
+    "size": [
+     119,
+     132
+    ],
+    "origin": [
+     58,
+     132
+    ],
+    "lt": [
+     -60,
+     -133
+    ],
+    "rb": [
+     60,
+     0
+    ],
+    "head": [
+     -5,
+     -111
+    ],
+    "delay": 280,
+    "same": "stand_3.png"
+   }
+  ],
+  "hit1": [
+   {
+    "n": 0,
+    "file": "hit1_0.png",
+    "size": [
+     123,
+     141
+    ],
+    "origin": [
+     34,
+     141
+    ],
+    "lt": [
+     -35,
+     -142
+    ],
+    "rb": [
+     89,
+     0
+    ],
+    "head": [
+     19,
+     -106
+    ],
+    "delay": 600
+   }
+  ],
+  "die1": [
+   {
+    "n": 0,
+    "file": "die1_0.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     34,
+     141
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     19,
+     -106
+    ],
+    "delay": 150,
+    "_inlink": "hit1/0"
+   },
+   {
+    "n": 1,
+    "file": "die1_1.png",
+    "size": [
+     120,
+     135
+    ],
+    "origin": [
+     31,
+     135
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     19,
+     -106
+    ],
+    "delay": 150
+   },
+   {
+    "n": 2,
+    "file": "die1_2.png",
+    "size": [
+     120,
+     132
+    ],
+    "origin": [
+     29,
+     132
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     19,
+     -106
+    ],
+    "delay": 150
+   },
+   {
+    "n": 3,
+    "file": "die1_3.png",
+    "size": [
+     120,
+     127
+    ],
+    "origin": [
+     27,
+     127
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     19,
+     -106
+    ],
+    "delay": 150
+   },
+   {
+    "n": 4,
+    "file": "die1_4.png",
+    "size": [
+     120,
+     125
+    ],
+    "origin": [
+     25,
+     124
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     19,
+     -106
+    ],
+    "delay": 150
+   },
+   {
+    "n": 5,
+    "file": "die1_5.png",
+    "size": [
+     123,
+     119
+    ],
+    "origin": [
+     21,
+     115
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     19,
+     -106
+    ],
+    "delay": 150
+   },
+   {
+    "n": 6,
+    "file": "die1_6.png",
+    "size": [
+     126,
+     118
+    ],
+    "origin": [
+     21,
+     114
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     19,
+     -106
+    ],
+    "delay": 150
+   },
+   {
+    "n": 7,
+    "file": "die1_7.png",
+    "size": [
+     130,
+     86
+    ],
+    "origin": [
+     21,
+     81
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     19,
+     -106
+    ],
+    "delay": 200
+   },
+   {
+    "n": 8,
+    "file": "die1_8.png",
+    "size": [
+     131,
+     85
+    ],
+    "origin": [
+     21,
+     79
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     19,
+     -106
+    ],
+    "delay": 150
+   },
+   {
+    "n": 9,
+    "file": "die1_9.png",
+    "size": [
+     125,
+     27
+    ],
+    "origin": [
+     12,
+     26
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     19,
+     -106
+    ],
+    "delay": 150
+   },
+   {
+    "n": 10,
+    "file": "die1_10.png",
+    "size": [
+     123,
+     22
+    ],
+    "origin": [
+     12,
+     24
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -15,
+     -72
+    ],
+    "delay": 300,
+    "a0": 255,
+    "a1": 0
+   }
+  ]
+ }
 }

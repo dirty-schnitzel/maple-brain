@@ -1,33 +1,661 @@
 {
-  "id": 28,
-  "linksTo": 25,
-  "meta": {
-    "isBodyAttack": true,
-    "level": 29,
-    "maxHP": 593,
-    "maxMP": 175,
-    "speed": 10,
-    "physicalDamage": 127,
-    "physicalDefense": 0,
-    "magicDamage": 0,
-    "magicDefense": 500,
-    "accuracy": 116,
-    "evasion": 20,
-    "exp": 54,
-    "isUndead": false,
-    "minimumPushDamage": 200,
-    "elementalAttributes": "H2L2S3",
-    "summonType": 1,
-    "revivesMonsterId": [],
-    "linksToOtherMob": 25
-  },
-  "name": "Fairy 4",
-  "framebooks": {
-    "move": 4,
-    "skill1": 9,
-    "stand": 4,
-    "hit1": 1,
-    "die1": 7
-  },
-  "foundAt": []
+ "id": 28,
+ "name": "Fairy 4",
+ "link": 25,
+ "info": {
+  "level": 29,
+  "exp": 54,
+  "maxHP": 593,
+  "maxMP": 175,
+  "speed": 10,
+  "bodyAttack": 1,
+  "PADamage": 127,
+  "PDDamage": 0,
+  "MADamage": 0,
+  "MDDamage": 500,
+  "acc": 116,
+  "eva": 20,
+  "undead": 0,
+  "pushed": 200,
+  "elemAttr": "H2L2S3",
+  "fs": 10.0,
+  "summonType": 1,
+  "link": "0000025",
+  "hideLevel": 0,
+  "skill": {
+   "0": {
+    "skill": 167,
+    "action": 1,
+    "level": 1,
+    "effectAfter": 0,
+    "afterDelay": 3000
+   },
+   "1": {
+    "skill": 122,
+    "action": 1,
+    "level": 1,
+    "effectAfter": 0,
+    "afterDelay": 5000
+   }
+  }
+ },
+ "framebooks": {
+  "move": 4,
+  "skill1": 9,
+  "stand": 4,
+  "hit1": 1,
+  "die1": 7
+ },
+ "frames": {
+  "move": [
+   {
+    "n": 0,
+    "file": "move_0.png",
+    "size": [
+     49,
+     60
+    ],
+    "origin": [
+     30,
+     81
+    ],
+    "lt": [
+     -30,
+     -81
+    ],
+    "rb": [
+     19,
+     -21
+    ],
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 100
+   },
+   {
+    "n": 1,
+    "file": "move_1.png",
+    "size": [
+     52,
+     54
+    ],
+    "origin": [
+     30,
+     73
+    ],
+    "lt": [
+     -30,
+     -73
+    ],
+    "rb": [
+     22,
+     -19
+    ],
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 100
+   },
+   {
+    "n": 2,
+    "file": "move_2.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     30,
+     82
+    ],
+    "lt": [
+     -30,
+     -82
+    ],
+    "rb": [
+     19,
+     -22
+    ],
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 100,
+    "_inlink": "move/0"
+   },
+   {
+    "n": 3,
+    "file": "move_3.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     30,
+     73
+    ],
+    "lt": [
+     -30,
+     -73
+    ],
+    "rb": [
+     22,
+     -19
+    ],
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 100,
+    "_inlink": "move/1"
+   }
+  ],
+  "skill1": [
+   {
+    "n": 0,
+    "file": "skill1_0.png",
+    "size": [
+     49,
+     60
+    ],
+    "origin": [
+     30,
+     81
+    ],
+    "lt": [
+     -30,
+     -81
+    ],
+    "rb": [
+     19,
+     -21
+    ],
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 100
+   },
+   {
+    "n": 1,
+    "file": "skill1_1.png",
+    "size": [
+     52,
+     54
+    ],
+    "origin": [
+     30,
+     73
+    ],
+    "lt": [
+     -30,
+     -73
+    ],
+    "rb": [
+     22,
+     -19
+    ],
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 100
+   },
+   {
+    "n": 2,
+    "file": "skill1_2.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     30,
+     81
+    ],
+    "lt": [
+     -30,
+     -81
+    ],
+    "rb": [
+     19,
+     -21
+    ],
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 100,
+    "_inlink": "skill1/0"
+   },
+   {
+    "n": 3,
+    "file": "skill1_3.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     30,
+     73
+    ],
+    "lt": [
+     -30,
+     -73
+    ],
+    "rb": [
+     22,
+     -19
+    ],
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 100,
+    "_inlink": "skill1/1"
+   },
+   {
+    "n": 4,
+    "file": "skill1_4.png",
+    "size": [
+     49,
+     60
+    ],
+    "origin": [
+     30,
+     81
+    ],
+    "lt": [
+     -30,
+     -81
+    ],
+    "rb": [
+     19,
+     -21
+    ],
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 100,
+    "same": "skill1_0.png"
+   },
+   {
+    "n": 5,
+    "file": "skill1_5.png",
+    "size": [
+     52,
+     54
+    ],
+    "origin": [
+     30,
+     73
+    ],
+    "lt": [
+     -30,
+     -73
+    ],
+    "rb": [
+     22,
+     -19
+    ],
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 100,
+    "same": "skill1_1.png"
+   },
+   {
+    "n": 6,
+    "file": "skill1_6.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     30,
+     81
+    ],
+    "lt": [
+     -30,
+     -81
+    ],
+    "rb": [
+     19,
+     -21
+    ],
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 100,
+    "same": "skill1_2.png",
+    "_inlink": "skill1/0"
+   },
+   {
+    "n": 7,
+    "file": "skill1_7.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     30,
+     73
+    ],
+    "lt": [
+     -30,
+     -73
+    ],
+    "rb": [
+     22,
+     -19
+    ],
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 100,
+    "same": "skill1_3.png",
+    "_inlink": "skill1/1"
+   },
+   {
+    "n": 8,
+    "file": "skill1_8.png",
+    "size": [
+     49,
+     60
+    ],
+    "origin": [
+     30,
+     81
+    ],
+    "lt": [
+     -30,
+     -81
+    ],
+    "rb": [
+     19,
+     -21
+    ],
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 100,
+    "same": "skill1_0.png"
+   }
+  ],
+  "stand": [
+   {
+    "n": 0,
+    "file": "stand_0.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     30,
+     81
+    ],
+    "lt": [
+     -30,
+     -81
+    ],
+    "rb": [
+     19,
+     -21
+    ],
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 100,
+    "_inlink": "move/0"
+   },
+   {
+    "n": 1,
+    "file": "stand_1.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     30,
+     73
+    ],
+    "lt": [
+     -30,
+     -73
+    ],
+    "rb": [
+     22,
+     -19
+    ],
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 100,
+    "_inlink": "move/1"
+   },
+   {
+    "n": 2,
+    "file": "stand_2.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     30,
+     82
+    ],
+    "lt": [
+     -30,
+     -82
+    ],
+    "rb": [
+     19,
+     -22
+    ],
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 100,
+    "_inlink": "move/0"
+   },
+   {
+    "n": 3,
+    "file": "stand_3.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     30,
+     73
+    ],
+    "lt": [
+     -30,
+     -73
+    ],
+    "rb": [
+     22,
+     -19
+    ],
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 100,
+    "_inlink": "move/1"
+   }
+  ],
+  "hit1": [
+   {
+    "n": 0,
+    "file": "hit1_0.png",
+    "size": [
+     57,
+     78
+    ],
+    "origin": [
+     29,
+     95
+    ],
+    "lt": [
+     -29,
+     -81
+    ],
+    "rb": [
+     23,
+     -17
+    ],
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 600
+   }
+  ],
+  "die1": [
+   {
+    "n": 0,
+    "file": "die1_0.png",
+    "size": [
+     49,
+     62
+    ],
+    "origin": [
+     30,
+     81
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 120
+   },
+   {
+    "n": 1,
+    "file": "die1_1.png",
+    "size": [
+     47,
+     51
+    ],
+    "origin": [
+     30,
+     63
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 120
+   },
+   {
+    "n": 2,
+    "file": "die1_2.png",
+    "size": [
+     50,
+     55
+    ],
+    "origin": [
+     30,
+     64
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 120
+   },
+   {
+    "n": 3,
+    "file": "die1_3.png",
+    "size": [
+     49,
+     46
+    ],
+    "origin": [
+     30,
+     65
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -10,
+     -48
+    ],
+    "delay": 120
+   },
+   {
+    "n": 4,
+    "file": "die1_4.png",
+    "size": [
+     51,
+     52
+    ],
+    "origin": [
+     31,
+     68
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -10,
+     -44
+    ],
+    "delay": 120
+   },
+   {
+    "n": 5,
+    "file": "die1_5.png",
+    "size": [
+     33,
+     46
+    ],
+    "origin": [
+     30,
+     54
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -10,
+     -42
+    ],
+    "delay": 120
+   },
+   {
+    "n": 6,
+    "file": "die1_6.png",
+    "size": [
+     32,
+     58
+    ],
+    "origin": [
+     29,
+     34
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -10,
+     -19
+    ],
+    "delay": 300,
+    "a0": 255,
+    "a1": 0
+   }
+  ]
+ }
 }

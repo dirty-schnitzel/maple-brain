@@ -1,37 +1,280 @@
 {
-  "id": 800015,
-  "linksTo": 16,
-  "meta": {
-    "isBodyAttack": true,
-    "level": 30,
-    "maxHP": 789,
-    "maxMP": 30,
-    "speed": 5,
-    "physicalDamage": 204,
-    "physicalDefense": 10,
-    "magicDamage": 0,
-    "magicDefense": 20,
-    "accuracy": 118,
-    "evasion": 18,
-    "exp": 56,
-    "isUndead": false,
-    "minimumPushDamage": 225,
-    "summonType": 1,
-    "revivesMonsterId": [],
-    "linksToOtherMob": 16
-  },
-  "name": "Blue Mushroom",
-  "framebooks": {
-    "move": 3,
-    "stand": 2,
-    "jump": 1,
-    "hit1": 1,
-    "die1": 3
-  },
-  "foundAt": [],
-  "names": {
-    "en": "Blue Mushroom",
-    "es": "Champi\u00f1\u00f3n azul",
-    "ko": "\ud30c\ub780 \ubc84\uc12f"
-  }
+ "id": 800015,
+ "name": "Blue Mushroom",
+ "link": 16,
+ "info": {
+  "link": "0000016",
+  "level": 30,
+  "exp": 56,
+  "maxHP": 789,
+  "maxMP": 30,
+  "bodyAttack": 1,
+  "speed": 5,
+  "PADamage": 204,
+  "PDDamage": 10,
+  "MADamage": 0,
+  "MDDamage": 20,
+  "acc": 118,
+  "eva": 18,
+  "undead": 0,
+  "pushed": 225,
+  "fs": 10.0,
+  "summonType": 1,
+  "hideLevel": 0
+ },
+ "framebooks": {
+  "move": 3,
+  "stand": 2,
+  "jump": 1,
+  "hit1": 1,
+  "die1": 3
+ },
+ "frames": {
+  "move": [
+   {
+    "n": 0,
+    "file": "move_0.png",
+    "size": [
+     64,
+     55
+    ],
+    "origin": [
+     32,
+     55
+    ],
+    "lt": [
+     -32,
+     -55
+    ],
+    "rb": [
+     32,
+     0
+    ],
+    "head": [
+     -3,
+     -51
+    ],
+    "delay": 180
+   },
+   {
+    "n": 1,
+    "file": "move_1.png",
+    "size": [
+     62,
+     64
+    ],
+    "origin": [
+     31,
+     67
+    ],
+    "lt": [
+     -31,
+     -67
+    ],
+    "rb": [
+     31,
+     -3
+    ],
+    "head": [
+     -1,
+     -63
+    ],
+    "delay": 120
+   },
+   {
+    "n": 2,
+    "file": "move_2.png",
+    "size": [
+     63,
+     55
+    ],
+    "origin": [
+     31,
+     55
+    ],
+    "lt": [
+     -31,
+     -55
+    ],
+    "rb": [
+     32,
+     0
+    ],
+    "head": [
+     -3,
+     -51
+    ],
+    "delay": 180
+   }
+  ],
+  "stand": [
+   {
+    "n": 0,
+    "file": "stand_0.png",
+    "size": [
+     63,
+     58
+    ],
+    "origin": [
+     27,
+     58
+    ],
+    "lt": [
+     -27,
+     -58
+    ],
+    "rb": [
+     36,
+     0
+    ],
+    "head": [
+     2,
+     -54
+    ],
+    "delay": 180
+   },
+   {
+    "n": 1,
+    "file": "stand_1.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     27,
+     55
+    ],
+    "lt": [
+     -27,
+     -55
+    ],
+    "rb": [
+     36,
+     0
+    ],
+    "head": [
+     2,
+     -51
+    ],
+    "delay": 180,
+    "_inlink": "move/2"
+   }
+  ],
+  "jump": [
+   {
+    "n": 0,
+    "file": "jump_0.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     28,
+     64
+    ],
+    "lt": [
+     -28,
+     -64
+    ],
+    "rb": [
+     34,
+     0
+    ],
+    "head": [
+     2,
+     -61
+    ],
+    "delay": null,
+    "_inlink": "move/1"
+   }
+  ],
+  "hit1": [
+   {
+    "n": 0,
+    "file": "hit1_0.png",
+    "size": [
+     62,
+     65
+    ],
+    "origin": [
+     28,
+     65
+    ],
+    "lt": [
+     -28,
+     -65
+    ],
+    "rb": [
+     34,
+     0
+    ],
+    "head": [
+     2,
+     -61
+    ],
+    "delay": 600
+   }
+  ],
+  "die1": [
+   {
+    "n": 0,
+    "file": "die1_0.png",
+    "size": [
+     61,
+     59
+    ],
+    "origin": [
+     30,
+     59
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -5,
+     -44
+    ],
+    "delay": 180
+   },
+   {
+    "n": 1,
+    "file": "die1_1.png",
+    "size": [
+     59,
+     52
+    ],
+    "origin": [
+     32,
+     52
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -9,
+     -36
+    ],
+    "delay": 180
+   },
+   {
+    "n": 2,
+    "file": "die1_2.png",
+    "size": [
+     59,
+     44
+    ],
+    "origin": [
+     34,
+     44
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -17,
+     -21
+    ],
+    "delay": 300,
+    "a0": 255,
+    "a1": 0
+   }
+  ]
+ }
 }

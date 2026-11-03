@@ -345,3 +345,27 @@ def test_serve_watches_for_the_lie_detector_between_hunts(tmp_path, monkeypatch)
     script = lambda name, n: (name == "f7" and n >= 400) or (name == "f8" and 5 <= n <= 6)  # noqa: E731
     _, _, out = _serve(tmp_path, monkeypatch, script, max_hunts=1, screen=IdleLieScreen)
     assert len(sirens) == 2 and len(list(out.glob("lie_idle_*.png"))) == 1
+
+
+def test_load_map_not_in_assets_says_rebuild_and_never_goes_online(tmp_path, monkeypatch):
+    """No more download on a missing map (maplestory.io is gone, 2026-11-03): say so, don't hunt."""
+    from types import SimpleNamespace
+    (tmp_path / "mcw").mkdir()
+    monkeypatch.setattr(runner, "ASSETS", tmp_path)
+    said = []
+    rig = SimpleNamespace(cfg=Config(), maps=None)
+    assert runner._load_map(rig, 999, said.append) is False
+    assert "isn't in assets/mcw" in said[0] and "assets build" in said[0]
+    assert rig.cfg.perception.map_id is None
+
+
+def test_load_map_from_the_real_assets(monkeypatch):
+    from types import SimpleNamespace
+    if not (runner.ASSETS / "mcw" / "maps" / "42" / "map.json").exists():
+        pytest.skip("needs assets/mcw")
+    said = []
+    rig = SimpleNamespace(cfg=Config(), maps=None)
+    assert runner._load_map(rig, 42, said.append) is True
+    assert said[0].startswith("map 42 Maple Road / Snail Hunting Ground III: sprites for Snail (2), Blue Snail (3), "
+                              "Red Snail (5)")
+    assert rig.cfg.perception.map_id == 42

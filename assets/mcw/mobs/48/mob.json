@@ -1,30 +1,647 @@
 {
-  "id": 48,
-  "meta": {
-    "isBodyAttack": true,
-    "level": 56,
-    "maxHP": 5134,
-    "maxMP": 120,
-    "speed": -70,
-    "physicalDamage": 288,
-    "physicalDefense": 30,
-    "magicDamage": 0,
-    "magicDefense": 0,
-    "accuracy": 120,
-    "evasion": 30,
-    "exp": 175,
-    "minimumPushDamage": 975,
-    "elementalAttributes": "S2",
-    "summonType": 1,
-    "revivesMonsterId": []
-  },
-  "name": "Stone Golem",
-  "framebooks": {
-    "move": 4,
-    "stand": 3,
-    "skill1": 10,
-    "hit1": 1,
-    "die1": 7
-  },
-  "foundAt": []
+ "id": 48,
+ "name": "Stone Golem",
+ "link": null,
+ "info": {
+  "level": 56,
+  "exp": 175,
+  "maxHP": 5134,
+  "maxMP": 120,
+  "speed": -70,
+  "bodyAttack": 1,
+  "PADamage": 288,
+  "PDDamage": 30,
+  "MADamage": 0,
+  "MDDamage": 0,
+  "acc": 120,
+  "eva": 30,
+  "pushed": 975,
+  "elemAttr": "S2",
+  "fs": 10.0,
+  "summonType": 1,
+  "hideLevel": 0,
+  "skill": {
+   "0": {
+    "skill": 160,
+    "action": 1,
+    "level": 1,
+    "effectAfter": 0,
+    "afterDelay": 3000
+   },
+   "1": {
+    "skill": 161,
+    "action": 1,
+    "level": 1,
+    "effectAfter": 0,
+    "afterDelay": 5000
+   }
+  }
+ },
+ "framebooks": {
+  "move": 4,
+  "stand": 3,
+  "skill1": 10,
+  "hit1": 1,
+  "die1": 7
+ },
+ "frames": {
+  "move": [
+   {
+    "n": 0,
+    "file": "move_0.png",
+    "size": [
+     175,
+     158
+    ],
+    "origin": [
+     90,
+     158
+    ],
+    "lt": [
+     -90,
+     -151
+    ],
+    "rb": [
+     85,
+     0
+    ],
+    "head": [
+     -10,
+     -155
+    ],
+    "delay": 350
+   },
+   {
+    "n": 1,
+    "file": "move_1.png",
+    "size": [
+     175,
+     154
+    ],
+    "origin": [
+     90,
+     154
+    ],
+    "lt": [
+     -90,
+     -146
+    ],
+    "rb": [
+     85,
+     0
+    ],
+    "head": [
+     -10,
+     -151
+    ],
+    "delay": 350
+   },
+   {
+    "n": 2,
+    "file": "move_2.png",
+    "size": [
+     175,
+     158
+    ],
+    "origin": [
+     90,
+     158
+    ],
+    "lt": [
+     -90,
+     -150
+    ],
+    "rb": [
+     85,
+     0
+    ],
+    "head": [
+     -10,
+     -155
+    ],
+    "delay": 350
+   },
+   {
+    "n": 3,
+    "file": "move_3.png",
+    "size": [
+     175,
+     154
+    ],
+    "origin": [
+     90,
+     154
+    ],
+    "lt": [
+     -90,
+     -146
+    ],
+    "rb": [
+     85,
+     0
+    ],
+    "head": [
+     -10,
+     -151
+    ],
+    "delay": 350
+   }
+  ],
+  "stand": [
+   {
+    "n": 0,
+    "file": "stand_0.png",
+    "size": [
+     175,
+     156
+    ],
+    "origin": [
+     90,
+     156
+    ],
+    "lt": [
+     -90,
+     -148
+    ],
+    "rb": [
+     85,
+     0
+    ],
+    "head": [
+     -10,
+     -153
+    ],
+    "delay": 300
+   },
+   {
+    "n": 1,
+    "file": "stand_1.png",
+    "size": [
+     177,
+     157
+    ],
+    "origin": [
+     91,
+     157
+    ],
+    "lt": [
+     -91,
+     -149
+    ],
+    "rb": [
+     86,
+     0
+    ],
+    "head": [
+     -10,
+     -154
+    ],
+    "delay": 150
+   },
+   {
+    "n": 2,
+    "file": "stand_2.png",
+    "size": [
+     179,
+     158
+    ],
+    "origin": [
+     92,
+     158
+    ],
+    "lt": [
+     -92,
+     -155
+    ],
+    "rb": [
+     87,
+     0
+    ],
+    "head": [
+     -10,
+     -155
+    ],
+    "delay": 300
+   }
+  ],
+  "skill1": [
+   {
+    "n": 0,
+    "file": "skill1_0.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     90,
+     156
+    ],
+    "lt": [
+     -90,
+     -148
+    ],
+    "rb": [
+     85,
+     0
+    ],
+    "head": [
+     -10,
+     -153
+    ],
+    "delay": 90,
+    "_inlink": "stand/0"
+   },
+   {
+    "n": 1,
+    "file": "skill1_1.png",
+    "size": [
+     175,
+     156
+    ],
+    "origin": [
+     90,
+     156
+    ],
+    "lt": [
+     -90,
+     -148
+    ],
+    "rb": [
+     85,
+     0
+    ],
+    "head": [
+     -10,
+     -153
+    ],
+    "delay": 90
+   },
+   {
+    "n": 2,
+    "file": "skill1_2.png",
+    "size": [
+     175,
+     156
+    ],
+    "origin": [
+     90,
+     156
+    ],
+    "lt": [
+     -90,
+     -148
+    ],
+    "rb": [
+     85,
+     0
+    ],
+    "head": [
+     -10,
+     -153
+    ],
+    "delay": 90
+   },
+   {
+    "n": 3,
+    "file": "skill1_3.png",
+    "size": [
+     175,
+     156
+    ],
+    "origin": [
+     90,
+     156
+    ],
+    "lt": [
+     -90,
+     -148
+    ],
+    "rb": [
+     85,
+     0
+    ],
+    "head": [
+     -10,
+     -153
+    ],
+    "delay": 90
+   },
+   {
+    "n": 4,
+    "file": "skill1_4.png",
+    "size": [
+     175,
+     156
+    ],
+    "origin": [
+     90,
+     156
+    ],
+    "lt": [
+     -90,
+     -148
+    ],
+    "rb": [
+     85,
+     0
+    ],
+    "head": [
+     -10,
+     -153
+    ],
+    "delay": 90
+   },
+   {
+    "n": 5,
+    "file": "skill1_5.png",
+    "size": [
+     175,
+     156
+    ],
+    "origin": [
+     90,
+     156
+    ],
+    "lt": [
+     -90,
+     -148
+    ],
+    "rb": [
+     85,
+     0
+    ],
+    "head": [
+     -10,
+     -153
+    ],
+    "delay": 90
+   },
+   {
+    "n": 6,
+    "file": "skill1_6.png",
+    "size": [
+     175,
+     158
+    ],
+    "origin": [
+     90,
+     158
+    ],
+    "lt": [
+     -90,
+     -148
+    ],
+    "rb": [
+     85,
+     0
+    ],
+    "head": [
+     -10,
+     -153
+    ],
+    "delay": 90
+   },
+   {
+    "n": 7,
+    "file": "skill1_7.png",
+    "size": [
+     175,
+     156
+    ],
+    "origin": [
+     90,
+     156
+    ],
+    "lt": [
+     -90,
+     -148
+    ],
+    "rb": [
+     85,
+     0
+    ],
+    "head": [
+     -10,
+     -153
+    ],
+    "delay": 90
+   },
+   {
+    "n": 8,
+    "file": "skill1_8.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     90,
+     156
+    ],
+    "lt": [
+     -90,
+     -148
+    ],
+    "rb": [
+     85,
+     0
+    ],
+    "head": [
+     -10,
+     -153
+    ],
+    "delay": 90,
+    "_inlink": "skill1/2"
+   },
+   {
+    "n": 9,
+    "file": "skill1_9.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     90,
+     156
+    ],
+    "lt": [
+     -90,
+     -148
+    ],
+    "rb": [
+     85,
+     0
+    ],
+    "head": [
+     -10,
+     -153
+    ],
+    "delay": 90,
+    "_inlink": "stand/0"
+   }
+  ],
+  "hit1": [
+   {
+    "n": 0,
+    "file": "hit1_0.png",
+    "size": [
+     258,
+     172
+    ],
+    "origin": [
+     134,
+     172
+    ],
+    "lt": [
+     -113,
+     -160
+    ],
+    "rb": [
+     110,
+     0
+    ],
+    "head": [
+     2,
+     -147
+    ],
+    "delay": 600
+   }
+  ],
+  "die1": [
+   {
+    "n": 0,
+    "file": "die1_0.png",
+    "size": [
+     196,
+     178
+    ],
+    "origin": [
+     86,
+     178
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     25,
+     -121
+    ],
+    "delay": 250
+   },
+   {
+    "n": 1,
+    "file": "die1_1.png",
+    "size": [
+     228,
+     169
+    ],
+    "origin": [
+     93,
+     169
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     25,
+     -121
+    ],
+    "delay": 250
+   },
+   {
+    "n": 2,
+    "file": "die1_2.png",
+    "size": [
+     225,
+     160
+    ],
+    "origin": [
+     93,
+     160
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     25,
+     -121
+    ],
+    "delay": 250
+   },
+   {
+    "n": 3,
+    "file": "die1_3.png",
+    "size": [
+     215,
+     146
+    ],
+    "origin": [
+     93,
+     146
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     25,
+     -121
+    ],
+    "delay": 250
+   },
+   {
+    "n": 4,
+    "file": "die1_4.png",
+    "size": [
+     215,
+     133
+    ],
+    "origin": [
+     93,
+     133
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     19,
+     -119
+    ],
+    "delay": 250
+   },
+   {
+    "n": 5,
+    "file": "die1_5.png",
+    "size": [
+     215,
+     74
+    ],
+    "origin": [
+     93,
+     74
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -44,
+     -21
+    ],
+    "delay": 250
+   },
+   {
+    "n": 6,
+    "file": "die1_6.png",
+    "size": [
+     215,
+     74
+    ],
+    "origin": [
+     93,
+     74
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -44,
+     -21
+    ],
+    "delay": 300,
+    "a0": 255,
+    "a1": 0
+   }
+  ]
+ }
 }

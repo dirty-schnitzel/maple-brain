@@ -1,28 +1,220 @@
 {
-  "id": 47,
-  "meta": {
-    "isBodyAttack": true,
-    "level": 55,
-    "maxHP": 2998,
-    "maxMP": 90,
-    "flySpeed": -30,
-    "physicalDamage": 226,
-    "physicalDefense": 0,
-    "magicDamage": 311,
-    "magicDefense": 50,
-    "accuracy": 146,
-    "evasion": 33,
-    "exp": 167,
-    "minimumPushDamage": 325,
-    "elementalAttributes": "F2I2H3",
-    "summonType": 1,
-    "revivesMonsterId": []
-  },
-  "name": "Malady",
-  "framebooks": {
-    "fly": 4,
-    "hit1": 1,
-    "die1": 3
-  },
-  "foundAt": []
+ "id": 47,
+ "name": "Malady",
+ "link": null,
+ "info": {
+  "level": 55,
+  "exp": 167,
+  "maxHP": 2998,
+  "maxMP": 90,
+  "flySpeed": -30,
+  "bodyAttack": 1,
+  "PADamage": 226,
+  "PDDamage": 0,
+  "MADamage": 311,
+  "MDDamage": 50,
+  "acc": 146,
+  "eva": 33,
+  "pushed": 325,
+  "elemAttr": "F2I2H3",
+  "fs": 10.0,
+  "summonType": 1
+ },
+ "framebooks": {
+  "fly": 4,
+  "hit1": 1,
+  "die1": 3
+ },
+ "frames": {
+  "fly": [
+   {
+    "n": 0,
+    "file": "fly_0.png",
+    "size": [
+     106,
+     65
+    ],
+    "origin": [
+     53,
+     65
+    ],
+    "lt": [
+     -53,
+     -65
+    ],
+    "rb": [
+     53,
+     0
+    ],
+    "head": [
+     -31,
+     -46
+    ],
+    "delay": 120
+   },
+   {
+    "n": 1,
+    "file": "fly_1.png",
+    "size": [
+     106,
+     67
+    ],
+    "origin": [
+     53,
+     67
+    ],
+    "lt": [
+     -53,
+     -67
+    ],
+    "rb": [
+     53,
+     0
+    ],
+    "head": [
+     -31,
+     -46
+    ],
+    "delay": 120
+   },
+   {
+    "n": 2,
+    "file": "fly_2.png",
+    "size": [
+     106,
+     63
+    ],
+    "origin": [
+     53,
+     63
+    ],
+    "lt": [
+     -53,
+     -63
+    ],
+    "rb": [
+     53,
+     0
+    ],
+    "head": [
+     -31,
+     -46
+    ],
+    "delay": 120
+   },
+   {
+    "n": 3,
+    "file": "fly_3.png",
+    "size": [
+     107,
+     73
+    ],
+    "origin": [
+     53,
+     73
+    ],
+    "lt": [
+     -53,
+     -73
+    ],
+    "rb": [
+     54,
+     0
+    ],
+    "head": [
+     -31,
+     -46
+    ],
+    "delay": 120
+   }
+  ],
+  "hit1": [
+   {
+    "n": 0,
+    "file": "hit1_0.png",
+    "size": [
+     110,
+     75
+    ],
+    "origin": [
+     56,
+     75
+    ],
+    "lt": [
+     -56,
+     -75
+    ],
+    "rb": [
+     54,
+     0
+    ],
+    "head": [
+     -25,
+     -50
+    ],
+    "delay": 600
+   }
+  ],
+  "die1": [
+   {
+    "n": 0,
+    "file": "die1_0.png",
+    "size": [
+     80,
+     94
+    ],
+    "origin": [
+     40,
+     94
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     -7,
+     -70
+    ],
+    "delay": 180
+   },
+   {
+    "n": 1,
+    "file": "die1_1.png",
+    "size": [
+     86,
+     75
+    ],
+    "origin": [
+     43,
+     80
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     24,
+     -37
+    ],
+    "delay": 180
+   },
+   {
+    "n": 2,
+    "file": "die1_2.png",
+    "size": [
+     88,
+     73
+    ],
+    "origin": [
+     44,
+     73
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     25,
+     -31
+    ],
+    "delay": 300,
+    "a0": 255,
+    "a1": 0
+   }
+  ]
+ }
 }

@@ -1,29 +1,319 @@
 {
-  "id": 54,
-  "meta": {
-    "isBodyAttack": true,
-    "level": 39,
-    "maxHP": 1377,
-    "maxMP": 50,
-    "speed": -10,
-    "physicalDamage": 232,
-    "physicalDefense": 10,
-    "magicDamage": 0,
-    "magicDefense": 10,
-    "accuracy": 118,
-    "evasion": 25,
-    "exp": 82,
-    "isUndead": false,
-    "minimumPushDamage": 125,
-    "summonType": 1,
-    "revivesMonsterId": []
-  },
-  "name": "Glowshroom",
-  "framebooks": {
-    "move": 4,
-    "stand": 3,
-    "hit1": 1,
-    "die1": 4
-  },
-  "foundAt": []
+ "id": 54,
+ "name": "Glowshroom",
+ "link": null,
+ "info": {
+  "level": 39,
+  "exp": 82,
+  "maxHP": 1377,
+  "maxMP": 50,
+  "speed": -10,
+  "bodyAttack": 1,
+  "PADamage": 232,
+  "PDDamage": 10,
+  "MADamage": 0,
+  "MDDamage": 10,
+  "acc": 118,
+  "eva": 25,
+  "undead": 0,
+  "pushed": 125,
+  "fs": 10.0,
+  "summonType": 1,
+  "hideLevel": 0
+ },
+ "framebooks": {
+  "move": 4,
+  "stand": 3,
+  "hit1": 1,
+  "die1": 4
+ },
+ "frames": {
+  "move": [
+   {
+    "n": 0,
+    "file": "move_0.png",
+    "size": [
+     50,
+     59
+    ],
+    "origin": [
+     23,
+     51
+    ],
+    "lt": [
+     -18,
+     -36
+    ],
+    "rb": [
+     18,
+     0
+    ],
+    "head": [
+     -4,
+     -38
+    ],
+    "delay": 180
+   },
+   {
+    "n": 1,
+    "file": "move_1.png",
+    "size": [
+     49,
+     59
+    ],
+    "origin": [
+     23,
+     51
+    ],
+    "lt": [
+     -20,
+     -37
+    ],
+    "rb": [
+     15,
+     0
+    ],
+    "head": [
+     -8,
+     -39
+    ],
+    "delay": 180
+   },
+   {
+    "n": 2,
+    "file": "move_2.png",
+    "size": [
+     49,
+     57
+    ],
+    "origin": [
+     22,
+     49
+    ],
+    "lt": [
+     -21,
+     -36
+    ],
+    "rb": [
+     14,
+     0
+    ],
+    "head": [
+     -8,
+     -38
+    ],
+    "delay": 180
+   },
+   {
+    "n": 3,
+    "file": "move_3.png",
+    "size": [
+     51,
+     58
+    ],
+    "origin": [
+     23,
+     50
+    ],
+    "lt": [
+     -23,
+     -36
+    ],
+    "rb": [
+     14,
+     0
+    ],
+    "head": [
+     -8,
+     -38
+    ],
+    "delay": 180
+   }
+  ],
+  "stand": [
+   {
+    "n": 0,
+    "file": "stand_0.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     23,
+     51
+    ],
+    "lt": [
+     -18,
+     -36
+    ],
+    "rb": [
+     18,
+     0
+    ],
+    "head": [
+     -4,
+     -38
+    ],
+    "delay": 180,
+    "_inlink": "move/0"
+   },
+   {
+    "n": 1,
+    "file": "stand_1.png",
+    "size": [
+     50,
+     59
+    ],
+    "origin": [
+     23,
+     51
+    ],
+    "lt": [
+     -18,
+     -36
+    ],
+    "rb": [
+     18,
+     0
+    ],
+    "head": [
+     -3,
+     -38
+    ],
+    "delay": 100
+   },
+   {
+    "n": 2,
+    "file": "stand_2.png",
+    "size": [
+     50,
+     59
+    ],
+    "origin": [
+     23,
+     51
+    ],
+    "lt": [
+     -18,
+     -36
+    ],
+    "rb": [
+     18,
+     0
+    ],
+    "head": [
+     -3,
+     -38
+    ],
+    "delay": 180
+   }
+  ],
+  "hit1": [
+   {
+    "n": 0,
+    "file": "hit1_0.png",
+    "size": [
+     50,
+     61
+    ],
+    "origin": [
+     23,
+     53
+    ],
+    "lt": [
+     -18,
+     -36
+    ],
+    "rb": [
+     18,
+     0
+    ],
+    "head": [
+     -3,
+     -38
+    ],
+    "delay": 600
+   }
+  ],
+  "die1": [
+   {
+    "n": 0,
+    "file": "die1_0.png",
+    "size": [
+     55,
+     54
+    ],
+    "origin": [
+     27,
+     46
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     6,
+     -32
+    ],
+    "delay": 120
+   },
+   {
+    "n": 1,
+    "file": "die1_1.png",
+    "size": [
+     52,
+     48
+    ],
+    "origin": [
+     25,
+     40
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     19,
+     -22
+    ],
+    "delay": 120
+   },
+   {
+    "n": 2,
+    "file": "die1_2.png",
+    "size": [
+     49,
+     52
+    ],
+    "origin": [
+     21,
+     44
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     27,
+     -12
+    ],
+    "delay": 120
+   },
+   {
+    "n": 3,
+    "file": "die1_3.png",
+    "size": [
+     62,
+     43
+    ],
+    "origin": [
+     22,
+     35
+    ],
+    "lt": null,
+    "rb": null,
+    "head": [
+     19,
+     -14
+    ],
+    "delay": 300,
+    "a0": 255,
+    "a1": 0
+   }
+  ]
+ }
 }

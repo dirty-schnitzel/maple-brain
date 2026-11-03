@@ -1,36 +1,1136 @@
 {
-  "id": 700006,
-  "meta": {
-    "isBodyAttack": true,
-    "level": 48,
-    "maxHP": 47000,
-    "maxMP": 250,
-    "speed": 5,
-    "physicalDamage": 620,
-    "physicalDefense": 30,
-    "magicDamage": 682,
-    "magicDefense": 10,
-    "accuracy": 138,
-    "evasion": 35,
-    "exp": 488,
-    "isUndead": true,
-    "minimumPushDamage": 3250,
-    "hpRecovery": 470,
-    "mpRecovery": 25,
-    "elementalAttributes": "S2H3",
-    "summonType": 0,
-    "revivesMonsterId": [],
-    "isBoss": true,
-    "isAutoAggro": true
-  },
-  "name": "Shade",
-  "framebooks": {
-    "move": 6,
-    "stand": 6,
-    "skill1": 15,
-    "skill2": 9,
-    "hit1": 1,
-    "die1": 8
-  },
-  "foundAt": []
+ "id": 700006,
+ "name": "Shade",
+ "link": null,
+ "info": {
+  "level": 48,
+  "exp": 488,
+  "maxHP": 47000,
+  "maxMP": 250,
+  "speed": 5,
+  "bodyAttack": 1,
+  "PADamage": 620,
+  "PDDamage": 30,
+  "MADamage": 682,
+  "MDDamage": 10,
+  "acc": 138,
+  "eva": 35,
+  "undead": 1,
+  "pushed": 3250,
+  "hpRecovery": 470,
+  "mpRecovery": 25,
+  "elemAttr": "S2H3",
+  "boss": 1,
+  "fs": 10.0,
+  "summonType": 0,
+  "firstAttack": 1,
+  "hideLevel": 0,
+  "skill": {
+   "0": {
+    "skill": 120,
+    "action": 2,
+    "level": 4
+   },
+   "1": {
+    "skill": 121,
+    "action": 2,
+    "level": 2
+   },
+   "2": {
+    "skill": 124,
+    "action": 2,
+    "level": 2
+   },
+   "3": {
+    "skill": 200,
+    "action": 2,
+    "level": 5
+   }
+  }
+ },
+ "framebooks": {
+  "move": 6,
+  "stand": 6,
+  "skill1": 15,
+  "skill2": 9,
+  "hit1": 1,
+  "die1": 8
+ },
+ "frames": {
+  "move": [
+   {
+    "n": 0,
+    "file": "move_0.png",
+    "size": [
+     101,
+     98
+    ],
+    "origin": [
+     38,
+     105
+    ],
+    "lt": [
+     -39,
+     -106
+    ],
+    "rb": [
+     63,
+     -7
+    ],
+    "head": [
+     -14,
+     -85
+    ],
+    "delay": 180
+   },
+   {
+    "n": 1,
+    "file": "move_1.png",
+    "size": [
+     102,
+     96
+    ],
+    "origin": [
+     39,
+     101
+    ],
+    "lt": [
+     -39,
+     -101
+    ],
+    "rb": [
+     63,
+     -5
+    ],
+    "head": [
+     -13,
+     -82
+    ],
+    "delay": 180
+   },
+   {
+    "n": 2,
+    "file": "move_2.png",
+    "size": [
+     99,
+     92
+    ],
+    "origin": [
+     39,
+     96
+    ],
+    "lt": [
+     -39,
+     -96
+    ],
+    "rb": [
+     60,
+     -4
+    ],
+    "head": [
+     -13,
+     -80
+    ],
+    "delay": 180
+   },
+   {
+    "n": 3,
+    "file": "move_3.png",
+    "size": [
+     101,
+     91
+    ],
+    "origin": [
+     37,
+     99
+    ],
+    "lt": [
+     -37,
+     -99
+    ],
+    "rb": [
+     64,
+     -8
+    ],
+    "head": [
+     -12,
+     -83
+    ],
+    "delay": 180
+   },
+   {
+    "n": 4,
+    "file": "move_4.png",
+    "size": [
+     104,
+     92
+    ],
+    "origin": [
+     37,
+     100
+    ],
+    "lt": [
+     -37,
+     -100
+    ],
+    "rb": [
+     67,
+     -8
+    ],
+    "head": [
+     -11,
+     -87
+    ],
+    "delay": 180
+   },
+   {
+    "n": 5,
+    "file": "move_5.png",
+    "size": [
+     100,
+     97
+    ],
+    "origin": [
+     38,
+     106
+    ],
+    "lt": [
+     -38,
+     -106
+    ],
+    "rb": [
+     62,
+     -9
+    ],
+    "head": [
+     -16,
+     -87
+    ],
+    "delay": 180
+   }
+  ],
+  "stand": [
+   {
+    "n": 0,
+    "file": "stand_0.png",
+    "size": [
+     1,
+     1
+    ],
+    "origin": [
+     38,
+     105
+    ],
+    "lt": [
+     -38,
+     -105
+    ],
+    "rb": [
+     63,
+     -7
+    ],
+    "head": [
+     -14,
+     -84
+    ],
+    "delay": 180,
+    "_inlink": "move/0"
+   },
+   {
+    "n": 1,
+    "file": "stand_1.png",
+    "size": [
+     102,
+     96
+    ],
+    "origin": [
+     39,
+     101
+    ],
+    "lt": [
+     -39,
+     -101
+    ],
+    "rb": [
+     63,
+     -5
+    ],
+    "head": [
+     -15,
+     -81
+    ],
+    "delay": 180
+   },
+   {
+    "n": 2,
+    "file": "stand_2.png",
+    "size": [
+     99,
+     92
+    ],
+    "origin": [
+     39,
+     96
+    ],
+    "lt": [
+     -39,
+     -96
+    ],
+    "rb": [
+     60,
+     -4
+    ],
+    "head": [
+     -16,
+     -79
+    ],
+    "delay": 180
+   },
+   {
+    "n": 3,
+    "file": "stand_3.png",
+    "size": [
+     101,
+     91
+    ],
+    "origin": [
+     37,
+     99
+    ],
+    "lt": [
+     -37,
+     -99
+    ],
+    "rb": [
+     64,
+     -8
+    ],
+    "head": [
+     -12,
+     -83
+    ],
+    "delay": 180
+   },
+   {
+    "n": 4,
+    "file": "stand_4.png",
+    "size": [
+     104,
+     92
+    ],
+    "origin": [
+     37,
+     100
+    ],
+    "lt": [
+     -37,
+     -100
+    ],
+    "rb": [
+     67,
+     -8
+    ],
+    "head": [
+     -11,
+     -86
+    ],
+    "delay": 180
+   },
+   {
+    "n": 5,
+    "file": "stand_5.png",
+    "size": [
+     100,
+     97
+    ],
+    "origin": [
+     38,
+     106
+    ],
+    "lt": [
+     -38,
+     -106
+    ],
+    "rb": [
+     62,
+     -9
+    ],
+    "head": [
+     -15,
+     -86
+    ],
+    "delay": 180
+   }
+  ],
+  "skill1": [
+   {
+    "n": 0,
+    "file": "skill1_0.png",
+    "size": [
+     102,
+     96
+    ],
+    "origin": [
+     39,
+     101
+    ],
+    "lt": [
+     -39,
+     -101
+    ],
+    "rb": [
+     63,
+     -5
+    ],
+    "head": [
+     -14,
+     -81
+    ],
+    "delay": 120
+   },
+   {
+    "n": 1,
+    "file": "skill1_1.png",
+    "size": [
+     102,
+     100
+    ],
+    "origin": [
+     39,
+     102
+    ],
+    "lt": [
+     -39,
+     -102
+    ],
+    "rb": [
+     63,
+     -2
+    ],
+    "head": [
+     -14,
+     -81
+    ],
+    "delay": 120
+   },
+   {
+    "n": 2,
+    "file": "skill1_2.png",
+    "size": [
+     102,
+     108
+    ],
+    "origin": [
+     39,
+     106
+    ],
+    "lt": [
+     -39,
+     -106
+    ],
+    "rb": [
+     63,
+     2
+    ],
+    "head": [
+     -15,
+     -81
+    ],
+    "delay": 120
+   },
+   {
+    "n": 3,
+    "file": "skill1_3.png",
+    "size": [
+     151,
+     114
+    ],
+    "origin": [
+     88,
+     109
+    ],
+    "lt": [
+     -88,
+     -109
+    ],
+    "rb": [
+     63,
+     5
+    ],
+    "head": [
+     -15,
+     -81
+    ],
+    "delay": 120
+   },
+   {
+    "n": 4,
+    "file": "skill1_4.png",
+    "size": [
+     152,
+     108
+    ],
+    "origin": [
+     89,
+     106
+    ],
+    "lt": [
+     -89,
+     -106
+    ],
+    "rb": [
+     63,
+     3
+    ],
+    "head": [
+     -15,
+     -80
+    ],
+    "delay": 120
+   },
+   {
+    "n": 5,
+    "file": "skill1_5.png",
+    "size": [
+     148,
+     103
+    ],
+    "origin": [
+     85,
+     102
+    ],
+    "lt": [
+     -85,
+     -102
+    ],
+    "rb": [
+     63,
+     1
+    ],
+    "head": [
+     -14,
+     -81
+    ],
+    "delay": 120
+   },
+   {
+    "n": 6,
+    "file": "skill1_6.png",
+    "size": [
+     141,
+     100
+    ],
+    "origin": [
+     78,
+     101
+    ],
+    "lt": [
+     -78,
+     -101
+    ],
+    "rb": [
+     63,
+     -1
+    ],
+    "head": [
+     -12,
+     -81
+    ],
+    "delay": 120
+   },
+   {
+    "n": 7,
+    "file": "skill1_7.png",
+    "size": [
+     134,
+     104
+    ],
+    "origin": [
+     71,
+     101
+    ],
+    "lt": [
+     -71,
+     -101
+    ],
+    "rb": [
+     63,
+     3
+    ],
+    "head": [
+     -15,
+     -81
+    ],
+    "delay": 120
+   },
+   {
+    "n": 8,
+    "file": "skill1_8.png",
+    "size": [
+     146,
+     115
+    ],
+    "origin": [
+     83,
+     101
+    ],
+    "lt": [
+     -83,
+     -101
+    ],
+    "rb": [
+     63,
+     14
+    ],
+    "head": [
+     -14,
+     -80
+    ],
+    "delay": 120
+   },
+   {
+    "n": 9,
+    "file": "skill1_9.png",
+    "size": [
+     157,
+     129
+    ],
+    "origin": [
+     94,
+     102
+    ],
+    "lt": [
+     -94,
+     -102
+    ],
+    "rb": [
+     63,
+     27
+    ],
+    "head": [
+     -13,
+     -81
+    ],
+    "delay": 120
+   },
+   {
+    "n": 10,
+    "file": "skill1_10.png",
+    "size": [
+     172,
+     117
+    ],
+    "origin": [
+     109,
+     108
+    ],
+    "lt": [
+     -109,
+     -108
+    ],
+    "rb": [
+     63,
+     9
+    ],
+    "head": [
+     -14,
+     -80
+    ],
+    "delay": 120
+   },
+   {
+    "n": 11,
+    "file": "skill1_11.png",
+    "size": [
+     172,
+     131
+    ],
+    "origin": [
+     109,
+     122
+    ],
+    "lt": [
+     -109,
+     -122
+    ],
+    "rb": [
+     63,
+     9
+    ],
+    "head": [
+     -14,
+     -81
+    ],
+    "delay": 120
+   },
+   {
+    "n": 12,
+    "file": "skill1_12.png",
+    "size": [
+     150,
+     131
+    ],
+    "origin": [
+     87,
+     123
+    ],
+    "lt": [
+     -87,
+     -123
+    ],
+    "rb": [
+     63,
+     8
+    ],
+    "head": [
+     -12,
+     -80
+    ],
+    "delay": 120
+   },
+   {
+    "n": 13,
+    "file": "skill1_13.png",
+    "size": [
+     150,
+     109
+    ],
+    "origin": [
+     87,
+     101
+    ],
+    "lt": [
+     -87,
+     -101
+    ],
+    "rb": [
+     63,
+     8
+    ],
+    "head": [
+     -12,
+     -81
+    ],
+    "delay": 120
+   },
+   {
+    "n": 14,
+    "file": "skill1_14.png",
+    "size": [
+     102,
+     96
+    ],
+    "origin": [
+     39,
+     101
+    ],
+    "lt": [
+     -39,
+     -101
+    ],
+    "rb": [
+     63,
+     -5
+    ],
+    "head": [
+     -12,
+     -80
+    ],
+    "delay": 120
+   }
+  ],
+  "skill2": [
+   {
+    "n": 0,
+    "file": "skill2_0.png",
+    "size": [
+     102,
+     96
+    ],
+    "origin": [
+     39,
+     101
+    ],
+    "lt": [
+     -39,
+     -101
+    ],
+    "rb": [
+     63,
+     -5
+    ],
+    "head": [
+     -14,
+     -81
+    ],
+    "delay": 120,
+    "same": "skill1_0.png"
+   },
+   {
+    "n": 1,
+    "file": "skill2_1.png",
+    "size": [
+     102,
+     100
+    ],
+    "origin": [
+     39,
+     102
+    ],
+    "lt": [
+     -39,
+     -102
+    ],
+    "rb": [
+     63,
+     -2
+    ],
+    "head": [
+     -14,
+     -81
+    ],
+    "delay": 120,
+    "same": "skill1_1.png"
+   },
+   {
+    "n": 2,
+    "file": "skill2_2.png",
+    "size": [
+     102,
+     108
+    ],
+    "origin": [
+     39,
+     106
+    ],
+    "lt": [
+     -39,
+     -106
+    ],
+    "rb": [
+     63,
+     2
+    ],
+    "head": [
+     -15,
+     -81
+    ],
+    "delay": 120,
+    "same": "skill1_2.png"
+   },
+   {
+    "n": 3,
+    "file": "skill2_3.png",
+    "size": [
+     102,
+     100
+    ],
+    "origin": [
+     39,
+     102
+    ],
+    "lt": [
+     -39,
+     -102
+    ],
+    "rb": [
+     63,
+     -2
+    ],
+    "head": [
+     -14,
+     -81
+    ],
+    "delay": 120,
+    "same": "skill1_1.png"
+   },
+   {
+    "n": 4,
+    "file": "skill2_4.png",
+    "size": [
+     102,
+     108
+    ],
+    "origin": [
+     39,
+     106
+    ],
+    "lt": [
+     -39,
+     -106
+    ],
+    "rb": [
+     63,
+     2
+    ],
+    "head": [
+     -15,
+     -81
+    ],
+    "delay": 120,
+    "same": "skill1_2.png"
+   },
+   {
+    "n": 5,
+    "file": "skill2_5.png",
+    "size": [
+     102,
+     100
+    ],
+    "origin": [
+     39,
+     102
+    ],
+    "lt": [
+     -39,
+     -102
+    ],
+    "rb": [
+     63,
+     -2
+    ],
+    "head": [
+     -14,
+     -81
+    ],
+    "delay": 120,
+    "same": "skill1_1.png"
+   },
+   {
+    "n": 6,
+    "file": "skill2_6.png",
+    "size": [
+     102,
+     108
+    ],
+    "origin": [
+     39,
+     106
+    ],
+    "lt": [
+     -39,
+     -106
+    ],
+    "rb": [
+     63,
+     2
+    ],
+    "head": [
+     -15,
+     -81
+    ],
+    "delay": 120,
+    "same": "skill1_2.png"
+   },
+   {
+    "n": 7,
+    "file": "skill2_7.png",
+    "size": [
+     102,
+     100
+    ],
+    "origin": [
+     39,
+     102
+    ],
+    "lt": [
+     -39,
+     -102
+    ],
+    "rb": [
+     63,
+     -2
+    ],
+    "head": [
+     -14,
+     -81
+    ],
+    "delay": 120,
+    "same": "skill1_1.png"
+   },
+   {
+    "n": 8,
+    "file": "skill2_8.png",
+    "size": [
+     102,
+     96
+    ],
+    "origin": [
+     39,
+     101
+    ],
+    "lt": [
+     -39,
+     -101
+    ],
+    "rb": [
+     63,
+     -5
+    ],
+    "head": [
+     -14,
+     -81
+    ],
+    "delay": 120,
+    "same": "skill1_0.png"
+   }
+  ],
+  "hit1": [
+   {
+    "n": 0,
+    "file": "hit1_0.png",
+    "size": [
+     85,
+     122
+    ],
+    "origin": [
+     33,
+     125
+    ],
+    "lt": [
+     -33,
+     -125
+    ],
+    "rb": [
+     52,
+     -3
+    ],
+    "head": [
+     -4,
+     -92
+    ],
+    "delay": 600
+   }
+  ],
+  "die1": [
+   {
+    "n": 0,
+    "file": "die1_0.png",
+    "size": [
+     85,
+     122
+    ],
+    "origin": [
+     36,
+     127
+    ],
+    "lt": null,
+    "rb": null,
+    "head": null,
+    "delay": 150
+   },
+   {
+    "n": 1,
+    "file": "die1_1.png",
+    "size": [
+     89,
+     128
+    ],
+    "origin": [
+     38,
+     129
+    ],
+    "lt": null,
+    "rb": null,
+    "head": null,
+    "delay": 150
+   },
+   {
+    "n": 2,
+    "file": "die1_2.png",
+    "size": [
+     83,
+     130
+    ],
+    "origin": [
+     35,
+     131
+    ],
+    "lt": null,
+    "rb": null,
+    "head": null,
+    "delay": 150
+   },
+   {
+    "n": 3,
+    "file": "die1_3.png",
+    "size": [
+     81,
+     147
+    ],
+    "origin": [
+     34,
+     145
+    ],
+    "lt": null,
+    "rb": null,
+    "head": null,
+    "delay": 150
+   },
+   {
+    "n": 4,
+    "file": "die1_4.png",
+    "size": [
+     78,
+     151
+    ],
+    "origin": [
+     33,
+     145
+    ],
+    "lt": null,
+    "rb": null,
+    "head": null,
+    "delay": 150
+   },
+   {
+    "n": 5,
+    "file": "die1_5.png",
+    "size": [
+     76,
+     151
+    ],
+    "origin": [
+     31,
+     142
+    ],
+    "lt": null,
+    "rb": null,
+    "head": null,
+    "delay": 150
+   },
+   {
+    "n": 6,
+    "file": "die1_6.png",
+    "size": [
+     72,
+     152
+    ],
+    "origin": [
+     30,
+     142
+    ],
+    "lt": null,
+    "rb": null,
+    "head": null,
+    "delay": 150
+   },
+   {
+    "n": 7,
+    "file": "die1_7.png",
+    "size": [
+     64,
+     140
+    ],
+    "origin": [
+     27,
+     137
+    ],
+    "lt": null,
+    "rb": null,
+    "head": null,
+    "delay": 150
+   }
+  ]
+ }
 }

@@ -1,798 +1,562 @@
 {
-  "backgroundMusic": "Bgm01/BadGuys",
-  "isReturnMap": false,
+ "id": 10003001,
+ "name": "Kerning City Self-Defence Item Store",
+ "streetName": "Victoria Road",
+ "mobRate": 1.0,
+ "isTown": true,
+ "returnMap": 10003000,
+ "footholds": {
+  "1": {
+   "id": 1,
+   "x1": 184,
+   "y1": -33,
+   "x2": 230,
+   "y2": -33,
+   "prev": 4,
+   "next": 2,
+   "piece": 0,
+   "layerId": 0,
+   "groupId": 1
+  },
+  "2": {
+   "id": 2,
+   "x1": 230,
+   "y1": -33,
+   "x2": 230,
+   "y2": -101,
+   "prev": 1,
+   "next": 3,
+   "piece": 0,
+   "layerId": 0,
+   "groupId": 1
+  },
+  "3": {
+   "id": 3,
+   "x1": 230,
+   "y1": -101,
+   "x2": 184,
+   "y2": -101,
+   "prev": 2,
+   "next": 4,
+   "piece": 0,
+   "layerId": 0,
+   "groupId": 1
+  },
+  "4": {
+   "id": 4,
+   "x1": 184,
+   "y1": -101,
+   "x2": 184,
+   "y2": -33,
+   "prev": 3,
+   "next": 1,
+   "piece": 0,
+   "layerId": 0,
+   "groupId": 1
+  },
+  "5": {
+   "id": 5,
+   "x1": -378,
+   "y1": -357,
+   "x2": -378,
+   "y2": 181,
+   "prev": 0,
+   "next": 6,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "6": {
+   "id": 6,
+   "x1": -378,
+   "y1": 181,
+   "x2": 364,
+   "y2": 181,
+   "prev": 5,
+   "next": 7,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "7": {
+   "id": 7,
+   "x1": 364,
+   "y1": 181,
+   "x2": 364,
+   "y2": -238,
+   "prev": 6,
+   "next": 21,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "8": {
+   "id": 8,
+   "x1": -273,
+   "y1": -356,
+   "x2": -273,
+   "y2": -47,
+   "prev": 0,
+   "next": 9,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "9": {
+   "id": 9,
+   "x1": -273,
+   "y1": -47,
+   "x2": 63,
+   "y2": -47,
+   "prev": 8,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "10": {
+   "id": 10,
+   "x1": 57,
+   "y1": -18,
+   "x2": 363,
+   "y2": -18,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "11": {
+   "id": 11,
+   "x1": 76,
+   "y1": 159,
+   "x2": 160,
+   "y2": 159,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "12": {
+   "id": 12,
+   "x1": 98,
+   "y1": 138,
+   "x2": 182,
+   "y2": 138,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "13": {
+   "id": 13,
+   "x1": 118,
+   "y1": 117,
+   "x2": 202,
+   "y2": 117,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "14": {
+   "id": 14,
+   "x1": 142,
+   "y1": 96,
+   "x2": 226,
+   "y2": 96,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "15": {
+   "id": 15,
+   "x1": 122,
+   "y1": 75,
+   "x2": 206,
+   "y2": 75,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "16": {
+   "id": 16,
+   "x1": 101,
+   "y1": 54,
+   "x2": 185,
+   "y2": 54,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "17": {
+   "id": 17,
+   "x1": 79,
+   "y1": 33,
+   "x2": 163,
+   "y2": 33,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "18": {
+   "id": 18,
+   "x1": 59,
+   "y1": 12,
+   "x2": 143,
+   "y2": 12,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "19": {
+   "id": 19,
+   "x1": 57,
+   "y1": -8,
+   "x2": 123,
+   "y2": -8,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "20": {
+   "id": 20,
+   "x1": -103,
+   "y1": -238,
+   "x2": 364,
+   "y2": -238,
+   "prev": 0,
+   "next": 21,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "21": {
+   "id": 21,
+   "x1": 364,
+   "y1": -238,
+   "x2": 364,
+   "y2": -372,
+   "prev": 20,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "22": {
+   "id": 22,
+   "x1": -45,
+   "y1": -258,
+   "x2": 15,
+   "y2": -258,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "23": {
+   "id": 23,
+   "x1": -45,
+   "y1": -276,
+   "x2": -3,
+   "y2": -276,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "24": {
+   "id": 24,
+   "x1": -45,
+   "y1": -294,
+   "x2": -23,
+   "y2": -294,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "25": {
+   "id": 25,
+   "x1": -250,
+   "y1": -79,
+   "x2": -123,
+   "y2": -79,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "26": {
+   "id": 26,
+   "x1": 234,
+   "y1": -32,
+   "x2": 181,
+   "y2": -32,
+   "prev": 29,
+   "next": 27,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "27": {
+   "id": 27,
+   "x1": 181,
+   "y1": -32,
+   "x2": 181,
+   "y2": -105,
+   "prev": 26,
+   "next": 28,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "28": {
+   "id": 28,
+   "x1": 181,
+   "y1": -105,
+   "x2": 234,
+   "y2": -105,
+   "prev": 27,
+   "next": 29,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "29": {
+   "id": 29,
+   "x1": 234,
+   "y1": -105,
+   "x2": 234,
+   "y2": -32,
+   "prev": 28,
+   "next": 26,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  },
+  "30": {
+   "id": 30,
+   "x1": -366,
+   "y1": -78,
+   "x2": -312,
+   "y2": -78,
+   "prev": 0,
+   "next": 0,
+   "piece": 0,
+   "layerId": 1,
+   "groupId": 2
+  }
+ },
+ "ladderRopes": [
+  {
+   "index": 1,
+   "x": -79,
+   "y1": -236,
+   "y2": -82,
+   "isLadder": true,
+   "uf": 1,
+   "page": 2,
+   "piece": 0
+  }
+ ],
+ "mobs": [],
+ "npcs": [
+  {
+   "index": 0,
+   "id": 408,
+   "x": 214,
+   "y": -33,
+   "spriteY": -34,
+   "footholdId": 1,
+   "walkAreaX1": 204,
+   "walkAreaX2": 214,
+   "hidden": false,
+   "flip": false,
+   "mobTime": 0
+  },
+  {
+   "index": 1,
+   "id": 409,
+   "x": -249,
+   "y": -47,
+   "spriteY": -49,
+   "footholdId": 9,
+   "walkAreaX1": -299,
+   "walkAreaX2": -199,
+   "hidden": false,
+   "flip": false,
+   "mobTime": 0
+  }
+ ],
+ "portals": [
+  {
+   "index": 0,
+   "portalName": "sp",
+   "type": 0,
+   "x": 254,
+   "y": 132,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 1,
+   "portalName": "sp",
+   "type": 0,
+   "x": 303,
+   "y": 132,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 2,
+   "portalName": "sp",
+   "type": 0,
+   "x": -96,
+   "y": 149,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 3,
+   "portalName": "sp",
+   "type": 0,
+   "x": -163,
+   "y": 144,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 4,
+   "portalName": "sp",
+   "type": 0,
+   "x": -241,
+   "y": 139,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 5,
+   "portalName": "sp",
+   "type": 0,
+   "x": -252,
+   "y": -81,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 6,
+   "portalName": "sp",
+   "type": 0,
+   "x": -186,
+   "y": -79,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 7,
+   "portalName": "sp",
+   "type": 0,
+   "x": -136,
+   "y": -79,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 8,
+   "portalName": "sp",
+   "type": 0,
+   "x": -83,
+   "y": -83,
+   "toMap": 999999999,
+   "toName": ""
+  },
+  {
+   "index": 9,
+   "portalName": "out01",
+   "type": 1,
+   "x": -298,
+   "y": 184,
+   "toMap": 10003000,
+   "toName": "in01_1"
+  },
+  {
+   "index": 10,
+   "portalName": "out02",
+   "type": 1,
+   "x": -31,
+   "y": -293,
+   "toMap": 10003000,
+   "toName": "in01_2"
+  },
+  {
+   "index": 11,
+   "portalName": "out00",
+   "type": 2,
+   "x": 279,
+   "y": 180,
+   "toMap": 10003000,
+   "toName": "in01"
+  }
+ ],
+ "vrBounds": {
+  "left": -400,
+  "top": -370,
+  "right": 400,
+  "bottom": 300
+ },
+ "info": {
+  "version": 10,
+  "cloud": 0,
+  "town": 1,
   "returnMap": 10003000,
-  "portals": [
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": 254,
-      "y": 132,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": 254,
-        "y": 132,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": 254,
-          "y": 132,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 132,
-        "right": 255,
-        "bottom": 133,
-        "left": 254
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": 303,
-      "y": 132,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": 303,
-        "y": 132,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": 303,
-          "y": 132,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 132,
-        "right": 304,
-        "bottom": 133,
-        "left": 303
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -96,
-      "y": 149,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -96,
-        "y": 149,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -96,
-          "y": 149,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 149,
-        "right": -95,
-        "bottom": 150,
-        "left": -96
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -163,
-      "y": 144,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -163,
-        "y": 144,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -163,
-          "y": 144,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 144,
-        "right": -162,
-        "bottom": 145,
-        "left": -163
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -241,
-      "y": 139,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -241,
-        "y": 139,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -241,
-          "y": 139,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": 139,
-        "right": -240,
-        "bottom": 140,
-        "left": -241
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -252,
-      "y": -81,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -252,
-        "y": -81,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -252,
-          "y": -81,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": -81,
-        "right": -251,
-        "bottom": -80,
-        "left": -252
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -186,
-      "y": -79,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -186,
-        "y": -79,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -186,
-          "y": -79,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": -79,
-        "right": -185,
-        "bottom": -78,
-        "left": -186
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -136,
-      "y": -79,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -136,
-        "y": -79,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -136,
-          "y": -79,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": -79,
-        "right": -135,
-        "bottom": -78,
-        "left": -136
-      }
-    },
-    {
-      "portalName": "sp",
-      "toName": "",
-      "type": 0,
-      "toMap": 999999999,
-      "x": -83,
-      "y": -83,
-      "isStarForcePortal": false,
-      "index": 0,
-      "unknownExit": true,
-      "bounds": {
-        "x": -83,
-        "y": -83,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -83,
-          "y": -83,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": -83,
-        "right": -82,
-        "bottom": -82,
-        "left": -83
-      }
-    },
-    null,
-    null,
-    null
-  ],
-  "npcs": [
-    {
-      "x": 214,
-      "y": -33,
-      "walkAreaX1": 204,
-      "walkAreaX2": 214,
-      "id": 408,
-      "footholdId": 1,
-      "foothold": {
-        "id": 1,
-        "next": 2,
-        "prev": 4,
-        "piece": 0,
-        "x1": 184,
-        "x2": 230,
-        "y1": -33,
-        "y2": -33,
-        "layerId": 0,
-        "groupId": 1
-      },
-      "hidden": false,
-      "type": 0,
-      "link": "/npc/408",
-      "index": 0,
-      "position": {},
-      "bounds": {
-        "x": 214,
-        "y": -33,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": 214,
-          "y": -33,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": -33,
-        "right": 215,
-        "bottom": -32,
-        "left": 214
-      },
-      "flip": false
-    },
-    {
-      "x": -249,
-      "y": -47,
-      "walkAreaX1": -299,
-      "walkAreaX2": -199,
-      "id": 409,
-      "footholdId": 9,
-      "foothold": {
-        "id": 9,
-        "next": 0,
-        "prev": 8,
-        "piece": 0,
-        "x1": -273,
-        "x2": 63,
-        "y1": -47,
-        "y2": -47,
-        "layerId": 1,
-        "groupId": 2
-      },
-      "hidden": false,
-      "type": 0,
-      "link": "/npc/409",
-      "index": 1,
-      "position": {},
-      "bounds": {
-        "x": -249,
-        "y": -47,
-        "width": 1,
-        "height": 1,
-        "location": {
-          "x": -249,
-          "y": -47,
-          "isEmpty": false
-        },
-        "size": {
-          "width": 1,
-          "height": 1,
-          "isEmpty": false
-        },
-        "isEmpty": false,
-        "top": -47,
-        "right": -248,
-        "bottom": -46,
-        "left": -249
-      },
-      "flip": false
-    }
-  ],
-  "mobs": [],
-  "mobRate": 1,
-  "isTown": true,
-  "isSwim": false,
+  "mobRate": 1.0,
+  "bgm": "Bgm01/BadGuys",
+  "VRTop": -370,
+  "VRLeft": -400,
+  "VRBottom": 300,
+  "VRRight": 400,
+  "forcedReturn": 999999999,
+  "mapDesc": "",
+  "hideMinimap": 0,
+  "moveLimit": 0,
   "mapMark": "KerningCity",
-  "footholds": {
-    "20": {
-      "id": 20,
-      "next": 21,
-      "prev": 0,
-      "piece": 0,
-      "x1": -103,
-      "x2": 364,
-      "y1": -238,
-      "y2": -238,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "27": {
-      "id": 27,
-      "next": 28,
-      "prev": 26,
-      "piece": 0,
-      "x1": 181,
-      "x2": 181,
-      "y1": -32,
-      "y2": -105,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "26": {
-      "id": 26,
-      "next": 27,
-      "prev": 29,
-      "piece": 0,
-      "x1": 234,
-      "x2": 181,
-      "y1": -32,
-      "y2": -32,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "12": {
-      "id": 12,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 98,
-      "x2": 182,
-      "y1": 138,
-      "y2": 138,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "8": {
-      "id": 8,
-      "next": 9,
-      "prev": 0,
-      "piece": 0,
-      "x1": -273,
-      "x2": -273,
-      "y1": -356,
-      "y2": -47,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "3": {
-      "id": 3,
-      "next": 4,
-      "prev": 2,
-      "piece": 0,
-      "x1": 230,
-      "x2": 184,
-      "y1": -101,
-      "y2": -101,
-      "layerId": 0,
-      "groupId": 1
-    },
-    "11": {
-      "id": 11,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 76,
-      "x2": 160,
-      "y1": 159,
-      "y2": 159,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "1": {
-      "id": 1,
-      "next": 2,
-      "prev": 4,
-      "piece": 0,
-      "x1": 184,
-      "x2": 230,
-      "y1": -33,
-      "y2": -33,
-      "layerId": 0,
-      "groupId": 1
-    },
-    "30": {
-      "id": 30,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -366,
-      "x2": -312,
-      "y1": -78,
-      "y2": -78,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "10": {
-      "id": 10,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 57,
-      "x2": 363,
-      "y1": -18,
-      "y2": -18,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "6": {
-      "id": 6,
-      "next": 7,
-      "prev": 5,
-      "piece": 0,
-      "x1": -378,
-      "x2": 364,
-      "y1": 181,
-      "y2": 181,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "17": {
-      "id": 17,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 79,
-      "x2": 163,
-      "y1": 33,
-      "y2": 33,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "22": {
-      "id": 22,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -45,
-      "x2": 15,
-      "y1": -258,
-      "y2": -258,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "4": {
-      "id": 4,
-      "next": 1,
-      "prev": 3,
-      "piece": 0,
-      "x1": 184,
-      "x2": 184,
-      "y1": -101,
-      "y2": -33,
-      "layerId": 0,
-      "groupId": 1
-    },
-    "21": {
-      "id": 21,
-      "next": 0,
-      "prev": 20,
-      "piece": 0,
-      "x1": 364,
-      "x2": 364,
-      "y1": -238,
-      "y2": -372,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "2": {
-      "id": 2,
-      "next": 3,
-      "prev": 1,
-      "piece": 0,
-      "x1": 230,
-      "x2": 230,
-      "y1": -33,
-      "y2": -101,
-      "layerId": 0,
-      "groupId": 1
-    },
-    "14": {
-      "id": 14,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 142,
-      "x2": 226,
-      "y1": 96,
-      "y2": 96,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "7": {
-      "id": 7,
-      "next": 21,
-      "prev": 6,
-      "piece": 0,
-      "x1": 364,
-      "x2": 364,
-      "y1": 181,
-      "y2": -238,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "13": {
-      "id": 13,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 118,
-      "x2": 202,
-      "y1": 117,
-      "y2": 117,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "5": {
-      "id": 5,
-      "next": 6,
-      "prev": 0,
-      "piece": 0,
-      "x1": -378,
-      "x2": -378,
-      "y1": -357,
-      "y2": 181,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "19": {
-      "id": 19,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 57,
-      "x2": 123,
-      "y1": -8,
-      "y2": -8,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "25": {
-      "id": 25,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -250,
-      "x2": -123,
-      "y1": -79,
-      "y2": -79,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "18": {
-      "id": 18,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 59,
-      "x2": 143,
-      "y1": 12,
-      "y2": 12,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "24": {
-      "id": 24,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -45,
-      "x2": -23,
-      "y1": -294,
-      "y2": -294,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "23": {
-      "id": 23,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": -45,
-      "x2": -3,
-      "y1": -276,
-      "y2": -276,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "9": {
-      "id": 9,
-      "next": 0,
-      "prev": 8,
-      "piece": 0,
-      "x1": -273,
-      "x2": 63,
-      "y1": -47,
-      "y2": -47,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "29": {
-      "id": 29,
-      "next": 26,
-      "prev": 28,
-      "piece": 0,
-      "x1": 234,
-      "x2": 234,
-      "y1": -105,
-      "y2": -32,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "16": {
-      "id": 16,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 101,
-      "x2": 185,
-      "y1": 54,
-      "y2": 54,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "28": {
-      "id": 28,
-      "next": 29,
-      "prev": 27,
-      "piece": 0,
-      "x1": 181,
-      "x2": 234,
-      "y1": -105,
-      "y2": -105,
-      "layerId": 1,
-      "groupId": 2
-    },
-    "15": {
-      "id": 15,
-      "next": 0,
-      "prev": 0,
-      "piece": 0,
-      "x1": 122,
-      "x2": 206,
-      "y1": 75,
-      "y2": 75,
-      "layerId": 1,
-      "groupId": 2
-    }
-  },
-  "vrBounds": {
-    "x": -400,
-    "y": -370,
-    "width": 800,
-    "height": 670,
-    "location": {
-      "x": -400,
-      "y": -370,
-      "isEmpty": false
-    },
-    "size": {
-      "width": 800,
-      "height": 670,
-      "isEmpty": false
-    },
-    "isEmpty": false,
-    "top": -370,
-    "right": 400,
-    "bottom": 300,
-    "left": -400
-  },
-  "returnMapName": {
-    "name": "Kerning City",
-    "streetName": "Victoria Road",
-    "id": 10003000
-  },
-  "ladderRopes": [
-    {
-      "x": -79,
-      "y1": -236,
-      "y2": -82,
-      "isLadder": true
-    }
-  ],
-  "name": "Kerning City Self-Defence Item Store",
-  "streetName": "Victoria Road",
-  "id": 10003001
+  "swim": 0,
+  "fly": 0,
+  "standAlone": 0,
+  "partyStandAlone": 0,
+  "quarterView": 0,
+  "noMapCmd": 0,
+  "fieldLimit": 0,
+  "fieldLimit2": 0,
+  "fieldType": 0,
+  "AmbientBGM": "",
+  "AmbientBGMv": 100,
+  "MRLeft": -400,
+  "MRTop": -370,
+  "MRRight": 400,
+  "MRBottom": 300,
+  "fieldScript": "",
+  "onFirstUserEnter": "",
+  "onUserEnter": ""
+ }
 }
