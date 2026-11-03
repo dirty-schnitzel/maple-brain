@@ -45,8 +45,9 @@ and canvases, mob stats, sprite pixels all equal except where the API was wrong 
 - Found on the way: `sprites._cover` looped forever on flat one-colour poses (score -1 even on themselves; the
   client has 1x1 placeholder frames) -> fixed + test.
 Tests: 959 green (new `test_gamedata.py` = the converter on a tiny fake export + checks on the real assets; 2 runner
-tests for the missing-map path). **Not live-tested yet** - the next live run is the check (same pictures and
-geometry, so no behaviour change is expected; recognition/sprite/navmap tests all pass on the new files).
+tests for the missing-map path). **Live-tested 2026-11-03** `runs/client1` (2 min, Rain-Forest 10001070, no `--map`,
+`--loot --loot-sight`): map recognised from the new minimaps (score 0.75, next 0.42), Pig/Ribbon Pig sprites, 9 platforms,
+2 ropes, 53 links; 20 kills, 11 jumps, 11.7 fps, no errors, no Lie Detector.
 **After a game patch (the user, 2026-11-03):** reading the client doesn't make patches free. Re-copy `Data`,
 re-export, rebuild, run pytest, then **read `assets/mcw/changes.txt`** (+ `git diff --stat assets/mcw`) and look
 again at whatever the bot is tuned on that changed (footholds/ropes of the farming maps, minimap pictures for map
