@@ -165,7 +165,7 @@ def _init_map(rig: "Rig", say, frames: int = 3) -> bool:
         return False
     if m.map_id != rig.cfg.perception.map_id:
         alt = f" (next: {m.runner_up} {_map_name(m.runner_up)} {m.runner_score:.2f})" if m.runner_up is not None else ""
-        say(f"map recognised: {m.map_id} {_map_name(m.map_id)}, score {m.score:.2f}{alt}, {took * 1000:.0f} ms")
+        say(f"map recognised: {m.map_id} {_map_name(m.map_id)}, score {m.score:.2f}{alt}{', ' + m.why if m.why else ''}, {took * 1000:.0f} ms")
     return _load_map(rig, m.map_id, say)
 
 

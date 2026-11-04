@@ -1,4 +1,4 @@
-# maplebot — session handoff (updated 2026-11-04, session 19: the mob tracker + cover masks + livemap + `--tracker` shim, next = brain (see 'NEXT GOALS'); session 18: GPU mob detection `--gpu`; session 17: game data from the client files only; session 14: idle walks head for the densest spawns; session 13: loot OFF)
+# maplebot — session handoff (updated 2026-11-04, session 20: look-alike maps by name + Line 1 5-min test, NEXT = brain navigates Line 1; session 19: the mob tracker + cover masks + livemap + `--tracker` shim, next = brain (see 'NEXT GOALS'); session 18: GPU mob detection `--gpu`; session 17: game data from the client files only; session 14: idle walks head for the densest spawns; session 13: loot OFF)
 
 ## Goal
 A **fully automated mob farmer** for **MapleStory Classic World** (official GMS Classic, launched 2026-10-21):
@@ -13,7 +13,54 @@ their pet (while it was summoned, targeting got drastically worse) and re-added 
 off: runs need `--loot --loot-sight` (`--loot-sight` alone is ignored). See the suspected loot bug below.
 **Jumping work continues in its own session: read 'Jumping work: START HERE' below** (live on the Rain-Forest).
 
-## Session 19 (2026-11-04, branch `perception`): the tracker - START HERE
+## Session 20 (2026-11-04, branch `perception`) - NEXT TASK: the brain navigates Line 1 - START HERE
+**Done this session (UNCOMMITTED - ask the user before committing):**
+- **Look-alike maps told apart by the name** (`nav/identify.py`, quick fix, no OCR - the user: "quick fix no ocr";
+  HP/MP/EXP reading is fine as is, no refactor). Only when the minimap pictures tie (within `lead` 0.05): each tied
+  map's map.json `name` is drawn in Arial Bold 12 px without smoothing (closest to the game's title font; Tahoma /
+  Verdana / Arial Narrow scored near 0), lined up on the shared prefix, and only the differing glyph runs are compared
+  (each +-1 px on its own). Pick if best >= 0.5 and 0.15 ahead, else refuse as before ("two maps look alike").
+  Line 1 is a 3-way tie: Line 1 <Area 1> 0.89 / Line 1 <Area 2> 0.87 / **Line 2** <Area 1> 0.85 -> names 0.86 /
+  0.59 / 0.60. 18/18 recorded frames right; live: "told apart by the name" (2.5 s at F7). Not tested: standing in
+  Area 2 itself (only a synthetic test). Shared names (Mushroom Town x2, Backalley Semi-Basement x2, Shortcut x2,
+  Coconut Harvest x3) stay refused. Tests: `tests/test_identify.py` (+ fixtures `10003061_line1_area1_{0,1,2}.png`).
+  `--map` is no longer needed on Line 1.
+- **5-min live test `runs/l1a1_5m`** (`run --tracker --gpu`, no --map, Line 1 <Area 1>): 40 kills / 300 s (8/min;
+  l1a1_trk2 3 min: 16). Time: ENGAGE 118 s (39 %), SEEK 117 s (39 %), LOOT 65 s (22 %).
+  - **SEEK with mobs tracked on OTHER platforms: 79 s (26 % of the run)**; the tracker saw mobs on our platform the
+    brain didn't use for only 1 s -> perception is fine, the brain fights its own floor only. We spent the run on the
+    ground (platform 244, x -305..3185, the whole map); mobs mostly on platforms 273 / 111 (then 46, 79, 33),
+    median 260 px above us, 270 px to the side.
+  - **Idle-walk ping-pong** (the user's log: "walking right, toward the densest spawns (map x 2737, we're at 2436)" /
+    "walking left" every ~1 s): the ground's 18 spawns are spread evenly (-253 .. 3136), so the "densest" x is
+    arbitrary, and `_spawn_way` has no hysteresis at `spawn_home` 300 (2436 is 301 away). Why it turns *left*
+    rather than walking on right isn't traced yet (a `blocked` right? the 'avoiding ... where we were hidden' rule?).
+  - Other: LOOT 22 waits, 10 picked up nothing; 17 kills by others (10 were our target, 19 s); 69 loop stalls
+    > 0.3 s = 34 s; "too close -> step back" in 38 of 42 fights (Bubblings walk into us); perceive 53 ms median.
+
+### NEXT TASK (the user, 2026-11-04): design and implement a solution for the brain to navigate Line 1
+Goal: on Line 1 <Area 1> (10003061: 25 platforms, 18 ropes/ladders, 358 links) the brain goes where the mobs are,
+instead of pacing the ground floor. Design first (short plan to the user), then build, then A/B with 5-min runs
+(baseline = `runs/l1a1_5m`: 40 kills, 79 s of SEEK with mobs on other platforms).
+Pieces the design has to cover:
+1. **Target choice across platforms:** nothing fair on our floor -> nearest tracked live mob by route cost
+   (`NavMap.route`: walk / jump / drop / fall / grab / ladder links, cost in seconds), not by straight distance;
+   skip dying / about-to-be-taken mobs; prefer platforms with several mobs.
+2. **Executing a route:** walk to the take-off point, jump / drop / climb (ropes & ladders: grab, climb, exit at
+   the top), re-plan when we land somewhere else; give up + blacklist a link that fails twice. Existing pieces: jump &
+   drop groundwork (session 11, 'Jumping work: START HERE'), "target on lower ground -> stepping down to it",
+   `step_ahead`, `landing`, `rope_at`. Ladder climbing is the new part (check what exists first).
+3. **Fighting on any platform:** engage / reach / edge rules must work on narrow upper platforms (don't walk off an
+   edge mid-fight unless that's the plan; edges = platform ends from the navmap).
+4. **Idle when nothing is tracked anywhere:** replace "densest spawns" on Line 1 with a patrol between platforms
+   (or the platform with the most spawns / recent sightings); fix the `_spawn_way` hysteresis either way (walk until
+   well inside, e.g. 150 px; skip when spawns are spread evenly).
+5. **Safety:** leash in map coordinates (today minimap px from the start dot), Lie Detector / HP stop unchanged;
+   randomised timings everywhere (memory: no fixed timings).
+Tools: `livemap` (watch it live), `tools/perc/track_run.py`, ticks.jsonl `obs.mobs` (tracks with `platform`),
+`obs.platform` (ours). Then the 'NEXT GOALS' list below still applies (shim confirm, Phase 0 executor).
+
+## Session 19 (2026-11-04, branch `perception`): the tracker
 Commits on `perception` (`main` untouched, the user merges): `746649b` session 18 checkpoint, `368931b` tracker +
 cover masks + livemap, `9287975` dying fix + edge probes, `a3a9f99` the `--tracker` shim. All committed.
 **Built (all live in `serve/run --gpu`, PASSIVE: logs `obs.mobs` / `obs.cam`, the brain still uses `known_mobs`):**

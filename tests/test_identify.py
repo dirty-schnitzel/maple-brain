@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 import pytest
 
-from maplebot.nav.identify import MapIdentifier, frame_contrast
+from maplebot.nav.identify import NAME_FONT, MapIdentifier, frame_contrast, name_scores
 from maplebot.nav.localize import SEARCH
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -119,3 +119,44 @@ def test_a_canvas_of_another_size_never_fits():
     big, small = _art(1), _art(3, 30, 50)
     m = MapIdentifier({1: big, 2: small}).identify(_window(big[..., :3]))
     assert m.map_id == 1 and all(k != 2 for _, k in m.fits)
+
+
+# ---------------------------------------------------------------- look-alikes told apart by the name
+def test_line1_area1_is_told_apart_by_its_name(ident):
+    """Line 1 <Area 1> / <Area 2> / Line 2 <Area 1>: minimaps 0.89 / 0.87 / 0.85 - the name above the canvas decides
+    (frames from runs/l1a1_trk2, JPEG)."""
+    shots = [frame(f"10003061_line1_area1_{i}") for i in range(3)]
+    m = ident.identify(shots)
+    assert m.map_id == 10003061, m
+    assert m.why == "told apart by the name"
+    sc = name_scores(shots[0], m.origin, {k: ident.names[k] for k in (10003061, 10003063, 10003066)})
+    assert sc[10003061] - max(sc[10003063], sc[10003066]) >= 0.15
+
+
+def _named_window(canvas_bgr, name, at=(10, 72)):
+    """_window with the map's name printed white on a darker strip above the canvas (like the game's title)."""
+    from PIL import Image, ImageDraw, ImageFont
+    f = _window(canvas_bgr, at)
+    x, y = at
+    f[y - 30:y - 6, x:x + 200] = 150
+    im = Image.fromarray(f[..., ::-1].copy())
+    d = ImageDraw.Draw(im)
+    d.fontmode = "1"
+    d.text((x + 40, y - 26), name, fill=(255, 255, 255), font=ImageFont.truetype(str(NAME_FONT), 12))
+    return np.ascontiguousarray(np.array(im)[..., ::-1])
+
+
+@pytest.mark.skipif(not NAME_FONT.exists(), reason="needs Arial Bold")
+@pytest.mark.parametrize("shown", [1, 2])
+def test_identical_minimaps_with_different_names_pick_the_named_one(shown):
+    a = _art(1)
+    names = {1: "Line 1 <Area 1>", 2: "Line 1 <Area 2>"}
+    m = MapIdentifier({1: a, 2: a.copy()}, names=names).identify(_named_window(a[..., :3], names[shown]))
+    assert m.map_id == shown and m.why == "told apart by the name"
+
+
+def test_identical_minimaps_with_the_same_name_are_still_refused():
+    a = _art(1)
+    names = {1: "Mushroom Town", 2: "Mushroom Town"}
+    m = MapIdentifier({1: a, 2: a.copy()}, names=names).identify(_named_window(a[..., :3], "Mushroom Town"))
+    assert m.map_id is None and m.why == "two maps look alike"
