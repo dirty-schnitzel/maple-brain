@@ -274,6 +274,15 @@ def test_lie_detector_check_is_throttled_but_catches_it_within_the_interval():
     assert lie.check(game, 0.1 + lie.every_s)[0] is True
 
 
+def test_a_new_hunt_does_not_inherit_the_last_hunts_lie_detector():
+    """serve 2026-11-04: hunt #3 stopped on a Lie Detector at 3283 s; F7 -> hunts #4 and #5 stopped at 0.00 s on
+    the cached answer (their clock restarted at 0, < next_t) with nothing on screen."""
+    lie = _lie()
+    none, game = cv2.imread(str(FX / "lie_detector_none.jpg")), cv2.imread(str(FX / "lie_detector_game.jpg"))
+    assert lie.check(game, 3283.0)[0] is True
+    assert lie.check(none, 0.0)[0] is False                    # next hunt, clock back at 0: looks again
+
+
 def test_a_mob_up_a_gentle_slope_far_away_is_reachable():
     """East Rocky Mountain I (serve 2026-11-01 22:27): Snails / Dark Stumps up the slope at the screen's left edge,
     60-80 px above our feet and 500-900 px away, were never targeted (band 75 px, same level +-35)."""

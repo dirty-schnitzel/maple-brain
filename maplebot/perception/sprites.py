@@ -19,6 +19,17 @@ ANIMS = ("stand", "move", "hit1")      # what a live mob looks like (searched fo
 DIE = "die1"                           # its death animation: only checked where our target was
 
 
+@dataclass(frozen=True)
+class Pose:
+    """Which sprite frame matched: animation, frame number in play order, facing, and the frame's origin (the
+    client's feet point, from mob.json 'frames') inside the drawn box - flipped with the sprite."""
+    anim: str
+    n: int
+    facing: str             # "left" (the client draws mobs facing left) / "right" (mirrored)
+    ox: int
+    oy: int
+
+
 @dataclass
 class MobSprites:
     mob_id: int
@@ -31,6 +42,8 @@ class MobSprites:
     die: list = None        # [(bgr, mask)] death animation frames, both facing directions
     scan_idx: tuple = (0, 1)  # distinct frames, slid over the whole band when the mob is camouflaged
     shape_key: bytes = b""  # mobs drawn alike (Stump / Dark Stump: same masks) share one scan
+    poses: list = None      # [Pose] parallel to `frames`
+    die_poses: list = None  # [Pose] parallel to `die`
 
 
 def hue_mask(hsv, hues, sat=120, val=60):
@@ -66,8 +79,21 @@ def load_mob(mob_dir: Path) -> MobSprites:
     info = json.loads((mob_dir / "mob.json").read_text(encoding="utf-8"))
     paths = sorted((p for p in mob_dir.glob("*.png") if p.stem.rsplit("_", 1)[0] in ANIMS),
                    key=lambda p: (ANIMS.index(p.stem.rsplit("_", 1)[0]), p.stem))      # stand first
-    rgba = [cv2.imread(str(p), cv2.IMREAD_UNCHANGED) for p in paths]
-    rgba = [im for im in rgba if im is not None and im.ndim == 3 and im.shape[2] == 4]
+    meta = {}                                           # file name -> its mob.json frame entry (origin)
+    for anim, fs in (info.get("frames") or {}).items():
+        for i, f in enumerate(fs or []):
+            meta[f.get("file")] = (anim, i, f.get("origin"))
+    loaded = [(p, cv2.imread(str(p), cv2.IMREAD_UNCHANGED)) for p in paths]
+    loaded = [(p, im) for p, im in loaded if im is not None and im.ndim == 3 and im.shape[2] == 4]
+    rgba = [im for _, im in loaded]
+
+    def pose_pair(p, im):
+        anim, n = p.stem.rsplit("_", 1)
+        _, i, o = meta.get(p.name, (anim, int(n), None))
+        h, w = im.shape[:2]
+        ox, oy = o if o else (w // 2, h)                # no origin known: bottom centre
+        return [Pose(anim, i, "left", int(ox), int(oy)), Pose(anim, i, "right", int(w - ox), int(oy))]
+    poses = [q for p, im in loaded for q in pose_pair(p, im)]
     hues = signature_hues(rgba)
     sig = [int((hue_mask(cv2.cvtColor(np.ascontiguousarray(im[..., :3]), cv2.COLOR_BGR2HSV), hues)
                 & (im[..., 3] > 200)).sum()) for im in rgba]
@@ -75,13 +101,14 @@ def load_mob(mob_dir: Path) -> MobSprites:
     for im in rgba:
         for t in (im, np.ascontiguousarray(im[:, ::-1])):
             frames.append((np.ascontiguousarray(t[..., :3]), (t[..., 3] > 200).astype(np.uint8)))
-    die = []
+    die, die_poses = [], []
     for p in sorted(mob_dir.glob(f"{DIE}_*.png"), key=lambda p: int(p.stem.rsplit("_", 1)[1])):
         im = cv2.imread(str(p), cv2.IMREAD_UNCHANGED)
         if im is None or im.ndim != 3 or im.shape[2] != 4 or (im[..., 3] > 200).sum() < 60:
             continue                                     # (the last frames fade to almost nothing)
         for t in (im, np.ascontiguousarray(im[:, ::-1])):
             die.append((np.ascontiguousarray(t[..., :3]), (t[..., 3] > 200).astype(np.uint8)))
+        die_poses += pose_pair(p, im)
     scan, seen = [], set()                              # every distinct pose (stand_0 == move_0 for a Stump)
     for j, (t, m) in enumerate(frames):
         h = t.tobytes() + m.tobytes() + bytes(str(t.shape), "ascii")
@@ -91,7 +118,7 @@ def load_mob(mob_dir: Path) -> MobSprites:
     key = b"".join(frames[j][1].tobytes() + bytes(str(frames[j][1].shape), "ascii") for j in scan)
     return MobSprites(int(info["id"]), info.get("name", ""), frames, hues,
                       max(im.shape[1] for im in rgba), max(im.shape[0] for im in rgba), int(np.median(sig)), die,
-                      tuple(scan), key)
+                      tuple(scan), key, poses, die_poses)
 
 
 def pose_similarity(small: list) -> np.ndarray:
@@ -121,6 +148,11 @@ def _cover(S: np.ndarray, cover: float) -> list:
         reps.append(i)
         left -= {j for j in left if S[i, j] >= cover} | {i}
     return reps
+
+
+def feet_of(box, pose: Pose) -> tuple:
+    """The mob's feet (its origin in the client) in the coordinates of `box` (the matched sprite frame)."""
+    return box[0] + pose.ox, box[1] + pose.oy
 
 
 def _inside(p, box) -> bool:
@@ -235,7 +267,7 @@ class SpriteDetector:
         and <= 0.51 with every other frame). ~3.5 ms per pose; mobs drawn alike (Stump / Dark Stump) share one
         scan per frame (`scan_cache`)."""
         if mob.shape_key in self.scan_cache:
-            return [(s, mob.mob_id, b) for s, _, b in self.scan_cache[mob.shape_key]]
+            return [(s, mob.mob_id, b, k) for s, _, b, k in self.scan_cache[mob.shape_key]]
         sc, peaks = self.scan_scale, []
         band = cv2.resize(band, None, fx=sc / self.scale, fy=sc / self.scale, interpolation=cv2.INTER_AREA)
         for t, m, k in self.scan_small[mob.mob_id]:
@@ -245,7 +277,7 @@ class SpriteDetector:
             r[~np.isfinite(r)] = -1
             ys, xs = np.nonzero(r >= self.min_score)
             full = mob.frames[k][0].shape
-            peaks += [(float(r[y, x]), mob.mob_id, (int(x / sc), int(y0 + y / sc), full[1], full[0]))
+            peaks += [(float(r[y, x]), mob.mob_id, (int(x / sc), int(y0 + y / sc), full[1], full[0]), k)
                       for y, x in zip(ys, xs)]
         peaks.sort(key=lambda p: -p[0])
         out, gap = [], mob.max_w * 0.6
@@ -255,8 +287,9 @@ class SpriteDetector:
         self.scan_cache[mob.shape_key] = out
         return out
 
-    def find(self, frame, feet, below=0, above=75, exclude=()) -> list:
-        """[(box, mob_id, score)] of mobs in the band from `above` px over `feet` to `below` px under it."""
+    def find(self, frame, feet, below=0, above=75, exclude=(), with_pose=False) -> list:
+        """[(box, mob_id, score)] of mobs in the band from `above` px over `feet` to `below` px under it;
+        `with_pose`: [(box, mob_id, score, Pose)] (`feet_of(box, pose)` = the mob's exact feet point)."""
         y0, y1 = max(0, int(feet) - above), min(frame.shape[0], int(feet) + 8 + int(below))
         if y1 - y0 < 8:
             return []
@@ -318,11 +351,12 @@ class SpriteDetector:
                         best = (s, (int((wx0 + loc[0]) / sc), int(y0 + (wy0 + loc[1]) / sc), full[1], full[0]), k)
                 if best and best[0] >= self.min_score:
                     self.last_frame[mob.mob_id] = best[2]           # mobs walk on: try this pose first next time
-                    hits.append((float(best[0]), mob.mob_id, best[1]))
+                    hits.append((float(best[0]), mob.mob_id, best[1], best[2]))
         hits.sort(reverse=True)
         out = []
-        for s, mid, b in hits:
+        poses = {m.mob_id: m.poses for m in self.mobs}
+        for s, mid, b, k in hits:
             centre = (b[0] + b[2] / 2, b[1] + b[3] / 2)    # a snail pressed against a known mob is still its own
             if not any(overlaps(b, o[0], pad=-8) for o in out) and not any(_inside(centre, e) for e in exclude):
-                out.append((b, mid, s))
+                out.append((b, mid, s, poses[mid][k]) if with_pose else (b, mid, s))
         return out

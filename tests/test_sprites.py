@@ -7,7 +7,7 @@ import pytest
 
 from maplebot.config import Config
 from maplebot.perception.perceiver import Perceiver
-from maplebot.perception.sprites import SpriteDetector, _cover, load_mob, signature_hues
+from maplebot.perception.sprites import SpriteDetector, _cover, feet_of, load_mob, signature_hues
 
 ROOT = Path(__file__).resolve().parents[1]
 MCW = ROOT / "assets" / "mcw"
@@ -67,6 +67,33 @@ def test_finds_a_pasted_sprite_on_real_grass(det, mob, flip):
     assert len(hits) == 1
     box, mid, score = hits[0]
     assert mid == mob and near(box, (x, y), tol=3) and score > 0.8
+
+
+@pytest.mark.parametrize("flip", [False, True])
+def test_find_reports_the_pose_and_the_exact_feet(det, flip):
+    """Perception rework (2026-11-03): which frame matched, which way it faces, and its feet from the client's
+    origin (mob.json 'frames'), mirrored with the sprite."""
+    import json
+    frame = img("library_grass.jpg")
+    feet = 300
+    bg = frame.copy()
+    spr = cv2.imread(str(MCW / f"mobs/{RED}/move_1.png"), cv2.IMREAD_UNCHANGED)
+    meta = next(f for f in json.loads((MCW / f"mobs/{RED}/mob.json").read_text())["frames"]["move"]
+                if f["file"] == "move_1.png")
+    h, w = spr.shape[:2]
+    ox, oy = meta["origin"]
+    if flip:
+        spr, ox = spr[:, ::-1], w - ox
+    x, y = 600, feet - h + 5
+    a = spr[..., 3:4] / 255.0
+    bg[y:y + h, x:x + w] = (spr[..., :3] * a + bg[y:y + h, x:x + w] * (1 - a)).astype(np.uint8)
+    before = [d[0] for d in det.find(frame, feet, below=40)]
+    hits = [d for d in det.find(bg, feet, below=40, with_pose=True) if d[0] not in before]
+    assert len(hits) == 1
+    box, mid, score, pose = hits[0]
+    assert mid == RED and pose.facing == ("right" if flip else "left")
+    fx, fy = feet_of(box, pose)
+    assert abs(fx - (x + ox)) <= 3 and abs(fy - (y + oy)) <= 3
 
 
 def test_finds_six_mobs_nobody_has_hit(det):

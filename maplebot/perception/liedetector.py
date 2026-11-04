@@ -45,8 +45,10 @@ class LieDetector:
         return s >= self.min_score
 
     def check(self, frame, t: float) -> tuple[bool, float, tuple | None]:
-        """Throttled: matches at most every `every_s`; in between the last answer stands."""
-        if t >= self.next_t:
+        """Throttled: matches at most every `every_s`; in between the last answer stands. `t` is the hunt's clock,
+        which restarts at 0 each hunt while this object lives on in `serve`: a clock behind the last look means a
+        new hunt -> look now (2026-11-04: the cached 'on screen' from the hunt it stopped ended every restart)."""
+        if t >= self.next_t or t < self.next_t - self.every_s:
             self.next_t = t + self.every_s
             s, loc = self.score(frame)
             self.last = (s >= self.min_score, s, loc)

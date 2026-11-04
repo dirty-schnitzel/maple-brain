@@ -119,6 +119,13 @@ def _load_map(rig: "Rig", map_id: int, say) -> bool:
                 "and run `assets build`, see assets/README.md)")
             return False
         sprites = SpriteDetector.for_map(map_id, ASSETS / "mcw", min_score=cfg.perception.sprite_score)
+        if cfg.perception.gpu:
+            from ..perception.gpu_sprites import GpuBand, GpuSpriteDetector
+            g = GpuSpriteDetector.for_map(map_id, ASSETS / "mcw", min_score=cfg.perception.sprite_score)
+            import numpy as np
+            g.find(np.zeros((768, 1366, 3), np.uint8))              # warm-up (~2 s, first CUDA call)
+            say(f"GPU mob detection on {g.dev}: {g.K} sprite frames, whole screen")
+            sprites = GpuBand(g, sprites)
         navmap = NavMap.for_map(map_id, ASSETS / "mcw", cfg.nav)
         locator = MinimapLocator.for_map(map_id, ASSETS / "mcw", cfg.nav, navmap)
         rig.maps[map_id] = (sprites, locator)
@@ -272,9 +279,13 @@ def _hunt(rig: Rig, rec: Recorder, t0: float, until, observe: bool = False) -> s
                     elif not isinstance(a, (Stop, Look)):
                         ex.run(a)
                 perceiver.target_proven = bool(brain.target and brain.target.proven)
-                rec.tick(frame, obs, actions, brain.mode,
-                         {"grab_ms": round(1000 * (tg - tick0)), "perceive_ms": round(1000 * (tp - tg)),
-                          "total_ms": round(1000 * (time.perf_counter() - tick0))})
+                timings = {"grab_ms": round(1000 * (tg - tick0)), "perceive_ms": round(1000 * (tp - tg)),
+                           "total_ms": round(1000 * (time.perf_counter() - tick0))}
+                if hasattr(rig.sprites, "all_hits"):            # --gpu: the whole screen's mobs + GPU time
+                    timings["gpu_ms"] = round(rig.sprites.last_ms, 1)
+                    timings["gpu_mobs"] = [[h.mob_id, *map(int, h.feet), h.pose.anim, h.score]
+                                           for h in rig.sprites.all_hits]
+                rec.tick(frame, obs, actions, brain.mode, timings)
                 if stop:
                     ex.release_all()
                     status = f"STOPPED: {stop.reason}"

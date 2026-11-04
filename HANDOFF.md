@@ -1,4 +1,4 @@
-# maplebot — session handoff (updated 2026-11-03, session 17: game data from the client files only; session 14: idle walks head for the densest spawns; session 13: loot OFF)
+# maplebot — session handoff (updated 2026-11-04, session 18: GPU mob detection `--gpu`, next = the tracker; session 17: game data from the client files only; session 14: idle walks head for the densest spawns; session 13: loot OFF)
 
 ## Goal
 A **fully automated mob farmer** for **MapleStory Classic World** (official GMS Classic, launched 2026-10-21):
@@ -18,6 +18,34 @@ off: runs need `--loot --loot-sight` (`--loot-sight` alone is ignored). See the 
    comes from our own client files. See 'Priority 1: done' just below.
 2. **Now: the perception rework** (mob tracker in map coordinates). Frame origins (feet), body boxes and frame
    delays are now in `assets/mcw/mobs/<id>/mob.json` -> `frames`.
+   **Session 18 (2026-11-03/04, branch `perception`, UNCOMMITTED - ask the user before committing/merging):**
+   GPU whole-screen mob detection built, wired in as `--gpu`, live-tested once (`runs/gpu1`). Details in
+   'Priority 2' below. **NEXT SESSION = THE TRACKER (stage 3) - see 'TASK: the tracker' right below.**
+
+### TASK: the tracker (stage 3) - next session, START HERE (the user, 2026-11-04)
+Read 'Priority 2' first (decisions + measurements). Build `perception/world.py` on top of `GpuSpriteDetector`:
+- **Tracks** in map coordinates: id, mob id, platform (or "in the air": Ribbon Pigs / Pigs jump, jumps reuse
+  move_0 - seen 43 px over pit 49), feet x/y, vx, facing (from the Pose), last pose, last seen, state (unhit /
+  fighting us / hit / dying / dead / off screen). Screen -> map: map = screen + (our map pos - our screen pos);
+  relative geometry stays in exact screen px (our map pos is 16 px coarse, x ~7-15 px off on Rain-Forest).
+- **Acquire / track split (the user's idea, measured):** the whole-screen GPU pass (stand/move/fly) acquires;
+  each track then gets a small window every frame with ALL its poses (hit1 / die1 / attack too) and a **lower
+  threshold where a track is predicted** - this is what catches the half-hidden mobs (gpu1/Rain-Forest misses
+  were real Pigs behind a player / a mushroom at 0.62-0.64 < 0.65) and mobs next to our own body.
+- **Map filter (the user's idea, used as a check, not a search mask):** feet on a platform surface near a
+  spawn's rx0..rx1 -> plausible; floating in the trees -> reject (unless a flyer or a tracked mob mid-jump).
+  Search stays whole-screen (7-10 ms anyway; a mask would depend on our own map position being right).
+- Association by predicted x per mob type + platform; motion model from mob `speed` + HeavenClient logic
+  (decide ~every 1.6 s, turn at edges, knockback >= `pushed`); frame `delay`s give hit (600 ms) / die lengths.
+  Gaps: keep the track; end on die animation / EXP / spot visible and empty for k frames.
+- **Own position (stage 2) with it:** the picture (our tag's screen motion + camera shift) is the measurement;
+  key-press physics (Physics.img: walk 125 px/s, jump 555, gravity 2000) only as the prediction step and a
+  knockback/blocked detector (the user preferred the picture: "the information is in the picture").
+- Output `obs.mobs` / `obs.me_map` in ticks.jsonl; a shim derives today's `known_mobs` + target so the current
+  brain gains first; then A/B live (CPU vs GPU vs GPU+tracker, 3 min each back to back, same spot, MP potions
+  stocked - gpu1 ran out of MP). Gate before brain changes: >= ~95 % recall of mobs within 100 px of us
+  (offline, `tools/perc/gpu_eval.py` / `truth.py`).
+- Live runs: 3 min, `watch` running.
 
 ### Priority 1: done - game data from the client files only (session 17, 2026-11-03)
 **Git (new, the user asked for it):** the project is a git repo now (`.gitignore`: runs/, captures/, caches, .idea).
@@ -77,6 +105,92 @@ Plan (`perception/world.py`):
   42/66/76; maybe read damage numbers (digit pictures in the client's Effect data) -> mob HP left -> exact swings.
 - Verify offline first on recorded frames (recall of mobs within 100 px of us, ID switches, gaps bridged; hard sets:
   Rain-Forest Ribbon Pigs, Perion crowd, runs/prec2). Gate: >= ~95 % recall near us before any brain change.
+- **The user (2026-11-03): rethink the whole computer-vision approach.** The narrow band around our feet is a
+  stopgap; "we should have the compute power to recognize all sprites on a given screen very fast - feasible and
+  not that hard". Agreed. Facts measured the same day:
+  - Hardware: **RTX 4070 Ti SUPER (16 GB) + 20 CPU threads, the GPU unused by the bot**. No torch/onnx in the venv.
+  - CPU OpenCV `matchTemplate` over the whole 1366x700 play area, per pose: masked full size 224 ms, unmasked 52,
+    masked at 0.5 scale 48, unmasked 0.5 11 (Ribbon Pig = 14 poses) -> the CPU can't do every pose over the whole
+    screen every frame; that's why today's detector needs colour blobs + a band.
+  - Pixel-exact tricks (hashing sprite pixels) are out: the game picture is rescaled (e.g. windowed 2560x1440 ->
+    1366x768 capture) and JPEG'd in recordings.
+  Options (Claude's recommendation: A first, B only if A misses the recall gate near our body):
+  - **A. GPU template matching** (PyTorch/CUDA): every pose of every mob on the map as one batched masked NCC
+    over the full frame (~tens of GFLOP -> a few ms on that GPU). Same maths as today, no training,
+    deterministic; also makes `truth.py` ms per frame instead of 2.6 s. Weak spot stays: partial occlusion
+    (our body, mobs overlapping, damage numbers) lowers the score.
+  - **B. Small learned detector** (YOLO-style, box + mob id + pose + feet point) trained on **synthetic frames**:
+    the client gives every sprite + origin, the recordings give thousands of backgrounds -> paste sprites (all
+    poses, flips, partly covered, overlapping, our character on top) = unlimited labelled data for free.
+    ~3-5 ms per full frame on the GPU, robust to occlusion. Cost: torch dependency + a training pipeline.
+  - **The user's idea (2026-11-03): acquire with the main pose, track with all poses.** Scan the untracked screen
+    for one key pose per mob (both facings); once a mob is acquired, look for all its poses in a small window
+    around it (hit/die only there). Checked on data: mobs are ~90 % in their stand/move loop (20 s Rain-Forest
+    sample: 34 of 47 sightings move, 5 stand, 8 hit/die), BUT each loop is 3 frames that differ a lot for Pigs
+    and Stumps (best single pose vs the others: mean similarity 0.62, min 0.30; Snails 0.78-0.89, min 0.59-0.65).
+    What makes it work anyway: the loops cycle every 0.5 s (Pigs, Stump move 0.72, Snail 0.9; Stump stand is one
+    still frame) -> a walking/standing mob shows its key frame at least once per cycle -> **acquisition within
+    <= ~0.5-0.9 s with ~2 key frames per mob (one stand, one move) x 2 facings = 4 templates.** Fine for far mobs.
+    CPU cost of that full-screen scan: ~4 x 11 ms (unmasked, 0.5 scale) to 4 x 48 ms (masked) -> on CPU rotate
+    it (a third of the screen per frame); on the GPU it's free. Plan: build detection as **acquire (cheap,
+    whole screen, key frames) + track (all poses, small window, every frame)** whichever backend (A/B) runs it.
+  - **Decided (the user, 2026-11-03): GPU masked NCC with stand + move (+ fly) frames only**, searched only in
+    **strips just above platforms** (following slopes segment by segment; tallest mob + ~50 px for jumpers) and
+    only **on platforms with spawn points, within each spawn's rx0..rx1** (the user's ideas); whole screen only
+    for flying mobs, or as a fallback while our own map position is unknown (air / rope / tag lost).
+    torch 2.11.0+cu128 installed in the venv. `tools/perc/gpu_bench.py RUN MAP TICK` (GpuNCC = 3 convs, sums in
+    fp32 - fp16 sums cancel and gave scores of 86; now equal to OpenCV's TM_CCOEFF_NORMED with mask to 3
+    decimals). Rain-Forest tick 396, 24 templates (Pig + Ribbon Pig, 6 frames x 2 facings), per frame incl.
+    upload: **0.5 scale (what live uses): whole play area 6-7 ms, all platform strips 2.5-3 ms, spawn strips
+    1.2-1.4 ms**; full size 72 / 17-22 / 8 ms. CPU OpenCV on the same: 1100 / 330 / 165 ms (0.5 scale) -> the
+    strips cut the work 3-6x but the CPU still can't do it every frame; the GPU need shrinks (a GPU ~10x weaker
+    would still do strips in ~15-30 ms), it doesn't disappear. Cost grows ~linearly with templates (Perion: 4-5
+    mob types). fp16 vs fp32 conv: same speed here -> fp32.
+  - **Built (2026-11-04): `maplebot/perception/gpu_sprites.py` `GpuSpriteDetector`** - whole play area (y < 700),
+    every stand/move/fly frame x 2 facings: coarse masked NCC at 0.5 (3 batched convs), flat windows -> -1 (std <
+    2 grey levels: sky once scored 32 -> 10k peaks, 23 s a frame), local peaks per mob, <= 64 candidates, then
+    **refine on the GPU** (full size, +-4 px, each candidate's 3 best coarse poses, grouped convs, one batch) ->
+    `Hit(mob_id, box, feet, Pose, score)`. Refine is needed: coarse-only on Perion = 987 detections vs 161 (rock
+    inflates half-size scores). **Wired in as `--gpu` (run/serve, 2026-11-04, the user tests it live):**
+    `GpuBand` = drop-in for SpriteDetector in the Perceiver: whole screen once per frame, `find` returns only the
+    band the Perceiver asks for (same contract: our level, excludes) -> the brain is unchanged; `dying` / `mobs` /
+    `max_h` from the CPU detector. Warm-up at map load (~2 s). ticks.jsonl `timings.gpu_ms` + `gpu_mobs` [[id,
+    feet x, feet y, anim, score]] = every mob on screen. `Perception.gpu` flag.
+    **Live `runs/gpu1` (2026-11-04, 3 min, Rain-Forest recognised at start, `run ... --loot --loot-sight --gpu`):**
+    **fps 23.6 (CPU runs ~11.7), perceive median 25 ms (CPU 66)**, gpu_ms median 10.1 / p90 13.1 (rare spikes to
+    118), own tag found 99.2 %, no errors, no LD. 22 kills = 7.3/min (client1 CPU 10.0/min, loot1 CPU 3.4/min -
+    not comparable: other players / spawns / 19 % of ticks in LOOT / out of MP -> plain attack). Mobs in our band
+    0.59/tick (client1 0.35); 132 ticks had mobs on screen but none in our band (the tracker's to use). "Hit by
+    something unseen" 6.7/min and "lost target before reaching it" 2.7/min unchanged vs CPU (expected: the
+    next-to-us gaps are the tracker's job). The user's `serve` was stopped for the run (by command line; `watch`
+    kept). Command: `..\auto-maple\.venv\Scripts\python -m maplebot serve runs\manual --attack space --jump
+    shift --pickup z --loot --loot-sight --frames --gpu`.
+    Tests `tests/test_gpu_sprites.py` (equal to OpenCV where scores matter, pasted Pigs anywhere with pose/feet,
+    flat frame = nothing). Eval: `tools/perc/gpu_eval.py RUN MAP [--truth F]`.
+    **Results:** Rain-Forest (76 frames): 36/38 reference live mobs, 0 false, 9.9 ms median / 12 p90 (the 2
+    misses = real Pigs half covered by a player, 0.62-0.63 < 0.65). Perion acc3 (67 frames): 120/121, 20.5 ms
+    median / 22 p90 (CPU refine: 97 ms). The live bot had 31/38 and 141/493 of the same (its band = our level only).
+    All 12 sampled Perion "GPU-only" detections were real mobs (half hidden behind players/tags) - the
+    one-pass reference had lost them (see truth.py below).
+  - `tools/perc/truth.py` now: GPU coarse (`--cpu` = old OpenCV path, 2.6-8.7 s/frame), **two passes** (live
+    poses; then hit1/die1 only where no live mob - in one pass Perion's rock matched Snail die1_2 / Stump die1_1
+    at 0.60-0.67, 68 of 71 "mobs", and claimed real mobs' spots), `supported()`: hit/die < 0.75 kept only with a
+    live sighting of the same mob within 80 px in the 1.5 s before (hit: +0.5 s after). Still open: on
+    Rain-Forest it also dropped 3 real covered hit/die poses (0.64); two-pass Perion is ~1.3 s/frame (94 hit/die
+    candidates a frame) - cut candidates before using it on long runs.
+  - Either way the tracker (stage 3) stays: identity, gaps, map coordinates. The band and the colour-blob
+    pre-step go away; detection covers the whole screen (all platforms) every frame.
+- **Work so far (session 18, branch `perception`, uncommitted):** stage 1 - `sprites.Pose` (anim, n, facing,
+  origin) per frame from mob.json, `SpriteDetector.find(..., with_pose=True)` -> (box, id, score, Pose),
+  `feet_of(box, pose)`; test `test_find_reports_the_pose_and_the_exact_feet`; suite green. Stage 0 tools:
+  `tools/perc/truth.py RUN MAP` (exhaustive offline reference, every pose incl. hit1/die1 over the whole play
+  area -> RUN/truth.jsonl; 2.6 s/frame - the refine step re-checks up to 40 spots x all poses at full size) and
+  `tools/perc/mapview.py RUN MAP TICK OUT.png` (frame with platforms/ropes/spawns projected from our minimap
+  position + mobs at their feet in map x/y, and a side view of the whole map). Tried on
+  runs/manual/20261103_103433_2 tick 396: the projected footholds sit exactly on the grass/pits/ladder; a
+  Ribbon Pig read 43 px over pit 49's floor = mid-jump (jumps reuse move_0) -> tracks need an "in the air" state.
+  Found: mob `jump_0.png` is a 1x1 placeholder with `_inlink: move/0` (not resolved to pixels; harmless, jump
+  isn't searched, but check the exporter's inlink handling).
 - Wider context (AI / simulator discussion, not scheduled): plan file
   `C:\Users\Yoav\.claude\plans\read-handoff-read-relevant-rustling-castle.md`.
 
