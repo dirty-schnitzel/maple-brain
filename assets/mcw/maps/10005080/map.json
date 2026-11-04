@@ -435,5 +435,18 @@
   "forcedReturn": 999999999,
   "mapMark": "Dungeon",
   "personalShop": 1
+ },
+ "cover": {
+  "x0": -609,
+  "y0": -500,
+  "w": 1211,
+  "h": 1990,
+  "layers": [
+   4
+  ],
+  "front_backs": 0,
+  "covered": {
+   "4": 0.4065
+  }
  }
 }

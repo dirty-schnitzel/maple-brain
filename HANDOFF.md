@@ -1,4 +1,4 @@
-# maplebot — session handoff (updated 2026-11-04, session 18: GPU mob detection `--gpu`, next = the tracker; session 17: game data from the client files only; session 14: idle walks head for the densest spawns; session 13: loot OFF)
+# maplebot — session handoff (updated 2026-11-04, session 19: the mob tracker + cover masks + livemap, next = brain Phase 0; session 18: GPU mob detection `--gpu`; session 17: game data from the client files only; session 14: idle walks head for the densest spawns; session 13: loot OFF)
 
 ## Goal
 A **fully automated mob farmer** for **MapleStory Classic World** (official GMS Classic, launched 2026-10-21):
@@ -12,6 +12,74 @@ Loot (needs a proper rework, the user's own topic) and the own name tag come aft
 their pet (while it was summoned, targeting got drastically worse) and re-added loot-by-sight** - code defaults still
 off: runs need `--loot --loot-sight` (`--loot-sight` alone is ignored). See the suspected loot bug below.
 **Jumping work continues in its own session: read 'Jumping work: START HERE' below** (live on the Rain-Forest).
+
+## Session 19 (2026-11-04, branch `perception`): the tracker - START HERE
+Commit `746649b` = session 18 checkpoint; **everything below is UNCOMMITTED on `perception`** (ask before committing).
+**Built (all live in `serve/run --gpu`, PASSIVE: logs `obs.mobs` / `obs.cam`, the brain still uses `known_mobs`):**
+- `perception/world.py` `World`: tracks in map coords (id, voted mob type - Pig/Ribbon Pig look alike, feet x/y,
+  vx measured per track, facing, anim, state tentative/live/hit/dying/hidden/offscreen, vis). `Camera`: map = screen
+  + C (scenery shift each frame + 5 % pull to the minimap anchor + clamp to vrBounds; Rain-Forest sits at the clamp).
+  Ends need time unseen AND >= 4 missed frames (the bot's loop stalls up to 0.5 s during taps: 42 gaps > 0.3 s/3 min).
+- `GpuSpriteDetector.find_near`: every pose (hit/die too) around each unseen track, plain batched conv; with `vis`:
+  **visible-only NCC** (pixels under cover/players skipped; a Pig in grass 0.53 -> 0.90), windows past the screen
+  edges. Fixed batch shapes + `warm_near()` at map load (~14 s once per map per process: cudnn.benchmark times each
+  new shape, 0.4-4.5 s; unwarmed = 1.3 s stalls mid-hunt; a lower benchmark_limit picks 10-40x slower kernels).
+  Frame uploaded to the GPU once per frame (`_dev_frame`, `find` always uploads fresh).
+- **Cover masks** (`maplebot/cover.py`, the user's idea): what the game draws over mobs = tiles/objects of layers
+  above the mob's foothold layer (HeavenClient draw order). Exporter now exports Map/Obj.wz + Tile.wz (5967 + 619
+  pictures); `assets build` writes `maps/<id>/cover_<L>.png` + map.json `cover` for 300+ maps (build 7 s -> 2.5 min).
+  Verified pixel-exact on the Rain-Forest (upper platforms = layer 0 behind the trees; ground = layer 1, covered by
+  the 2 grass patches, mushrooms, ladder). Not yet: `back` entries with front=1 (counted as `front_backs`).
+- Player bodies (from name tags, `find_tags` on a CPU thread in parallel with the GPU pass; ours too) masked like
+  cover; mob tags ("Lv.7 Pig" under a track's feet) skipped. Cover probes: 4 rotating spots/frame along platforms in
+  cover (visible-only search -> new tracks). Probes beside players: built, OFF (`probe_players`: +2 mobs, +4 false,
+  +10 ms).
+- `livemap` (`python -m maplebot livemap [runs\manual] [--map ID] [--width N] [--replay --t0 S]`): whole map in the
+  console, redrawn in place every 0.3 s (the user: "amazing"); `perception/mapascii.py`, `tools/perc/mapascii.py MAP`.
+  Focusing its window pauses the bot (game not focused) - just look at it. Hunt logs now name their map (from the
+  next serve start; until then `--map`).
+- Recorder: frames written on a thread; `--frames-every N` (run/serve). Recording `runs/track1b` (3 min, every frame,
+  Rain-Forest, 1.6 GB).
+- Tools: `tools/perc/track_run.py RUN MAP [--show T0 T1]` (offline tracker -> tracks.jsonl + timings),
+  `label_eval.py RUN` (vs labels), `track_draw.py`, `track_eval.py` (vs truth.jsonl - obsolete, see below).
+**Reference = Claude's by-eye labels (the user: "always use claude labeling instead of truth.py"):**
+`runs/track1b/labels.json` (30 frames, 82 mobs). truth.py found only 51 % of them (blind to covered mobs).
+**Result (track1b vs labels): found 87.8 %, false 8.9 %** (+4 dying with no corpse, +9 hidden = unverifiable);
+within 150 px of us 20/23. Per frame: whole-screen 13.9 ms, near+probes 8.6 (p90 15.7), world 0.6; live perceive
+35 ms median vs 26 before (~+9 ms). Still missed: half behind players (5), daffodil edge (3), left screen edge (2).
+Tests: test_world (8), test_cover, test_mapascii, visible-only NCC tests; suite green.
+**Next (agreed direction, see 'Brain plan' below):** optional Perion perception check (record 3 min
+`--frames-every 1`, label 30 frames, score), then brain Phase 0.
+
+## Brain plan (the user, 2026-11-04): a trained model, simulator + a little human play
+The user wants to replace the rule brain with a trained model that reads the tracker's state and plays. Agreed:
+- **No live RL** (millions of steps; random flailing = bot profile). Train in a **simulator built from our client
+  data** (map.json footholds/ropes/spawns, mob.json stats/frames, Physics.img, HeavenClient mob logic), calibrated
+  against recorded runs (replay their keys in the sim, compare positions / mob motion / perception noise).
+- **Minutes to an hour of the user's own farming** (`serve --observe` + key logging - not built yet) teaches STYLE:
+  adversarial imitation (AMP/GAIL-style "looks like the human" reward) + EXP/min reward in the sim; domain
+  randomisation (perception misses/ghosts from the labels, physics +-10 %, other players stealing kills).
+- **Model:** multi-input - self scalars (MLP) + track list (attention/set transformer) + local map grid around us
+  (~8 px cells, small CNN) + ~1 s history (GRU) -> keys + hold time; ~100k params, < 1 ms on the GPU.
+- **The user: no shadow mode, no guard rails - go live as soon as it plays sensibly in the sim.** Kept only what
+  exists and protects the account: Lie Detector stop + siren, HP stop, potions, focus check.
+- **Phase 0 (useful for any brain):** (1) shim - today's brain reads the tracks (known_mobs/target from confirmed
+  tracks, target held by track id); (2) `obs.state` - one fixed state format per tick; (3) non-blocking executor (key
+  timing on its own thread, the loop never stalls); (4) record the user's keys in `--observe`.
+  Then: user records 30-60 min on 2-3 maps; sim v0 (flat Pig map); model v0; live 3-min A/B vs the rule brain;
+  grow the sim (platforms, ropes, loot, other players, maps).
+- Earlier discovery (still valid): `C:\Users\Yoav\.claude\plans\read-handoff-read-relevant-rustling-castle.md`.
+
+### Note to self (the user): learning AI - not a task
+Background: almost-finished CS + EE degree, career in cybersecurity QA automation (ML evaluation = QA work).
+- Deep learning basics: Karpathy "Neural Networks: Zero to Hero" (YouTube), fast.ai "Practical Deep Learning",
+  pytorch.org tutorials (torch + CUDA already in `..\auto-maple\.venv`).
+- RL: Hugging Face Deep RL course, OpenAI "Spinning Up", Sutton & Barto (reference); tools Gymnasium,
+  Stable-Baselines3, CleanRL.
+- Imitation / sim-to-real: behaviour cloning, DAgger, GAIL, AMP (Adversarial Motion Priors), domain randomisation.
+- **Small brain project to learn on:** a tiny Gymnasium env from the Rain-Forest's real map.json + Pig mob.json
+  (one flat platform, me + 3 Pigs; actions left/right/attack/idle; reward EXP), PPO via Stable-Baselines3, watched
+  with `mapascii.render`; then add platforms, jumps, noise. Claude offered to set up the skeleton (`sim/`).
 
 ## PRIORITIES (the user, 2026-11-03) - these two come before everything else below
 1. ~~Remove maplestory.io completely~~ **DONE (session 17, 2026-11-03, git branch `client-data`)**: all game data

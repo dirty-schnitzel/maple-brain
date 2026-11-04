@@ -5358,5 +5358,20 @@
   "onFirstUserEnter": "",
   "onUserEnter": "",
   "personalShop": 1
+ },
+ "cover": {
+  "x0": -2202,
+  "y0": -2100,
+  "w": 4404,
+  "h": 2640,
+  "layers": [
+   0,
+   3
+  ],
+  "front_backs": 0,
+  "covered": {
+   "0": 0.1085,
+   "3": 0.0125
+  }
  }
 }

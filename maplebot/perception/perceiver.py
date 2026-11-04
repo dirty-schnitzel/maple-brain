@@ -41,11 +41,14 @@ class Observation:
     look_align: float | None = None
     n_tags: int = 0
     scene_dx: float | None = None           # how far the scenery shifted on screen since the last frame (camera)
+    scene_dy: float | None = None           # the same, vertically
     lie_detector: bool = False              # the game's Lie Detector (anti-bot test) is on screen
     drops: list = field(default_factory=list)          # [box] loot seen on the ground (loot by sight)
     map_pos: tuple | None = None            # our feet in map coordinates (nav.localize; needs --map)
     platform: int | None = None             # the platform we stand on (nav.navmap id); None: air / rope / unknown
     rope: float | None = None               # x of the rope we're on
+    mobs: list = field(default_factory=list)          # the tracker's tracks (world.Track.as_dict; --gpu, passive)
+    cam: tuple | None = None                # the tracker's camera: map = screen + cam
 
 
 def reachable_level(box, feet, tol, step_down, dx=None, climb_slope=0.0, climb_max=0.0) -> bool:
@@ -82,6 +85,13 @@ class Perceiver:
         self.confirmed_at = 0.0                         # target last seen by its HP bar or its sprite
         self.target_mob = None                          # the target's mob id (from its sprite), for its death frames
         self.last_sprites = []                          # the last frame's sprite hits (to know a new target's id)
+        self.world = None                               # the mob tracker (--gpu): logs obs.mobs, the brain doesn't
+        ctx = getattr(sprites, "track_ctx", None)       # use it yet
+        if ctx is not None:
+            from concurrent.futures import ThreadPoolExecutor
+            from .world import World
+            self.world = World(*ctx)
+            self.tag_pool = ThreadPoolExecutor(1)       # name tags (CPU) while the GPU finds mobs
 
     def _locate(self, frame, obs):
         """Minimap dot -> obs.dot; with a locator also our map position, platform and rope. The minimap canvas is
@@ -151,8 +161,9 @@ class Perceiver:
         small = cv2.resize(cv2.cvtColor(frame[:620], cv2.COLOR_BGR2GRAY), (341, 155),
                            interpolation=cv2.INTER_AREA).astype(np.float32)
         if self.prev_small is not None:
-            (dx, _), resp = cv2.phaseCorrelate(self.prev_small, small)
+            (dx, dy), resp = cv2.phaseCorrelate(self.prev_small, small)
             obs.scene_dx = float(dx * 4) if resp > 0.2 else None
+            obs.scene_dy = float(dy * 4) if resp > 0.2 else None
         self.prev_small = small
         me = None
         if self.me_near is not None:
@@ -175,6 +186,8 @@ class Perceiver:
         if len(self.points_hist) == 3:                  # 2 of 3 agree: one misread never makes a kill
             obs.exp_points = int(np.median(self.points_hist))
         self._locate(frame, obs)
+        if self.world is not None:
+            self._track(frame, obs, me)
         if me is None:
             return obs
         self.me_near = (me[0] + me[2] / 2, me[1])
@@ -228,6 +241,18 @@ class Perceiver:
                     if src and not on_me and not stale:                   # (pkg_sprites4 44.9 s: the template slid onto our own
                         obs.target, obs.target_src = self.tracker.box, src   # body; swung at air for 7.5 s)
         return obs
+
+    def _track(self, frame, obs, me):
+        band = self.sprites
+        tags = self.tag_pool.submit(find_tags, frame)  # players' bodies hide mobs (they're drawn over them)
+        hits = band._all(frame)
+        me_s = (me[0] + me[2] / 2, me[1]) if me is not None else None
+        shift = (obs.scene_dx, obs.scene_dy) if obs.scene_dx is not None else None
+        trs = self.world.update(obs.t, hits, me_s, obs.map_pos, shift,
+                                near=lambda spots, pad=24, vis=None: band.gpu.find_near(frame, spots, pad=pad, vis=vis),
+                                tags=tags.result())
+        obs.mobs = [tr.as_dict(obs.t) for tr in trs]
+        obs.cam = tuple(round(v, 1) for v in self.world.cam.C) if self.world.cam.C else None
 
     def look(self, frames, obs: Observation, cursor=None) -> Observation:
         """Motion look: moving things on our ground line that aren't characters, drops, ghosts or the cursor."""

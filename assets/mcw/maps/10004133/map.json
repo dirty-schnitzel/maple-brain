@@ -2370,5 +2370,18 @@
   "fieldScript": "",
   "onFirstUserEnter": "",
   "onUserEnter": ""
+ },
+ "cover": {
+  "x0": -2293,
+  "y0": -12,
+  "w": 2876,
+  "h": 1832,
+  "layers": [
+   3
+  ],
+  "front_backs": 0,
+  "covered": {
+   "3": 0.0018
+  }
  }
 }

@@ -1984,5 +1984,18 @@
   "fieldScript": "",
   "onFirstUserEnter": "",
   "onUserEnter": ""
+ },
+ "cover": {
+  "x0": -1280,
+  "y0": -1589,
+  "w": 2380,
+  "h": 2004,
+  "layers": [
+   3
+  ],
+  "front_backs": 0,
+  "covered": {
+   "3": 0.0007
+  }
  }
 }

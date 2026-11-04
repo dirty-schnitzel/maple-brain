@@ -4667,5 +4667,18 @@
   "moveLimit": 0,
   "mapMark": "Ellinia",
   "personalShop": 1
+ },
+ "cover": {
+  "x0": -700,
+  "y0": -2375,
+  "w": 1490,
+  "h": 3235,
+  "layers": [
+   1
+  ],
+  "front_backs": 0,
+  "covered": {
+   "1": 0.0027
+  }
  }
 }

@@ -244,12 +244,20 @@ def build(export: Path = EXPORT, root: Path = ROOT, log=print) -> dict:
                                         export / "Mob" / "png" / f"{int(link):07d}" if link else None)
     log(f"mobs: {len(man['mobs'])}, {sum(e['frames'] for e in man['mobs'].values())} frames")
 
+    from .cover import _Parts, build_cover, write_cover
+    parts, n_cover = _Parts(export, load_xml), 0
     for p in sorted((export / "Map").glob("Map?/*.img.xml")):
         mid = int(p.name.split(".")[0])
         mini = export / "Map" / "minimap" / f"{p.name.split('.')[0]}.png"
-        m = map_json(load_xml(p), mid, names, mini.read_bytes() if mini.exists() else None)
+        img = load_xml(p)
+        m = map_json(img, mid, names, mini.read_bytes() if mini.exists() else None)
         d = new / "maps" / str(mid)
         d.mkdir(parents=True, exist_ok=True)
+        meta, masks = build_cover(img, m, parts)             # what's drawn in front of mobs (cover.py)
+        if meta:
+            m["cover"] = meta
+            write_cover(d, masks)
+            n_cover += bool(masks)
         (d / "map.json").write_text(json.dumps(m, indent=1), encoding="utf-8")
         if mini.exists():
             shutil.copyfile(mini, d / "minimap.png")
@@ -260,7 +268,8 @@ def build(export: Path = EXPORT, root: Path = ROOT, log=print) -> dict:
         man["maps"][str(mid)] = {"name": m["name"], "street": m["streetName"], "mobs": mob_ids,
                                  "footholds": len(m["footholds"]), "ladderRopes": len(m["ladderRopes"]),
                                  "minimap": mini.exists()}
-    log(f"maps: {len(man['maps'])}, {sum(e['minimap'] for e in man['maps'].values())} with a minimap")
+    log(f"maps: {len(man['maps'])}, {sum(e['minimap'] for e in man['maps'].values())} with a minimap, "
+        f"{n_cover} with cover masks")
 
     (new / "manifest.json").write_text(json.dumps(man, indent=1, sort_keys=True), encoding="utf-8")
     report = changes(root, new)

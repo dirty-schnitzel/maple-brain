@@ -4247,5 +4247,18 @@
   "mapMark": "Ellinia",
   "hideMinimap": 0,
   "fieldLimit": 72
+ },
+ "cover": {
+  "x0": -700,
+  "y0": -2720,
+  "w": 1490,
+  "h": 3760,
+  "layers": [
+   1
+  ],
+  "front_backs": 0,
+  "covered": {
+   "1": 0.0041
+  }
  }
 }

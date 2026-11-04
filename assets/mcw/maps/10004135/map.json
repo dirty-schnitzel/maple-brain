@@ -2007,5 +2007,18 @@
   "fieldScript": "",
   "onFirstUserEnter": "",
   "onUserEnter": ""
+ },
+ "cover": {
+  "x0": -1303,
+  "y0": -1065,
+  "w": 2426,
+  "h": 1625,
+  "layers": [
+   3
+  ],
+  "front_backs": 0,
+  "covered": {
+   "3": 0.0019
+  }
  }
 }

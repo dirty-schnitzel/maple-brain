@@ -4851,5 +4851,20 @@
   "MRRight": 828,
   "MRBottom": 348,
   "limitSpeedAndJump": 1
+ },
+ "cover": {
+  "x0": -1038,
+  "y0": -2972,
+  "w": 2076,
+  "h": 3520,
+  "layers": [
+   0,
+   1
+  ],
+  "front_backs": 0,
+  "covered": {
+   "0": 0.0663,
+   "1": 0.0027
+  }
  }
 }

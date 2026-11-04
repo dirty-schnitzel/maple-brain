@@ -90,3 +90,39 @@ def test_gpu_band_gives_the_perceiver_only_our_band(det):
     assert any(abs(h.box[0] - 300) <= 2 for h in band.all_hits)          # the tree Pig is still seen (whole screen)
     x, y, w, h = got[0][0]
     assert band.find(frame, 300, below=40, above=80, exclude=[(x - 5, y - 5, w + 10, h + 10)]) == []
+
+
+def _pig_scene(det, cover_rows=0):
+    """library_grass + a Pig (move_2) at feet (600, 400); the lowest `cover_rows` px of it painted over with a
+    flat grass colour (what a foreground object does) -> (frame, feet, visibility map)."""
+    import json
+    frame = cv2.imread(str(FX / "library_grass.jpg"))
+    spr = cv2.imread(str(MCW / "mobs/8/move_2.png"), cv2.IMREAD_UNCHANGED)
+    meta = next(f for f in json.loads((MCW / "mobs/8/mob.json").read_text())["frames"]["move"]
+                if f["file"] == "move_2.png")
+    ox, oy = meta["origin"]
+    x, y = 600 - ox, 400 - oy
+    paste(frame, spr, x, y)
+    vis = np.ones((700, frame.shape[1]), bool)
+    if cover_rows:
+        h, w = spr.shape[:2]
+        frame[y + h - cover_rows:y + h, x - 10:x + w + 10] = (40, 160, 60)
+        vis[y + h - cover_rows:y + h, x - 10:x + w + 10] = False
+    return frame, (600, 400), vis
+
+
+def test_visible_only_search_equals_the_plain_one_with_nothing_covered(det):
+    frame, (fx, fy), vis = _pig_scene(det)
+    plain = det.find_near(frame, [(8, fx, fy)], pad=24)[0]
+    ones = det.find_near(frame, [(8, fx, fy)], pad=24, vis=[None])[0]
+    assert plain and ones and abs(plain.score - ones.score) < 0.01 and plain.feet == ones.feet
+
+
+def test_visible_only_search_sees_a_pig_half_in_the_grass(det):
+    """The lower half of the Pig painted over (grass in front): the plain search drops, the visible-only one
+    (told what is covered) still finds it, feet exact."""
+    frame, (fx, fy), vis = _pig_scene(det, cover_rows=22)
+    plain = det.find_near(frame, [(8, fx, fy)], pad=24, min_score=-5)[0]
+    seen = det.find_near(frame, [(8, fx, fy)], pad=24, vis=[vis])[0]
+    assert seen is not None and seen.score > 0.85 and seen.score > plain.score + 0.2
+    assert abs(seen.feet[0] - fx) <= 2 and abs(seen.feet[1] - fy) <= 2

@@ -1098,5 +1098,22 @@
   "onFirstUserEnter": "",
   "onUserEnter": "",
   "hiredMerchant": 1
+ },
+ "cover": {
+  "x0": -898,
+  "y0": 415,
+  "w": 1886,
+  "h": 1555,
+  "layers": [
+   4,
+   5,
+   6
+  ],
+  "front_backs": 0,
+  "covered": {
+   "4": 0.1923,
+   "5": 0.1674,
+   "6": 0.0034
+  }
  }
 }

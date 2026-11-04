@@ -4442,5 +4442,22 @@
   "fieldScript": "",
   "onFirstUserEnter": "",
   "onUserEnter": ""
+ },
+ "cover": {
+  "x0": -593,
+  "y0": -980,
+  "w": 3706,
+  "h": 1480,
+  "layers": [
+   1,
+   3,
+   5
+  ],
+  "front_backs": 0,
+  "covered": {
+   "1": 0.375,
+   "3": 0.3682,
+   "5": 0.0014
+  }
  }
 }

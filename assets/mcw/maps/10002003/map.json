@@ -517,5 +517,20 @@
   "fieldScript": "",
   "onFirstUserEnter": "",
   "onUserEnter": ""
+ },
+ "cover": {
+  "x0": -600,
+  "y0": -720,
+  "w": 1200,
+  "h": 1220,
+  "layers": [
+   0,
+   2
+  ],
+  "front_backs": 0,
+  "covered": {
+   "0": 0.6136,
+   "2": 0.4379
+  }
  }
 }

@@ -86,6 +86,30 @@ foreach ($dir in Get-ChildItem "$D\Map\Map" -Directory -Filter 'Map?') {
 }
 "maps: $nMap ($nMini minimaps)"
 
+# map objects + tiles (what's drawn in front of mobs: the cover masks, perception/cover.py)
+#   Map\Obj\<set>.img.xml + Map\Obj\png\<set>\<l0>\<l1>\<l2>\<n>.png   (origin / z / delay in the xml)
+#   Map\Tile\<set>.img.xml + Map\Tile\png\<set>\<u>\<no>.png
+function Export-Canvases($prop, $img, [string]$base) {
+  foreach ($c in $prop.WzProperties) {
+    if ($c.Name -match '[\/:*?"<>|]') { continue }            # not a file name (a clock font's ':'), never scenery
+    if ($c -is [MapleLib.WzLib.WzProperties.WzCanvasProperty]) {
+      try { Save-Png (Get-Bitmap $c $img) "$base\$($c.Name).png"; $script:nPart++ }
+      catch { $fails.Add("$($img.Name) $base/$($c.Name): $_") }
+    } elseif ($c -is [MapleLib.WzLib.WzProperties.WzSubProperty]) {
+      Export-Canvases $c $img "$base\$($c.Name)"
+    }
+  }
+}
+foreach ($kind in 'Obj', 'Tile') {
+  $script:nPart = 0; $nSet = 0
+  foreach ($img in (Open-Bms "$D\Map\$kind\$($kind)_000.wz").WzDirectory.WzImages) {
+    Save-Xml $img "$Out\Map\$kind\$($img.Name).xml"; $nSet++
+    Export-Canvases $img $img "$Out\Map\$kind\png\$($img.Name -replace '\.img$', '')"
+    $img.UnparseImage()
+  }
+  "$($kind): $nSet sets ($script:nPart pictures)"
+}
+
 # every mob + every frame
 $nMob = 0; $nPng = 0
 $ms = Open-Ms "$D\Packs\Mob_00000.ms"

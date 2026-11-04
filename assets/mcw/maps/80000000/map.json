@@ -2264,5 +2264,18 @@
   "MRBottom": 284,
   "fieldScript": "",
   "onFirstUserEnter": "StageMsg_together"
+ },
+ "cover": {
+  "x0": -1397,
+  "y0": -1790,
+  "w": 2420,
+  "h": 2274,
+  "layers": [
+   4
+  ],
+  "front_backs": 0,
+  "covered": {
+   "4": 0.1205
+  }
  }
 }

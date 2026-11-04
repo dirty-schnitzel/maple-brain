@@ -7520,5 +7520,18 @@
   "MRRight": 2880,
   "MRBottom": 1500,
   "personalShop": 1
+ },
+ "cover": {
+  "x0": -650,
+  "y0": -1340,
+  "w": 3730,
+  "h": 3040,
+  "layers": [
+   1
+  ],
+  "front_backs": 0,
+  "covered": {
+   "1": 0.0087
+  }
  }
 }

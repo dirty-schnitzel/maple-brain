@@ -1,2 +1,332 @@
-assets/mcw rebuilt 2026-11-03T20:47:22+00:00 from C:\Users\Yoav\dev\cw-data\export: changes vs the previous build
-no changes
+assets/mcw rebuilt 2026-11-04T09:33:38+00:00 from C:\Users\Yoav\dev\cw-data\export: changes vs the previous build
+map 1 Mushroom Town - West Entrance: cover; pictures cover_0.png, cover_2.png
+map 10 Mushroom Town: cover; pictures cover_0.png, cover_1.png
+map 20 Mushroom Town: cover; pictures cover_1.png
+map 30 East Entrance to Mushroom Town: cover; pictures cover_1.png
+map 40 Snail Hunting Ground I: cover; pictures cover_1.png
+map 41 Snail Hunting Ground II: cover; pictures cover_1.png
+map 42 Snail Hunting Ground III: cover; pictures cover_1.png
+map 50 A Split Road: cover; pictures cover_0.png, cover_1.png, cover_2.png
+map 60 Southperry: cover; pictures cover_0.png, cover_1.png
+map 61 Southperry Armor Store: cover; pictures cover_1.png, cover_2.png
+map 1000 The Field West of Amherst: cover; pictures cover_0.png, cover_1.png
+map 1001 In a Small Forest: cover; pictures cover_0.png, cover_2.png
+map 1002 Dangerous Forest: cover; pictures cover_1.png
+map 1003 Mushroom Garden: cover; pictures cover_0.png, cover_1.png
+map 1004 Snail Garden: cover; pictures cover_0.png, cover_1.png
+map 1005 Hunting Ground Middle of the Forest I: cover; pictures cover_0.png, cover_1.png
+map 1006 Hunting Ground Middle of the Forest II: cover; pictures cover_0.png, cover_1.png
+map 1010 Amherst: cover; pictures cover_0.png, cover_1.png
+map 1011 Amherst Weapon Store: cover; pictures cover_1.png, cover_2.png
+map 1012 Amherst Townstreet: cover; pictures cover_0.png
+map 1013 Amherst Department Store: cover; pictures cover_1.png, cover_3.png
+map 1014 Snail Field of Flowers: cover; pictures cover_1.png
+map 1020 The Field East of Amherst: cover; pictures cover_1.png
+map 1021 Tomato Field: cover; pictures cover_1.png
+map 10000000 Lith Harbor: cover; pictures cover_0.png, cover_1.png
+map 10000001 Lith Harbor Armor Shop: cover; pictures cover_1.png, cover_2.png
+map 10000002 Lith Harbor Department Store: cover; pictures cover_1.png, cover_2.png
+map 10000003 Lith Harbor Weapon Shop: cover; pictures cover_1.png, cover_2.png
+map 10000010 Right Around Lith Harbor: cover; pictures cover_1.png, cover_3.png, cover_4.png, cover_5.png
+map 10000011 Thicket Around the Beach I: cover; pictures cover_2.png, cover_3.png
+map 10000012 Thicket Around the Beach II: cover; pictures cover_1.png, cover_3.png
+map 10000013 Thicket Around the Beach III: cover; pictures cover_0.png, cover_1.png, cover_2.png
+map 10000020 3-Way Road-Split: cover; pictures cover_0.png, cover_1.png
+map 10000021 The Pig Beach: cover; pictures cover_1.png
+map 10000022 Beach Hunting Ground: cover; pictures cover_0.png, cover_1.png
+map 10001000 Henesys: cover; pictures cover_0.png, cover_1.png
+map 10001001 Henesys Townstreet: cover; pictures cover_1.png
+map 10001002 An Empty House: cover; pictures cover_0.png, cover_1.png, cover_2.png, cover_3.png
+map 10001003 Pig Park: cover; pictures cover_1.png, cover_5.png
+map 10001004 Pig Park II: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_4.png (+1)
+map 10001005 Someone Else's House: cover; pictures cover_1.png, cover_2.png, cover_3.png
+map 10001006 The Resting Spot, Pig Park: cover; pictures cover_1.png, cover_3.png
+map 10001007 Henesys Town Hall: cover; pictures cover_0.png, cover_2.png, cover_3.png, cover_4.png
+map 10001010 Henesys Hunting Ground I: cover; pictures cover_1.png
+map 10001011 Henesys Hunting Ground II: cover; pictures cover_1.png
+map 10001012 Henesys Hunting Ground III: cover; pictures cover_1.png
+map 10001020 A Hill West of Henesys : cover; pictures cover_0.png, cover_1.png
+map 10001021 Mushroom Garden: cover; pictures cover_1.png
+map 10001030 Forest West of Henesys: cover; pictures cover_1.png
+map 10001040 Henesys Market: cover; pictures cover_0.png, cover_1.png
+map 10001041 Henesys Weapon Store: cover; pictures cover_0.png, cover_2.png
+map 10001042 Henesys Department Store: cover; pictures cover_1.png, cover_3.png
+map 10001043 Henesys Plastic Surgery: cover; pictures cover_1.png, cover_2.png
+map 10001044 Henesys Hair Salon: cover; pictures cover_1.png
+map 10001045 Henesys Skin-Care: cover; pictures cover_1.png, cover_2.png, cover_3.png
+map 10001050 Henesys Park: cover; pictures cover_0.png, cover_1.png
+map 10001051 Bowman Instructional School: cover; pictures cover_0.png, cover_1.png, cover_2.png, cover_3.png
+map 10001052 Pet-Walking Road: cover; pictures cover_0.png, cover_1.png, cover_3.png, cover_4.png (+1)
+map 10001060 The Hill East of Henesys: cover; pictures cover_0.png, cover_1.png
+map 10001070 The Rain-Forest East of Henesys: cover; pictures cover_0.png, cover_1.png
+map 10001080 The Forest East of Henesys: cover; pictures cover_0.png, cover_1.png
+map 10001081 The Blue Mushroom Forest: cover; pictures cover_1.png
+map 10001082 Utah's Pig Farm: cover; pictures cover_0.png, cover_1.png, cover_3.png
+map 10001090 The Road to the Dungeon: cover; pictures cover_0.png, cover_1.png
+map 10001100 Henesys Dungeon Entrance: cover; pictures cover_0.png, cover_2.png
+map 10001101 The Breathing Rock: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_4.png
+map 10001102 The Entrance of Golem's Temple: cover; pictures cover_0.png, cover_1.png, cover_2.png, cover_3.png
+map 10001103 Golem's Temple I: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_4.png
+map 10001104 Golem's Temple II: cover; pictures cover_0.png, cover_1.png, cover_2.png, cover_3.png (+1)
+map 10001105 Golem's Temple III: cover; pictures cover_1.png, cover_2.png, cover_3.png
+map 10001106 Golem's Temple IV: cover; pictures cover_2.png, cover_3.png, cover_4.png, cover_5.png
+map 10002000 Ellinia: cover; pictures cover_1.png
+map 10002001 Ellinia Weapon Store: cover; pictures cover_1.png, cover_2.png
+map 10002002 Ellinia Department Store: cover; pictures cover_1.png, cover_2.png
+map 10002003 Magic Library: cover; pictures cover_0.png, cover_2.png
+map 10002004 Marr's Forest: cover; pictures cover_0.png, cover_1.png
+map 10002005 The Circulation Desk: cover; pictures cover_0.png, cover_1.png, cover_2.png
+map 10002010 The Field South of Ellinia: cover; pictures cover_1.png
+map 10002020 The Forest of Wisdom: cover; pictures cover_1.png
+map 10002021 Monkey Forest I: cover; pictures cover_0.png, cover_1.png
+map 10002022 Tree Dungeon, Monkey Forest I: cover; pictures cover_1.png
+map 10002023 Monkey Forest II: cover; pictures cover_1.png
+map 10002024 Tree Dungeon, Monkey Forest II: cover; pictures cover_1.png
+map 10002025 The Forest of Evil I: cover; pictures cover_1.png
+map 10002026 The Forest of Evil II: cover; pictures cover_1.png
+map 10002027 Downstairs at the Forest: cover; pictures cover_1.png
+map 10002030 The Forest South of Ellinia: cover; pictures cover_1.png
+map 10002032 Dungeon, Southern Forest II: cover; pictures cover_1.png
+map 10002033 Dungeon, Southern Forest III: cover; pictures cover_1.png
+map 10002034 Dungeon, Southern Forest IV: cover; pictures cover_1.png
+map 10002040 The Forest of Patience <Step 1>: cover; pictures cover_1.png, cover_2.png, cover_3.png
+map 10002041 The Forest of Patience <Step 2>: cover; pictures cover_0.png, cover_1.png, cover_3.png
+map 10002042 The Forest of Patience <Step 3>: cover; pictures cover_0.png, cover_1.png
+map 10002043 The Forest of Patience <Step 4>: cover; pictures cover_0.png, cover_1.png
+map 10002044 The Forest of Patience <Step 5>: cover; pictures cover_0.png, cover_1.png
+map 10002050 The Field Up North of Ellinia: cover; pictures cover_0.png, cover_1.png
+map 10002060 The Tree That Grew I: cover; pictures cover_1.png
+map 10002061 The Tree That Grew II: cover; pictures cover_1.png
+map 10002062 The Tree That Grew III: cover; pictures cover_1.png
+map 10002070 The Forest North of Ellinia: cover; pictures cover_1.png
+map 10002071 The Tree Tunnel At the Forest Up North: cover; pictures cover_1.png
+map 10002072 Tree Dungeon, Forest Up North I: cover; pictures cover_1.png
+map 10002073 Tree Dungeon, Forest Up North II: cover; pictures cover_1.png
+map 10002074 Tree Dungeon, Forest Up North III: cover; pictures cover_1.png
+map 10002075 Tree Dungeon, Forest Up North IV: cover; pictures cover_1.png
+map 10002076 Tree Dungeon, Forest Up North V: cover; pictures cover_1.png
+map 10002080 Tree Dungeon, Forest Up North VI: cover; pictures cover_1.png
+map 10002081 Tree Dungeon, Forest Up North VII: cover; pictures cover_1.png
+map 10002082 Tree Dungeon, Forest Up North VIII: cover; pictures cover_1.png
+map 10002083 Tree Dungeon, Forest Up North IX: cover; pictures cover_1.png
+map 10002090 Ellinia Station: cover; pictures cover_1.png, cover_5.png
+map 10002091 Before Takeoff <To Orbis>: cover; pictures cover_0.png
+map 10003000 Kerning City: cover; pictures cover_2.png, cover_3.png, cover_4.png, cover_5.png (+1)
+map 10003001 Kerning City Self-Defence Item Store: cover; pictures cover_0.png, cover_1.png
+map 10003002 Kerning City Pharmacy: cover; pictures cover_0.png, cover_1.png
+map 10003003 Thieves' Hideout: cover; pictures cover_1.png, cover_2.png
+map 10003004 Niora Hospital: cover; pictures cover_1.png, cover_2.png
+map 10003005 Kerning City Hair Salon: cover; pictures cover_0.png, cover_1.png, cover_2.png, cover_3.png
+map 10003006 Kerning City Repair Shop: cover; pictures cover_1.png
+map 10003007 Kerning City Civic Center: cover; pictures cover_1.png
+map 10003008 Backalley Semi-Basement: cover; pictures cover_2.png, cover_3.png
+map 10003010 Kerning City Construction Site: cover; pictures cover_0.png, cover_1.png, cover_2.png
+map 10003011 Caution Falling Down: cover; pictures cover_2.png, cover_3.png
+map 10003020 L Forest I: cover; pictures cover_0.png, cover_1.png
+map 10003030 L Forest II: cover; pictures cover_0.png, cover_1.png
+map 10003040 L Forest III: cover; pictures cover_1.png
+map 10003050 Kerning City Middle Forest I: cover; pictures cover_0.png, cover_2.png
+map 10003051 Kerning City Middle Forest II: cover; pictures cover_0.png
+map 10003052 Kerning City Middle Forest III: cover; pictures cover_0.png
+map 10003060 Subway Ticketing Booth: cover; pictures cover_1.png, cover_2.png, cover_3.png
+map 10003061 Line 1 <Area 1>: cover; pictures cover_1.png, cover_2.png, cover_4.png, cover_5.png
+map 10003062 Transfer Area: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_4.png (+1)
+map 10003063 Line 1 <Area 2>: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_4.png (+1)
+map 10003064 Line 1 <Area 3>: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_4.png (+1)
+map 10003065 Line 1 <Area 4>: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_4.png (+1)
+map 10003066 Line 2 <Area 1>: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_4.png (+1)
+map 10003067 Line 2 <Area 2>: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_4.png (+1)
+map 10003068 Line 2 <Area 3>: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_4.png (+1)
+map 10003070 Sunset Sky: cover; pictures cover_1.png, cover_2.png, cover_3.png
+map 10003080 Construction Site North of Kerning City: cover; pictures cover_0.png, cover_1.png, cover_2.png
+map 10003081 Northern Top of Construction Site: cover; pictures cover_2.png, cover_3.png
+map 10003090 The Swamp of Despair I: cover; pictures cover_4.png
+map 10003091 The Swamp of Despair II: cover; pictures cover_4.png
+map 10003092 The Swamp of Despair III: cover; pictures cover_4.png
+map 10003093 Dangerous Croko I: cover; pictures cover_4.png
+map 10003094 Dangerous Croko II: cover; pictures cover_4.png
+map 10003095 Monkey Swamp I: cover; pictures cover_4.png
+map 10003096 Monkey Swamp II: cover; pictures cover_4.png
+map 10003097 Monkey Swamp III: cover; pictures cover_4.png
+map 10003098 The Hermit's Cabin: cover; pictures cover_1.png
+map 10003100 B1 <Area 1>: cover; pictures cover_2.png, cover_3.png, cover_4.png, cover_5.png
+map 10003101 B1 <Area 2>: cover; pictures cover_2.png, cover_5.png
+map 10003102 B1 <Subway Depot>: cover; pictures cover_2.png, cover_5.png
+map 10003103 B2 <Area 1>: cover; pictures cover_0.png, cover_2.png, cover_3.png, cover_4.png
+map 10003104 B2 <Area 2>: cover; pictures cover_2.png, cover_5.png
+map 10003105 B2 <Subway Depot>: cover; pictures cover_2.png, cover_5.png
+map 10003106 B3 <Area 1>: cover; pictures cover_0.png, cover_2.png, cover_4.png
+map 10003107 B3 <Area 2>: cover; pictures cover_2.png
+map 10003108 B3 <Area 3>: cover; pictures cover_0.png, cover_2.png
+map 10003109 B3 <Subway Depot>: cover; pictures cover_2.png, cover_5.png
+map 10003110 The Murky Swamp I: cover; pictures cover_4.png
+map 10003111 The Murky Swamp II: cover; pictures cover_4.png
+map 10003112 Cabin of the Forsaken: cover; pictures cover_1.png
+map 10004000 Perion: cover; pictures cover_2.png, cover_3.png, cover_4.png
+map 10004001 Perion Weapon Store: cover; pictures cover_1.png, cover_2.png
+map 10004002 Perion Department Store: cover; pictures cover_0.png, cover_2.png
+map 10004003 Warriors' Sanctuary: cover; pictures cover_1.png
+map 10004010 West Street Corner of Perion: cover; pictures cover_1.png
+map 10004020 West Rocky Mountain I: cover; pictures cover_3.png, cover_4.png
+map 10004021 West Rocky Mountain II: cover; pictures cover_4.png, cover_5.png
+map 10004022 West Rocky Mountain III: cover; pictures cover_4.png, cover_5.png
+map 10004023 West Rocky Mountain IV: cover; pictures cover_4.png, cover_5.png
+map 10004030 West Domain of Perion: cover; pictures cover_0.png, cover_1.png
+map 10004040 Perion Street Corner: cover; pictures cover_1.png
+map 10004041 Land of Wild Boar: cover; pictures cover_0.png, cover_1.png
+map 10004042 Over the Wall: cover; pictures cover_0.png, cover_1.png
+map 10004050 East Rocky Mountain I: cover; pictures cover_0.png, cover_1.png, cover_2.png
+map 10004051 East Rocky Mountain II: cover; pictures cover_1.png
+map 10004052 East Rocky Mountain III: cover; pictures cover_1.png
+map 10004053 East Rocky Mountain IV: cover; pictures cover_0.png, cover_1.png, cover_2.png
+map 10004054 East Rocky Mountain V: cover; pictures cover_2.png, cover_3.png
+map 10004055 East Rocky Mountain VI: cover; pictures cover_3.png
+map 10004056 East Rocky Mountain VII: cover; pictures cover_1.png, cover_2.png, cover_3.png
+map 10004057 Parched Land: cover; pictures cover_3.png
+map 10004060 Rocky Road I: cover; pictures cover_1.png
+map 10004070 Rocky Road II: cover; pictures cover_1.png
+map 10004080 Rocky Road III: cover; pictures cover_1.png
+map 10004090 East Domain of Perion: cover; pictures cover_0.png, cover_1.png
+map 10004091 The Land of Wild Boar II: cover; pictures cover_1.png
+map 10004100 Deep Valley I: cover; pictures cover_0.png, cover_1.png
+map 10004101 Dangerous Valley: cover; pictures cover_2.png, cover_3.png, cover_4.png
+map 10004102 Dangerous Valley II: cover; pictures cover_4.png, cover_5.png
+map 10004110 Deep Valley II: cover; pictures cover_0.png, cover_1.png
+map 10004111 The Burnt Land I: cover; pictures cover_1.png
+map 10004112 The Burnt Land II: cover; pictures cover_1.png
+map 10004113 The Burnt Land III: cover; pictures cover_1.png
+map 10004114 The Burnt Land IV: cover; pictures cover_1.png
+map 10004115 The Burnt Land V: cover; pictures cover_1.png
+map 10004120 Deep Valley III: cover; pictures cover_0.png, cover_1.png
+map 10004121 Perion Dungeon Entrance: cover; pictures cover_0.png, cover_1.png
+map 10004130 Excavation Site I: cover; pictures cover_3.png
+map 10004131 Excavation Site II: cover; pictures cover_3.png
+map 10004132 Excavation Site III: cover; pictures cover_2.png, cover_3.png
+map 10004133 Excavation Site <Camp>: cover; pictures cover_3.png
+map 10004134 Remains <Tomb> I: cover; pictures cover_4.png
+map 10004135 Remains <Tomb> II: cover; pictures cover_3.png
+map 10004136 Remains <Tomb> III: cover; pictures cover_3.png
+map 10004137 Remains <Tomb> IV: cover; pictures cover_3.png
+map 10004138 Remains <Cliff>: cover; pictures cover_3.png
+map 10004140 Camp 1: cover
+map 10004141 Camp 2: cover; pictures cover_5.png
+map 10004142 Camp 3: cover
+map 10005000 Sleepywood: cover; pictures cover_1.png, cover_4.png
+map 10005001 Sleepywood Hotel: cover; pictures cover_1.png, cover_2.png
+map 10005002 Regular Sauna: cover; pictures cover_1.png
+map 10005003 VIP Sauna: cover; pictures cover_1.png
+map 10005010 Swampy Land in a Deep Forest: cover; pictures cover_1.png
+map 10005011 Hunting Ground in the Deep Forest I: cover; pictures cover_1.png
+map 10005012 Hunting Ground in the Deep Forest II: cover; pictures cover_0.png, cover_1.png
+map 10005020 Deep Forest: cover; pictures cover_1.png
+map 10005030 Damp Tree-Forest: cover; pictures cover_1.png
+map 10005031 Damp Forest: cover; pictures cover_1.png
+map 10005040 The Deep Forest of Patience <Step 1>: cover; pictures cover_2.png
+map 10005041 The Deep Forest of Patience <Step 2>: cover; pictures cover_2.png
+map 10005042 The Deep Forest of Patience <Step 3>: cover; pictures cover_2.png
+map 10005043 The Deep Forest of Patience <Step 4>: cover; pictures cover_2.png, cover_3.png
+map 10005044 The Deep Forest of Patience <Step 5>: cover; pictures cover_2.png
+map 10005045 The Deep Forest of Patience <Step 6>: cover; pictures cover_2.png
+map 10005046 The Deep Forest of Patience <Step 7>: cover; pictures cover_0.png, cover_1.png, cover_2.png
+map 10005050 Sleepy Dungeon I: cover; pictures cover_2.png, cover_4.png
+map 10005051 Sleepy Dungeon II: cover; pictures cover_2.png, cover_4.png
+map 10005052 Sleepy Dungeon III: cover; pictures cover_2.png, cover_4.png
+map 10005053 Sleepy Dungeon IV: cover; pictures cover_0.png, cover_2.png, cover_4.png
+map 10005054 Sleepy Dungeon V: cover; pictures cover_2.png, cover_4.png, cover_5.png, cover_6.png
+map 10005060 Ant Tunnel I: cover; pictures cover_1.png
+map 10005061 Ant Tunnel II: cover; pictures cover_1.png
+map 10005062 Ant Tunnel III: cover; pictures cover_4.png
+map 10005063 Ant Tunnel IV: cover; pictures cover_1.png
+map 10005064 Dark Cave: cover; pictures cover_1.png
+map 10005065 Dangerous Steam: cover; pictures cover_1.png, cover_3.png
+map 10005066 Deep Ant Tunnel I: cover; pictures cover_1.png
+map 10005067 Deep Ant Tunnel II: cover; pictures cover_1.png
+map 10005070 Ant Tunnel Park: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_5.png
+map 10005071 The Cave of Evil Eye I: cover; pictures cover_1.png
+map 10005072 The Cave of Evil Eye II: cover; pictures cover_1.png
+map 10005073 The Cave of Evil Eye III: cover; pictures cover_1.png
+map 10005074 The Cave of Evil Eye IV: cover; pictures cover_1.png
+map 10005075 Drake Hunting Ground: cover; pictures cover_1.png
+map 10005076 The Tunnel That Lost Light I: cover; pictures cover_4.png
+map 10005077 The Tunnel That Lost Light II: cover; pictures cover_1.png, cover_2.png, cover_3.png
+map 10005078 The Grave of Mushmom: cover; pictures cover_3.png
+map 10005080 Another Entrance: cover; pictures cover_4.png
+map 10005090 Drake's Meal Table: cover; pictures cover_0.png, cover_1.png
+map 10005091 Wild Kargo's Area: cover; pictures cover_3.png
+map 10005100 Another Path: cover; pictures cover_3.png, cover_4.png
+map 10005101 Sanctuary Entrance I: cover; pictures cover_1.png
+map 10005102 Sanctuary Entrance II: cover; pictures cover_1.png
+map 10005103 Sanctuary Entrance III: cover; pictures cover_1.png
+map 10005104 Sanctuary Entrance IV: cover; pictures cover_1.png
+map 10005105 The Cursed Sanctuary: cover; pictures cover_3.png, cover_4.png
+map 10006121 : cover; pictures cover_3.png
+map 10007000 Florina Beach: cover; pictures cover_0.png, cover_1.png, cover_2.png, cover_3.png
+map 10007010 A Look-Out Shed Around the Beach: cover; pictures cover_0.png, cover_3.png
+map 10007020 Lorang Lorang: cover; pictures cover_0.png, cover_3.png
+map 10007021 Lorang Lorang Lorang: cover; pictures cover_0.png, cover_1.png, cover_2.png, cover_3.png
+map 10007030 Lorang and Clang: cover; pictures cover_0.png, cover_3.png
+map 10007031 Clang and Lorang: cover; pictures cover_0.png, cover_1.png, cover_3.png, cover_4.png (+2)
+map 10007040 Hot Sand: cover; pictures cover_0.png, cover_3.png
+map 80000000 1st Accompaniment <1st Stage>: cover; pictures cover_4.png
+map 80000100 1st Accompaniment <2nd Stage>: cover; pictures cover_4.png
+map 80000200 1st Accompaniment <3rd Stage>: cover; pictures cover_1.png
+map 80000300 1st Accompaniment <4th stage>: cover; pictures cover_1.png, cover_3.png, cover_4.png
+map 80000400 1st Accompaniment <Last Stage>: cover; pictures cover_1.png, cover_2.png
+map 80000500 1st Accompaniment <Bonus>: cover; pictures cover_4.png, cover_5.png
+map 80000600 1st Accompaniment <Exit>: cover; pictures cover_4.png
+map 80001000 Ant Tunnel For Bowman: cover; pictures cover_1.png
+map 80001100 Magician's Tree Dungeon: cover; pictures cover_1.png
+map 80001200 Thief's Construction Site: cover; pictures cover_0.png, cover_1.png
+map 80001300 Warrior's Rocky Mountain: cover; pictures cover_2.png, cover_4.png
+map 80002000 Free Market Entrance: cover; pictures cover_0.png, cover_4.png
+map 80002001 Free Market <1>: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_5.png
+map 80002002 Free Market <2>: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_5.png
+map 80002003 Free Market <3>: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_5.png
+map 80002004 Free Market <4>: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_5.png
+map 80002005 Free Market <5>: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_5.png
+map 80002006 Free Market <6>: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_5.png
+map 80002007 Free Market <7>: cover; pictures cover_4.png, cover_5.png, cover_6.png
+map 80002008 Free Market <8>: cover; pictures cover_4.png, cover_5.png, cover_6.png
+map 80002009 Free Market <9>: cover; pictures cover_4.png, cover_5.png, cover_6.png
+map 80002010 Free Market <10>: cover; pictures cover_4.png, cover_5.png, cover_6.png
+map 80002011 Free Market <11>: cover; pictures cover_4.png, cover_5.png, cover_6.png
+map 80002012 Free Market <12>: cover; pictures cover_4.png, cover_5.png, cover_6.png
+map 80002013 Free Market <13>: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_5.png
+map 80002014 Free Market <14>: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_5.png
+map 80002015 Free Market <15>: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_5.png
+map 80002016 Free Market <16>: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_5.png
+map 80002017 Free Market <17>: cover; pictures cover_4.png, cover_5.png, cover_6.png
+map 80002018 Free Market <18>: cover; pictures cover_4.png, cover_5.png, cover_6.png
+map 80002019 Free Market <19>: cover; pictures cover_4.png, cover_5.png, cover_6.png
+map 80002020 Free Market <20>: cover; pictures cover_4.png, cover_5.png, cover_6.png
+map 80003000 Primrose Hill: cover; pictures cover_3.png
+map 80003100 Shortcut: cover; pictures cover_1.png
+map 80003200 Pig Town: cover; pictures cover_3.png
+map 80003300 Back to Town: cover; pictures cover_1.png
+map 80003400 Shortcut: cover; pictures cover_1.png
+map 88001000 Backalley Semi-Basement: cover; pictures cover_2.png, cover_3.png
+map 89000000 Truth Booth: cover; pictures cover_1.png
+map 90000000 Maple Hill: cover; pictures cover_1.png, cover_2.png, cover_3.png, cover_4.png (+2)
+map 90040000 Physical Fitness Test <Waiting Room>: cover; pictures cover_1.png, cover_3.png
+map 90040001 Physical Fitness Test <Level 1>: cover; pictures cover_0.png, cover_1.png
+map 90040002 Physical Fitness Test <Level 2>: cover; pictures cover_1.png, cover_3.png, cover_5.png
+map 90040003 Physical Fitness Test <Level 3>: cover; pictures cover_1.png
+map 90040004 Physical Fitness Test <Level 4>: cover; pictures cover_0.png, cover_1.png, cover_2.png, cover_4.png
+map 90040010 Physical Fitness Test <Easy Waiting Room>: cover; pictures cover_0.png, cover_1.png
+map 90040011 Physical Fitness Test <Easy Level 1>: cover; pictures cover_0.png, cover_1.png
+map 90040012 Physical Fitness Test <Easy Level 2>: cover; pictures cover_0.png, cover_1.png
+map 90040013 Physical Fitness Test <Easy Level 3>: cover; pictures cover_0.png, cover_1.png
+map 90040020 Physical Fitness Test <Normal Waiting Room>: cover; pictures cover_0.png, cover_1.png
+map 90040021 Physical Fitness Test <Normal Level 1>: cover; pictures cover_1.png
+map 90040022 Physical Fitness Test <Normal Level 2>: cover; pictures cover_0.png, cover_1.png
+map 90040023 Physical Fitness Test <Normal Level 3>: cover; pictures cover_0.png, cover_1.png
+map 90040101 Up and Up <Level 1>: cover; pictures cover_0.png, cover_2.png, cover_3.png, cover_4.png (+2)
+map 90040102 Up and Up <Level 2>: cover; pictures cover_0.png, cover_1.png, cover_2.png, cover_3.png (+3)
+map 90040103 Up and Up <Level 3>: cover; pictures cover_0.png, cover_1.png, cover_2.png, cover_3.png (+3)
+map 90040200 Coconut Harvest: cover; pictures cover_1.png, cover_3.png
+map 90040201 Coconut Harvest: cover; pictures cover_1.png, cover_3.png
+map 90040202 Coconut Harvest: cover; pictures cover_1.png, cover_3.png
+map 90040203 G* Coconut Season: cover; pictures cover_1.png, cover_3.png
+map 90050000 Leaving the Event: cover; pictures cover_0.png, cover_1.png, cover_3.png
+map 90050001 Receiving the Reward For the Event: cover; pictures cover_0.png, cover_1.png, cover_3.png
+map 900000000 The Manager's Room: cover; pictures cover_1.png

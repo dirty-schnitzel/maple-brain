@@ -552,5 +552,24 @@
   "fieldScript": "",
   "onFirstUserEnter": "",
   "onUserEnter": ""
+ },
+ "cover": {
+  "x0": -600,
+  "y0": -625,
+  "w": 1200,
+  "h": 1135,
+  "layers": [
+   0,
+   1,
+   2,
+   3
+  ],
+  "front_backs": 0,
+  "covered": {
+   "0": 0.5652,
+   "1": 0.4706,
+   "2": 0.4451,
+   "3": 0.3765
+  }
  }
 }

@@ -536,5 +536,20 @@
   "onFirstUserEnter": "",
   "onUserEnter": "",
   "miniMapOnOff": 1
+ },
+ "cover": {
+  "x0": -865,
+  "y0": -961,
+  "w": 1820,
+  "h": 1461,
+  "layers": [
+   2,
+   3
+  ],
+  "front_backs": 0,
+  "covered": {
+   "2": 0.1809,
+   "3": 0.0011
+  }
  }
 }

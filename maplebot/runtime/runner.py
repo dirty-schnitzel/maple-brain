@@ -124,9 +124,17 @@ def _load_map(rig: "Rig", map_id: int, say) -> bool:
             g = GpuSpriteDetector.for_map(map_id, ASSETS / "mcw", min_score=cfg.perception.sprite_score)
             import numpy as np
             g.find(np.zeros((768, 1366, 3), np.uint8))              # warm-up (~2 s, first CUDA call)
-            say(f"GPU mob detection on {g.dev}: {g.K} sprite frames, whole screen")
+            say(f"GPU mob detection on {g.dev}: {g.K} sprite frames, whole screen; tracker search warm-up "
+                f"{g.warm_near(occluded=True):.1f}s")
             sprites = GpuBand(g, sprites)
         navmap = NavMap.for_map(map_id, ASSETS / "mcw", cfg.nav)
+        if cfg.perception.gpu:                                     # the tracker (passive: logs obs.mobs only)
+            import json
+            mj = json.loads((ASSETS / "mcw" / "maps" / str(map_id) / "map.json").read_text(encoding="utf-8"))
+            from ..cover import Cover
+            sprites.track_ctx = (navmap, mj, {
+                i: json.loads((ASSETS / "mcw" / "mobs" / str(i) / "mob.json").read_text(encoding="utf-8"))
+                for i in g.mob_ids}, None, Cover.for_map(map_id, ASSETS / "mcw"))
         locator = MinimapLocator.for_map(map_id, ASSETS / "mcw", cfg.nav, navmap)
         rig.maps[map_id] = (sprites, locator)
         say(f"map {map_id} {_map_name(map_id)}: sprites for "
@@ -322,8 +330,8 @@ def _hunt(rig: Rig, rec: Recorder, t0: float, until, observe: bool = False) -> s
     return status
 
 
-def run(out: Path, seconds: float, cfg: Config, focus: bool = True) -> int:
-    rec = Recorder(out)
+def run(out: Path, seconds: float, cfg: Config, focus: bool = True, frames_every: int = 3) -> int:
+    rec = Recorder(out, every=frames_every)
     t0 = time.perf_counter()
 
     def say(msg):
@@ -353,11 +361,11 @@ def run(out: Path, seconds: float, cfg: Config, focus: bool = True) -> int:
     return 0 if status == "ok" else 2
 
 
-def serve(out_root: Path, cfg: Config, start_key: str = "f7", stop_key: str = "f8", frames: bool = False,
+def serve(out_root: Path, cfg: Config, start_key: str = "f7", stop_key: str = "f8", frames: int = 0,
           hotkeys: Hotkeys | None = None, poll_s: float = 0.03, max_hunts: int | None = None,
           observe: bool = False) -> int:
     """Stay loaded: `start_key` starts a hunt, `stop_key` stops it; Ctrl+C in the console quits. Each hunt is
-    recorded in its own folder under `out_root` (log + ticks; frames only with `frames`). `max_hunts`: for tests.
+    recorded in its own folder under `out_root` (log + ticks; every `frames`-th frame, 0 = none; True = 3). `max_hunts`: for tests.
     `observe`: F7 starts a recording only - the player plays, the bot never touches a key."""
     out_root = Path(out_root)
     out_root.mkdir(parents=True, exist_ok=True)
@@ -401,9 +409,10 @@ def serve(out_root: Path, cfg: Config, start_key: str = "f7", stop_key: str = "f
                 continue
             hunts += 1
             out = out_root / f"{datetime.now():%Y%m%d_%H%M%S}_{hunts}"
-            rec = Recorder(out, every=3 if frames else 0)
+            rec = Recorder(out, every=int(frames) * 3 if frames is True else int(frames))
             say(f"hunt #{hunts} started -> {out} (map {rig.cfg.perception.map_id}, game picture at x {cols}, "
                 f"{rig.screen.kind})")
+            rec.log.write(f"map {rig.cfg.perception.map_id} {_map_name(rig.cfg.perception.map_id)}\n")  # livemap
             chirp(True)
             try:
                 status = _hunt(rig, rec, time.perf_counter(),

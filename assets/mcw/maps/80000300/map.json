@@ -1567,5 +1567,22 @@
   "fieldScript": "",
   "onFirstUserEnter": "StageMsg_together",
   "onUserEnter": ""
+ },
+ "cover": {
+  "x0": 127,
+  "y0": -794,
+  "w": 1636,
+  "h": 1714,
+  "layers": [
+   1,
+   3,
+   4
+  ],
+  "front_backs": 0,
+  "covered": {
+   "1": 0.3664,
+   "3": 0.2437,
+   "4": 0.1547
+  }
  }
 }

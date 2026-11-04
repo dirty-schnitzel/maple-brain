@@ -606,5 +606,18 @@
   "mapMark": "Quest",
   "swim": 0,
   "fieldLimit": 8808
+ },
+ "cover": {
+  "x0": -959,
+  "y0": -225,
+  "w": 1828,
+  "h": 905,
+  "layers": [
+   1
+  ],
+  "front_backs": 0,
+  "covered": {
+   "1": 0.007
+  }
  }
 }

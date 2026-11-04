@@ -991,5 +991,18 @@
   "fieldScript": "",
   "onFirstUserEnter": "StageMsg_together",
   "onUserEnter": ""
+ },
+ "cover": {
+  "x0": -1818,
+  "y0": -830,
+  "w": 1898,
+  "h": 1310,
+  "layers": [
+   4
+  ],
+  "front_backs": 0,
+  "covered": {
+   "4": 0.0875
+  }
  }
 }

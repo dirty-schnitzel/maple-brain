@@ -2002,5 +2002,20 @@
   "fieldScript": "",
   "onFirstUserEnter": "",
   "onUserEnter": ""
+ },
+ "cover": {
+  "x0": -1245,
+  "y0": 3,
+  "w": 2760,
+  "h": 1287,
+  "layers": [
+   2,
+   5
+  ],
+  "front_backs": 0,
+  "covered": {
+   "2": 0.4732,
+   "5": 0.0065
+  }
  }
 }

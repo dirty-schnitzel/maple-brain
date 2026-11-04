@@ -25,6 +25,7 @@ def main(argv=None) -> int:
     r.add_argument("--loot-sight", action="store_true", help="experimental: loot what's seen on the ground")
     r.add_argument("--gpu", action="store_true", help="find mobs on the GPU (whole screen; needs torch + CUDA)")
     r.add_argument("--no-focus", action="store_true", help="don't bring the game to front; wait for you to")
+    r.add_argument("--frames-every", type=int, default=3, help="save every Nth frame (1 = all, for tracker tests)")
     v = sub.add_parser("serve", help="stay loaded; F7 starts hunting, F8 stops (elevated, game focused)")
     v.add_argument("out", type=Path, nargs="?", default=Path("runs/manual"), help="one folder per hunt in here")
     v.add_argument("--attack", default="space")
@@ -39,7 +40,17 @@ def main(argv=None) -> int:
     v.add_argument("--start-key", default="f7")
     v.add_argument("--stop-key", default="f8")
     v.add_argument("--frames", action="store_true", help="also save every 3rd frame (~50 MB per 10 min)")
+    v.add_argument("--frames-every", type=int, default=None, help="save every Nth frame (implies --frames; 1 = all)")
     v.add_argument("--observe", action="store_true", help="record only: you play, the bot presses no keys")
+    lm = sub.add_parser("livemap", help="console map of the running hunt (tracks; needs --gpu), redrawn in place")
+    lm.add_argument("dir", type=Path, nargs="?", default=Path("runs/manual"),
+                    help="a run folder, or a folder of hunts (the newest is followed)")
+    lm.add_argument("--every", type=float, default=0.3)
+    lm.add_argument("--width", type=int, default=None, help="columns (default: the console's)")
+    lm.add_argument("--replay", action="store_true", help="play a recorded run back at real speed")
+    lm.add_argument("--speed", type=float, default=1.0)
+    lm.add_argument("--t0", type=float, default=0.0, help="--replay: start at this second")
+    lm.add_argument("--map", type=int, default=None, help="the map id (default: from the hunt logs)")
     w = sub.add_parser("watch", help="no hunt: siren if the Lie Detector shows up (keep running between runs)")
     w.add_argument("out", type=Path, nargs="?", default=Path("runs/watch"))
     w.add_argument("--seconds", type=float, default=4 * 3600)
@@ -48,6 +59,11 @@ def main(argv=None) -> int:
     s.add_argument("action", choices=["build"])
     s.add_argument("--export", type=Path, default=None, help="the export folder (default: export.ps1's)")
     a = ap.parse_args(argv)
+    if a.cmd == "livemap":
+        from .livemap import follow, replay
+        if a.replay:
+            return replay(a.dir, a.speed, a.every, a.width, a.t0, a.map)
+        return follow(a.dir, a.every, a.width, a.map)
     if a.cmd == "watch":
         from .runtime.runner import watch
         return watch(a.out, a.seconds)
@@ -69,11 +85,12 @@ def main(argv=None) -> int:
         cfg.perception.loot_by_sight = a.loot and a.loot_sight
         cfg.perception.gpu = a.gpu
         if a.cmd == "run":
-            return run(a.out, a.seconds, cfg, focus=not a.no_focus)
+            return run(a.out, a.seconds, cfg, focus=not a.no_focus, frames_every=a.frames_every)
         for k in (a.start_key, a.stop_key):
             if k not in VK:
                 ap.error(f"hotkeys must be F1-F12, got {k!r}")
-        return serve(a.out, cfg, a.start_key, a.stop_key, frames=a.frames, observe=a.observe)
+        every = a.frames_every if a.frames_every is not None else (3 if a.frames else 0)
+        return serve(a.out, cfg, a.start_key, a.stop_key, frames=every, observe=a.observe)
     return 2
 
 
