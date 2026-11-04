@@ -29,6 +29,41 @@ Milestones: M0 executor + obs.state + key recording -> M1 movement skills (walk/
   running); then `tools/play/analyze.py RUN` (route/loop on the map, time split, key overlaps, hold/pause
   distributions, reaction times, kills/min) - the same on `runs/l1a1_5m` for bot-vs-human.
 
+## FARMING EXAMPLE: the user, lv 23, Line 1 <Area 1> (10003061, Bubbling) - the reference for the new brain
+Recording `runs/play/20261105_000802_1` (2026-11-05, 18.5 min, `serve --observe --gpu --tracker --frames`, 2.6 GB:
+ticks + keys.jsonl + every 3rd frame; in a party). Tools: `tools/play/analyze.py RUN` (keys, combos, route),
+`tools/play/kills.py RUN 1.0` (kills by last hit), `tools/play/route.py RUN` (platform time vs spawns, transitions).
+- **Kills by LAST HIT (the user: count it that way; EXP gains are party EXP, not kills): 179 = 9.7/min** (per
+  minute 6-19). Our swing -> mob turns `dying` in the tracker: peak 0.5-0.8 s, few after 1.0 s -> window 1.0 s.
+  Time between kills median 4.3 s (p10 0.7, p90 15). 2.6 attack presses per kill. Distance at the killing swing:
+  median 72 px in front (p10 13, p90 120). Deaths seen near us but not our hit: 68 (others / party). EXP gains
+  764 (41/min) = party shares (5-8 EXP vs Bubbling's 28) - NOT kills. Bot `l1a1_5m` "40 kills / 5 min" = the
+  bot's own kill stat, not counted the same way: re-count before comparing.
+- **Attack = TAPS** (space n 411, median 0.13 s, p90 0.85, max 2.4 - short holds exist, rarely). 219 of 411
+  started while walking (space while left 127 / right 92): attacks while moving. `c` 48 taps (MP ran out: min 0 %,
+  median 29 %; plain attack). Gap between attacks median 1.0 s.
+- **Movement:** left/right held 35 % / 33 % of the time, hold median 0.5-0.6 s (p10 0.15, p90 3.1, max 15);
+  direction reversals while still holding the other way (57 left-while-right, 33 right-while-left). Jumps (shift)
+  275, hold 0.17 s, almost always running (106 while right, 103 while left). Rope grab = running jump then up
+  (up while right+shift 37, left+shift 32); up hold median 0.8 s. Down (drop / down-jump) 67.
+- **Never still for long:** no key held 22 % of the time, in short bits: median 0.19 s, p90 0.65 s, max 13 s.
+  Attack pauses > 15 s only 6 times (longest 28 s at 238 s: 25 s standing on rope 1267 = a break).
+- **Pickup `z`:** 80 taps in bursts (gap median 0.10 s: 2-3 quick taps), hold 0.09 s; not after every kill.
+- **Other keys:** `end` 25x (every ~46 s median), `1` 6x, `home`, `vka1` (vk 0xA1 = right shift?) 5x, menus
+  (esc 4, i 3, k 2, enter 2) - ASK the user what end / 1 / home are (potions?). HP min 39 %, median 54 %.
+- **Route: the whole map, every platform, a hub with loops.** Time per platform vs spawns (64 on the map):
+  273 (y 198, full width, 13 spawns) 28 % - THE HUB, revisited every ~19 s; 244 (ground y 323, 18 spawns) 20 %,
+  every ~34 s; 79 (y 73, 4 spawns) 15 %, every ~35 s; 111 (5) 7 %; 65 (4) 7 %; 56 (3) 5 %; 19 (4) 4 %; 7 (3) 3.5 %;
+  33 (2) 3 %; 46 (2) 2.6 %; 25 (3) 1.9 %; 93 (3) 1.4 %; in the air ~8 %. Time follows spawns but favours the centre:
+  the far-west platforms 19/25/93 (10 spawns) get 7 % (19 revisited every ~260 s).
+  Top transitions: 244<->273 (20/18), 273->79 13, 79->56 10, 65->273 9, 273->111 9, 56->65 8, 33<->79 7/6.
+  Loops seen: **east** 273 -rope1626-> 79 -rope1267-> 56 -> 65 -> drop 273; **north-east** 79 -rope1896-> 33 ->
+  7 -> 46 -rope2550-> 111 -rope2714-> 273; **west** 65 -rope768-> 19 -> 25 -> 93 -rope269-> 273 (rare); plus
+  sweeps of the ground 244 between them. Single stays are short: a few s, max ~20 s.
+- Lessons for brain-v2: tap attacks while walking, multi-key executor (walk + jump + up / attack), a hub-and-loops
+  zone plan (value ~ spawns, travel cost from the hub), leave a platform after a few s when it's cleared, occasional
+  breaks of 15-30 s, quick pickup bursts.
+
 ## Session 20 (2026-11-04, branch `perception`) - NEXT TASK: the brain navigates Line 1 - START HERE
 **Done this session (UNCOMMITTED - ask the user before committing):**
 - **Look-alike maps told apart by the name** (`nav/identify.py`, quick fix, no OCR - the user: "quick fix no ocr";

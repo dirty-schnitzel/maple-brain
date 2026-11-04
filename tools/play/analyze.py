@@ -109,7 +109,8 @@ def main(run):
     # --- kills: EXP increases
     exps = [(r["obs"]["t"], r["obs"]["exp_points"]) for r in ticks if r["obs"].get("exp_points") is not None]
     gains = [t for (t0, e0), (t, e) in zip(exps, exps[1:]) if e > e0]
-    print(f"\n== EXP gains: {len(gains)} ({60 * len(gains) / T:.1f}/min)")
+    print(f"\n== EXP gains: {len(gains)} ({60 * len(gains) / T:.1f}/min) - NOT kills in a party (party EXP): "
+          "tools/play/kills.py counts by last hit")
 
     # --- mobs: how many tracked, on our platform vs elsewhere
     same = other = 0
