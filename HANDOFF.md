@@ -29,6 +29,21 @@ Milestones: M0 executor + obs.state + key recording -> M1 movement skills (walk/
   running); then `tools/play/analyze.py RUN` (route/loop on the map, time split, key overlaps, hold/pause
   distributions, reaction times, kills/min) - the same on `runs/l1a1_5m` for bot-vs-human.
 
+## brain-v2 executor: KeyDriver (session 21, 2026-11-05) + the user's notes for brain-v2
+- **Built: `maplebot/runtime/keys.py` `KeyDriver`** - a thread owns the keyboard: `hold(set)` = every key to keep
+  down (several at once), `tap(key, secs, after=0)` queued and non-blocking (a 2nd tap of a key still waiting is
+  dropped; taps of one key never overlap), random reaction pause per key-down / release pause per key-up (keys
+  changed together never flip at the same instant), varied tap lengths, auto-repeat of the last pressed key
+  (~0.5 s delay, ~33 ms), focus lost -> everything up, wishes dropped, `lost_focus`. `pump(now)` = all logic
+  (tests: fake clock). `LegacyExecutor` = the old brain's Hold/Release/Tap on it, nothing blocks. Flag
+  **`--keys v2`** (run/serve; default v1 = the old blocking Executor). Config `Humanize.release_* repeat_*`.
+  Tests `tests/test_keys.py` (12). **Not live-tested yet.** Live A/B to do: old brain v1 vs v2 keys (loop stalls
+  > 0.3 s should vanish; watch for Tap spam / turns that behave differently since taps no longer block).
+- **The user's notes for brain-v2 (2026-11-05):** (1) **a completely new file `maplebot/brain/brain_v2.py`, from
+  scratch** - functions may be copied from brain.py; (2) **emphasis on WHEN TO HIT: the user now uses a SPEAR**
+  (longer reach than the sword the old brain's zones 42/66/92 were tuned on); weapons change, range is variable ->
+  reach from data (skill/weapon hit boxes in the client files) and/or learned live (distance of swings that hit).
+
 ## FARMING EXAMPLE: the user, lv 23, Line 1 <Area 1> (10003061, Bubbling) - the reference for the new brain
 Recording `runs/play/20261105_000802_1` (2026-11-05, 18.5 min, `serve --observe --gpu --tracker --frames`, 2.6 GB:
 ticks + keys.jsonl + every 3rd frame; in a party). Tools: `tools/play/analyze.py RUN` (keys, combos, route),

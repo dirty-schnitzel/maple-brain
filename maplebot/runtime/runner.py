@@ -236,7 +236,17 @@ def _hunt(rig: Rig, rec: Recorder, t0: float, until, observe: bool = False) -> s
         c = brain.navmap.spawn_center()
         say(f"spawns: {len(brain.navmap.spawns)} points, densest around map x {c:.0f} - idle walks head there"
             if c is not None else "spawns: none on this map - idle walks patrol as before")
-    ex = _NoKeys() if observe else Executor(kb)
+    driver = None
+    if observe:
+        ex = _NoKeys()
+    elif cfg.humanize.keys_v2:                  # brain-v2 executor: the keys on their own thread, no blocking taps
+        from ..keyboard import _send
+        from .keys import KeyDriver, LegacyExecutor
+        driver = KeyDriver(_send, kb.focused, hz, cfg.humanize).start()
+        ex = LegacyExecutor(driver)
+        say("keys v2: KeyDriver thread")
+    else:
+        ex = Executor(kb)
     keylog = None
     if observe:                         # the player's own keys -> keys.jsonl, same clock as ticks (obs.t)
         from .keylog import KeyLogger
@@ -327,6 +337,9 @@ def _hunt(rig: Rig, rec: Recorder, t0: float, until, observe: bool = False) -> s
         rec.log.write(traceback.format_exc())
     finally:
         ex.release_all()
+        if driver is not None:
+            driver.stop()
+            say(f"keys v2: {driver.sent} key events sent")
         if keylog is not None:
             keylog.stop()
             say(f"keys: {keylog.n} recorded, hook lag max {keylog.lag_max} ms"
