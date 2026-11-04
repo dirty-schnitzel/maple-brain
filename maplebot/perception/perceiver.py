@@ -49,6 +49,8 @@ class Observation:
     rope: float | None = None               # x of the rope we're on
     mobs: list = field(default_factory=list)          # the tracker's tracks (world.Track.as_dict; --gpu, passive)
     cam: tuple | None = None                # the tracker's camera: map = screen + cam
+    cam_src: str | None = None              # what moved the camera this frame: platforms / scene (fallback)
+    me_map: tuple | None = None             # our feet on the map from our tag + cam: exact px (minimap: 16 px steps)
 
 
 def reachable_level(box, feet, tol, step_down, dx=None, climb_slope=0.0, climb_max=0.0) -> bool:
@@ -92,6 +94,10 @@ class Perceiver:
             from .world import World
             self.world = World(*ctx)
             self.tag_pool = ThreadPoolExecutor(1)       # name tags (CPU) while the GPU finds mobs
+            self.plat_shift = None                      # the camera's shift measured on the platforms (camshift.py)
+            if self.world.nav is not None and cfg.perception.platform_shift:
+                from .camshift import PlatformShift
+                self.plat_shift = PlatformShift(self.world.nav)
         self.use_tracks = bool(cfg.perception.tracker and self.world is not None)
         self.target_id = None                           # --tracker: the target is this track
 
@@ -282,12 +288,19 @@ class Perceiver:
         tags = self.tag_pool.submit(find_tags, frame)  # players' bodies hide mobs (they're drawn over them)
         hits = band._all(frame)
         me_s = (me[0] + me[2] / 2, me[1]) if me is not None else None
-        shift = (obs.scene_dx, obs.scene_dy) if obs.scene_dx is not None else None
+        shift = None
+        if self.plat_shift is not None:                 # platforms move 1:1 with the camera; the whole frame doesn't
+            shift = self.plat_shift.update(frame, self.world.cam.C, me_s, obs.t)
+            obs.cam_src = "platforms" if shift is not None else "scene"
+        if shift is None and obs.scene_dx is not None:
+            shift = (obs.scene_dx, obs.scene_dy)
         trs = self.world.update(obs.t, hits, me_s, obs.map_pos, shift,
                                 near=lambda spots, pad=24, vis=None: band.gpu.find_near(frame, spots, pad=pad, vis=vis),
                                 tags=tags.result())
         obs.mobs = [tr.as_dict(obs.t) for tr in trs]
         obs.cam = tuple(round(v, 1) for v in self.world.cam.C) if self.world.cam.C else None
+        if me_s is not None and obs.cam is not None:   # our feet on the map, exact px (the tag's screen x + camera)
+            obs.me_map = (round(me_s[0] + obs.cam[0], 1), round(me_s[1] + obs.cam[1], 1))
 
     def look(self, frames, obs: Observation, cursor=None) -> Observation:
         """Motion look: moving things on our ground line that aren't characters, drops, ghosts or the cursor."""

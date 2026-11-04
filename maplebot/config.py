@@ -175,6 +175,8 @@ class Perception:
     unconfirmed_s: float = 0.6      # sprite mode: the template tracker alone keeps a target this long at most
     sprite_score: float = 0.65      # measured on 1000 recorded frames: every hit >= 0.65 was a real snail
     tracker: bool = False           # --tracker (needs --gpu): the brain's mobs + target come from the tracker's tracks
+    platform_shift: bool = True     # the tracker's camera moves by the platforms' shift (camshift.py), not the whole
+                                    # frame's (parallax backgrounds made it lag: fine x -23..+27 px off -> -3..+6)
     track_coast_s: float = 0.4      # ... a confirmed track unseen this long still counts (hidden ones: as long as hidden)
     gpu: bool = False               # --gpu: mobs found by perception/gpu_sprites.py (whole screen, CUDA) instead of
                                     # the CPU colour-blob detector; the brain still gets our band (GpuBand)

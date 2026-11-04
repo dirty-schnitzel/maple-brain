@@ -20,6 +20,7 @@ SCREEN_W, SCREEN_H, PLAY_H = 1366, 768, 700
 @dataclass
 class TrackCfg:
     pull: float = 0.05            # camera: share of the minimap anchor taken per frame
+    leash: float | None = 24.0    # camera: our feet (tag + C) at most this far from the minimap's (16 px steps + lag)
     gate_x: float = 30.0          # association: px allowed off the prediction, + vmax * time unseen
     gate_y: float = 24.0
     gate_y_air: float = 90.0
@@ -96,8 +97,12 @@ class Track:
 
 
 class Camera:
-    def __init__(self, vr: dict | None, pull: float = 0.05, w: int = SCREEN_W, h: int = SCREEN_H):
-        self.vr, self.pull, self.w, self.h = vr or None, pull, w, h
+    def __init__(self, vr: dict | None, pull: float = 0.05, w: int = SCREEN_W, h: int = SCREEN_H,
+                 leash: float | None = None):
+        """`leash`: if set, our feet (screen + C) never sit farther than this from the minimap's position on either
+        axis - the minimap is coarse (16 px steps, a little late) but never drifts; a missed camera shift (a loop
+        stall past the search range) is then bounded instead of paid back slowly by the pull."""
+        self.vr, self.pull, self.w, self.h, self.leash = vr or None, pull, w, h, leash
         self.C = None             # (cx, cy): map = screen + C
 
     def update(self, shift, me_screen, me_map):
@@ -109,6 +114,9 @@ class Camera:
         if me_screen is not None and me_map is not None:
             a = (me_map[0] - me_screen[0], me_map[1] - me_screen[1])
             C = a if C is None else (C[0] + self.pull * (a[0] - C[0]), C[1] + self.pull * (a[1] - C[1]))
+            if self.leash is not None:
+                L = self.leash
+                C = (min(max(C[0], a[0] - L), a[0] + L), min(max(C[1], a[1] - L), a[1] + L))
         if C is not None and self.vr:
             C = (min(max(C[0], self.vr["left"]), self.vr["right"] - self.w),
                  min(max(C[1], self.vr["top"]), self.vr["bottom"] - self.h))
@@ -131,7 +139,7 @@ class World:
             fr = (m.get("frames") or {})
             f0 = (fr.get("stand") or fr.get("move") or fr.get("fly") or [{}])[0]
             self.body[i] = (f0.get("lt") or [-30, -50], f0.get("rb") or [30, 0])
-        self.cam = Camera(map_json.get("vrBounds"), self.cfg.pull)
+        self.cam = Camera(map_json.get("vrBounds"), self.cfg.pull, leash=self.cfg.leash)
         self.flyers = {i for i, m in mobs.items() if (m.get("frames") or {}).get("fly")}
         self.die_s = {i: _die_s(m) for i, m in mobs.items()}
         self.tracks: list[Track] = []

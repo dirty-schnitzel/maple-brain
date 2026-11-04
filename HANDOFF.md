@@ -1,4 +1,4 @@
-# maplebot — session handoff (updated 2026-11-05, session 21: BRAIN-V2 started - key logger, the user's farming example, KeyDriver executor (default); NEXT = M1 movement skills, see 'BRAIN-V2: THE PLAN'; session 20: look-alike maps by name; session 19: tracker + `--tracker` shim; session 18: GPU detection `--gpu`; session 17: game data from the client files)
+# maplebot — session handoff (updated 2026-11-05, session 22: M1 step 1 fine own position DONE (camshift + selfstate), next = M1 step 2 link executors; session 21: BRAIN-V2 started - key logger, the user's farming example, KeyDriver executor (default); NEXT = M1 movement skills, see 'BRAIN-V2: THE PLAN'; session 20: look-alike maps by name; session 19: tracker + `--tracker` shim; session 18: GPU detection `--gpu`; session 17: game data from the client files)
 
 ## Goal
 A **fully automated mob farmer** for **MapleStory Classic World** (official GMS Classic, launched 2026-10-21):
@@ -47,6 +47,26 @@ Runner: `--brain v2` selects BrainV2 (old brain default until the A/B); BrainV2 
 - [ ] **live check of KeyDriver with the old brain** (one 3-min run: loop stalls > 0.3 s gone? turns/step-backs OK?)
 - [ ] `obs.state`: one fixed per-tick record: us (fine map x/y, platform / rope / air, vx, facing, HP/MP), tracks
   (id, mob, x/y, dx/dy to us, vx, state, unseen, platform), the active skill + its state. Logged in ticks.jsonl.
+
+### M1 step 1 DONE (session 22, 2026-11-05): fine own position - offline on the farming recording
+- **Found: the tracker's camera lagged.** `obs.scene_dx` (whole-frame phase correlation) locks onto the parallax
+  background: it saw only 0.67 (median, p10 0.44) of the real camera motion -> tag + cam was WORSE than the minimap
+  (x vs the rope we hung on p10..p90 -23..+27 px). Mob map positions had the same lag.
+- **`perception/camshift.py` `PlatformShift`:** strips under every visible platform surface (tiles are 1:1 with the
+  map), matched in the next frame around the PREDICTED shift (last shift x dt ratio: loop stalls of 0.3 s at 150 px/s
+  went past a fixed window), of look-alike peaks (repeating tiles) the one nearest the prediction, median. Fallback:
+  scene shift (`obs.cam_src` = platforms / scene). ~5.7 ms/frame (12 strips, +-32 px). Config
+  `Perception.platform_shift` (on). **`Camera` leash** (`TrackCfg.leash` 24): our feet never > 24 px from the
+  minimap's on either axis (bounded error after a missed shift). New `obs.me_map` = tag + cam (exact px).
+- **`nav/selfstate.py` `SelfTracker`** -> `SelfState(x, y, src tag/minimap, state ground/rope/air, platform, rope,
+  vx, vy)`; on the ground y snaps to the floor; the camera's y may be ~10-15 px off -> the minimap's floor + our exact
+  x decides. Tests `test_selfstate.py`, `test_camshift.py`.
+- **`tools/nav/selfstate_eval.py RUN`** (replays saved frames; writes RUN/selfstate.jsonl). On
+  `runs/play/20261105_000802_1` (7669 frames, every 3rd, 0.13 s apart): x vs rope x -3.2 / +1.9 / +5.4 px (p10/50/90);
+  minimap-rope frames we call rope 553/607; ground platform == minimap's 5714/5714; jump-then-up grabs on a rope
+  within 1 s 79/94; air episodes 325 (224 after a jump key, 22 drops, 10 off ropes, 69 other = walk-offs, knockback,
+  1-frame blips). With +-48 px / 24 strips (8 ms) it was 574/607 - live frames are 3x closer, so +-32 should do.
+- **Not live-tested.** `obs.me_map` / `cam_src` only exist with `--gpu` (the World). Next: step 2, link executors.
 
 ### M1 - movement skills (NEXT): Travel along a NavMap route, live on Line 1 <Area 1> (10003061)
 Existing pieces: `nav/navmap.py` (platforms, ropes, links walk/fall/drop/jump/grab/descend/exit/let_go/leap,
