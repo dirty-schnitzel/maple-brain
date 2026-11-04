@@ -92,6 +92,8 @@ class Perceiver:
             from .world import World
             self.world = World(*ctx)
             self.tag_pool = ThreadPoolExecutor(1)       # name tags (CPU) while the GPU finds mobs
+        self.use_tracks = bool(cfg.perception.tracker and self.world is not None)
+        self.target_id = None                           # --tracker: the target is this track
 
     def _locate(self, frame, obs):
         """Minimap dot -> obs.dot; with a locator also our map position, platform and rope. The minimap canvas is
@@ -107,12 +109,20 @@ class Perceiver:
 
     # ---- commands from the brain (via the runner)
     def track(self, frame, box):
+        if self.use_tracks:                             # the target = the track whose box this is (by id from now on)
+            trs = [tr for tr in self._brain_tracks(self.last_t) if abs(cx(self._box(tr)) - cx(box)) < 30]
+            best = min(trs, key=lambda tr: abs(cx(self._box(tr)) - cx(box)), default=None)
+            self.target_id = best.id if best is not None else None
+            self.target_mob = best.mob_id if best is not None else None
+            self.confirmed_at = self.last_t
+            return
         self.tracker = Tracker(frame, box)
         self.confirmed_at = self.last_t                 # it was just seen (that's why it's the target)
         hit = [s for s in self.last_sprites if abs(cx(s[0]) - cx(box)) < 15]
         self.target_mob = hit[0][1] if hit else None
 
     def untrack(self):
+        self.target_id = None
         self.tracker = None
         self.target_mob = None
 
@@ -204,6 +214,11 @@ class Perceiver:
                                                             exclude=obs.bar_mobs)
                                if reachable_level(s[0], feet, z.same_level, z.step_down, cx(s[0]) - px,
                                                   z.climb_slope, z.climb_max)]
+        if self.use_tracks:                   # --tracker: the brain's mobs are the tracks on our level
+            obs.sprite_mobs = [(self._box(tr), tr.mob_id, tr.score) for tr in self._brain_tracks(t)]
+            obs.sprite_mobs = [s for s in obs.sprite_mobs
+                               if reachable_level(s[0], feet, z.same_level, z.step_down, cx(s[0]) - px,
+                                                  z.climb_slope, z.climb_max)]
         self.last_sprites = obs.sprite_mobs
         spr = [s[0] for s in obs.sprite_mobs]
         lib = [] if self.sprites is not None else [     # sprites cover this map's mobs (and cost less)
@@ -213,6 +228,15 @@ class Perceiver:
         if self.drops is not None:
             obs.drops = [b for b, _ in self.drops.update(frame, t, feet, px)]
 
+        if self.use_tracks and self.target_id is not None:
+            tr = next((x for x in self.world.tracks if x.id == self.target_id), None)
+            if tr is not None and tr.state not in ("offscreen",):
+                obs.target = self._box(tr)
+                obs.target_dying = tr.state == "dying"
+                alive_now = tr.src != "none" and tr.state != "dying"
+                obs.target_src = "sprite" if alive_now else "track"        # "sprite": seen alive this frame
+                if alive_now:
+                    self.confirmed_at = t
         if self.tracker is not None:
             exp_x = self.tracker.centre_x()
             near = [b for b in obs.bar_mobs if abs(cx(b) - exp_x) < 70]
@@ -241,6 +265,17 @@ class Perceiver:
                     if src and not on_me and not stale:                   # (pkg_sprites4 44.9 s: the template slid onto our own
                         obs.target, obs.target_src = self.tracker.box, src   # body; swung at air for 7.5 s)
         return obs
+
+    def _box(self, tr):
+        """A track's body box on screen (the client's lt/rb of its stand frame, at its feet)."""
+        lt, rb = self.world.body.get(tr.mob_id, ([-30, -50], [30, 0]))
+        return (int(tr.sx + lt[0]), int(tr.sy + lt[1]), int(rb[0] - lt[0]), int(rb[1] - lt[1]))
+
+    def _brain_tracks(self, t):
+        """The tracks the brain gets: confirmed, alive, seen now / hidden / unseen <= track_coast_s."""
+        cs = self.cfg.perception.track_coast_s
+        return [tr for tr in self.world.tracks if tr.state not in ("tentative", "dying", "offscreen")
+                and (tr.src != "none" or tr.state == "hidden" or t - tr.seen <= cs)]
 
     def _track(self, frame, obs, me):
         band = self.sprites

@@ -174,6 +174,8 @@ class Perception:
     map_id: int | None = None       # Classic World map id (42 = Snail Hunting Ground III): enables sprite detection
     unconfirmed_s: float = 0.6      # sprite mode: the template tracker alone keeps a target this long at most
     sprite_score: float = 0.65      # measured on 1000 recorded frames: every hit >= 0.65 was a real snail
+    tracker: bool = False           # --tracker (needs --gpu): the brain's mobs + target come from the tracker's tracks
+    track_coast_s: float = 0.4      # ... a confirmed track unseen this long still counts (hidden ones: as long as hidden)
     gpu: bool = False               # --gpu: mobs found by perception/gpu_sprites.py (whole screen, CUDA) instead of
                                     # the CPU colour-blob detector; the brain still gets our band (GpuBand)
     die_score: float = 0.72         # death frames where the target was (its own mob type): pkg_human5m dying
