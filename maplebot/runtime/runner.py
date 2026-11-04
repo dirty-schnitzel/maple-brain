@@ -29,7 +29,7 @@ from ..config import Config
 from ..humanize import Humanizer
 from ..keyboard import FocusLost, Keyboard, bring_to_front, foreground_title
 from ..perception.perceiver import Perceiver
-from .executor import Executor
+from .keys import KeyDriver, LegacyExecutor
 from .recorder import Recorder
 
 ASSETS = Path(__file__).resolve().parents[2] / "assets"
@@ -239,14 +239,9 @@ def _hunt(rig: Rig, rec: Recorder, t0: float, until, observe: bool = False) -> s
     driver = None
     if observe:
         ex = _NoKeys()
-    elif cfg.humanize.keys_v2:                  # brain-v2 executor: the keys on their own thread, no blocking taps
-        from ..keyboard import _send
-        from .keys import KeyDriver, LegacyExecutor
-        driver = KeyDriver(_send, kb.focused, hz, cfg.humanize).start()
-        ex = LegacyExecutor(driver)
-        say("keys v2: KeyDriver thread")
-    else:
-        ex = Executor(kb)
+    else:                                       # the keys on their own thread: no tap blocks the loop
+        driver = KeyDriver(kb.send, kb.focused, hz, cfg.humanize).start()
+        ex = LegacyExecutor(driver, kb.release_all)
     keylog = None
     if observe:                         # the player's own keys -> keys.jsonl, same clock as ticks (obs.t)
         from .keylog import KeyLogger
@@ -339,7 +334,7 @@ def _hunt(rig: Rig, rec: Recorder, t0: float, until, observe: bool = False) -> s
         ex.release_all()
         if driver is not None:
             driver.stop()
-            say(f"keys v2: {driver.sent} key events sent")
+            say(f"keys: {driver.sent} key events sent")
         if keylog is not None:
             keylog.stop()
             say(f"keys: {keylog.n} recorded, hook lag max {keylog.lag_max} ms"

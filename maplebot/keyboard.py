@@ -93,6 +93,11 @@ class Keyboard:
         _send(key, True)
         self.held.discard(key)
 
+    def send(self, key: str, up: bool) -> None:
+        """One raw key event, no pause, no focus check (runtime.keys.KeyDriver does its own timing + focus)."""
+        _send(key, up)
+        (self.held.discard if up else self.held.add)(key)
+
     def tap(self, key: str, down_s: float = 0.08, gap_s: float | None = None) -> None:
         self.down(key)
         try:

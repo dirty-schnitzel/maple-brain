@@ -214,11 +214,10 @@ class Humanize:
     tap_gap_s: float = 0.035        # pause after a tap (varied)
     react_min_s: float = 0.005      # pause before a new key goes down: uniform in [min, max]
     react_max_s: float = 0.030
-    release_min_s: float = 0.0      # KeyDriver (--keys v2): pause before a dropped key comes up: uniform [min, max]
+    release_min_s: float = 0.0      # KeyDriver: pause before a dropped key comes up: uniform [min, max]
     release_max_s: float = 0.015
     repeat_delay_s: float = 0.5     # KeyDriver: a held key auto-repeats like a keyboard: after ~0.5 s ...
     repeat_s: float = 0.033         # ... every ~33 ms (only the most recently pressed key)
-    keys_v2: bool = False           # --keys v2: the non-blocking KeyDriver thread instead of the blocking Executor
     seed: int | None = None         # set for reproducible runs/tests
 
 

@@ -183,13 +183,16 @@ class KeyDriver:
 
 
 class LegacyExecutor:
-    """The old brain's actions (Hold / Release / Tap) on a KeyDriver: same meaning as runtime.executor.Executor
+    """The old brain's actions (Hold / Release / Tap) on a KeyDriver: same meaning as the old blocking Executor (removed 2026-11-05)
     (one held key; a tap of a move key, or while not walking, lets go of the held key first) but NOTHING blocks:
     a Tap is queued and returns at once. A Tap of a key whose tap is still pending is dropped."""
 
-    def __init__(self, driver: KeyDriver):
+    def __init__(self, driver: KeyDriver, release_all=None):
+        """`release_all`: also called by release_all() (Keyboard.release_all: key-ups for the usual keys, a
+        safety net whatever the driver thinks is down)."""
         self.d = driver
         self.held: str | None = None
+        self._release_all = release_all
 
     @property
     def last_move(self) -> float:
@@ -214,3 +217,5 @@ class LegacyExecutor:
     def release_all(self) -> None:
         self.held = None
         self.d.release_all()
+        if self._release_all is not None:
+            self._release_all()

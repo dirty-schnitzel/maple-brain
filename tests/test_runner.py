@@ -32,6 +32,10 @@ class FakeKeyboard:
         self.events.append(("up", k))
         self.held.discard(k)
 
+    def send(self, k, up):
+        self.events.append(("up" if up else "down", k))
+        (self.held.discard if up else self.held.add)(k)
+
     def tap(self, k, down_s=0.08, gap_s=0.03):
         self.down(k)
         self.up(k)

@@ -25,8 +25,6 @@ def main(argv=None) -> int:
     r.add_argument("--loot-sight", action="store_true", help="experimental: loot what's seen on the ground")
     r.add_argument("--gpu", action="store_true", help="find mobs on the GPU (whole screen; needs torch + CUDA)")
     r.add_argument("--tracker", action="store_true", help="the brain uses the tracker's tracks (needs --gpu)")
-    r.add_argument("--keys", choices=("v1", "v2"), default="v1",
-                   help="v2: keys from their own thread, nothing blocks the loop (brain-v2 executor)")
     r.add_argument("--no-focus", action="store_true", help="don't bring the game to front; wait for you to")
     r.add_argument("--frames-every", type=int, default=3, help="save every Nth frame (1 = all, for tracker tests)")
     v = sub.add_parser("serve", help="stay loaded; F7 starts hunting, F8 stops (elevated, game focused)")
@@ -41,8 +39,6 @@ def main(argv=None) -> int:
     v.add_argument("--loot-sight", action="store_true", help="experimental: loot what's seen on the ground")
     v.add_argument("--gpu", action="store_true", help="find mobs on the GPU (whole screen; needs torch + CUDA)")
     v.add_argument("--tracker", action="store_true", help="the brain uses the tracker's tracks (needs --gpu)")
-    v.add_argument("--keys", choices=("v1", "v2"), default="v1",
-                   help="v2: keys from their own thread, nothing blocks the loop (brain-v2 executor)")
     v.add_argument("--start-key", default="f7")
     v.add_argument("--stop-key", default="f8")
     v.add_argument("--frames", action="store_true", help="also save every 3rd frame (~50 MB per 10 min)")
@@ -93,7 +89,6 @@ def main(argv=None) -> int:
         if a.tracker and not a.gpu:
             ap.error("--tracker needs --gpu")
         cfg.perception.tracker = a.tracker
-        cfg.humanize.keys_v2 = a.keys == "v2"
         if a.cmd == "run":
             return run(a.out, a.seconds, cfg, focus=not a.no_focus, frames_every=a.frames_every)
         for k in (a.start_key, a.stop_key):
