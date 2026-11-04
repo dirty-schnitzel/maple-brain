@@ -1,4 +1,4 @@
-# maplebot — session handoff (updated 2026-11-04, session 20: look-alike maps by name + Line 1 5-min test, NEXT = brain navigates Line 1; session 19: the mob tracker + cover masks + livemap + `--tracker` shim, next = brain (see 'NEXT GOALS'); session 18: GPU mob detection `--gpu`; session 17: game data from the client files only; session 14: idle walks head for the densest spawns; session 13: loot OFF)
+# maplebot — session handoff (updated 2026-11-05, session 21: BRAIN-V2 started - key logger, the user's farming example, KeyDriver executor (default); NEXT = M1 movement skills, see 'BRAIN-V2: THE PLAN'; session 20: look-alike maps by name; session 19: tracker + `--tracker` shim; session 18: GPU detection `--gpu`; session 17: game data from the client files)
 
 ## Goal
 A **fully automated mob farmer** for **MapleStory Classic World** (official GMS Classic, launched 2026-10-21):
@@ -6,7 +6,123 @@ find mobs, fight them like a player, pick up loot, use potions, and **navigate p
 later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never reads memory or packets.
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
-## Next session: START HERE (session 13: loot off + idle LD watch in serve, 884 tests - see 'Session 13'; session 12: map recognised on F7, 806 tests - see 'Session 12'; end of session 11, 774 tests green; session 10: out-of-MP plain attack; **session 11: jump & drop groundwork, see below**)
+## BRAIN-V2: THE PLAN - START HERE (written 2026-11-05, end of session 21; next = M1)
+Branch **`brain-v2`** (from `main` = the merged `perception` work). `main` stays the last good state; the user
+merges. The user is unhappy with the old brain (`brain/brain.py`, 1335 lines of timers tuned on one map/weapon) and
+gets constant Lie Detectors; the rewrite should **fight + platform + path like the user** (farming example below).
+
+### Decisions (the user, sessions 20-21)
+- **Algorithm, not learning, decides WHERE and WHAT:** hunting is a solvable planning problem - zone value = spawns
+  x mob EXP / respawn time, travel cost = `NavMap.route` seconds, kill cost = mob HP / our damage, crowding from other
+  players' tags. No recording per map. Learning (later, M5) only for HOW keys are pressed (human feel).
+- **A completely new file `maplebot/brain/brain_v2.py`, written from scratch.** Functions may be copied from
+  `brain.py`; the old brain is not edited into the new one. Old brain stays selectable until v2 wins an A/B.
+- **Emphasis on WHEN TO HIT. Weapon range is variable** (the user now uses a SPEAR; the old zones 42/66/92 px were
+  tuned on a sword) -> reach comes from data/measurement, never a constant (see M2).
+- Human style = the farming example: tap attacks (~0.13 s) while walking, running jumps, jump+up rope grabs, a hub
+  with loops over every platform, a few s per platform, short pauses (median 0.19 s), rare 15-30 s breaks,
+  pickup in quick z bursts, MP potion `end`, armor buff `1` every ~4-7 min.
+- Safety unchanged: Lie Detector stop + siren, HP stop, potions, focus check; every timing randomised (memory: no
+  fixed timings). Kill counting = by LAST HIT (EXP is party-shared).
+
+### Architecture (target)
+```
+perception (Perceiver + World tracker, --gpu)  ->  obs (+ obs.state, M0)
+   -> brain_v2.BrainV2.step(obs) -> Intent {hold: set[str], taps: [(key, secs, after)]}
+        reflexes first every tick: LD / HP stop, potions, buff timer, focus
+        one active SKILL, an interruptible state machine with a cancel flag:
+          Travel(route)   (M1)   walk / jump / drop / fall / grab / climb / exit / leap, re-plan on surprise
+          Hunt(target)    (M2)   approach, WHEN TO HIT, tap attacks while moving, loot bursts
+          Patrol(zones)   (M3)   the hub-and-loops circuit when nothing worth hunting is tracked
+        skills emit events: arrived, failed(link), stuck, target_lost, killed, potions_low
+   -> runtime/keys.KeyDriver (thread: hold set + queued taps, human timing; DONE, the default)
+```
+Runner: `--brain v2` selects BrainV2 (old brain default until the A/B); BrainV2 talks to `KeyDriver` directly
+(`hold` / `tap`), not through `LegacyExecutor`.
+
+### M0 - foundation
+- [x] key logger for `serve --observe` (keys.jsonl) + `tools/play/{analyze,kills,route}.py`
+- [x] the user's farming example recorded + analysed (section below)
+- [x] KeyDriver executor, the default (`runtime/keys.py`); the old brain runs on it via LegacyExecutor
+- [ ] **live check of KeyDriver with the old brain** (one 3-min run: loop stalls > 0.3 s gone? turns/step-backs OK?)
+- [ ] `obs.state`: one fixed per-tick record: us (fine map x/y, platform / rope / air, vx, facing, HP/MP), tracks
+  (id, mob, x/y, dx/dy to us, vx, state, unseen, platform), the active skill + its state. Logged in ticks.jsonl.
+
+### M1 - movement skills (NEXT): Travel along a NavMap route, live on Line 1 <Area 1> (10003061)
+Existing pieces: `nav/navmap.py` (platforms, ropes, links walk/fall/drop/jump/grab/descend/exit/let_go/leap,
+`route(src, pos, dst, dst_x)` = Dijkstra in seconds, `landing()`, `step_ahead`, `rope_at`, `platform_at`);
+`nav/localize.py` (minimap dot -> map x/y, 16 px coarse -> `obs.map_pos / platform / rope`);
+`perception/world.py` `Camera` (map = screen + C every frame -> `obs.cam`); Physics.img constants in `config.Nav`
+(walk 125 px/s, jump 555, gravity 2000; jump_height 70, jump_reach 85, rope_grab 80, climb 125 px/s, rope_leap
+110). **The old brain never used ropes or `route()`** - Travel is new code. Steps:
+1. **Fine own position:** `me_map = obs.me (screen feet from our name tag) + obs.cam` (exact px), the minimap as
+   the absolute check; platform via `platform_at`; state ground / air (off every surface, or moving vertically) /
+   rope (at a rope's x within top..bottom, no surface under). Watch: our tag is hidden on some ladders (runs/prec1:
+   me = None on the ladder platform) -> fall back to the minimap + the rope's x. Verify OFFLINE first on
+   `runs/play/20261105_000802_1` (the user's ropes and jumps): error vs the minimap, platform agreeing with
+   `obs.platform`, rope/air states where the user was on ropes / jumping (keys.jsonl says when).
+2. **Link executors** (a small state machine each, closed loop on the fine position, randomised timing):
+   walk_to(x, tol) (hold left/right, let go a random few px early - momentum; overshoot is fine);
+   jump (running jump: shift tapped while the walk key is held; take-off point random inside [lo, hi]);
+   drop (down held + shift tap); fall (walk off the end); grab (running jump, then hold up once in the air near
+   the rope's x - the user's `up while left+shift`); climb (hold up/down to a y); exit (up at the top);
+   let_go / leap (jump sideways off the rope: shift + left/right). Expected time per link from the physics;
+   slower than ~2x expected = failed.
+3. **Travel(route):** `route()` -> links, executed one by one; after each landing compare our platform with the
+   link's dst: same -> next link, other -> re-plan from where we are; a link failing twice -> blacklisted for the
+   hunt (and logged: navmap fixes). No progress ~1.5 s -> event `stuck`.
+4. **Test harness:** `python -m maplebot goto PLATFORM [X]` (or a serve hotkey) = travel there and stop; a "tour"
+   of random goals over the map logging per link kind: success rate, time vs expected, re-plans. Unit tests on
+   the real Line 1 map.json (a route between every pair of platforms; link state machines on a fake clock with
+   scripted positions - like tests/test_keys.py).
+5. **Gate:** a 3-min live tour on Line 1: >= 90 % of links succeed first try, never stuck > 3 s, no LD; the user
+   watches it once ("looks human?").
+
+### M2 - Hunt skill (WHEN TO HIT first)
+- **Reach per weapon / skill, not a constant:** (a) from the client data: the attack skill's `lt/rb` box (Skill.wz:
+  Power Strike, the basic attack per weapon type - spear/polearm vs sword) - export it in `assets build`;
+  (b) learned live: (dx, dy) of every swing whose target then showed `hit` / `dying` in the tracker -> a reach
+  estimate per weapon; disagreement with (a) logged. The user may switch weapons: re-learn when misses pile up.
+  (The farming example killed at a median 72 px in front, p90 120 - ask whether that was the spear.)
+- **Strike rule:** tap attack when a live (not dying) track's predicted position (its vx x (reaction + swing
+  delay)) is inside the reach box in front; face it first; tap again only after the swing landed (hit seen) or
+  its time passed; never swing at nothing. Hits-to-kill per mob learned (HP / damage) -> no wasted swings / MP.
+- Approach while attacking (taps while walking, like the user); keep enough distance that the mob doesn't touch
+  us (Bubblings walk into us: the old "too close -> step back" fired in 38 of 42 fights); platform edges from the
+  navmap (never walk off mid-fight unless that's the plan).
+- Target choice: nearest by route cost over ALL tracked live mobs (other platforms too); skip dying ones / ones
+  being finished by others; prefer platforms with several mobs; switch only with a margin.
+- Loot: after our kill, a z burst (2-3 taps ~0.1 s apart) when the drop is within pickup reach; walk-pickup later.
+- Reflexes: MP potion `end` at the threshold, HP potion, armor buff `1` on a varied ~4-7 min timer, plain attack
+  `c` when out of MP.
+- A/B vs the old brain by kills by last hit (`tools/play/kills.py` needs a bot-run variant using ticks' actions).
+
+### M3 - Patrol: the hub-and-loops zone plan (per map, computed at F7)
+Zones = platforms (or stretches) with spawns; value = spawns x EXP (x mobRate); cost = `route()` seconds; the loop
+= a small orienteering problem over the zones, sized to the respawn time (measure respawn with the tracker: death
+-> new mob at that spawn). The user's loop is the Line 1 reference: hub 273, ground 244, east 79-56-65, north-east
+33-7-46-111, west 19-25-93 (rare). Live overrides: a tracked mob cheaper than the next zone -> Hunt; other
+players in a zone -> lower its value; a bandit over hunts re-weights zones. Vary every lap (order, take-off
+points, a skipped zone) - no two laps alike. Breaks of 15-30 s now and then, idle micro-moves. Leash in map
+coordinates. Replaces `_spawn_way` (and its ping-pong).
+
+### M4 - human timing from the farming example
+Tap / hold / pause distributions from `runs/play/20261105_000802_1` (attack tap 0.13 s median, jump 0.17, z 0.09,
+walk holds 0.5-0.6 s median with a long tail, pauses 0.19 s median) sampled by the skills; record the user on
+1-2 more maps when useful.
+
+### M5 (later, optional) - learned execution
+Behaviour cloning of movement (state + waypoint + recent keys -> keys held) from the user's recordings, with the
+M1 scripts as the fallback when it makes no progress; combat stays scripted. Sim / RL only if BC stalls. A local
+LLM planner (town trips etc.) = idea level only.
+
+### First steps for the next session (M1)
+1. Read this plan + 'brain-v2 executor' + 'FARMING EXAMPLE' below; `git switch brain-v2`; pytest green.
+2. Ask the user for the M0 live check (old brain on KeyDriver, 3 min) if not done yet, and whether the farming
+   example was with the spear.
+3. M1 step 1 (fine own position) offline on the farming recording; then the link executors, Travel, `goto`.
+
+## Older start-here (sessions 11-13, background only): (session 13: loot off + idle LD watch in serve, 884 tests - see 'Session 13'; session 12: map recognised on F7, 806 tests - see 'Session 12'; end of session 11, 774 tests green; session 10: out-of-MP plain attack; **session 11: jump & drop groundwork, see below**)
 **The user's goal: TARGETING ACCURACY and KILL RATE** (Perion Street Corner = benchmark, packed with fast bots).
 Loot (needs a proper rework, the user's own topic) and the own name tag come after. **2026-11-03: the user removed
 their pet (while it was summoned, targeting got drastically worse) and re-added loot-by-sight** - code defaults still
@@ -24,10 +140,9 @@ Milestones: M0 executor + obs.state + key recording -> M1 movement skills (walk/
 - Built: `maplebot/runtime/keylog.py` `KeyLogger` (WH_KEYBOARD_LL hook on its own thread) -> `RUN/keys.jsonl`
   `{"t", "key", "down"}` (+`inj` injected, +`lag` ms >= 5), t = the ticks' obs.t clock; transitions only, downs only
   while the game is focused, ups always; started only in `serve --observe` hunts (F7..F8). Tests `test_keylog.py`.
-- Next: the user records 20-30 min on Line 1 <Area 1>:
-  `serve runs\play --attack space --jump shift --pickup z --observe --gpu --tracker` (elevated console, `watch`
-  running); then `tools/play/analyze.py RUN` (route/loop on the map, time split, key overlaps, hold/pause
-  distributions, reaction times, kills/min) - the same on `runs/l1a1_5m` for bot-vs-human.
+- Done: the user recorded 18.5 min on Line 1 (see 'FARMING EXAMPLE'). Record more with
+  `serve runs\play --attack space --jump shift --pickup z --observe --gpu --tracker --frames` (elevated console,
+  `watch` running); analyse with `tools/play/analyze.py RUN`, `kills.py RUN 1.0`, `route.py RUN`.
 
 ## brain-v2 executor: KeyDriver (session 21, 2026-11-05) + the user's notes for brain-v2
 - **Built: `maplebot/runtime/keys.py` `KeyDriver`** - a thread owns the keyboard: `hold(set)` = every key to keep
