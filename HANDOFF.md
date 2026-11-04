@@ -1,4 +1,4 @@
-# maplebot — session handoff (updated 2026-11-04, session 19: the mob tracker + cover masks + livemap, next = brain Phase 0; session 18: GPU mob detection `--gpu`; session 17: game data from the client files only; session 14: idle walks head for the densest spawns; session 13: loot OFF)
+# maplebot — session handoff (updated 2026-11-04, session 19: the mob tracker + cover masks + livemap + `--tracker` shim, next = brain (see 'NEXT GOALS'); session 18: GPU mob detection `--gpu`; session 17: game data from the client files only; session 14: idle walks head for the densest spawns; session 13: loot OFF)
 
 ## Goal
 A **fully automated mob farmer** for **MapleStory Classic World** (official GMS Classic, launched 2026-10-21):
@@ -14,7 +14,8 @@ off: runs need `--loot --loot-sight` (`--loot-sight` alone is ignored). See the 
 **Jumping work continues in its own session: read 'Jumping work: START HERE' below** (live on the Rain-Forest).
 
 ## Session 19 (2026-11-04, branch `perception`): the tracker - START HERE
-Commit `746649b` = session 18 checkpoint; **everything below is UNCOMMITTED on `perception`** (ask before committing).
+Commits on `perception` (`main` untouched, the user merges): `746649b` session 18 checkpoint, `368931b` tracker +
+cover masks + livemap, `9287975` dying fix + edge probes, `a3a9f99` the `--tracker` shim. All committed.
 **Built (all live in `serve/run --gpu`, PASSIVE: logs `obs.mobs` / `obs.cam`, the brain still uses `known_mobs`):**
 - `perception/world.py` `World`: tracks in map coords (id, voted mob type - Pig/Ribbon Pig look alike, feet x/y,
   vx measured per track, facing, anim, state tentative/live/hit/dying/hidden/offscreen, vis). `Camera`: map = screen
@@ -48,8 +49,46 @@ Commit `746649b` = session 18 checkpoint; **everything below is UNCOMMITTED on `
 within 150 px of us 20/23. Per frame: whole-screen 13.9 ms, near+probes 8.6 (p90 15.7), world 0.6; live perceive
 35 ms median vs 26 before (~+9 ms). Still missed: half behind players (5), daffodil edge (3), left screen edge (2).
 Tests: test_world (8), test_cover, test_mapascii, visible-only NCC tests; suite green.
-**Next (agreed direction, see 'Brain plan' below):** optional Perion perception check (record 3 min
-`--frames-every 1`, label 30 frames, score), then brain Phase 0.
+**Later in session 19:**
+- **Second map, Line 1 <Area 1> (10003061, Kerning City Subway; Bubbling; 25 platforms, 18 ladders, cover on 4
+  layers):** worked first time, no code changes. Map recognition refuses to choose there: Area 1 vs Area 2 minimaps
+  look alike (0.88 vs 0.84) -> runs need `--map 10003061` (open issue: look-alike maps). Runs: `runs/l1a1_1` (1 min),
+  `runs/l1a1_rec` (3 min, every frame, labelled: 30 frames, 141 mobs). **Tracker vs labels: 92.9 % found, 7.7 %
+  false** (Rain-Forest 87.8 % / 10.0 %). Live perceive on this busy map 43 ms median / 99 p90 (tracker ~25 of it;
+  the rest = loot-by-sight / HUD / CPU parts - profile later).
+- **Labels are in git:** `tools/perc/labels/{track1b,l1a1_rec}.json` (+ README; `runs/` is git-ignored: copy to
+  RUN/labels.json, score with `tools/perc/label_eval.py RUN`; it also reports "found but marked dying").
+- **Dying fix (`9287975`):** a death needs a die sighting >= 0.75 or two; a lone weak one is undone by a clear live
+  pose, or made final when nothing else was seen after it; a dead track never takes live poses (a new mob where one
+  died = a new track). l1a1_rec: live mobs marked dying 9 -> 0.
+- **Edge probes:** visible-only search at both screen edges on every platform crossing them (own rotation, 2 per
+  frame); tracks count as in view up to 40 px past the side edges.
+- **The shim (`a3a9f99`), `--tracker` (needs `--gpu`):** the brain's known_mobs / sprite_mobs = confirmed tracks on
+  our level (hidden ones while hidden, others unseen <= 0.4 s; boxes from the client's body lt/rb at the feet); the
+  target is held by track id (`target_src` "sprite" = seen alive this frame, "track" = coasting/hidden,
+  `target_dying` from the track). Live `runs/l1a1_trk2` (3 min) vs `l1a1_rec`: lost targets 3 -> 0, blind swings
+  12 -> 3, kills 16 vs 19 (one run each, crowded map, 21 vs 38 kills by others: NOT conclusive). The extra "no mobs
+  in sight" were mobs on other platforms / mid-jump (the brain still fights on its own level only).
+  `runs/l1a1_trk1` = invalid (the character wasn't on the map: 0 GPU hits in 4307 frames).
+  The user's command: `serve runs\manual --attack space --jump shift --pickup z --loot --loot-sight --gpu --tracker`
+  (restart serve to load new code; first F7 on a map waits ~17-20 s for the GPU warm-up).
+
+## NEXT GOALS (agreed 2026-11-04, end of session 19) - START HERE
+Perception is good enough; **the brain is the bottleneck now.** In order:
+1. **Confirm the shim** (needs the user at the PC, ~15 min): back-to-back 3-min runs on one spot, alternating
+   old / `--tracker` / old / `--tracker`, MP potions stocked, `watch` running; compare kills/min, lost, blind swings.
+   Not worse -> `--tracker` becomes the default.
+2. **Brain Phase 0** (Claude, no user needed): (a) non-blocking executor - key timing on its own thread, the loop
+   never stalls (today 0.3-0.5 s gaps, dozens per 3 min); (b) `obs.state` - one fixed state format per tick (us:
+   map pos, platform/rope/air, HP/MP, facing; tracks: offset, vx, type, state, unseen; nearby platforms/links); (c)
+   record the user's keys in `serve --observe` -> then the user records 30-60 min of farming on 2-3 maps.
+3. **Rule-brain upgrades the tracks make possible** (the kill-rate gains; A/B each): (a) mobs on other platforms -
+   nearest by path, reached with the existing jump/drop/ladder links (most of Line 1's "no mobs in sight"); (b) lead
+   a moving target (its measured vx); (c) skip dying mobs / mobs about to be finished by others; (d) keep a target
+   hidden in cover or behind a player and wait at the cover's edge.
+4. **Later: the trained brain** ('Brain plan' below): sim v0 calibrated on our recordings, model v0 with the user's
+   recorded style, live vs the rule brain. The user's own learning sim (note below) can grow into it.
+**Not now:** more perception tuning, the pet, own position from the picture, profiling busy-map frames.
 
 ## Brain plan (the user, 2026-11-04): a trained model, simulator + a little human play
 The user wants to replace the rule brain with a trained model that reads the tracker's state and plays. Agreed:
