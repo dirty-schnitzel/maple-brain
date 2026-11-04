@@ -49,8 +49,9 @@ ticks + keys.jsonl + every 3rd frame; in a party). Tools: `tools/play/analyze.py
 - **Never still for long:** no key held 22 % of the time, in short bits: median 0.19 s, p90 0.65 s, max 13 s.
   Attack pauses > 15 s only 6 times (longest 28 s at 238 s: 25 s standing on rope 1267 = a break).
 - **Pickup `z`:** 80 taps in bursts (gap median 0.10 s: 2-3 quick taps), hold 0.09 s; not after every kill.
-- **Other keys:** `end` 25x (every ~46 s median), `1` 6x, `home`, `vka1` (vk 0xA1 = right shift?) 5x, menus
-  (esc 4, i 3, k 2, enter 2) - ASK the user what end / 1 / home are (potions?). HP min 39 %, median 54 %.
+- **Other keys (the user):** `end` = MP potion, 25x (gap median ~46 s; MP still hit 0 %); `1` = armor buff, 6x
+  (~every 4-7 min); `home` = pressed by mistake (it was the MP potion key before); `vka1` (vk 0xA1 = right shift?)
+  5x; menus (esc 4, i 3, k 2, enter 2). No HP potion used: HP min 39 %, median 54 %.
 - **Route: the whole map, every platform, a hub with loops.** Time per platform vs spawns (64 on the map):
   273 (y 198, full width, 13 spawns) 28 % - THE HUB, revisited every ~19 s; 244 (ground y 323, 18 spawns) 20 %,
   every ~34 s; 79 (y 73, 4 spawns) 15 %, every ~35 s; 111 (5) 7 %; 65 (4) 7 %; 56 (3) 5 %; 19 (4) 4 %; 7 (3) 3.5 %;
