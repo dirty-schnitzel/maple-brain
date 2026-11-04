@@ -387,7 +387,7 @@ def serve(out_root: Path, cfg: Config, start_key: str = "f7", stop_key: str = "f
     if rig is None:
         return 1
     hk = hotkeys or Hotkeys([start_key, stop_key])
-    what = "start recording (observe: no keys)" if observe else "start hunting"
+    what = "start recording (observe: the bot presses no keys, yours are recorded)" if observe else "start hunting"
     say(f"ready: {start_key.upper()} = {what}, {stop_key.upper()} = stop, Ctrl+C here = quit "
         "(the Lie Detector is watched between hunts too)")
     hunts, next_look, n_lie = 0, 0.0, 0
