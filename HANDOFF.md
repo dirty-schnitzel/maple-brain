@@ -13,6 +13,22 @@ their pet (while it was summoned, targeting got drastically worse) and re-added 
 off: runs need `--loot --loot-sight` (`--loot-sight` alone is ignored). See the suspected loot bug below.
 **Jumping work continues in its own session: read 'Jumping work: START HERE' below** (live on the Rain-Forest).
 
+## Session 21 (2026-11-04, branch `brain-v2`) - BRAIN REWRITE, step -1: record + analyse the user's play
+`perception` merged into `main` (ff, `62cdf35`); `brain-v2` branched from `main`. **Plan agreed:** scripted
+navigation (zone loop computed per map from NavMap + spawns, targets by route cost from the tracker) + learned /
+statistical human timing for the keys; new executor (a SET of held keys, non-blocking - today's holds ONE key and
+Tap blocks the loop); new brain in its own package behind `--brain v2`, old brain stays default until v2 wins an A/B.
+Milestones: M0 executor + obs.state + key recording -> M1 movement skills (walk/jump/drop/rope, finer own position)
+-> M2 hunt skill -> M3 zone loop + rests -> M4 humanizer from the user's stats, then behaviour cloning.
+**Step -1 (the user's call): record the user farming + keys, analyse before designing.**
+- Built: `maplebot/runtime/keylog.py` `KeyLogger` (WH_KEYBOARD_LL hook on its own thread) -> `RUN/keys.jsonl`
+  `{"t", "key", "down"}` (+`inj` injected, +`lag` ms >= 5), t = the ticks' obs.t clock; transitions only, downs only
+  while the game is focused, ups always; started only in `serve --observe` hunts (F7..F8). Tests `test_keylog.py`.
+- Next: the user records 20-30 min on Line 1 <Area 1>:
+  `serve runs\play --attack space --jump shift --pickup z --observe --gpu --tracker` (elevated console, `watch`
+  running); then `tools/play/analyze.py RUN` (route/loop on the map, time split, key overlaps, hold/pause
+  distributions, reaction times, kills/min) - the same on `runs/l1a1_5m` for bot-vs-human.
+
 ## Session 20 (2026-11-04, branch `perception`) - NEXT TASK: the brain navigates Line 1 - START HERE
 **Done this session (UNCOMMITTED - ask the user before committing):**
 - **Look-alike maps told apart by the name** (`nav/identify.py`, quick fix, no OCR - the user: "quick fix no ocr";

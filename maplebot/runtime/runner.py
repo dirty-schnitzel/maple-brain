@@ -237,6 +237,11 @@ def _hunt(rig: Rig, rec: Recorder, t0: float, until, observe: bool = False) -> s
         say(f"spawns: {len(brain.navmap.spawns)} points, densest around map x {c:.0f} - idle walks head there"
             if c is not None else "spawns: none on this map - idle walks patrol as before")
     ex = _NoKeys() if observe else Executor(kb)
+    keylog = None
+    if observe:                         # the player's own keys -> keys.jsonl, same clock as ticks (obs.t)
+        from .keylog import KeyLogger
+        keylog = KeyLogger(rec.out / "keys.jsonl", t0, focused=kb.focused).start()
+        say(f"recording your keys -> keys.jsonl" + (f" - FAILED: {keylog.error}" if keylog.error else ""))
     status, start, frames_n = "ok", time.perf_counter(), 0
     try:
         while (reason := until()) is None:
@@ -322,6 +327,10 @@ def _hunt(rig: Rig, rec: Recorder, t0: float, until, observe: bool = False) -> s
         rec.log.write(traceback.format_exc())
     finally:
         ex.release_all()
+        if keylog is not None:
+            keylog.stop()
+            say(f"keys: {keylog.n} recorded, hook lag max {keylog.lag_max} ms"
+                + (f", error: {keylog.error}" if keylog.error else ""))
     elapsed = time.perf_counter() - start
     stats = dict(brain.stats, frames=frames_n, fps=round(frames_n / max(elapsed, 1e-6), 1),
                  library=len(perceiver.library))
