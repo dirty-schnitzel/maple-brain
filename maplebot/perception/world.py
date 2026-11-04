@@ -39,6 +39,8 @@ class TrackCfg:
     fight_dx: float = 140.0
     offscreen_s: float = 4.0      # off screen: kept (coasting) this long
     hit_s: float = 0.6            # hit1 pose: 600 ms in the client data
+    die_sure: float = 0.75        # a death counts on one die sighting this good, or on two (l1a1_rec: one 0.59
+                                  # die match flagged a live Bubbling; a dead one's spot was taken by a new one)
     near_pad: int = 24            # search window around a track, +- px (+ vmax * time unseen, up to near_pad_max)
     near_pad_max: int = 32
     other_type: float = 12.0      # association: cost of a hit of another mob type (look-alikes: the type is voted)
@@ -52,7 +54,9 @@ class TrackCfg:
     player_h: int = 70
     probe_score: float = 0.65     # a new track from a probe (visible-only search beside players / in cover)
     probe_step: int = 40          # px between cover probes along a platform
-    probe_max: int = 4            # probes per frame, taken in turns (a new mob is found within a few frames)
+    probe_max: int = 4            # cover probes per frame, taken in turns (a new mob is found within a few frames)
+    edge_px: int = 6              # edge probes: this far inside the left / right screen edge, on every platform
+    edge_max: int = 2             # ... per frame, in turns of their own
     probe_players: bool = False   # also beside every character (track1b: +2 of 82 mobs, +4 false, +10 ms: off)
 
 
@@ -80,6 +84,7 @@ class Track:
     src: str = "acq"              # how it was seen this frame: acq / near / none
     votes: dict = field(default_factory=dict)      # mob id -> summed sighting scores (mob_id = the top one)
     misses: int = 0               # frames in a row it wasn't seen
+    die_hits: int = 0             # die-pose sightings so far (see die_sure)
     vis: float = 1.0              # share of its body nothing is drawn over (cover masks), at the prediction
 
     def as_dict(self, t: float) -> dict:
@@ -195,19 +200,24 @@ class World:
         p = self._on(mx, my)
         tr.platform, tr.air = (p.id, False) if p is not None else (tr.platform, True)
         if h.pose.anim.startswith("die"):
-            if tr.state != "dying":
+            tr.die_hits += 1
+            if tr.state != "dying" and (h.score >= c.die_sure or tr.die_hits >= 2):
                 tr.state, tr.until = "dying", t + self.die_s.get(tr.mob_id, 0.6)
         elif h.pose.anim.startswith("hit"):
             tr.state, tr.until = "hit", t + c.hit_s
         elif tr.state == "tentative":
+            tr.die_hits = 0
             if tr.sightings >= 2 or h.score >= c.confirm_score:
                 tr.state = "live"
-        elif tr.state in ("hit", "offscreen", "hidden") or (tr.state == "dying" and t > tr.until):
-            tr.state = "live"
+        else:
+            tr.die_hits = 0                                   # a clear live pose: a lone weak die match was wrong
+            if tr.state in ("hit", "offscreen", "hidden"):
+                tr.state = "live"
 
     @staticmethod
     def _in_view(sx, sy):
-        return 0 <= sx < SCREEN_W and 0 <= sy < PLAY_H + 40
+        """On screen, or with its feet just past a side edge (a mob half off screen is still visible)."""
+        return -40 <= sx < SCREEN_W + 40 and 0 <= sy < PLAY_H + 40
 
     # ------------------------------------------------------------------ the frame
     def _occlusion(self, tags, me_screen, shape=(PLAY_H, SCREEN_W)):
@@ -275,11 +285,23 @@ class World:
             if any(abs(o[0] - sx) < 20 and abs(o[1] - sy) < 20 for o in out):
                 continue
             out.append((sx, sy, pid))
-        if len(out) <= c.probe_max:
-            return out
-        out.sort(key=lambda s: (s[0], s[1]))                   # a stable order, then a window that moves on
-        self._probe_turn = (getattr(self, "_probe_turn", 0) + c.probe_max) % len(out)
-        return [out[(self._probe_turn + i) % len(out)] for i in range(c.probe_max)]
+        edges = []
+        if self.nav is not None:                               # screen edges: a mob half off screen (whole-screen
+            for sx in (c.edge_px, SCREEN_W - c.edge_px):       # search can't place a cut sprite; visible-only can)
+                for p, y in self.nav.surfaces(sx + C[0]):
+                    if 0 <= y - C[1] < PLAY_H + 40 and not any(abs(tr.sx - sx) < 40 and abs(tr.sy - (y - C[1])) < 30
+                                                               for tr in self.tracks):
+                        edges.append((sx, y - C[1], p.id))
+        return self._turns(out, c.probe_max, "_probe_turn") + self._turns(edges, c.edge_max, "_edge_turn")
+
+    def _turns(self, spots, k, name):
+        """k of the spots, a window that moves on each frame (a stable order first)."""
+        if len(spots) <= k:
+            return spots
+        spots.sort(key=lambda s: (s[0], s[1]))
+        turn = (getattr(self, name, 0) + k) % len(spots)
+        setattr(self, name, turn)
+        return [spots[(turn + i) % len(spots)] for i in range(k)]
 
     def _vis_map(self, layer, C, occ):
         base = self.cover.visible(layer, C) if self.cover is not None and layer is not None else None
@@ -327,6 +349,8 @@ class World:
         pairs = []
         for i, (h, mx, my) in enumerate(hm):
             for j, tr in enumerate(self.tracks):
+                if tr.state == "dying" and not h.pose.anim.startswith("die"):
+                    continue                                   # dead is final: a live mob there is another one
                 gx, gy = self._gate(tr, t)
                 dx, dy = abs(mx - tr.x), abs(my - tr.y)
                 if dx <= gx and dy <= gy:
@@ -361,6 +385,9 @@ class World:
                 for tr, h in zip(todo, found):
                     if h is None:
                         continue
+                    if tr.state == "dying" and not h.pose.anim.startswith("die"):
+                        hm.append((h, h.feet[0] + C[0], h.feet[1] + C[1]))     # a live mob where one died: new
+                        continue
                     if any(abs(f[0] - h.feet[0]) < c.dup_px and abs(f[1] - h.feet[1]) < 20 for f in taken):
                         continue                               # that's another track's mob
                     taken.append(h.feet)
@@ -374,7 +401,9 @@ class World:
         for i, (h, mx, my) in enumerate(hm):
             if i in used_h:
                 continue
-            if any(tr.src != "none" and abs(tr.x - mx) < c.dup_px and abs(tr.y - my) < 20 for tr in self.tracks):
+            live_pose = not h.pose.anim.startswith("die")
+            if any(tr.src != "none" and abs(tr.x - mx) < c.dup_px and abs(tr.y - my) < 20
+                   and not (live_pose and tr.state == "dying") for tr in self.tracks):
                 continue                                       # a near search already took it
             if h.score < c.new_score:
                 continue
@@ -411,6 +440,8 @@ class World:
                     tr.state = "live"
             if tr.state == "hit" and t > tr.until:
                 tr.state = "live"
+            if tr.src == "none" and tr.die_hits and tr.state not in ("dying", "tentative"):
+                tr.state, tr.until = "dying", tr.seen + self.die_s.get(tr.mob_id, 0.6)   # last seen dying: dead
             if tr.state == "dying":
                 if t > tr.until + 0.2:
                     self.stats["ended"] += 1
@@ -440,7 +471,8 @@ class World:
         keep.sort(key=lambda tr: tr.born)
         out = []
         for tr in keep:
-            if any(abs(o.x - tr.x) < c.dup_px and abs(o.y - tr.y) < 20 for o in out):
+            if any(abs(o.x - tr.x) < c.dup_px and abs(o.y - tr.y) < 20 and (o.state == "dying") == (tr.state == "dying")
+                   for o in out):
                 self.stats["dup_merged"] += 1
                 continue
             out.append(tr)

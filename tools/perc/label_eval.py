@@ -21,12 +21,12 @@ def main():
     run = Path(a.run)
     lab = json.loads((run / a.labels).read_text(encoding="utf-8"))
     tr = {r["n"]: r for r in map(json.loads, open(run / a.tracks, encoding="utf-8"))}
-    real = tp = dying = hidden = 0
+    real = tp = dying = hidden = as_dying = 0
     fp, miss = Counter(), []
     for n, L in lab.items():
         mobs = [tuple(m) for m in L["real"] + L["missed"]]
         real += len(mobs)
-        ts = [t for t in tr[int(n)]["tracks"] if t["state"] != "tentative" and 0 <= t["sx"] < 1366]
+        ts = [t for t in tr[int(n)]["tracks"] if t["state"] != "tentative" and -40 <= t["sx"] < 1406]
         pairs = sorted((abs(t["sx"] - m[0]) + abs(t["sy"] - m[1]), i, j) for i, t in enumerate(ts)
                        for j, m in enumerate(mobs) if abs(t["sx"] - m[0]) <= 25 and abs(t["sy"] - m[1]) <= 25)
         ut, um = set(), set()
@@ -35,6 +35,7 @@ def main():
                 ut.add(i)
                 um.add(j)
         tp += len(um)
+        as_dying += sum(1 for i in ut if ts[i]["state"] == "dying")
         for i, t in enumerate(ts):
             if i not in ut:
                 if t["state"] == "dying":
@@ -50,7 +51,8 @@ def main():
         miss += [(int(n), mobs[j]) for j in range(len(mobs)) if j not in um]
     nf = sum(fp.values())
     print(f"labelled mobs {real} in {len(lab)} frames: found {tp} = {100 * tp / max(real, 1):.1f} %, "
-          f"false {nf} = {100 * nf / max(tp + nf, 1):.1f} % ({dict(fp)}); dying, nothing to see: {dying}; hidden (unverifiable): {hidden}")
+          f"false {nf} = {100 * nf / max(tp + nf, 1):.1f} % ({dict(fp)}); dying, nothing to see: {dying}; hidden (unverifiable): {hidden}; "
+          f"found but marked dying: {as_dying}")
     if a.list:
         for n, m in miss:
             print(f"  missed n{n} at {m}")

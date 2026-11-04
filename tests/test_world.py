@@ -115,3 +115,23 @@ def test_a_mob_walking_into_cover_is_hidden_not_lost():
         t += 0.05
         trs = w.update(t, [], ME, ME_MAP)
     assert trs == []
+
+
+def test_a_lone_weak_die_match_doesnt_kill_a_live_mob():
+    w = world()
+    w.update(0.0, [hit(500, score=0.9)], ME, ME_MAP)
+    trs = w.update(0.05, [hit(500, anim="die1", score=0.6)], ME, ME_MAP)       # one weak die match
+    assert trs[0].state != "dying"
+    trs = w.update(0.10, [hit(500, score=0.9)], ME, ME_MAP)
+    trs = w.update(0.15, [hit(500, anim="die1", score=0.6)], ME, ME_MAP)       # the count started over
+    assert trs[0].state != "dying"
+
+
+def test_a_live_mob_where_one_died_is_a_new_track():
+    w = world()
+    w.update(0.0, [hit(500, score=0.9)], ME, ME_MAP)
+    trs = w.update(0.05, [hit(500, anim="die1", score=0.9)], ME, ME_MAP)
+    assert trs[0].state == "dying"
+    trs = w.update(0.10, [hit(504, score=0.9)], ME, ME_MAP)                    # a new Pig steps in
+    live = [tr for tr in trs if tr.state != "dying"]
+    assert len(live) == 1 and live[0].id != 1 and any(tr.id == 1 and tr.state == "dying" for tr in trs)
