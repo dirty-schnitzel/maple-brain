@@ -272,3 +272,54 @@ def test_in_the_air_or_on_a_ladder_with_targets_elsewhere_doesnt_crash(line1):
     for i, s in enumerate([SelfState(0, 1626, 120, "tag", "air"), SelfState(0, 1626, 120, "tag", "rope", rope=-1),
                            SelfState(0, 1626, 150, "minimap", "air")]):
         assert _tick(br, drv, i * 0.5, mobs, s) is None
+
+
+# ---------------------------------------------------------------- the parts on their own
+def _scene(nav, mobs, x=1400, platform=273, facing=1, now=0.0):
+    from maplebot.brain.v2.scene import Scene
+    y = nav.platforms[platform].y_at(x)
+    return Scene.build(now, _obs(mobs), SelfState(now, x, y, "tag", "ground", platform), facing, Reach("spear"))
+
+
+def test_scene_marks_reach_and_platform(line1):
+    sc = _scene(line1, [_mob(1, 1480, 198, 273), _mob(2, 1330, 198, 273), _mob(3, 1700, 73, 79),
+                        _mob(4, 1460, 198, 273, state="dying")])
+    by = {x.id: x for x in sc.mobs}
+    assert set(by) == {1, 2, 3}                                   # dying isn't live
+    assert sc.in_reach(by[1]) and not sc.in_reach(by[2]) and not sc.in_reach(by[3])
+    assert by[1].here and not by[3].here
+
+
+def test_targeting_score_is_the_sum_of_its_terms(line1):
+    br = _brain(line1)
+    sc = _scene(line1, [_mob(1, 1700, 198, 273), _mob(2, 1760, 198, 273)])
+    x = sc.get(1)
+    tg = br.targeting
+    assert tg.score(sc, x) == pytest.approx(sum(t(sc, x) for t in tg.terms))
+    assert tg.t_crowd(sc, x) == -0.25
+    br.ledger.contested[1] = 0.0
+    assert tg.t_others(sc, x) == 1.5
+
+
+def test_footwork_rule_table(line1):
+    br, drv = _brain(line1), SimDriver()
+    fw = br.footwork
+    br.facing = 1
+    for mob_x, want in [(1700, "approach"), (1480, "stand"), (1340, "turn")]:
+        br.facing = 1
+        fw.step(_scene(line1, [_mob(1, mob_x, 198, 273)]), _scene(line1, [_mob(1, mob_x, 198, 273)]).mobs[0],
+                90.0, drv)
+        assert fw.state == want, (mob_x, fw.state)
+    br.face.turns.extend([0.0, 0.0])                              # turned twice just now: no third turn
+    br.facing = 1
+    sc = _scene(line1, [_mob(1, 1340, 198, 273)])
+    fw.step(sc, sc.mobs[0], 90.0, drv)
+    assert fw.state == "hold"
+
+
+def test_weapon_ready_swing_cooldown(line1):
+    br, drv = _brain(line1), SimDriver()
+    sc = _scene(line1, [_mob(1, 1480, 198, 273)])
+    assert br.weapon.step(sc, _obs(), drv) and br.weapon.state == "cooldown"
+    assert not br.weapon.step(_scene(line1, [_mob(1, 1480, 198, 273)], now=0.1), _obs(), drv)
+    assert br.weapon.step(_scene(line1, [_mob(1, 1480, 198, 273)], now=1.2), _obs(), SimDriver())

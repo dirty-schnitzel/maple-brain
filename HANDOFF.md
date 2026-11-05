@@ -1,4 +1,4 @@
-# maplebot — session handoff (updated 2026-11-05, session 23: M2 combat built offline (reach from the client's attack boxes, `--brain v2`), NOT live-tested yet - see 'Session 23'; session 22: M1 movement DONE (camshift + selfstate, moves + Travel + sim + `goto`, live 80 % first try, the user: natural), stalls fixed (14.4 fps); NEXT = M2 Hunt skill - see 'START HERE: M2'; session 21: BRAIN-V2 started - key logger, farming example, KeyDriver; session 20: look-alike maps by name; session 19: tracker + `--tracker` shim; session 18: GPU detection `--gpu`; session 17: game data from the client files)
+# maplebot — session handoff (updated 2026-11-05, session 23: M2 combat LIVE 14.3 kills/min (the user: "SERIOUSLY impressive"), brain v2 restructured into brain/v2/ parts, NEXT = hold-to-attack - see 'Session 23'; session 22: M1 movement DONE (camshift + selfstate, moves + Travel + sim + `goto`, live 80 % first try, the user: natural), stalls fixed (14.4 fps); NEXT = M2 Hunt skill - see 'START HERE: M2'; session 21: BRAIN-V2 started - key logger, farming example, KeyDriver; session 20: look-alike maps by name; session 19: tracker + `--tracker` shim; session 18: GPU detection `--gpu`; session 17: game data from the client files)
 
 ## Goal
 A **fully automated mob farmer** for **MapleStory Classic World** (official GMS Classic, launched 2026-10-21):
@@ -45,6 +45,25 @@ Built offline, all tests green; **not live-tested yet** (next: a live A/B, see b
   x starts moving, running median) in one `Latency` object every skill reads (Move let-go points, swing prediction,
   knockback windows, timeouts); split constants into game (client data) + measured pipeline parts. Costs microseconds
   (no pixels). Lag-dependent constants today: `moves.LAG` 0.1, slide/let-go px, `reach.SWING_LAND_S` 0.45.
+- **Live `runs/v2a` + `runs/v2b` (3 min each, Line 1, spear, plain attack - the user's default: MP potions are
+  too expensive; skill rotation + buffs later):** v2b 43 kills = **14.3/min** (kills = last hit by OUR weapon only:
+  in reach at our swing, dying 0.2-1.0 s later; the user's rule, 2026-11-05), 2.0 swings/kill, 103 trips, 0 failed /
+  stuck, no LD; live hits -26..144 px (median 72 = the user's). The user: **"boy brain v2 is SERIOUSLY impressive"**,
+  "the run was great". Crash fixed first (v2a started on a ladder: route pricing in the air, `is_rope(None)`).
+- **The user's notes after v2b:** (1) LRLR looked fine ("didn't even notice") - **don't overfit** (a pendulum patch
+  was reverted, `a7c7185`); (2) **combat timing: the bot stops to think after a hit, esp. when swarmed - a player
+  HOLDS the attack key** (swing gaps v2b median 1.02 s, p90 1.62; the weapon can swing again after ~0.6 s);
+  (3) **no if-else mess like brain.py** -> restructured (below).
+- **Restructure (behaviour-identical: 8 sim seeds x 3 min + agree.py matched the baseline exactly):** `brain_v2.py`
+  only wires; parts in `brain/v2/`: `scene.py` (Scene = us + live mobs relative to us, once per tick = M0's
+  obs.state; Facing), `ledger.py` (history, last-hit kills, contested, reach outcomes), `reflexes.py`,
+  `targeting.py` (score = sum of named terms reach/turn/crowd/others; keep margin), `combat.py` (Weapon state machine
+  ready/cooldown; Footwork rule table turn/hold/wait/approach/stand), `trips.py` (Travel holder + roam).
+  **Rule for changes: a score term, a table rule, a state, or a parameter with its data source - never a special
+  case in `step`.** Per-part tests added (21 in test_brain_v2.py).
+- **NEXT (agreed): hold-to-attack** = a Weapon state `pressure`: hold the attack key while any live mob stays in reach
+  in front (swarmed / more hits needed / the next walks in), tap for a lone single swing, release after a short
+  varied nothing-in-reach moment or to move/turn - REPLACES the swing-cycle timer. Then live vs `runs/v2b`.
 - **NEXT:** live, Line 1, the user positions the character: `run runs2a --seconds 180 --brain v2` (elevated,
   `watch` running), then the same with the old brain (`run runs1a --seconds 180 --gpu --tracker`); compare kills
   by last hit (v2 logs its own; v1: re-count from ticks - `tools/play/kills.py` needs a bot variant) + the user's

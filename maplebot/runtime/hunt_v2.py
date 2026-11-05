@@ -82,8 +82,7 @@ def hunt_v2(rig, rec, t0: float, until) -> str:
                     time.sleep(hz.vary(0.2))
                 if kb.focused():
                     say("resumed")
-                    brain.travel = brain.travel_for = None
-                    brain.target = None
+                    brain.reset(driver)
                     time.sleep(hz.vary(1.0))
         else:
             if reason != "time":
