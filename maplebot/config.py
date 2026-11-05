@@ -234,6 +234,11 @@ class Nav:
     jump_reach: float = 85          # walking jump: lands about this far ahead (single hops 80-112 px, ~0.6 s air;
                                     # a 44 px gap 186 -> 162 crossed with 112)
     walk_speed: float = 125         # px/s walking (route costs)
+    jump_speed: float = 555         # Physics.img jumpSpeed (px/s up at take-off)
+    gravity: float = 2000           # Physics.img gravityAcc
+    jump_vx: float = 155            # a walking jump's horizontal speed: calibrated to the hops seen (level hop ~86 px in
+                                    # 0.555 s; the walk speed alone would give 69 - the reach depends on the height,
+                                    # NavMap.arc)
     rope_grab: float = 80           # a rope's bottom end at most this far over our feet: jump + up grabs it (seen: 41
                                     # and 43 px from the ground - ropes 1808 / -980 - grabbed 0.3-0.4 s after take-off)
     climb_speed: float = 125        # px/s up a rope (rope 1808: 160 px in 1.25 s)

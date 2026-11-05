@@ -149,14 +149,11 @@ class NavMap:
                 up = self._landing_above(x, ya, h, a)
                 if up is not None:
                     raw.append(("jump", a.id, up.id, x, 0))
-                for d in (-1, 1):                        # a walking jump: lands on another platform ahead
-                    tx = x + d * reach
-                    if a.left <= tx <= a.right:
-                        continue                         # still over our own platform: lands back on it
-                    land = self._landing_above(tx, ya, h, a) or self.below(tx, ya - SAME)
+                for d in (-1, 1):                        # a walking jump: where the arc comes down first
+                    hit = self.arc(x, ya, d)
                     # down to 2 jump heights lower (the user, runs/jump: 130 -> 191 78 px down, 113 -> 127 82 px)
-                    if land is not None and land is not a and land.y_at(tx) <= ya + 2 * h:
-                        raw.append(("jump", a.id, land.id, x, d))
+                    if hit is not None and hit[1] is not a and ya - h <= hit[1].y_at(hit[2]) <= ya + 2 * h:
+                        raw.append(("jump", a.id, hit[1].id, x, d))
             for d, open_, x in ((-1, a.open_left, a.left), (1, a.open_right, a.right)):
                 if open_:
                     land = self.below(x + d * EDGE_OUT, (a.y_at(x) or 0) - SAME)
@@ -215,6 +212,34 @@ class NavMap:
                     if lands:                                # the arc meets the highest surface first
                         raw.append(("leap", rid, min(lands)[2].id, y, d))
         return _merge(raw)
+
+    def arc(self, x: float, y: float, d: int):
+        """A walking jump from feet (x, y) toward d: the first surface the arc comes down on, as (secs, platform,
+        x there), or None (nothing within 2 jump heights below... or more: the caller decides). Physics.img: jump
+        555 px/s, gravity 2000; horizontal cfg.jump_vx. One-way platforms: only crossings on the way DOWN count,
+        so the highest surface under the descending arc wins. Reach depends on the height: landing 60 px up
+        comes down after ~0.43 s (~67 px), level after ~0.56 s (~86 px), 70 px down after ~0.65 s."""
+        c = self.cfg
+        v, g, vx = c.jump_speed, c.gravity, c.jump_vx
+        best = None
+        for p in self.platforms.values():
+            yb = p.y_at(min(max(x + d * vx * v / g * 2, p.left), p.right))
+            for _ in range(3):                           # the surface's y where we come down (slopes): iterate
+                rise = y - yb
+                disc = v * v - 2 * g * rise
+                if disc < 0:
+                    break
+                t = (v + math.sqrt(disc)) / g
+                xl = x + d * vx * t
+                y2 = p.y_at(xl)
+                if y2 is None:
+                    break
+                if abs(y2 - yb) < 0.5:
+                    if best is None or t < best[0]:
+                        best = (t, p, xl)
+                    break
+                yb = y2
+        return best
 
     def _landing_above(self, x, y, h, not_this):
         """Jumping at x from feet y: the highest surface in (y - h, y - SAME) we can land on (one-way platforms)."""
@@ -293,10 +318,10 @@ class NavMap:
         return [k for k in self.links if k.src == pid]
 
     # ---------------------------------------------------------------- routes
-    def route(self, src: int, pos: float, dst: int, dst_x: float | None = None) -> list | None:
+    def route(self, src: int, pos: float, dst: int, dst_x: float | None = None, avoid=()) -> list | None:
         """Cheapest list of Links from node src at pos (x on a platform, y on a rope) to node dst (and, if given,
         then to dst_x on that platform). Cost = seconds: walking/climbing to each take-off point + a fixed price
-        per move. None if there's no way."""
+        per move. `avoid`: links not to use (they failed). None if there's no way."""
         cost = {"walk": 0.0, "fall": 0.5, "drop": 0.8, "jump": 0.7, "grab": 0.7, "descend": 0.4, "exit": 0.4,
                 "let_go": 0.5, "leap": 0.7}
         best = {src: 0.0}
@@ -310,6 +335,8 @@ class NavMap:
                 return path
             speed = self.cfg.climb_speed if self.is_rope(node) else self.cfg.walk_speed
             for k in self.links_from(node):
+                if k in avoid:
+                    continue
                 t = min(max(p, k.lo), k.hi)                           # nearest take-off point
                 land = self.landing(k, t)
                 nc = c + abs(t - p) / speed + cost[k.kind]
@@ -327,6 +354,10 @@ class NavMap:
         if k.kind == "fall":
             return t + k.dir * EDGE_OUT
         if k.kind == "jump" and k.dir:
+            src = self.platforms.get(k.src)
+            hit = self.arc(t, src.y_at(src.clamp(t)), k.dir) if src is not None else None
+            if hit is not None and hit[1].id == k.dst:
+                return hit[2]
             return self.platforms[k.dst].clamp(t + k.dir * c.jump_reach)
         if k.kind == "grab":
             r = self.rope(k.dst)
