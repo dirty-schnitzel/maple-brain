@@ -86,6 +86,14 @@ Built offline, all tests green; **not live-tested yet** (next: a live A/B, see b
   holds THE ATTACK LOGIC END TO END (reach -> scene -> targeting -> brain -> weapon/footwork -> ledger); every other
   file's header points to it and states its own step. Keep that section true with every change; edit files directly
   (no string-patch scripts - they half-applied twice).
+- **Hold-until-death live (`runs/v2/20261105_095316_1`): the user "attack is MUCH worse, not holding".** The key WAS
+  held (97 %), but **the game swings on only while the attack is the LAST key pressed** (a held key's repeat stops
+  when another key goes down): 0.55 hit reactions/s with the attack last vs 0.03/s after a walk key / tap. Fix: no
+  walk keys while the attack is held (footwork `fight`), and any other key mid-hold -> a real let-go + press again
+  0.12-0.25 s later (Weapon RE-PRESS; `Hands.stolen`). **The user: careful, Nexon watches for input tampering** ->
+  never fake keyboard input (e.g. repeating a key that isn't the last pressed); only patterns a real keyboard + hand
+  make. The sim now models the repeat: old code 6.5 kills/min, fixed 12.1. (SendInput's injected flag is visible to
+  anti-cheat regardless - only hardware input avoids it.)
 - **NEXT (agreed): hold-to-attack** = a Weapon state `pressure`: hold the attack key while any live mob stays in reach
   in front (swarmed / more hits needed / the next walks in), tap for a lone single swing, release after a short
   varied nothing-in-reach moment or to move/turn - REPLACES the swing-cycle timer. Then live vs `runs/v2b`.

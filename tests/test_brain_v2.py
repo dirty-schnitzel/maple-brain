@@ -148,14 +148,13 @@ def test_swarmed_holds_at_once(line1):
     assert "space" in drv.want and not _taps(drv, "space") and br.stats["holds"] == 1
 
 
-def test_held_attack_survives_walking_and_knockback_into_the_air_but_not_a_rope(line1):
+def test_held_attack_survives_knockback_into_the_air_but_not_a_rope(line1):
     br, drv = _brain(line1), SimDriver()
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     mobs = [_mob(1, 1480, 198, 273), _mob(2, 1500, 198, 273), _mob(3, 1530, 198, 273)]
     _tick(br, drv, 0.0, mobs, s)
-    br.hands.hold({"right"})                          # footwork / Travel holding a walk key keeps the attack held
-    assert drv.want == {"right", "space"}
+    assert drv.want == {"space"}
     _tick(br, drv, 0.1, mobs, SelfState(0.1, 1392, 185, "tag", "air"))     # a touch knocked us up and back
     assert "space" in drv.want                        # Maple attacks in the air: keep holding (runs/v2 09:21: 152 cuts)
     _tick(br, drv, 0.2, mobs, SelfState(0.2, 1397, 150, "tag", "rope", rope=-1))
@@ -305,16 +304,23 @@ def _hunt(nav, seconds, seed, start=(273, 1400)):
     mobs = FakeMobs(nav, br.reach, nav.spawns, rng)
     t, nxt, hist, facing = 0.0, 0.0, [], 1
     flips, down, next_auto, swing_t = [], False, 0.0, -9.0
+    prev_keys, repeat_ok = set(), False
     while t < seconds:
         keys = drv.keys(t)
         d = ("right" in keys) - ("left" in keys)
         if d and d != facing and t - swing_t > 0.55:              # the game ignores direction keys mid-swing
             flips.append(t)
             facing = d
-        if "space" in keys and (not down or t >= next_auto):      # a press swings; held, it swings again
-            mobs.swing(t, facing, sim.b.x, sim.b.y)               # every 0.6 s (the game's repeat)
+        pressed = keys - prev_keys
+        if "space" in pressed:
+            repeat_ok = True
+        elif pressed:                                             # another key went down: the held attack's
+            repeat_ok = False                                     # repeat stops (like the game, runs/v2 09:53)
+        if "space" in keys and (not down or (repeat_ok and t >= next_auto)):   # a press swings; held (and still
+            mobs.swing(t, facing, sim.b.x, sim.b.y)                           # the last key) every 0.6 s
             next_auto, swing_t = t + 0.6, t
         down = "space" in keys
+        prev_keys = keys
         b = sim.step(keys, 0.005)
         mobs.step(t, 0.005)
         hist.append((t, b.x, b.y, b.state, b.platform, b.rope, b.vx, b.vy))
@@ -417,3 +423,33 @@ def test_a_held_attack_is_kept_to_the_maybe_reach(line1):
     sc = _scene(line1, [_mob(1, 1400 + 150, 198, 273), _mob(2, 1400 + 170, 198, 273)])
     a, b = sc.mobs
     assert sc.in_reach(a, keep=True) and not sc.in_reach(a) and not sc.in_reach(b, keep=True)
+
+
+def test_another_key_mid_hold_gets_a_real_re_press_of_the_attack(line1):
+    br, drv = _brain(line1), SimDriver()                # runs/v2 09:53: the game stops swinging once another key
+    br.facing = 1                                     # goes down; a player presses attack again
+    s = SelfState(0, 1400, 198, "tag", "ground", 273)
+    mob = [_mob(1, 1480, 198, 273)]
+    _tick(br, drv, 0.0, mob, s)
+    assert "space" in drv.want
+    br.hands.tap("delete", 0.08)                      # a potion mid-fight
+    _tick(br, drv, 0.07, mob, s)
+    assert "space" not in drv.want                    # key up ...
+    t, back = 0.07, None
+    while t < 0.6:
+        t += 0.035
+        _tick(br, drv, t, mob, s)
+        if "space" in drv.want:
+            back = t
+            break
+    assert back is not None and 0.12 <= back - 0.07 <= 0.25 + 0.04 and br.stats["represses"] == 1   # ... and down
+
+
+def test_no_walk_keys_while_the_attack_is_held(line1):
+    br, drv = _brain(line1), SimDriver()
+    br.facing = 1
+    s = SelfState(0, 1400, 198, "tag", "ground", 273)
+    _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273)], s)
+    for i in range(1, 5):                             # knocked back to 150 px: maybe reach, not sure - still holding
+        _tick(br, drv, i * 0.07, [_mob(1, 1550, 198, 273)], s)
+        assert drv.want == {"space"} and br.footwork.state == "fight"

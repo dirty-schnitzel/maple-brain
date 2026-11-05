@@ -29,6 +29,12 @@ Weapon - WHEN TO HIT, and how long. States:
               (targeting is locked on the engaged mob, `engaged`). runs/v2 09:21: holds lasted 0.48 s median, 152 of
               330 cut by "air", 80 by trips started mid-fight, 3 ended by a death.
     Let go at once only on a rope/ladder (no attacks there) or when not allowed (a travel move that isn't walking).
+    RE-PRESS: the game keeps swinging only while the attack key is the LAST key pressed (a held key's repeat stops
+              when another key goes down, like any keyboard; runs/v2 09:53: 0.55 hit reactions/s while the attack
+              was the last key, 0.03/s after another key went down). Any other key down during a hold (a potion, a
+              turn) -> let go and press it again REPRESS_S later: a real key-up + key-down, as a player does.
+              Never fake it (e.g. repeating a key that isn't the last pressed): Nexon watches for input no real
+              keyboard can make.
     While holding, a swing is booked every SWING_PERIOD s (kills by last hit, reach learning).
 
 Footwork - where to stand while fighting the target on our platform. One RULE TABLE, first match wins:
@@ -38,8 +44,10 @@ Footwork - where to stand while fighting the target on our platform. One RULE TA
               then we turn)
     brace     target behind us, close, can't turn yet                  -> no keys
     wait      target behind us, far, turned < 0.6-0.9 s ago            -> no keys (a moment, then turn)
-    fight     target in SURE reach in front (predicted)                -> no walk keys: stand, the weapon works
-              (only maybe-reach, e.g. knocked back: keep closing in while the weapon keeps holding)
+    fight     target in SURE reach in front (predicted), or the attack is held -> no walk keys: stand, the weapon
+              works (a walk key pressed mid-hold would take the key repeat from the attack and stop the swings;
+              the game doesn't walk us while attacking anyway. If the mob gets away the weapon lets go, then we
+              approach)
     approach  further than standoff + slide, not at the edge           -> hold the walk key toward it
     stand     otherwise                                               -> no keys
 """
@@ -48,31 +56,43 @@ from .scene import sign
 SWING_PERIOD = (0.55, 0.7)      # s per swing while held - a guess from the press -> hit timing; measure live
 REACT_S = (0.18, 0.32)          # s from the death animation to letting go: a human's response (uniform)
 GOT_AWAY_S = (0.3, 0.5)         # s the engaged mob may be out of keep reach before we let go and follow
+REPRESS_S = (0.12, 0.25)        # s between letting go and pressing the attack key again (another key took the repeat)
 
 
 class Hands:
-    """The driver as the parts see it: `hold(keys)` from footwork / Travel keeps the weapon's held keys (`extra`)."""
+    """The driver as the parts see it: `hold(keys)` from footwork / Travel keeps the weapon's held keys (`extra`).
+    `stolen`: another key went down while the weapon's key was held - the game stopped repeating the attack (see
+    RE-PRESS in the module doc); cleared by the next fresh press of the weapon's key."""
 
     def __init__(self, driver):
         self.real = driver
         self.base, self.extra = set(), set()
+        self.stolen = False
 
     @property
     def want(self):
         return self.base
 
     def hold(self, keys):
-        self.base = set(keys)
+        keys = set(keys)
+        if self.extra and keys - self.base - self.extra:
+            self.stolen = True
+        self.base = keys
         self.real.hold(self.base | self.extra)
 
     def set_extra(self, keys):
         keys = set(keys)
         if keys != self.extra:
+            if keys - self.extra:                         # a fresh press: it's the last key down again
+                self.stolen = False
             self.extra = keys
             self.real.hold(self.base | self.extra)
 
     def tap(self, key, secs, after=0.0):
-        return self.real.tap(key, secs, after)
+        ok = self.real.tap(key, secs, after)
+        if ok and self.extra and key not in self.extra:
+            self.stolen = True
+        return ok
 
     def busy(self, key=None):
         return self.real.busy(key)
@@ -81,7 +101,7 @@ class Hands:
         return self.real.cancel_taps(key) if hasattr(self.real, "cancel_taps") else 0
 
     def release_all(self):
-        self.base, self.extra = set(), set()
+        self.base, self.extra, self.stolen = set(), set(), False
         self.real.release_all()
 
 
@@ -95,6 +115,7 @@ class Weapon:
         self.release_at = None                            # engaged mob done: let go (or move on) at this time
         self.away_since = None                            # engaged mob out of keep reach since
         self.away_s = 0.0
+        self.repress_at = None                            # let go because another key took the repeat: press again then
         self.next_book = 0.0
         self.key = None
         self.last = None                                  # this tick's swing, for the ticks log
@@ -111,7 +132,24 @@ class Weapon:
         """Attack key up now, engagement over."""
         if self.state == "pressure":
             hands.set_extra(set())
-        self.state, self.engaged, self.release_at, self.away_since = "ready", None, None, None
+        self.state, self.engaged, self.release_at, self.away_since, self.repress_at = "ready", None, None, None, None
+
+    def _repress(self, now, hands) -> bool:
+        """RE-PRESS (module doc): another key went down mid-hold -> key up now, down again REPRESS_S later.
+        True while the key is up for it (no swings then)."""
+        if self.repress_at is not None:
+            if now < self.repress_at:
+                return True
+            self.repress_at = None
+            hands.set_extra({self.key})
+            self.stats["represses"] += 1
+            return False
+        if hands.stolen:
+            hands.set_extra(set())
+            hands.stolen = False
+            self.repress_at = now + self.hz.between(*REPRESS_S)
+            return True
+        return False
 
     def _engage(self, sc, ids, target):
         if target in ids:
@@ -136,6 +174,7 @@ class Weapon:
             self.stats["holds"] += 1
             self._book(sc, in_reach, self.key)
             return True
+        repressing = self._repress(now, hands)
         x = sc.get(self.engaged)
         if self.release_at is not None:                   # it's done: a human's reaction later, move on or let go
             if now < self.release_at:
@@ -157,7 +196,7 @@ class Weapon:
                 self.release(hands)
             return False
         self.away_since = None
-        if now >= self.next_book:
+        if not repressing and now >= self.next_book:
             self.next_book = now + self.hz.between(*SWING_PERIOD)
             self._book(sc, frozenset(i.id for i in sc.mobs if sc.in_reach(i, keep=True)), self.key)
             return True
@@ -174,7 +213,7 @@ class Footwork:
             ("turn", lambda c: c["behind"] and c["close"] and c["may_turn"] and not c["holding"]),
             ("brace", lambda c: c["behind"] and c["close"]),
             ("wait", lambda c: c["behind"] and not c["may_turn"]),
-            ("fight", lambda c: c["in_reach"]),
+            ("fight", lambda c: c["in_reach"] or c["holding"]),
             ("approach", lambda c: c["far"] and c["edge_ok"]),
             ("stand", lambda c: True),
         ]
