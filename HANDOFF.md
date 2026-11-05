@@ -7,6 +7,23 @@ later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never 
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
 ## START HERE: M2 (written 2026-11-05, end of session 22)
+**ROADMAP (brain-v2; details per milestone in 'BRAIN-V2: THE PLAN' below):**
+- [x] **M0 foundation** - key logger + the user's farming example, KeyDriver executor (default), loop stalls fixed.
+  Open: `obs.state` (one fixed per-tick record of us + tracks + active skill) - add when M2 needs it.
+- [x] **M1 movement** - exact own position, link moves, Travel along NavMap routes, `goto`; live 80 % first try.
+- [ ] **M2 Hunt skill (NEXT)** - WHEN TO HIT: reach per weapon from the client data + learned live (spear now,
+  polearm soon); tap attacks while walking; strike only when a live track is in reach; target = cheapest by route
+  cost over all tracked mobs (other platforms via Travel); z-burst loot; reflexes (potions, buff `1`, plain attack
+  `c` out of MP). New `brain/brain_v2.py` behind `--brain v2`; A/B vs the old brain by kills by last hit.
+- [ ] **M3 Patrol** - the hub-and-loops zone plan per map (zones = platforms with spawns, value = spawns x EXP,
+  cost = route seconds, loop sized to respawn time; the user's Line 1 loop is the reference); vary every lap;
+  15-30 s breaks; replaces the old idle walks.
+- [ ] **M4 human timing** - tap / hold / pause distributions from the user's recordings sampled by every skill;
+  record the user on 1-2 more maps.
+- [ ] **M5 (optional, later) learned execution** - behaviour cloning of movement from the user's recordings with
+  the M1 scripts as fallback; combat stays scripted; sim / RL only if BC stalls.
+- Then: the old brain retired once v2 wins the A/B; the user merges `brain-v2` into `main`.
+
 **State:** branch `brain-v2` (all committed; `main` = last good, the user merges). Full pytest suite green.
 M0 done except `obs.state` (SelfState + tracks cover most of it; add the per-tick record when M2 needs it).
 **M1 done** (details: 'M1 step 1' + 'M1 steps 2-4' below): `nav/selfstate.SelfTracker` (exact x/y, ground/rope/air,
