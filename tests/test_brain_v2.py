@@ -264,3 +264,11 @@ def test_hunt_in_the_sim_kills_and_moves_between_platforms(line1, seed):
     assert st["trips"] >= 2, dict(st)
     pendulums = sum(1 for i in range(len(flips) - 2) if flips[i + 2] - flips[i] <= 2.5)
     assert pendulums <= 90 / 60 * 3 * 2, (pendulums, len(flips))   # the user: ~8.5 per 3 min
+
+
+def test_in_the_air_or_on_a_ladder_with_targets_elsewhere_doesnt_crash(line1):
+    br, drv = _brain(line1), SimDriver()                # runs/v2a: started on a ladder -> None < 0 in is_rope
+    mobs = [_mob(1, 1700, 73, 79), _mob(2, 2400, 198, 273)]
+    for i, s in enumerate([SelfState(0, 1626, 120, "tag", "air"), SelfState(0, 1626, 120, "tag", "rope", rope=-1),
+                           SelfState(0, 1626, 150, "minimap", "air")]):
+        assert _tick(br, drv, i * 0.5, mobs, s) is None

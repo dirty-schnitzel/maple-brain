@@ -174,6 +174,8 @@ class BrainV2:
     # ------------------------------------------------------------------ targets
     def _route_cost(self, now, s, pid, x):
         n = node_of(s)
+        if n is None:                                     # in the air: no node to route from
+            return None
         key = (n, round(s.x / 40), pid, round(x / 40))
         c = self.route_cache.get(key)
         if c is None or now - c[0] > 1.0:
@@ -246,7 +248,7 @@ class BrainV2:
         if d:
             self._face(d)
         travelling = self.travel is not None and self.travel.status == "run"
-        if now >= self.next_pick and (s.state == "ground" or not travelling):
+        if now >= self.next_pick and s.state != "air" and (s.state == "ground" or not travelling):
             self._pick(now, obs, s, live)
             self.next_pick = now + self.hz.between(0.22, 0.4)
         tgt = next((m for m in live if m["id"] == self.target), None)
