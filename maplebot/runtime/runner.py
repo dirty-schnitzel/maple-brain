@@ -299,6 +299,9 @@ def _hunt(rig: Rig, rec: Recorder, t0: float, until, observe: bool = False) -> s
                 perceiver.target_proven = bool(brain.target and brain.target.proven)
                 timings = {"grab_ms": round(1000 * (tg - tick0)), "perceive_ms": round(1000 * (tp - tg)),
                            "total_ms": round(1000 * (time.perf_counter() - tick0))}
+                parts = getattr(perceiver, "parts", None)
+                if parts:                                       # where perceive_ms went (rest = after the last part)
+                    timings["parts"] = {**parts, "rest": round(1000 * (tp - tg) - sum(parts.values()), 1)}
                 if hasattr(rig.sprites, "all_hits"):            # --gpu: the whole screen's mobs + GPU time
                     timings["gpu_ms"] = round(rig.sprites.last_ms, 1)
                     timings["gpu_mobs"] = [[h.mob_id, *map(int, h.feet), h.pose.anim, h.score]

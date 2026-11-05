@@ -3,8 +3,11 @@
 pkg_potions1: 52.4 s an announcement panel (bottom right, "5 sec until the Lie Detector mini-game starts"), then the
 mini-game window (centre, "find the ... and click its number"). Both carry the same small gold title. Matched on
 grayscale over the whole frame (the windows can sit anywhere): panel 0.89-0.90, mini-game ~1.0; the best match on
-~14,000 frames of 29 runs without it was 0.67. A full-frame match costs ~13 ms, so it runs every ~0.3 s.
+~14,000 frames of 29 runs without it was 0.67. A full-frame match costs ~13 ms per template, so it runs every ~0.3 s
+- on its own thread (2026-11-05, runs/kd2: 4 templates beside the GPU / tag threads took 100-500 ms and were the
+loop's worst stalls); the answer is at most one look late (~0.3-0.5 s; the Lie Detector gives 10+ s).
 """
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import cv2
@@ -22,9 +25,11 @@ NAMES = ("lie_detector_panel.npy", "lie_detector_game.npy",
 
 
 class LieDetector:
-    def __init__(self, templates, min_score: float = 0.8, every_s: float = 0.3):
+    def __init__(self, templates, min_score: float = 0.8, every_s: float = 0.3, background: bool = True):
         self.templates, self.min_score, self.every_s = list(templates), min_score, every_s
         self.next_t, self.last = -1e9, (False, 0.0, None)
+        self.pool = ThreadPoolExecutor(1, thread_name_prefix="lie") if background else None
+        self.pending = None                               # the look running on the thread
 
     @classmethod
     def load(cls, assets: Path, **kw) -> "LieDetector":
@@ -48,8 +53,20 @@ class LieDetector:
         """Throttled: matches at most every `every_s`; in between the last answer stands. `t` is the hunt's clock,
         which restarts at 0 each hunt while this object lives on in `serve`: a clock behind the last look means a
         new hunt -> look now (2026-11-04: the cached 'on screen' from the hunt it stopped ended every restart)."""
-        if t >= self.next_t or t < self.next_t - self.every_s:
+        if self.pending is not None and self.pending.done():
+            s, loc = self.pending.result()
+            self.last, self.pending = (s >= self.min_score, s, loc), None
+        new_hunt = t < self.next_t - self.every_s
+        if new_hunt and self.pending is not None:          # a look from the last hunt: wait for it, it's this frame's
+            self.pending.result()                          # picture no more - look again now
+            self.pending = None
+        if new_hunt and self.pool is not None:             # never carry 'on screen' into a new hunt; the fresh
+            self.last = (False, 0.0, None)                 # look answers a tick later
+        if (t >= self.next_t or new_hunt) and self.pending is None:
             self.next_t = t + self.every_s
-            s, loc = self.score(frame)
-            self.last = (s >= self.min_score, s, loc)
+            if self.pool is None:
+                s, loc = self.score(frame)
+                self.last = (s >= self.min_score, s, loc)
+            else:
+                self.pending = self.pool.submit(self.score, frame.copy())
         return self.last

@@ -168,6 +168,8 @@ class Perception:
     mob_min_w: int = 32             # motion blobs narrower than this are drops/butterflies/foliage
     mob_min_area: int = 500
     self_min_score: float = 0.66    # own name tag (high-passed), full-frame search; others <= 0.59
+    self_wide_every_s: float = 0.25 # own tag lost: the full-frame search this often (the minimap meanwhile; runs/kd2: every
+                                    # frame cost 120-155 ms while hidden on ladders - the loop's 2nd-worst stall)
     self_near_score: float = 0.64   # own name tag, near last position (own median 0.91)
     library_size: int = 6
     library_score: float = 0.72

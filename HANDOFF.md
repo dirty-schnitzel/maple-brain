@@ -103,7 +103,7 @@ Existing pieces: `nav/navmap.py` (platforms, ropes, links walk/fall/drop/jump/gr
   Power Strike, the basic attack per weapon type - spear/polearm vs sword) - export it in `assets build`;
   (b) learned live: (dx, dy) of every swing whose target then showed `hit` / `dying` in the tracker -> a reach
   estimate per weapon; disagreement with (a) logged. The user may switch weapons: re-learn when misses pile up.
-  (The farming example killed at a median 72 px in front, p90 120 - ask whether that was the spear.)
+  (The farming example killed at a median 72 px in front, p90 120 - WITH THE SPEAR, the user confirmed 2026-11-05.)
 - **Strike rule:** tap attack when a live (not dying) track's predicted position (its vx x (reaction + swing
   delay)) is inside the reach box in front; face it first; tap again only after the swing landed (hit seen) or
   its time passed; never swing at nothing. Hits-to-kill per mob learned (HP / damage) -> no wasted swings / MP.

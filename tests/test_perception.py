@@ -219,9 +219,9 @@ def test_one_odd_slot_reading_does_not_flip_the_answer():
 
 
 # ---------------------------------------------------------------- the game's Lie Detector (anti-bot test)
-def _lie():
+def _lie(background=False):
     from maplebot.perception.liedetector import LieDetector
-    return LieDetector.load(FX)
+    return LieDetector.load(FX, background=background)
 
 
 def test_lie_detector_announcement_panel_is_seen():
@@ -281,6 +281,21 @@ def test_a_new_hunt_does_not_inherit_the_last_hunts_lie_detector():
     none, game = cv2.imread(str(FX / "lie_detector_none.jpg")), cv2.imread(str(FX / "lie_detector_game.jpg"))
     assert lie.check(game, 3283.0)[0] is True
     assert lie.check(none, 0.0)[0] is False                    # next hunt, clock back at 0: looks again
+
+
+def test_lie_detector_on_its_thread_answers_a_look_later_and_never_blocks():
+    lie = _lie(background=True)
+    none, game = cv2.imread(str(FX / "lie_detector_none.jpg")), cv2.imread(str(FX / "lie_detector_game.jpg"))
+    assert lie.check(game, 10.0)[0] is False                   # the look started on the thread
+    lie.pending.result()
+    assert lie.check(none, 10.1)[0] is True                    # its answer (about the frame it looked at)
+    lie.check(none, 10.0 + lie.every_s)                        # a new look at a clean frame
+    lie.pending.result()
+    assert lie.check(none, 10.1 + lie.every_s)[0] is False
+    lie.check(game, 20.0)
+    lie.pending.result()
+    assert lie.check(game, 20.05)[0] is True
+    assert lie.check(none, 0.0)[0] is False                    # a new hunt: the old 'on screen' is dropped
 
 
 def test_a_mob_up_a_gentle_slope_far_away_is_reachable():

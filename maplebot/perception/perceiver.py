@@ -3,6 +3,8 @@ it never presses keys and never decides anything."""
 from collections import deque
 from dataclasses import dataclass, field
 
+import time
+
 import cv2
 import numpy as np
 
@@ -72,6 +74,7 @@ class Perceiver:
         self.drops = drops                              # DropSpotter, or None (no loot by sight)
         self.lie_detector = lie_detector                # LieDetector, or None (not checked)
         self.me_near = None
+        self.wide_next_t = -1e9                         # tag lost: next whole-screen look
         self.hp_pair = None                             # last accepted (cur, max) from the HUD text
         self.mp_pair = None
         self.new_max = {}                               # "hp"/"mp" -> a max seen once (a level-up / gear changes
@@ -172,8 +175,10 @@ class Perceiver:
         p, z = self.cfg.perception, self.cfg.zones
         obs = Observation(t=t)
         self.last_frame, self.last_t = frame, t
+        self.parts, self._t0 = {}, time.perf_counter()      # ms per part of this frame (ticks timings.parts)
         if self.lie_detector is not None:
             obs.lie_detector = self.lie_detector.check(frame, t)[0]
+        self._mark("lie")
         small = cv2.resize(cv2.cvtColor(frame[:620], cv2.COLOR_BGR2GRAY), (341, 155),
                            interpolation=cv2.INTER_AREA).astype(np.float32)
         if self.prev_small is not None:
@@ -181,11 +186,16 @@ class Perceiver:
             obs.scene_dx = float(dx * 4) if resp > 0.2 else None
             obs.scene_dy = float(dy * 4) if resp > 0.2 else None
         self.prev_small = small
+        self._mark("scene")
         me = None
         if self.me_near is not None:
             me = find_self(frame, self.tpl, near=self.me_near, min_score=p.self_near_score)
-        if me is None:
-            me = find_self(frame, self.tpl, min_score=p.self_min_score)
+        if me is None and not 0 < self.wide_next_t - t <= 1.0:   # lost: the whole screen ~4x a second (25-150 ms;
+            near_edge = self.me_near is None or not 150 < self.me_near[0] < frame.shape[1] - 150   # the minimap
+            me = find_self(frame, self.tpl, min_score=p.self_min_score, edges=near_edge)          # meanwhile)
+            self.wide_next_t = t + (0 if me is not None else p.self_wide_every_s)
+            self._mark("self_wide")
+        self._mark("self")
         self.hp_pair = self._pair(frame, "hp", hud.HP_TEXT, self.hp_pair)
         self.mp_pair = self._pair(frame, "mp", hud.MP_TEXT, self.mp_pair)
         if self.hp_pair:
@@ -201,7 +211,9 @@ class Perceiver:
             self.points_hist.append(pts)
         if len(self.points_hist) == 3:                  # 2 of 3 agree: one misread never makes a kill
             obs.exp_points = int(np.median(self.points_hist))
+        self._mark("hud")
         self._locate(frame, obs)
+        self._mark("locate")
         if self.world is not None:
             self._track(frame, obs, me)
         if me is None:
@@ -283,20 +295,28 @@ class Perceiver:
         return [tr for tr in self.world.tracks if tr.state not in ("tentative", "dying", "offscreen")
                 and (tr.src != "none" or tr.state == "hidden" or t - tr.seen <= cs)]
 
+    def _mark(self, name):
+        now = time.perf_counter()
+        self.parts[name] = round(self.parts.get(name, 0) + 1000 * (now - self._t0), 1)
+        self._t0 = now
+
     def _track(self, frame, obs, me):
         band = self.sprites
         tags = self.tag_pool.submit(find_tags, frame)  # players' bodies hide mobs (they're drawn over them)
         hits = band._all(frame)
+        self._mark("gpu")
         me_s = (me[0] + me[2] / 2, me[1]) if me is not None else None
         shift = None
         if self.plat_shift is not None:                 # platforms move 1:1 with the camera; the whole frame doesn't
             shift = self.plat_shift.update(frame, self.world.cam.C, me_s, obs.t)
             obs.cam_src = "platforms" if shift is not None else "scene"
+            self._mark("camshift")
         if shift is None and obs.scene_dx is not None:
             shift = (obs.scene_dx, obs.scene_dy)
         trs = self.world.update(obs.t, hits, me_s, obs.map_pos, shift,
                                 near=lambda spots, pad=24, vis=None: band.gpu.find_near(frame, spots, pad=pad, vis=vis),
                                 tags=tags.result())
+        self._mark("world")
         obs.mobs = [tr.as_dict(obs.t) for tr in trs]
         obs.cam = tuple(round(v, 1) for v in self.world.cam.C) if self.world.cam.C else None
         if me_s is not None and obs.cam is not None:   # our feet on the map, exact px (the tag's screen x + camera)

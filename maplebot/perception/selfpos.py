@@ -33,8 +33,9 @@ def _match(h, t):
     return r
 
 
-def find_self(frame, template, near=None, radius=220, min_score=0.66):
-    """Returns (x, y, w, h, score) of the tag, or None. `near` = (x, y) of the last tag centre-top."""
+def find_self(frame, template, near=None, radius=220, min_score=0.66, edges=True):
+    """Returns (x, y, w, h, score) of the tag, or None. `near` = (x, y) of the last tag centre-top. `edges`: also
+    look for a tag cut by the screen's side (costs ~50 ms when there's nothing to find)."""
     g = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY).astype(np.float32)
     g[ui_mask(frame.shape) == 0] = 0
     ox = oy = 0
@@ -47,7 +48,7 @@ def find_self(frame, template, near=None, radius=220, min_score=0.66):
     h, t = _hp(g), _hp(template.astype(np.float32))
     _, score, _, loc = cv2.minMaxLoc(_match(h, t))
     if score < min_score:
-        return _at_edges(h, t, ox, oy, frame.shape[1], min_score)
+        return _at_edges(h, t, ox, oy, frame.shape[1], min_score) if edges else None
     return (loc[0] + ox, loc[1] + oy, template.shape[1], template.shape[0], float(score))
 
 
