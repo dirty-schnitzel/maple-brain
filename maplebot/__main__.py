@@ -25,6 +25,8 @@ def main(argv=None) -> int:
     r.add_argument("--loot-sight", action="store_true", help="experimental: loot what's seen on the ground")
     r.add_argument("--gpu", action="store_true", help="find mobs on the GPU (whole screen; needs torch + CUDA)")
     r.add_argument("--tracker", action="store_true", help="the brain uses the tracker's tracks (needs --gpu)")
+    r.add_argument("--brain", choices=["v1", "v2"], default="v1", help="v2 = brain-v2 combat (implies --gpu)")
+    r.add_argument("--weapon", default="spear", help="brain v2: weapon type for the reach (spear, poleArm, ...)")
     r.add_argument("--no-focus", action="store_true", help="don't bring the game to front; wait for you to")
     r.add_argument("--frames-every", type=int, default=3, help="save every Nth frame (1 = all, for tracker tests)")
     v = sub.add_parser("serve", help="stay loaded; F7 starts hunting, F8 stops (elevated, game focused)")
@@ -39,6 +41,8 @@ def main(argv=None) -> int:
     v.add_argument("--loot-sight", action="store_true", help="experimental: loot what's seen on the ground")
     v.add_argument("--gpu", action="store_true", help="find mobs on the GPU (whole screen; needs torch + CUDA)")
     v.add_argument("--tracker", action="store_true", help="the brain uses the tracker's tracks (needs --gpu)")
+    v.add_argument("--brain", choices=["v1", "v2"], default="v1", help="v2 = brain-v2 combat (implies --gpu)")
+    v.add_argument("--weapon", default="spear", help="brain v2: weapon type for the reach (spear, poleArm, ...)")
     v.add_argument("--start-key", default="f7")
     v.add_argument("--stop-key", default="f8")
     v.add_argument("--frames", action="store_true", help="also save every 3rd frame (~50 MB per 10 min)")
@@ -106,7 +110,14 @@ def main(argv=None) -> int:
         cfg.perception.map_id = a.map
         cfg.perception.loot = a.loot
         cfg.perception.loot_by_sight = a.loot and a.loot_sight
-        cfg.perception.gpu = a.gpu
+        cfg.perception.gpu = a.gpu or a.brain == "v2"
+        cfg.brain, cfg.combat.weapon = a.brain, a.weapon
+        if a.brain == "v2":
+            from .brain.reach import Reach
+            try:
+                Reach(a.weapon)
+            except KeyError as e:
+                ap.error(str(e))
         if a.tracker and not a.gpu:
             ap.error("--tracker needs --gpu")
         cfg.perception.tracker = a.tracker

@@ -11,6 +11,8 @@
                                 origin = the mob's feet in the PNG, lt/rb body box and head relative to the feet, delay ms;
                                 `same`: a frame the client reuses, e.g. stand_0 is move_0)
     mobs/<id>/<anim>_<n>.png    one animation frame, RGBA, facing left: the client's canvas as is
+    attacks.json                per weapon type (Character Afterimage): attack stance -> [ltx, lty, rbx, rby], the
+                                area a swing hits, relative to our feet, FACING LEFT (x < 0 = in front); brain-v2 reach
 Ids are the client's without the zero padding (map 000000042 -> 42, mob 0000002 -> 2). map.json's field names
 (footholds / ladderRopes / mobs / miniMap ...) are the ones the bot has always read (the layout of the maplestory.io
 copy this replaced on 2026-11-03).
@@ -55,6 +57,29 @@ def load_xml(path: Path) -> dict:
 
 def _int_keys(d: dict) -> list:
     return sorted((k for k in d if k.lstrip("-").isdigit()), key=int)
+
+
+# ------------------------------------------------------------------ attack boxes (brain-v2 reach)
+def build_attacks(export: Path) -> dict:
+    """Afterimage/<weapon>.img.xml -> {weapon: {stance: [ltx, lty, rbx, rby]}} (facing left, relative to our feet).
+    The client keeps one box set per weapon level bracket (0-10); they're identical for every weapon checked
+    (2026-11-05), so bracket 0 is stored and any bracket that differs is reported in `differs`."""
+    out, differs = {}, []
+    for p in sorted((Path(export) / "Afterimage").glob("*.img.xml")):
+        w = p.name.split(".")[0]
+        img = load_xml(p)
+        boxes = {}
+        for lvl in _int_keys(img):
+            for st, v in img[lvl].items():
+                if isinstance(v, dict) and "lt" in v and "rb" in v:
+                    b = [*v["lt"], *v["rb"]]
+                    if st not in boxes:
+                        boxes[st] = b
+                    elif boxes[st] != b and f"{w}/{st}" not in differs:
+                        differs.append(f"{w}/{st}")
+        if boxes:
+            out[w] = boxes
+    return {"weapons": out, "differs": differs}
 
 
 # ------------------------------------------------------------------ maps
@@ -271,6 +296,13 @@ def build(export: Path = EXPORT, root: Path = ROOT, log=print) -> dict:
     log(f"maps: {len(man['maps'])}, {sum(e['minimap'] for e in man['maps'].values())} with a minimap, "
         f"{n_cover} with cover masks")
 
+    if (export / "Afterimage").exists():
+        att = build_attacks(export)
+        (new / "attacks.json").write_text(json.dumps(att, indent=1, sort_keys=True), encoding="utf-8")
+        log(f"attack boxes: {len(att['weapons'])} weapon types" + (f", level brackets differ: {att['differs']}"
+                                                                     if att["differs"] else ""))
+    else:
+        log("no Afterimage in the export (old export.ps1?): attacks.json not built - brain-v2 reach needs it")
     (new / "manifest.json").write_text(json.dumps(man, indent=1, sort_keys=True), encoding="utf-8")
     report = changes(root, new)
     head = f"assets/mcw rebuilt {man['built']} from {export}: changes vs the previous build"

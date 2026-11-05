@@ -211,6 +211,15 @@ class Safety:
 
 
 @dataclass
+class Combat:
+    """brain-v2 (--brain v2) combat. Reach comes from the client's attack boxes for this weapon type (brain/reach.py),
+    never a constant here."""
+    weapon: str = "spear"           # attacks.json weapon type: spear / poleArm (same boxes) / swordOS / axe / ...
+    skill_mp: int = 12              # MP the attack skill needs (Power Strike lv 20: 12); below it, with no MP potions,
+                                    # swing with keys.basic_attack
+
+
+@dataclass
 class Humanize:
     """No fixed intervals between actions: every press length, pause and wait is randomized."""
     jitter: float = 0.25            # each wait / press length is scaled by a random factor in 1 +- jitter
@@ -270,3 +279,5 @@ class Config:
     safety: Safety = field(default_factory=Safety)
     humanize: Humanize = field(default_factory=Humanize)
     nav: Nav = field(default_factory=Nav)
+    combat: Combat = field(default_factory=Combat)
+    brain: str = "v1"               # v1 = brain/brain.py (default until v2 wins the A/B); v2 = brain/brain_v2.py

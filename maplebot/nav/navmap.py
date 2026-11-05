@@ -318,10 +318,10 @@ class NavMap:
         return [k for k in self.links if k.src == pid]
 
     # ---------------------------------------------------------------- routes
-    def route(self, src: int, pos: float, dst: int, dst_x: float | None = None, avoid=()) -> list | None:
+    def route(self, src: int, pos: float, dst: int, dst_x: float | None = None, avoid=(), with_cost=False):
         """Cheapest list of Links from node src at pos (x on a platform, y on a rope) to node dst (and, if given,
         then to dst_x on that platform). Cost = seconds: walking/climbing to each take-off point + a fixed price
-        per move. `avoid`: links not to use (they failed). None if there's no way."""
+        per move. `avoid`: links not to use (they failed). None if there's no way. `with_cost`: (links, seconds)."""
         cost = {"walk": 0.0, "fall": 0.5, "drop": 0.8, "jump": 0.7, "grab": 0.7, "descend": 0.4, "exit": 0.4,
                 "let_go": 0.5, "leap": 0.7}
         best = {src: 0.0}
@@ -332,7 +332,7 @@ class NavMap:
             if c > best.get(node, float("inf")):
                 continue
             if node == dst:
-                return path
+                return (path, c) if with_cost else path
             speed = self.cfg.climb_speed if self.is_rope(node) else self.cfg.walk_speed
             for k in self.links_from(node):
                 if k in avoid:

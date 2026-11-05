@@ -220,6 +220,9 @@ def _hunt(rig: Rig, rec: Recorder, t0: float, until, observe: bool = False) -> s
     Every key is released at the end, whatever happened. `observe`: perceive and record only - no brain, no keys
     (the player plays; e.g. jump measurements). A Lie Detector still sounds the siren."""
     cfg, hz, kb, screen = rig.cfg, rig.hz, rig.kb, rig.screen
+    if cfg.brain == "v2" and not observe:
+        from .hunt_v2 import hunt_v2
+        return hunt_v2(rig, rec, t0, until)
 
     def say(msg):
         rec.say(f"{time.perf_counter() - t0:7.2f}s {msg}")

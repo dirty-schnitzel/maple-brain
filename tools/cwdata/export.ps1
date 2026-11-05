@@ -5,6 +5,7 @@
 #   Map\minimap\<9-digit id>.png     every map's miniMap canvas, links resolved
 #   Mob\<7-digit id>.img.xml         every mob (info + per-frame origin/lt/rb/head/delay)
 #   Mob\png\<7-digit id>\<anim>_<n>.png  every frame of every animation, links resolved, as stored (facing left)
+#   Afterimage\<weapon>.img.xml     attack boxes per weapon type (lt/rb per stance); Skill\<job>.img.xml skills
 #   String\Map.img.xml, Mob.img.xml  names
 # Run (R2R off, see load.ps1): $env:DOTNET_ReadyToRun=0; pwsh -NoProfile -File tools\cwdata\export.ps1
 param([string]$Out = 'C:\Users\Yoav\dev\cw-data\export')
@@ -126,6 +127,13 @@ foreach ($img in $ms.WzDirectory.WzImages) {
   }
 }
 "mobs: $nMob ($nPng frames)"
+
+# attack boxes (brain-v2 reach): Character\Afterimage (per weapon type: lt/rb per attack stance) + the 1st-job skills
+foreach ($sub in 'Afterimage', 'Skill') { if (Test-Path "$Out\$sub") { Remove-Item -Recurse -Force "$Out\$sub" } }
+foreach ($i in (Open-Bms "$D\Character\Afterimage\Afterimage_000.wz").WzDirectory.WzImages) { Save-Xml $i "$Out\Afterimage\$($i.Name).xml" }
+foreach ($i in (Open-Ms "$D\Packs\Skill_00000.ms").WzDirectory.WzImages | ? Name -in '000.img', '100.img', '200.img', '300.img', '400.img') {
+  Save-Xml $i "$Out\Skill\$($i.Name).xml" }
+"attack boxes: $((Get-ChildItem "$Out\Afterimage").Count) weapon types"
 
 # names
 foreach ($s in Get-ChildItem "$D\String" -Filter '*_000.wz' -Recurse) {

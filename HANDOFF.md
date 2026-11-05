@@ -1,10 +1,55 @@
-# maplebot — session handoff (updated 2026-11-05, end of session 22: M1 movement DONE (camshift + selfstate, moves + Travel + sim + `goto`, live 80 % first try, the user: natural), stalls fixed (14.4 fps); NEXT = M2 Hunt skill - see 'START HERE: M2'; session 21: BRAIN-V2 started - key logger, farming example, KeyDriver; session 20: look-alike maps by name; session 19: tracker + `--tracker` shim; session 18: GPU detection `--gpu`; session 17: game data from the client files)
+# maplebot — session handoff (updated 2026-11-05, session 23: M2 combat built offline (reach from the client's attack boxes, `--brain v2`), NOT live-tested yet - see 'Session 23'; session 22: M1 movement DONE (camshift + selfstate, moves + Travel + sim + `goto`, live 80 % first try, the user: natural), stalls fixed (14.4 fps); NEXT = M2 Hunt skill - see 'START HERE: M2'; session 21: BRAIN-V2 started - key logger, farming example, KeyDriver; session 20: look-alike maps by name; session 19: tracker + `--tracker` shim; session 18: GPU detection `--gpu`; session 17: game data from the client files)
 
 ## Goal
 A **fully automated mob farmer** for **MapleStory Classic World** (official GMS Classic, launched 2026-10-21):
 find mobs, fight them like a player, pick up loot, use potions, and **navigate platforms (jump up / drop down,
 later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never reads memory or packets.
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
+
+## Session 23 (2026-11-05, branch `brain-v2`): M2 Hunt skill, COMBAT ONLY (the user: "start m2, focus on combat only")
+Built offline, all tests green; **not live-tested yet** (next: a live A/B, see below). No loot, no patrol (M3), no buff.
+- **Reach from the client data:** `tools/cwdata/export.ps1` now also exports `Character\Afterimage` (attack boxes per
+  weapon type: lt/rb per stance) + `Skill\{000,100,..}.img` (pack `Packs\Skill_00000.ms`); `assets build` writes
+  `assets/mcw/attacks.json`. **Spear and polearm have the SAME boxes** (both weapons: stabT1/T2, swingT2, swingP1/P2;
+  checked on items 1432000/1/1442000/1). `brain/reach.py`: sure = where every stance's box overlaps the mob's body
+  (mob.json lt/rb), maybe = any stance. Spear vs Bubbling: **sure 27..137 px in front, maybe -2..159** (dy -33..39).
+  A swing can't hit closer than ~50 px with the swing stances; stabs reach in to ~24.
+- **Offline check on the farming recording** (`tools/combat/reach.py RUN`, screen px on both sides = no camera error):
+  hit share 0.7-0.9 for mobs 0..140 px in front, 0.57 at 140-160, ~0.3 past 160 -> agrees with the data.
+  Press -> the tracker shows `hit` ~0.6 s later (peak 0.5-0.7) -> `SWING_LAND_S` 0.45 = the prediction horizon.
+  The user's swing gaps: p25 0.77, median 1.16 s; 15 % quick re-taps (0.17-0.19 s); taps median 0.13 s.
+- **`brain/brain_v2.py` BrainV2** (from scratch; `step(now, obs, s, driver)` presses keys itself like Travel):
+  reflexes (HP/MP potions, HP stop, plain attack `c` when MP < `combat.skill_mp` and no MP potions);
+  target every ~0.3 s = cheapest by seconds (same platform: walk to the standoff; other platforms:
+  `NavMap.route(..., with_cost=True)`), -0.25 s per crowd mob, +1.5 s if someone else is hitting it, failed trips
+  skip that platform 5-8 s, keep the current target unless 0.5 s cheaper; LOCAL: walk toward (never away), let go at
+  a standoff picked per target inside the sure reach, turn with a short tap, max 2 turns per 2.5 s;
+  **WHEN TO HIT: tap attack if a live mob's predicted x (vx x 0.45 s) is in front within [maybe.lo+4, sure.hi-4] and
+  sure dy** - also while walking and while travelling (walk / approach phases); never at nothing / dying / tentative;
+  next swing after 0.72-1.05 s (10 % quick re-tap 0.18-0.3). Elsewhere -> Travel (M1). Nothing tracked -> roam to a
+  spawn platform weighted by spawns, linger 1-3.5 s (placeholder until M3). Trips start on ground OR rope (sim: hung
+  on a rope top forever before). Kills by LAST HIT (dying <= 1 s after a swing that had it in front);
+  every swing's outcome feeds `reach.learned()` (hit share per 30 px band) - logged, not acted on yet.
+- **`runtime/hunt_v2.py`** = the v2 loop; `run`/`serve` `--brain v2 [--weapon spear|poleArm]` (implies --gpu; v1 stays
+  the default). Ticks: timings.self / held / v2 (mode, target, cost, standoff, facing, travel), brain_ms. End of hunt:
+  kills/min, swings per kill, turns, reach check + learned bands.
+- **Tests** `tests/test_brain_v2.py` (17): reach numbers, strike rule (in reach / out / predicted / behind -> turn /
+  never at nothing / cycle / plain attack), potions + HP stop, targets, last-hit kills, a 90 s hunt in the movement sim
+  on Line 1 with fake Bubblings (3 hits, respawn). Sim 3 min x 8 seeds: **10-16 kills/min, 3.2-4.0 swings/kill,
+  pendulums 0-4 per 3 min** (the user ~8.5). The sim has no knockback / other players: live will be lower.
+- **WHEN TO HIT vs the user** (`tools/combat/agree.py RUN`, needs PYTHONPATH=.): of the user's 459 swings the rule
+  fires within 0.35 s on 64 %; of the rule's firings the user swung on 73 %. The user's other swings: early at
+  137-200 px (46), no live mob on our level (41), own tag hidden (38), nearest behind (25) - by design.
+- **The user's idea (NOT built, the user: "do not implement yet"): lag calibration.** Agreed approach: not a one-off
+  start calibration but measured every tick, free (frame age = now - grab time; key -> screen = walk key down -> our
+  x starts moving, running median) in one `Latency` object every skill reads (Move let-go points, swing prediction,
+  knockback windows, timeouts); split constants into game (client data) + measured pipeline parts. Costs microseconds
+  (no pixels). Lag-dependent constants today: `moves.LAG` 0.1, slide/let-go px, `reach.SWING_LAND_S` 0.45.
+- **NEXT:** live, Line 1, the user positions the character: `run runs2a --seconds 180 --brain v2` (elevated,
+  `watch` running), then the same with the old brain (`run runs1a --seconds 180 --gpu --tracker`); compare kills
+  by last hit (v2 logs its own; v1: re-count from ticks - `tools/play/kills.py` needs a bot variant) + the user's
+  eye (natural? swings at nothing? pendulums?). Then the polearm (`--weapon poleArm`, same boxes), loot (z bursts),
+  buff `1`, M3.
 
 ## START HERE: M2 (written 2026-11-05, end of session 22)
 **ROADMAP (brain-v2; details per milestone in 'BRAIN-V2: THE PLAN' below):**
