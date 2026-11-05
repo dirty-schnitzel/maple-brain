@@ -19,7 +19,7 @@ Every tick `step(now, obs, s, driver)` with obs = the Perceiver's Obs (tracks in
   nothing tracked:  roam to a spawn platform (weighted by spawns), linger a few s (M3 replaces this).
 
 Learning / stats: each swing logs the mobs in front (dx, dy) and whether they reacted (reach.learned()); kills by LAST
-HIT (a track turns dying <= 1.0 s after our swing that had it in reach).
+HIT by our weapon (a track turns dying 0.2..1.0 s after our swing that had it in reach).
 """
 import collections
 import random
@@ -29,6 +29,7 @@ from .reach import SWING_LAND_S, Reach
 from .travel import Travel
 
 LIVE = ("live", "hit", "hidden")
+KILL_WINDOW = (0.2, 1.0)        # swing press -> its target turns dying (farming example: peak 0.5-0.8 s, few after 1.0)
 
 
 def _sign(v):
@@ -56,6 +57,8 @@ class BrainV2:
         self.roam_wait = 0.0
         self.stats = collections.Counter()
         self.kill_t = []
+        self.strikes = collections.deque()                # (t, ids in our weapon's reach at that swing)
+        self.tick_swing = None
 
     # ------------------------------------------------------------------ helpers
     def _hold(self, driver, keys):
@@ -104,7 +107,7 @@ class BrainV2:
             ours = [n for t, n in self.reach.swings if now - t <= 1.0]
             had = any(tid == m["id"] for near in ours for tid, dx, dy in near)
             if m["state"] == "dying" and prev in LIVE:
-                if had:
+                if self._our_kill(now, m["id"]):
                     self.stats["kills"] += 1
                     self.kill_t.append(now)
                     self.say(f"kill #{self.stats['kills']} (last hit): {m.get('mob')} id {m['id']}")
@@ -119,6 +122,13 @@ class BrainV2:
             return [st for t, st in self.hist.get(tid, ()) if t0 <= t <= t1]
         for dx, dy, hit in self.reach.outcome(now, state_of):
             self.stats["reach_hit" if hit else "reach_nohit"] += 1
+
+    def _our_kill(self, now, tid) -> bool:
+        """Last hit by OUR weapon: it turns dying KILL_WINDOW after a swing that had it inside our reach (predicted,
+        like the strike rule). Kills others make on mobs we never had in reach aren't counted; a few we finish off
+        for others are (the user, 2026-11-05: fine)."""
+        lo, hi = KILL_WINDOW
+        return any(lo <= now - t <= hi and tid in ids for t, ids in self.strikes)
 
     # ------------------------------------------------------------------ reflexes
     def _reflexes(self, now, obs, driver):
@@ -147,7 +157,7 @@ class BrainV2:
         """Tap the attack if a live mob's predicted position is in front within reach."""
         if now < self.next_swing or s.state != "ground" or not self.facing:
             return False
-        near, go = [], False
+        near, inreach = [], set()
         for m in live:
             dx, dy = self._rel(m, obs, s)
             f = self.facing * self._pred(m, dx)
@@ -155,14 +165,19 @@ class BrainV2:
             if -10 <= f <= 200 and abs(dy) <= 60:
                 near.append((m["id"], round(self.facing * dx), round(dy)))
             if maybe.lo + 4 <= f <= sure.hi - 4 and sure.ylo <= dy <= sure.yhi:
-                go = True
-        if not go:
+                inreach.add(m["id"])
+        if not inreach:
             return False
+        frozen = frozenset(inreach)
         key = self._attack_key(obs)
         secs = self.hz.between(0.07, 0.18) if not self.hz.chance(0.15) else self.hz.between(0.2, 0.45)
         if not driver.tap(key, secs):
             return False
         self.reach.swing(now, near)
+        self.strikes.append((now, frozen))
+        while self.strikes and now - self.strikes[0][0] > 2.0:
+            self.strikes.popleft()
+        self.tick_swing = {"key": key, "in_reach": sorted(frozen)}
         self.swing_t = now
         self.stats["swings"] += 1
         if key != self.cfg.keys.attack:
@@ -234,6 +249,7 @@ class BrainV2:
     def step(self, now, obs, s, driver) -> str | None:
         """One tick. Returns a stop reason (safety) or None."""
         self._now = now
+        self.tick_swing = None
         stop = self._reflexes(now, obs, driver)
         if stop:
             driver.release_all()
@@ -382,7 +398,7 @@ class BrainV2:
     def snapshot(self) -> dict:
         """Per tick, for ticks.jsonl."""
         tr = self.travel
-        return {"mode": self.mode, "target": self.target, "cost": None if self.target_cost is None
+        return {"mode": self.mode, "target": self.target, "swing": self.tick_swing, "cost": None if self.target_cost is None
                 else round(self.target_cost, 2), "standoff": round(self.standoff), "facing": self.facing,
                 "travel": None if tr is None else {"dst": tr.dst, "move": tr.move.kind if tr.move else None,
                                                    "phase": tr.move.phase if tr.move else None}}
