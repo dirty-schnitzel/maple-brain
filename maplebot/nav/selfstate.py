@@ -6,12 +6,19 @@ hidden on some ladders). State:
   ground - our feet within `ground_tol` of a platform surface and not moving vertically fast;
   rope   - at a rope's x (within `rope_tol`), between its ends, not on a surface;
   air    - anything else (jumping, falling, knocked back).
+  Nothing hovers in this game: off every surface but not moving for HOVER_S at a rope's height within HOVER_TOL of
+  its x = on that rope (runs/v2 08:51: hung on ladder 778 for 21 s read as x 785-788, "air" -> the brain waited to
+  land forever; our tag's x drifts a few px on ladders).
 With only the minimap the tolerances are the minimap's (Nav.surface_tol / rope_tol).
 """
 from collections import deque
 from dataclasses import dataclass
 
 from ..config import Nav
+
+HOVER_S = 0.25                    # s off every surface without moving = holding on to something
+HOVER_V = 30.0                    # px/s: "not moving" on both axes
+HOVER_TOL = 16.0                  # px from a rope's x for a hovering body to count as on it
 
 
 @dataclass
@@ -39,6 +46,7 @@ class SelfTracker:
         self.mm_ground_tol = mm_ground_tol
         self.hist = deque()                               # (t, x, y, src)
         self.last: SelfState | None = None
+        self.hover_since = None
 
     def _velocity(self, t):
         pts = [(ti, x, y) for ti, x, y, s in self.hist if t - ti <= self.window]
@@ -82,9 +90,17 @@ class SelfTracker:
             if src == "tag":
                 s.y = plat.y_at(x) if plat.y_at(x) is not None else y      # on the floor: its y is exact
         else:
+            still = abs(vx) < HOVER_V and abs(vy) < HOVER_V
+            self.hover_since = (self.hover_since if self.hover_since is not None else t) if still else None
+            hovering = still and t - self.hover_since >= HOVER_S
+            best = None
             for i, r in enumerate(self.nav.ropes):
-                if abs(r.x - x) <= rtol and r.top - rtol <= y <= r.bottom + rtol:
-                    s.state, s.rope = "rope", self.nav.rope_id(i)
-                    break
+                tol = max(rtol, HOVER_TOL) if hovering else rtol
+                if abs(r.x - x) <= tol and r.top - rtol <= y <= r.bottom + rtol                         and (best is None or abs(r.x - x) < best[0]):
+                    best = (abs(r.x - x), i)
+            if best is not None:
+                s.state, s.rope = "rope", self.nav.rope_id(best[1])
+        if s.state == "ground":
+            self.hover_since = None
         self.last = s
         return s

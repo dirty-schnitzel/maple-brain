@@ -61,6 +61,18 @@ Built offline, all tests green; **not live-tested yet** (next: a live A/B, see b
   ready/cooldown; Footwork rule table turn/hold/wait/approach/stand), `trips.py` (Travel holder + roam).
   **Rule for changes: a score term, a table rule, a state, or a parameter with its data source - never a special
   case in `step`.** Per-part tests added (21 in test_brain_v2.py).
+- **Hold-to-attack built + 2 rounds of live fixes (the user ran `serve runs2 --brain v2`):**
+  `runs/v2/20261105_084017_1` (7.5 min): **125 kills = 16.6/min (best)**, attack held 86-95 % of the time with
+  the target 40-120 px in front (v2c 52-80 %), target < 26 px only 4 %. Changes: Weapon holds at once (no tap
+  first), keeps holding by the ACTUAL position out to the maybe reach (knockback made the prediction leave the
+  reach); Footwork `fight` rule (sure reach -> stand) and no `turn` while the attack is held (the game ignores
+  direction keys mid-swing -> the bot thought it turned = face tanking); standoff at the spear's length (sure far
+  edge - 12..30); a lost target is re-picked in the same tick; prediction may bring a mob up to us, never past us
+  (245 ticks of "behind" at 20-40 px in front); turning = a varied 0.6-0.9 s gap since the last turn (was max 2 per
+  2.5 s: ~14 s standing with the target behind). Keep reach halfway (~147) was tried and reverted (sim 12.4 vs 13.7).
+  Sim now ignores direction keys mid-swing too. **Ladder stuck (runs/v2/20261105_085115_1, 21 s):** hung on ladder
+  778 read at x 787.7 (tag x drifts on ladders) = "air" -> the brain waits to land forever. SelfTracker: off every
+  surface + still >= 0.25 s within 16 px of a rope = on it (replay: 508/521 ticks rope).
 - **NEXT (agreed): hold-to-attack** = a Weapon state `pressure`: hold the attack key while any live mob stays in reach
   in front (swarmed / more hits needed / the next walks in), tap for a lone single swing, release after a short
   varied nothing-in-reach moment or to move/turn - REPLACES the swing-cycle timer. Then live vs `runs/v2b`.

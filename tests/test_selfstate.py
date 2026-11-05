@@ -46,3 +46,19 @@ def test_tag_lost_falls_back_to_the_minimap(nav):
     s = st.update(0.0, me_map=None, map_pos=(1004, 202))
     assert s.src == "minimap" and s.state == "ground" and s.platform == 273
     assert st.update(0.04) is s                       # nothing at all: the last state
+
+
+def test_hanging_still_a_few_px_off_a_ladder_is_on_it(nav):
+    st = SelfTracker(nav)                          # runs/v2 08:51: ladder 778 (15..176), read at x 787.7 -> "air" 21 s
+    s = None
+    for i in range(12):
+        s = st.update(i * 0.04, me_map=(787.7, 90.3), map_pos=(787.7, 90.3))
+    assert s.state == "rope" and nav.rope(s.rope).x == 778
+
+
+def test_a_jump_apex_next_to_a_ladder_stays_air(nav):
+    st = SelfTracker(nav)
+    s = None
+    for i, y in enumerate([120, 100, 92, 90, 92, 100, 120]):   # up and down again: never still for 0.25 s
+        s = st.update(i * 0.04, me_map=(790, y), map_pos=(790, y))
+        assert s.state == "air", (i, y)

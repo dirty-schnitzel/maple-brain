@@ -354,7 +354,7 @@ def test_footwork_rule_table(line1):
         fw.step(_scene(line1, [_mob(1, mob_x, 198, 273)]), _scene(line1, [_mob(1, mob_x, 198, 273)]).mobs[0],
                 90.0, drv)
         assert fw.state == want, (mob_x, fw.state)
-    br.face.turns.extend([0.0, 0.0])                              # turned twice just now: no third turn
+    br.face.last_turn, br.face.gap = 0.0, 0.8                     # just turned: no turn yet
     br.facing = 1
     sc = _scene(line1, [_mob(1, 1340, 198, 273)])
     fw.step(sc, sc.mobs[0], 90.0, drv)
@@ -372,3 +372,19 @@ def test_weapon_ready_pressure_brief_release(line1):
     assert br.weapon.state == "cooldown" and "space" not in drv.want          # let go briefly
     br.weapon.step(_scene(line1, mob, now=until + 0.3), _obs(), h)
     assert br.weapon.state == "pressure" and "space" in drv.want              # and pressed again
+
+
+def test_a_mob_walking_into_us_is_never_predicted_behind_us(line1):
+    sc = _scene(line1, [_mob(1, 1430, 198, 273, vx=-120)])        # 30 px in front, coming at us fast
+    x = sc.mobs[0]
+    assert x.pdx == 0.0 and sc.in_reach(x)                        # at us, not past us: hit it, don't turn
+    br, drv = _brain(line1), SimDriver()
+    br.facing = 1
+    br.footwork.step(sc, x, 110.0, drv)
+    assert br.footwork.state == "fight"
+
+
+def test_a_held_attack_is_kept_to_the_maybe_reach(line1):
+    sc = _scene(line1, [_mob(1, 1400 + 150, 198, 273), _mob(2, 1400 + 170, 198, 273)])
+    a, b = sc.mobs
+    assert sc.in_reach(a, keep=True) and not sc.in_reach(a) and not sc.in_reach(b, keep=True)

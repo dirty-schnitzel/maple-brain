@@ -1,10 +1,10 @@
 """brain-v2 combat, two small machines that run side by side, on `Hands` (the keys both of them and Travel hold):
 
 Weapon - WHEN TO HIT. States:
-    ready     a live mob in reach in front (Scene.in_reach: predicted position, sure far edge) -> pressure
+    ready     a live mob in reach in front (Scene.in_reach: predicted position, up to the sure far edge) -> pressure
     pressure  HOLD the attack key: the game swings at weapon speed and every hit knocks the mob back, which keeps it
               at the spear's length (the user, runs/v2b-c: "a player would hold the atk key"; taps left gaps).
-              Kept while a mob stays within the wider KEEP reach by its ACTUAL position (a knocked-back mob moves
+              Kept while a mob stays within the KEEP reach (scene.keep_hi) by its ACTUAL position (a knocked-back mob moves
               away fast: its prediction leaves the reach, the mob doesn't - v2c let go right after hits).
               Ends: nothing within keep reach for a varied 0.15-0.35 s, or not allowed (off the ground / a move
               that isn't walking) -> ready; held 1.5-4 s -> let go briefly (0.08-0.2 s, `cooldown`) and press again.
@@ -16,7 +16,7 @@ Footwork - where to stand while fighting the target on our platform. One RULE TA
               (the game ignores a direction key mid-swing: turning while holding = we THINK we turned - v2c's
               face-tanking; the weapon lets go first since nothing is in front)
     hold      target behind us, close                                  -> no keys
-    wait      target behind us, far, turned twice lately               -> no keys (no left-right-left-right)
+    wait      target behind us, far, turned < 0.6-0.9 s ago            -> no keys (a moment, then turn)
     fight     target in SURE reach in front (predicted)                -> no walk keys: stand, the weapon works
               (only maybe-reach, e.g. knocked back: keep closing in while the weapon keeps holding)
     approach  further than standoff + slide, not at the edge           -> hold the walk key toward it

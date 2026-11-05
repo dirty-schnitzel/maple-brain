@@ -32,7 +32,7 @@ class BrainV2:
         self.reach = reach or Reach(cfg.combat.weapon)
         self.say = log or (lambda msg: None)
         self.stats = collections.Counter()
-        self.face = Facing()
+        self.face = Facing(hz)
         self.reflexes = Reflexes(cfg, hz, self.stats, self.say)
         self.ledger = Ledger(self.reach, self.stats, self.say)
         self.targeting = Targeting(nav, hz, self.ledger, self.stats, self.say)
