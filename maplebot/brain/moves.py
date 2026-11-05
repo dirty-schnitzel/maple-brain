@@ -50,6 +50,7 @@ class Move:
         self.knocks, self.last_hold = 0, set()
         self.dir_since, self.dir_held = now, 0            # when we started holding the current walk direction
         self.now, self.nudge_until, self.settle_until = now, 0.0, 0.0
+        self.reversals, self.nudges, self.walk_dir = 0, 0, 0
         self.still_since = None                          # holding a walk key without moving (on a ladder end?)
         self.setup(s)
         walk = abs(self.target_x() - s.x) if s is not None and self.target_x() is not None else 0.0
@@ -241,18 +242,27 @@ class Move:
             return set(), True
         dx = x - s.x
         now = self.now
-        if hi - lo <= 20 and abs(dx) <= 40:
+        if (hi - lo <= 20 or self.reversals) and abs(dx) <= 40:
+            # close to a tight target, or we already turned round once: no more walking back and forth (the user:
+            # 'left-right-left-right ... looks very botlike') - a tap or two, then close enough is close enough
             key = {"right" if dx > 0 else "left"}
             if now < self.nudge_until:
                 return key, False
             if abs(s.vx) > 15 or now < self.settle_until:
                 return set(), False
+            if self.nudges >= 2 and abs(dx) <= max(tol, (hi - lo) / 2) + 12:
+                return set(), True
+            self.nudges += 1
             self.nudge_until = now + min(0.15, max(0.04, abs(dx) / WALK * 0.7))
-            self.settle_until = self.nudge_until + LAG + self.hz.between(0.05, 0.15)
+            self.settle_until = self.nudge_until + LAG + self.hz.between(0.08, 0.25)
             return key, False
         stop = s.x + s.vx * LAG + _sign(s.vx) * s.vx * s.vx / (2 * DRAG)   # where we'd stop if we let go now
         if _sign(s.vx) == _sign(dx) and (x - stop) * _sign(dx) <= self.stop_early - 5 + tol:
             return set(), False                           # let go: the slide carries us in
+        d = _sign(dx)
+        if self.walk_dir and d != self.walk_dir:
+            self.reversals += 1                           # turned round: overshot
+        self.walk_dir = d
         return {"right" if dx > 0 else "left"}, False
 
     def landed(self, s, now, min_air=0.12):
@@ -457,25 +467,42 @@ class Grab(Move):
 
 
 class Descend(Move):
-    """Platform -> the rope hanging from it: stand at the rope's x, hold down."""
+    """Platform -> the ladder/rope hanging from it, like a player: walk at it and press down as we pass over it
+    (down stops the walk and catches the ladder); missed -> a tap or two toward it (walk_to), down again."""
     kind = "descend"
     base_s = 0.4
 
     def setup(self, s):
         self.rope = self.nav.rope(self.link.dst)
+        self.tries = 0
+        self.catch = self.hz.between(4, 9)                # how close (predicted) before pressing down
 
     def target_x(self):
         return self.rope.x
 
     def tick(self, now, s):
-        if node_of(s) == self.link.dst:
-            return self.done()
+        rx = self.rope.x
         if self.phase == "approach":
-            hold, ok = self.walk_to(s, self.rope.x, 4)
-            if not ok:
-                return Wish(hold)
+            pred = s.x + s.vx * LAG
+            if abs(pred - rx) <= self.catch or (abs(s.x - rx) <= 5 and abs(s.vx) < 30):
+                self.go("down", now)
+                self.wait = self.hz.between(0.3, 0.45)
+                return Wish({"down"})
+            return Wish({"right" if rx > s.x else "left"})
+        if self.phase == "down":
+            if now - self.t_phase < self.wait:
+                return Wish({"down"})
+            self.tries += 1
+            if self.tries >= 3:
+                return self.fail("missed the ladder")
+            self.go("align", now)
+            return Wish()
+        hold, ok = self.walk_to(s, rx, 4)                 # align: taps toward it, then down again
+        if ok:
             self.go("down", now)
-        return Wish({"down"})
+            self.wait = self.hz.between(0.3, 0.45)
+            return Wish({"down"})
+        return Wish(hold)
 
 
 class Exit(Move):

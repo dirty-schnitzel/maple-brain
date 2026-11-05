@@ -97,6 +97,10 @@ Runner: `--brain v2` selects BrainV2 (old brain default until the A/B); BrainV2 
   than walkDrag says); stuck 15 s ON a ladder top at x -108 (looks like the floor; caught while falling from a drop
   with down still held). Fixed (sim 200/200 trips, 97 %): tight targets lined up in short taps; down released right
   after the drop's jump; holding a walk key 0.4 s without moving at a ladder end -> hop off sideways.
+- **The user (g3): "platforming looks very good", BUT "left-right-left-right incidents ... especially above the
+  ladder - this looks very botlike".** -> no back-and-forth anywhere: walk_to turns round at most once, then 1-2
+  short taps and close enough = arrived; descend like a player: walk at the ladder and press down while passing
+  over it (down stops + catches), missed -> a tap or two, down again (max 3). Sim 200/200, descend 10/10.
 - Next: re-run the live tour (`goto runs\g4 --seconds 180`); then step 5 gate (>= 90 % first try live); in M2 the
   hunt attacks the mobs in the way (knockback is the main live failure on the hub).
 
