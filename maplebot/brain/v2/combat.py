@@ -1,21 +1,42 @@
-"""brain-v2 combat, two small machines that run side by side, on `Hands` (the keys both of them and Travel hold):
+"""brain-v2 combat: Weapon (when to hit, how long) + Footwork (where to stand), side by side on `Hands`.
 
-Weapon - WHEN TO HIT. States:
-    ready     a live mob in reach in front (Scene.in_reach: predicted position, up to the sure far edge) -> pressure
-    pressure  HOLD the attack key: the game swings at weapon speed and every hit knocks the mob back, which keeps it
-              at the spear's length (the user, runs/v2b-c: "a player would hold the atk key"; taps left gaps).
-              Kept while a mob stays within the KEEP reach (scene.keep_hi) by its ACTUAL position (a knocked-back mob moves
-              away fast: its prediction leaves the reach, the mob doesn't - v2c let go right after hits).
-              Ends: nothing within keep reach for a varied 0.15-0.35 s, or not allowed (off the ground / a move
-              that isn't walking) -> ready; held 1.5-4 s -> let go briefly (0.08-0.2 s, `cooldown`) and press again.
+THE ATTACK LOGIC, END TO END (each step lives in the file named; keep this section true when changing any of them)
+  1. reach      (brain/reach.py)    our weapon's attack boxes from the client data vs the mob's body box -> per mob
+                                    type a SURE box (every swing stance hits) and a MAYBE box (some stance hits).
+  2. scene      (v2/scene.py)       per tick, per live mob: dx/dy from our feet, pdx = dx predicted SWING_LAND_S
+                                    ahead (never past us). in_reach = pdx in front up to the sure far edge (start a
+                                    hold); in_reach(keep) = ACTUAL dx in front up to the maybe far edge (keep holding).
+  3. targeting  (v2/targeting.py)   which mob to go for (score terms); LOCKED on the mob the weapon is engaged on.
+  4. brain      (brain_v2.py)       target on our platform, or engaged and in keep reach -> fight here (Weapon +
+                                    Footwork); weapon still finishing (reacting to a death) -> stay, no trip;
+                                    target elsewhere -> Travel, holding only while walking; nothing -> roam.
+  5. Weapon     (here)              press and HOLD the attack key (skill or plain: reflexes.attack_key) on a mob in
+                                    reach; let go a human reaction after it dies, or when it got away.
+  6. Footwork   (here)              stand while the target is in sure reach, step in when it isn't, turn only with
+                                    the attack key up (the game ignores direction keys mid-swing).
+  7. ledger     (v2/ledger.py)      kills by our last hit, swing outcomes (reach learning).
+
+Weapon - WHEN TO HIT, and how long. States:
+    ready     a live mob in reach in front (Scene.in_reach: predicted position, up to the sure far edge) -> pressure,
+              ENGAGED on it (our target if it's in reach, else the nearest in reach)
+    pressure  HOLD the attack key (skill or plain) until the engaged mob is done - the user: "hold the atk key until
+              the death animation is visible, release within a human response time". Every hit knocks it back, the
+              game swings at weapon speed, no gaps. Done =
+                  it shows its death animation / vanishes   -> react (REACT_S), then: another mob in sure reach in
+                                                               front -> engage it, keep holding; else let go
+                  it got away (out of keep reach GOT_AWAY_S) -> let go (footwork follows it)
+              NOT done by: knockback into the air (Maple attacks in the air), a mob drifting a little, a new target
+              (targeting is locked on the engaged mob, `engaged`). runs/v2 09:21: holds lasted 0.48 s median, 152 of
+              330 cut by "air", 80 by trips started mid-fight, 3 ended by a death.
+    Let go at once only on a rope/ladder (no attacks there) or when not allowed (a travel move that isn't walking).
     While holding, a swing is booked every SWING_PERIOD s (kills by last hit, reach learning).
-    Never on a rope / in the air, never facing an unknown way, never at nothing.
 
 Footwork - where to stand while fighting the target on our platform. One RULE TABLE, first match wins:
     turn      target behind us, close (<= standoff + 15), may turn, attack not held -> tap toward it
               (the game ignores a direction key mid-swing: turning while holding = we THINK we turned - v2c's
-              face-tanking; the weapon lets go first since nothing is in front)
-    hold      target behind us, close                                  -> no keys
+              face-tanking. A mob that walks behind us leaves the keep reach, the weapon lets go after GOT_AWAY_S,
+              then we turn)
+    brace     target behind us, close, can't turn yet                  -> no keys
     wait      target behind us, far, turned < 0.6-0.9 s ago            -> no keys (a moment, then turn)
     fight     target in SURE reach in front (predicted)                -> no walk keys: stand, the weapon works
               (only maybe-reach, e.g. knocked back: keep closing in while the weapon keeps holding)
@@ -25,6 +46,8 @@ Footwork - where to stand while fighting the target on our platform. One RULE TA
 from .scene import sign
 
 SWING_PERIOD = (0.55, 0.7)      # s per swing while held - a guess from the press -> hit timing; measure live
+REACT_S = (0.18, 0.32)          # s from the death animation to letting go: a human's response (uniform)
+GOT_AWAY_S = (0.3, 0.5)         # s the engaged mob may be out of keep reach before we let go and follow
 
 
 class Hands:
@@ -63,11 +86,15 @@ class Hands:
 
 
 class Weapon:
+    """The attack key: ready -> pressure (held, engaged on one mob) -> ready. See the module doc."""
+
     def __init__(self, cfg, hz, reflexes, ledger, stats):
         self.cfg, self.hz, self.reflexes, self.ledger, self.stats = cfg, hz, reflexes, ledger, stats
         self.state = "ready"
-        self.until = 0.0                                  # cooldown end / pressure: when to let go briefly
-        self.clear_t = None                               # pressure: nothing in reach since then
+        self.engaged = None                               # track id we hold the attack for
+        self.release_at = None                            # engaged mob done: let go (or move on) at this time
+        self.away_since = None                            # engaged mob out of keep reach since
+        self.away_s = 0.0
         self.next_book = 0.0
         self.key = None
         self.last = None                                  # this tick's swing, for the ticks log
@@ -75,62 +102,77 @@ class Weapon:
     def _book(self, sc, in_reach, key):
         near = [(x.id, round(sc.facing * x.dx), round(x.dy)) for x in sc.mobs if sc.near(x)]
         self.ledger.swung(sc.now, near, in_reach)
-        self.last = {"key": key, "in_reach": sorted(in_reach), "held": self.state == "pressure"}
+        self.last = {"key": key, "in_reach": sorted(in_reach), "engaged": self.engaged}
         self.stats["swings"] += 1
         if key != self.cfg.keys.attack:
             self.stats["basic_swings"] += 1
 
-    def release(self, hands, now, pause=None):
+    def release(self, hands):
+        """Attack key up now, engagement over."""
         if self.state == "pressure":
             hands.set_extra(set())
-            self.state, self.until = ("cooldown", now + pause) if pause else ("ready", 0.0)
-            self.clear_t = None
+        self.state, self.engaged, self.release_at, self.away_since = "ready", None, None, None
 
-    def step(self, sc, obs, hands, allowed=True) -> bool:
+    def _engage(self, sc, ids, target):
+        if target in ids:
+            return target
+        return min(ids, key=lambda i: abs(sc.get(i).dx))
+
+    def step(self, sc, obs, hands, allowed=True, target=None) -> bool:
         """Hold / keep / let go. True = a swing was booked this tick."""
         now = sc.now
-        if not allowed or sc.s.state != "ground" or not sc.facing:
-            self.release(hands, now)
-            return False
-        if self.state == "cooldown" and now >= self.until:
-            self.state = "ready"
-        if self.state == "pressure":
-            if now >= self.until:                         # held a while: let go briefly, press again after
-                self.release(hands, now, self.hz.between(0.08, 0.2))
-                return False
-            keep = frozenset(x.id for x in sc.mobs if sc.in_reach(x, keep=True))
-            if keep:
-                self.clear_t = None
-                if now >= self.next_book:
-                    self.next_book = now + self.hz.between(*SWING_PERIOD)
-                    self._book(sc, keep, self.key)
-                    return True
-                return False
-            if self.clear_t is None:
-                self.clear_t = now + self.hz.between(0.15, 0.35)
-            elif now >= self.clear_t:
-                self.release(hands, now)
+        if not allowed or sc.s.state == "rope" or not sc.facing:
+            self.release(hands)
             return False
         in_reach = frozenset(x.id for x in sc.mobs if sc.in_reach(x))
-        if self.state != "ready" or not in_reach:
+        if self.state == "ready":
+            if not in_reach or sc.s.state != "ground":    # press on the ground; once pressed, the air is fine
+                return False
+            self.key = self.reflexes.attack_key(obs)
+            self.state, self.engaged = "pressure", self._engage(sc, in_reach, target)
+            self.release_at = self.away_since = None
+            self.next_book = now + self.hz.between(*SWING_PERIOD)
+            hands.set_extra({self.key})
+            self.stats["holds"] += 1
+            self._book(sc, in_reach, self.key)
+            return True
+        x = sc.get(self.engaged)
+        if self.release_at is not None:                   # it's done: a human's reaction later, move on or let go
+            if now < self.release_at:
+                return False
+            if in_reach:
+                self.engaged, self.release_at, self.away_since = self._engage(sc, in_reach, target), None, None
+                self.stats["held_on"] += 1
+                return False
+            self.release(hands)
             return False
-        self.key = self.reflexes.attack_key(obs)
-        self.state, self.clear_t = "pressure", None
-        self.until = now + self.hz.between(1.5, 4.0)
-        self.next_book = now + self.hz.between(*SWING_PERIOD)
-        hands.set_extra({self.key})
-        self.stats["holds"] += 1
-        self._book(sc, in_reach, self.key)
-        return True
+        if x is None:                                     # death animation (no longer live) or gone
+            self.release_at = now + self.hz.between(*REACT_S)
+            return False
+        if not sc.in_reach(x, keep=True):
+            if self.away_since is None:
+                self.away_since, self.away_s = now, self.hz.between(*GOT_AWAY_S)
+            elif now - self.away_since >= self.away_s:
+                self.stats["got_away"] += 1
+                self.release(hands)
+            return False
+        self.away_since = None
+        if now >= self.next_book:
+            self.next_book = now + self.hz.between(*SWING_PERIOD)
+            self._book(sc, frozenset(i.id for i in sc.mobs if sc.in_reach(i, keep=True)), self.key)
+            return True
+        return False
 
 
 class Footwork:
+    """Walk keys while fighting the target on our platform: the rule table in the module doc, first match wins."""
+
     def __init__(self, nav, hz, facing, stats):
         self.nav, self.hz, self.facing, self.stats = nav, hz, facing, stats
         self.state = None
         self.rules = [
             ("turn", lambda c: c["behind"] and c["close"] and c["may_turn"] and not c["holding"]),
-            ("hold", lambda c: c["behind"] and c["close"]),
+            ("brace", lambda c: c["behind"] and c["close"]),
             ("wait", lambda c: c["behind"] and not c["may_turn"]),
             ("fight", lambda c: c["in_reach"]),
             ("approach", lambda c: c["far"] and c["edge_ok"]),

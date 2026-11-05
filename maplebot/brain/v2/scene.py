@@ -1,7 +1,13 @@
 """brain-v2: the per-tick picture every part reads (M0's obs.state): us + every live mob relative to us, computed ONCE.
 
 Nothing here decides anything. `Facing` is the one place that knows which way we look (from the walk keys we hold or
-tap) and how often we turned lately (no left-right-left-right).
+tap) and when we may turn again (a varied TURN_GAP after the last turn).
+
+Reach tests (step 2 of the attack logic, described end to end in v2/combat.py):
+    in_reach(x)        start a hold: the PREDICTED position (pdx) in front, from the stab's near edge to the SURE
+                       far edge, at a height every stance reaches
+    in_reach(x, keep)  keep holding: the ACTUAL position (dx) in front, up to keep_hi (the MAYBE far edge) - a mob
+                       our hits knock back moves away fast; its prediction leaves the reach long before it does
 """
 from dataclasses import dataclass, field
 

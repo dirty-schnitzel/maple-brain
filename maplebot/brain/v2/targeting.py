@@ -6,8 +6,12 @@ a preference is a new term here, never a branch elsewhere. None = can't reach it
     crowd   -0.25 s per other live mob within 120 px of it on its platform (max 3)
     others  +1.5 s while someone else is hitting it (hit seen with no swing of ours, last 3 s)
 
-The current target is kept unless another scores KEEP_MARGIN better. Re-picked every 0.22-0.4 s (varied).
+The current target is kept unless another scores KEEP_MARGIN better; the mob the weapon is engaged on is
+kept, full stop (`lock`, set by the brain each tick). Re-picked every 0.22-0.4 s (varied), and at once when the
+target is gone (dead / lost) - a tick without a target would roam off.
+`standoff`: where to stand to fight it, picked per new target: the spear's length (sure far edge - 12..30 px).
 A trip that failed makes its platform unreachable for 5-8 s (`unreachable`).
+Part of the attack logic described end to end in v2/combat.py.
 """
 from ..moves import WALK, node_of
 from .scene import sign
@@ -23,6 +27,7 @@ class Targeting:
         self.unreachable = {}                             # platform -> until
         self.route_cache = {}
         self.terms = [self.t_reach, self.t_turn, self.t_crowd, self.t_others]
+        self.lock = None                                  # the mob the weapon is engaged on: never switch mid-fight
 
     # ------------------------------------------------------------------ geometry
     def route_cost(self, now, s, pid, x):
@@ -79,6 +84,14 @@ class Targeting:
         return now >= self.next_pick
 
     def pick(self, sc):
+        locked = sc.get(self.lock) if self.lock is not None else None
+        if locked is not None:                            # mid-fight: it stays the target until it's done
+            if locked.id != self.target:
+                self.stats["targets"] += 1
+                self.say(f"target {locked.m.get('mob')} id {locked.id} (the one we're fighting)")
+            self.target, self.cost = locked.id, 0.0
+            self.next_pick = sc.now + self.hz.between(0.22, 0.4)
+            return
         cur = sc.get(self.target)
         cur_cost = self.score(sc, cur) if cur is not None else None
         best, best_cost = cur, cur_cost

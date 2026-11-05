@@ -148,7 +148,7 @@ def test_swarmed_holds_at_once(line1):
     assert "space" in drv.want and not _taps(drv, "space") and br.stats["holds"] == 1
 
 
-def test_held_attack_survives_walking_and_is_let_go_in_the_air(line1):
+def test_held_attack_survives_walking_and_knockback_into_the_air_but_not_a_rope(line1):
     br, drv = _brain(line1), SimDriver()
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
@@ -156,20 +156,50 @@ def test_held_attack_survives_walking_and_is_let_go_in_the_air(line1):
     _tick(br, drv, 0.0, mobs, s)
     br.hands.hold({"right"})                          # footwork / Travel holding a walk key keeps the attack held
     assert drv.want == {"right", "space"}
-    _tick(br, drv, 0.1, mobs, SelfState(0.1, 1400, 150, "tag", "air"))
-    assert "space" not in drv.want
+    _tick(br, drv, 0.1, mobs, SelfState(0.1, 1392, 185, "tag", "air"))     # a touch knocked us up and back
+    assert "space" in drv.want                        # Maple attacks in the air: keep holding (runs/v2 09:21: 152 cuts)
+    _tick(br, drv, 0.2, mobs, SelfState(0.2, 1397, 150, "tag", "rope", rope=-1))
+    assert "space" not in drv.want                    # no attacks on a rope
 
 
-def test_long_holds_are_let_go_now_and_then(line1):
+def test_holds_until_the_death_animation_then_lets_go_a_human_reaction_later(line1):
     br, drv = _brain(line1), SimDriver()
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
-    mobs = [_mob(1, 1480, 198, 273), _mob(2, 1500, 198, 273)]
-    released = 0
-    for i in range(150):                              # 10 s swarmed
-        _tick(br, drv, i * 0.07, mobs, s)
-        released += "space" not in drv.want
-    assert 1 <= released <= 40
+    t = 0.0
+    while t < 5.0:                                    # 5 s on one tough mob: never let go
+        _tick(br, drv, t, [_mob(1, 1480, 198, 273)], s)
+        assert "space" in drv.want, t
+        t += 0.07
+    died = t
+    while "space" in drv.want and t < died + 1.0:     # death animation: let go 0.18-0.32 s later
+        _tick(br, drv, t, [_mob(1, 1480, 198, 273, state="dying")], s)
+        t += 0.07
+    assert 0.18 <= t - died <= 0.32 + 0.15
+
+
+def test_after_a_kill_another_mob_in_reach_keeps_the_key_held(line1):
+    br, drv = _brain(line1), SimDriver()
+    br.facing = 1
+    s = SelfState(0, 1400, 198, "tag", "ground", 273)
+    _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273), _mob(2, 1510, 198, 273)], s)
+    first = br.weapon.engaged
+    other = 2 if first == 1 else 1
+    for i in range(1, 12):
+        _tick(br, drv, i * 0.07, [_mob(first, 1480, 198, 273, state="dying"), _mob(other, 1510, 198, 273)], s)
+        assert "space" in drv.want, i
+    assert br.weapon.engaged == other and br.stats["held_on"] == 1
+
+
+def test_no_target_switch_mid_fight(line1):
+    br, drv = _brain(line1), SimDriver()
+    br.facing = 1
+    s = SelfState(0, 1400, 198, "tag", "ground", 273)
+    _tick(br, drv, 0.0, [_mob(1, 1520, 198, 273)], s)
+    assert br.target == 1 and br.weapon.engaged == 1
+    for i in range(1, 15):                            # a cheaper mob turns up right beside us: keep fighting #1
+        _tick(br, drv, i * 0.07, [_mob(1, 1520, 198, 273), _mob(2, 1470, 198, 273)], s)
+    assert br.target == 1
 
 
 def test_out_of_mp_without_potions_uses_the_plain_attack(line1):
@@ -358,20 +388,19 @@ def test_footwork_rule_table(line1):
     br.facing = 1
     sc = _scene(line1, [_mob(1, 1340, 198, 273)])
     fw.step(sc, sc.mobs[0], 90.0, drv)
-    assert fw.state == "hold"
+    assert fw.state == "brace"
 
 
-def test_weapon_ready_pressure_brief_release(line1):
+def test_weapon_states_ready_pressure_got_away(line1):
     from maplebot.brain.v2.combat import Hands
     br, drv = _brain(line1), SimDriver()
     h = Hands(drv)
-    mob = [_mob(1, 1480, 198, 273)]
-    assert br.weapon.step(_scene(line1, mob), _obs(), h) and br.weapon.state == "pressure" and "space" in drv.want
-    until = br.weapon.until
-    br.weapon.step(_scene(line1, mob, now=until + 0.01), _obs(), h)
-    assert br.weapon.state == "cooldown" and "space" not in drv.want          # let go briefly
-    br.weapon.step(_scene(line1, mob, now=until + 0.3), _obs(), h)
-    assert br.weapon.state == "pressure" and "space" in drv.want              # and pressed again
+    assert br.weapon.step(_scene(line1, [_mob(1, 1480, 198, 273)]), _obs(), h, target=1)
+    assert br.weapon.state == "pressure" and br.weapon.engaged == 1 and "space" in drv.want
+    far = [_mob(1, 1700, 198, 273)]                   # it got away: out of keep reach for 0.3-0.5 s -> let go
+    for i in range(1, 10):
+        br.weapon.step(_scene(line1, far, now=i * 0.07), _obs(), h, target=1)
+    assert br.weapon.state == "ready" and "space" not in drv.want and br.stats["got_away"] == 1
 
 
 def test_a_mob_walking_into_us_is_never_predicted_behind_us(line1):

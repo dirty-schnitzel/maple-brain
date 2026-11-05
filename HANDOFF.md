@@ -73,6 +73,19 @@ Built offline, all tests green; **not live-tested yet** (next: a live A/B, see b
   Sim now ignores direction keys mid-swing too. **Ladder stuck (runs/v2/20261105_085115_1, 21 s):** hung on ladder
   778 read at x 787.7 (tag x drifts on ladders) = "air" -> the brain waits to land forever. SelfTracker: off every
   surface + still >= 0.25 s within 16 px of a rope = on it (replay: 508/521 ticks rope).
+- **Later the same day (2026-11-05):** pet A/B (`runs/pet0` vs `pet1`, `tools/combat/compare.py`): the pet changes
+  nothing measurable (memory note). Ladder stucks fixed twice in SelfTracker (hover next to a ladder = on it; a walk
+  key alone held 0.4 s without moving next to a ladder = hanging on it, latched until we move). `run` re-focuses the
+  game after loading. Session `runs/v2/20261105_092129_1` (9.6 min, 18.2 kills/min): holds lasted only 0.48 s -
+  152/330 cut by "air" (knockback), 80 by trips mid-fight, 3 by a death. **The user: hold the attack key until the
+  death animation, release within a human response time** -> Weapon: engaged on one mob, held until it dies / vanishes
+  (+ REACT_S 0.18-0.32 s; another mob in reach -> keep holding), or got away (0.3-0.5 s out of keep reach); knockback
+  into the air no longer releases (rope does); targeting locked on the engaged mob; the brain finishes a fight
+  before any trip. Sim 12.5 vs 13.7 (sim damages the closest mob, not the engaged one, no knockback) - live decides.
+  **The user: keep the general attack logic documented in each file; patches are dangerous** -> v2/combat.py's doc
+  holds THE ATTACK LOGIC END TO END (reach -> scene -> targeting -> brain -> weapon/footwork -> ledger); every other
+  file's header points to it and states its own step. Keep that section true with every change; edit files directly
+  (no string-patch scripts - they half-applied twice).
 - **NEXT (agreed): hold-to-attack** = a Weapon state `pressure`: hold the attack key while any live mob stays in reach
   in front (swarmed / more hits needed / the next walks in), tap for a lone single swing, release after a short
   varied nothing-in-reach moment or to move/turn - REPLACES the swing-cycle timer. Then live vs `runs/v2b`.

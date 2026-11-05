@@ -1,5 +1,7 @@
 """brain-v2: what happened to the mobs - state history per track, kills by OUR last hit, mobs someone else is hitting,
 and the outcome of every swing for reach learning. Reads the tracks, never presses keys.
+Swings come from the Weapon: one when a hold starts, then one per SWING_PERIOD while held (the game repeats the
+swing; we can't see each one). Step 7 of the attack logic described end to end in v2/combat.py.
 """
 import collections
 

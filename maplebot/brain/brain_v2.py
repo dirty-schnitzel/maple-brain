@@ -6,12 +6,21 @@ driver = runtime/keys.KeyDriver or a fake):
     reflexes   (v2/reflexes.py)   potions, HP stop, which attack key
     ledger     (v2/ledger.py)     track history, kills by our last hit, contested mobs, swing outcomes
     scene      (v2/scene.py)      us + every live mob relative to us, once per tick; Facing
-    targeting  (v2/targeting.py)  one score per mob = a sum of named terms; keep / switch / none
-    weapon     (v2/combat.py)     WHEN TO HIT: ready -> pressure (hold) -> let go
-    footwork   (v2/combat.py)     target on our platform: a rule table (turn / hold / wait / fight / approach / stand)
+    targeting  (v2/targeting.py)  one score per mob = a sum of named terms; keep / switch / none; locked mid-fight
+    weapon     (v2/combat.py)     WHEN TO HIT: ready -> pressure (hold until the engaged mob dies) -> let go
+    footwork   (v2/combat.py)     fighting here: a rule table (turn / brace / wait / fight / approach / stand)
     trips      (v2/trips.py)      target elsewhere: Travel (M1); nothing to fight: roam (until M3)
 
-Modes (ticks log): LOCAL (fighting on our platform) / TRAVEL (going to the target) / ROAM / IDLE.
+The attack logic end to end (reach -> scene -> targeting -> here -> weapon/footwork -> ledger): v2/combat.py's doc.
+
+The decision each tick, in order (step):
+    target on our platform, or the one we're engaged on and still in keep reach  -> LOCAL: weapon + footwork
+    the weapon still finishing a fight (reacting to a death)                     -> LOCAL: stand, weapon only
+    target elsewhere                                                            -> TRAVEL; hold the attack only while
+                                                                                   the trip is walking
+    nothing to fight                                                            -> ROAM / IDLE
+
+Modes (ticks log): LOCAL (fighting here) / TRAVEL (going to the target) / ROAM / IDLE.
 How to change behaviour: a score term, a rule in a table, a state, or a parameter with its data source - never a
 special case in here.
 """
@@ -63,7 +72,7 @@ class BrainV2:
     def reset(self, driver):
         """After a pause (focus lost): no trip, no target, attack let go; pick afresh."""
         hands = self._hands(driver)
-        self.weapon.release(hands, 0.0)
+        self.weapon.release(hands)
         self.trips.end(hands)
         self.targeting.target = None
 
@@ -81,26 +90,33 @@ class BrainV2:
             driver.release_all()
             return stop
         if s is None:
-            self.weapon.release(driver, now)
+            self.weapon.release(driver)
             driver.hold(set())
             return None
         self.ledger.update(now, obs)
         self.face.from_keys(getattr(driver, "want", None) or set(), now)
         sc = self.scene = Scene.build(now, obs, s, self.face.dir, self.reach)
         tg = self.targeting
+        tg.lock = self.weapon.engaged if self.weapon.state == "pressure" else None
         if tg.due(now) and s.state != "air" and (s.state == "ground" or not self.trips.running):
             tg.pick(sc)
         x = tg.current(sc)
-        if x is not None and x.here:                     # fight it from here
+        fighting = x is not None and self.weapon.engaged == x.id and sc.in_reach(x, keep=True)
+        if x is not None and (x.here or fighting):       # fight it from here (engaged: wherever it stands)
             self.trips.end(driver)
             self.mode = "LOCAL"
-            self.weapon.step(sc, obs, driver)
+            self.weapon.step(sc, obs, driver, target=x.id)
             self.footwork.step(sc, x, tg.standoff, driver, holding=self.weapon.state == "pressure")
+        elif self.weapon.state == "pressure":            # finishing a fight (reacting to a death): stay, no trip
+            self.trips.end(driver)
+            self.mode = "LOCAL"
+            driver.hold(set())
+            self.weapon.step(sc, obs, driver, target=x.id if x is not None else None)
         elif x is not None:                              # go to it, swinging at whatever is in reach on the way
             st = self.trips.go(now, s, driver, ("target", x.id), x.platform, tg.goal_x(x, s))
             if st is not None:
                 self.mode = "TRAVEL"
-            self.weapon.step(sc, obs, driver, allowed=st == "run" and self.trips.walking(s))
+            self.weapon.step(sc, obs, driver, allowed=st == "run" and self.trips.walking(s), target=x.id)
             self.trips.settle(now, st)
         else:                                            # nothing to fight: roam
             mode, st = self.trips.roam(now, s, driver)
