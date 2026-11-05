@@ -49,6 +49,8 @@ class Move:
         self.stop_early = self.hz.between(0, 8)           # varied let-go point (px), on top of the slide
         self.knocks, self.last_hold = 0, set()
         self.dir_since, self.dir_held = now, 0            # when we started holding the current walk direction
+        self.now, self.nudge_until, self.settle_until = now, 0.0, 0.0
+        self.still_since = None                          # holding a walk key without moving (on a ladder end?)
         self.setup(s)
         walk = abs(self.target_x() - s.x) if s is not None and self.target_x() is not None else 0.0
         self.expected = walk / WALK + self.base_s
@@ -90,12 +92,33 @@ class Move:
             return Wish()
         if s.state == "air" and self.phase == "air":
             self.left_ground = True
+        self.now = now
+        off = self.off_ladder(now, s)
+        if off is not None:
+            return off
         w = self.tick(now, s)
         d = (1 if "right" in w.hold else 0) - (1 if "left" in w.hold else 0)
         if d != self.dir_held:
             self.dir_held, self.dir_since = d, now
         self.last_hold = w.hold
         return w
+
+    def off_ladder(self, now, s):
+        """Holding a walk key 0.4 s without moving, at a rope's x and one of its ends at our floor: we hang on the
+        ladder (its end looks like the floor - runs/g3 177-192 s, stuck holding right). Hop off sideways."""
+        d = (1 if "right" in self.last_hold else 0) - (1 if "left" in self.last_hold else 0)
+        if d == 0 or abs(s.vx) > 5 or s.state == "air":
+            self.still_since = None
+            return None
+        if self.still_since is None:
+            self.still_since = now
+            return None
+        if now - self.still_since < 0.4:
+            return None
+        if not any(abs(r.x - s.x) <= 4 and min(abs(r.top - s.y), abs(r.bottom - s.y)) <= 12 for r in self.nav.ropes):
+            return None
+        self.still_since = None
+        return Wish({"right" if d > 0 else "left"}, [("jump", JUMP_TAP, self.hz.between(0.03, 0.1))])
 
     def knocked(self, now, s) -> bool:
         """A mob's touch: pushed against the walk key we've held for a while (turning round, the old momentum
@@ -210,12 +233,23 @@ class Move:
     def walk_to(self, s, x, tol=6.0, lo=None, hi=None):
         """(hold, arrived): hold the walk key toward x and let go where the slide will stop there: our position is
         ~LAG s old by the time a key changes, and walkDrag 800 px/s^2 slides ~10 px from full speed. Arrived =
-        within tol of x (or anywhere in [lo, hi] if given) and nearly still."""
+        within tol of x (or anywhere in [lo, hi] if given) and nearly still. A tight target (a rope's x) is lined
+        up the last ~40 px in short taps, stopping in between (live the slide ran ~25 px past: runs/g3 80 s)."""
         lo = x - tol if lo is None else lo
         hi = x + tol if hi is None else hi
         if lo <= s.x <= hi and abs(s.vx) < 60:
             return set(), True
         dx = x - s.x
+        now = self.now
+        if hi - lo <= 20 and abs(dx) <= 40:
+            key = {"right" if dx > 0 else "left"}
+            if now < self.nudge_until:
+                return key, False
+            if abs(s.vx) > 15 or now < self.settle_until:
+                return set(), False
+            self.nudge_until = now + min(0.15, max(0.04, abs(dx) / WALK * 0.7))
+            self.settle_until = self.nudge_until + LAG + self.hz.between(0.05, 0.15)
+            return key, False
         stop = s.x + s.vx * LAG + _sign(s.vx) * s.vx * s.vx / (2 * DRAG)   # where we'd stop if we let go now
         if _sign(s.vx) == _sign(dx) and (x - stop) * _sign(dx) <= self.stop_early - 5 + tol:
             return set(), False                           # let go: the slide carries us in
@@ -341,15 +375,17 @@ class Drop(Move):
             if not ok:
                 return Wish(hold)
             self.go("crouch", now)
-            return Wish({"down"}, [("jump", JUMP_TAP, self.hz.between(0.06, 0.16))])
+            self.jump_after = self.hz.between(0.06, 0.16)
+            return Wish({"down"}, [("jump", JUMP_TAP, self.jump_after)])
         if self.phase == "crouch":
             if s.state == "air":
-                self.left_ground = True
                 self.go("air", now)
+                self.left_ground = True
                 return Wish()
             if now - self.t_phase > 0.8:                  # the jump never came through: once more
                 self.go("approach", now)
-            return Wish({"down"})
+            # down only until the jump is in: held while falling it catches any ladder we pass (runs/g3 177 s)
+            return Wish({"down"} if now - self.t_phase < self.jump_after + self.hz.between(0.1, 0.18) else set())
         w = self.landed(s, now, 0.05)
         return w if w is not None else Wish()
 

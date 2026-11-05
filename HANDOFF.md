@@ -92,7 +92,12 @@ Runner: `--brain v2` selects BrainV2 (old brain default until the A/B); BrainV2 
   reaching its dst by any way = done, an unexpected node fails at once. **The user: "very impressed with
   platforming, looked natural to my eye".** A Lie Detector came at 06:42:34 BETWEEN runs (kd3 ended 06:30, g1
   started 06:44) - again a gap LD.
-- Next: re-run the live tour (`goto runs\g3 --seconds 180`); then step 5 gate (>= 90 % first try live); in M2 the
+- **Live `runs/g3` (3 min): 60/76 moves first try (79 %, was 62 %), 8/10 trips.** Left: mob knockback (many
+  'knocked' events, HP potions at 46 %); descend pendulum +-25 px around rope x 1960 (the live slide is longer
+  than walkDrag says); stuck 15 s ON a ladder top at x -108 (looks like the floor; caught while falling from a drop
+  with down still held). Fixed (sim 200/200 trips, 97 %): tight targets lined up in short taps; down released right
+  after the drop's jump; holding a walk key 0.4 s without moving at a ladder end -> hop off sideways.
+- Next: re-run the live tour (`goto runs\g4 --seconds 180`); then step 5 gate (>= 90 % first try live); in M2 the
   hunt attacks the mobs in the way (knockback is the main live failure on the hub).
 
 ### M1 - movement skills (NEXT): Travel along a NavMap route, live on Line 1 <Area 1> (10003061)
