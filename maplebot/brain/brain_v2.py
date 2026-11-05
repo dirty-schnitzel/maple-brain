@@ -18,7 +18,7 @@ special case in here.
 import collections
 
 from .reach import Reach
-from .v2.combat import Footwork, Weapon
+from .v2.combat import Footwork, Hands, Weapon
 from .v2.ledger import Ledger
 from .v2.reflexes import Reflexes
 from .v2.scene import Facing, Scene
@@ -41,6 +41,7 @@ class BrainV2:
         self.trips = Trips(nav, hz, {"jump": cfg.keys.jump}, cfg.keys.jump, self.targeting, self.stats, self.say)
         self.mode = "IDLE"
         self.scene = None
+        self.hands = None
 
     # the parts' state, by the names the tests / tools / logs use
     @property
@@ -60,18 +61,27 @@ class BrainV2:
         return self.trips.travel
 
     def reset(self, driver):
-        """After a pause (focus lost): no trip, no target; pick afresh."""
-        self.trips.end(driver)
+        """After a pause (focus lost): no trip, no target, attack let go; pick afresh."""
+        hands = self._hands(driver)
+        self.weapon.release(hands, 0.0)
+        self.trips.end(hands)
         self.targeting.target = None
+
+    def _hands(self, driver):
+        if self.hands is None or self.hands.real is not driver:
+            self.hands = Hands(driver)
+        return self.hands
 
     def step(self, now, obs, s, driver) -> str | None:
         """One tick. Returns a stop reason (safety) or None."""
+        driver = self._hands(driver)                     # every part holds keys through Hands (weapon + walk)
         self.weapon.last = None
         stop = self.reflexes.step(now, obs, driver)
         if stop:
             driver.release_all()
             return stop
         if s is None:
+            self.weapon.release(driver, now)
             driver.hold(set())
             return None
         self.ledger.update(now, obs)
@@ -90,16 +100,13 @@ class BrainV2:
             st = self.trips.go(now, s, driver, ("target", x.id), x.platform, tg.goal_x(x, s))
             if st is not None:
                 self.mode = "TRAVEL"
-            if st == "run" and self.trips.walking(s):
-                self.weapon.step(sc, obs, driver)
+            self.weapon.step(sc, obs, driver, allowed=st == "run" and self.trips.walking(s))
             self.trips.settle(now, st)
         else:                                            # nothing to fight: roam
-            self.weapon.step(sc, obs, driver)
             mode, st = self.trips.roam(now, s, driver)
             if mode is not None:
                 self.mode = mode
-            if st == "run" and self.trips.walking(s):
-                self.weapon.step(sc, obs, driver)
+            self.weapon.step(sc, obs, driver, allowed=self.trips.travel is None or self.trips.walking(s))
             self.trips.settle(now, st)
         return None
 

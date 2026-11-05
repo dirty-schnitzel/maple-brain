@@ -11,6 +11,7 @@ from maplebot.brain.brain_v2 import BrainV2
 from maplebot.config import Config
 from maplebot.humanize import Humanizer
 from maplebot.nav.navmap import NavMap
+from maplebot.brain.v2.combat import Hands
 from maplebot.brain.v2.scene import Scene
 from maplebot.nav.selfstate import SelfState
 
@@ -55,7 +56,7 @@ def main(run, weapon="spear"):
         obs = SimpleNamespace(me=o.get("me"), mobs=o.get("mobs") or [], mp_now=None, mp_potions=True)
         n_ticks += 1
         br.weapon.state = "ready"
-        if br.weapon.step(Scene.build(t, obs, s, turns[i - 1][1], br.reach), obs, Null()):
+        if br.weapon.step(Scene.build(t, obs, s, turns[i - 1][1], br.reach), obs, Hands(Null())):
             if not fires or t - fires[-1] >= 0.9:
                 fires.append(t)
     near = lambda v, t: (lambda j: any(abs(v[k] - t) <= 0.35 for k in (j - 1, j) if 0 <= k < len(v)))(
