@@ -44,7 +44,7 @@ Runner: `--brain v2` selects BrainV2 (old brain default until the A/B); BrainV2 
 - [x] key logger for `serve --observe` (keys.jsonl) + `tools/play/{analyze,kills,route}.py`
 - [x] the user's farming example recorded + analysed (section below)
 - [x] KeyDriver executor, the default (`runtime/keys.py`); the old brain runs on it via LegacyExecutor
-- [ ] **live check of KeyDriver with the old brain** (one 3-min run: loop stalls > 0.3 s gone? turns/step-backs OK?)
+- [x] live check of KeyDriver with the old brain (kd1-kd3, 2026-11-05: stalls were perception's, fixed - see M1 step 1)
 - [ ] `obs.state`: one fixed per-tick record: us (fine map x/y, platform / rope / air, vx, facing, HP/MP), tracks
   (id, mob, x/y, dx/dy to us, vx, state, unseen, platform), the active skill + its state. Logged in ticks.jsonl.
 
@@ -66,7 +66,17 @@ Runner: `--brain v2` selects BrainV2 (old brain default until the A/B); BrainV2 
   minimap-rope frames we call rope 553/607; ground platform == minimap's 5714/5714; jump-then-up grabs on a rope
   within 1 s 79/94; air episodes 325 (224 after a jump key, 22 drops, 10 off ropes, 69 other = walk-offs, knockback,
   1-frame blips). With +-48 px / 24 strips (8 ms) it was 574/607 - live frames are 3x closer, so +-32 should do.
-- **Not live-tested.** `obs.me_map` / `cam_src` only exist with `--gpu` (the World). Next: step 2, link executors.
+- **Live (2026-11-05, Line 1, old brain, `run --gpu --tracker`):** `runs/kd1` 3 min: platforms used 1737/1744 frames,
+  me_map vs minimap abs median 4.8 px. M0 live check of KeyDriver: no errors, no LD, but still 46 gaps > 0.3 s ->
+  NOT the keys: per-part timings (`timings.parts` in ticks, new) in `runs/kd2` showed the Lie Detector check (4
+  full-frame matches, 100-500 ms every 0.3 s) and the wide own-tag search (120-155 ms every frame while hidden).
+  Fixed: LD on its own thread (answer <= one look late; a new hunt drops the old answer), wide tag search every
+  0.25 s while lost (edge search only if last seen near a side). **`runs/kd3` 90 s: 14.4 fps (was 9.5-9.7), gaps >
+  0.3 s 3 (1.3 s; was 21 / 10.8 s per 90 s), perceive median 51 / p90 64 ms (was p90 158), me_map vs minimap 3.5
+  px.** The user's idea: LD on the GPU - held back (the thread already keeps it off the loop; CPU path works without
+  --gpu); do it if CPU contention shows. `tools/nav/live_check.py RUN` = these numbers. M0 KeyDriver check: DONE.
+- The user will switch the spear to a POLEARM soon (different reach -> M2 reach from data + learned live).
+- Next: step 2, link executors.
 
 ### M1 - movement skills (NEXT): Travel along a NavMap route, live on Line 1 <Area 1> (10003061)
 Existing pieces: `nav/navmap.py` (platforms, ropes, links walk/fall/drop/jump/grab/descend/exit/let_go/leap,
