@@ -376,6 +376,10 @@ def run(out: Path, seconds: float, cfg: Config, focus: bool = True, frames_every
         say(f"game picture at x {rig.screen.calibrate()} ({rig.screen.kind})")       # measured with the game in front
         if not _init_map(rig, say):
             return 1
+        if focus and not rig.kb.focused():           # loading a map takes ~25 s (GPU warm-up): focus may have
+            say(f"game lost focus while loading (foreground: '{foreground_title()}') - bringing it back")   # moved
+            bring_to_front(rig.kb.hwnd)
+            time.sleep(rig.hz.vary(0.5))
         end = time.perf_counter() + seconds
         status = _hunt(rig, rec, t0, lambda: "time" if time.perf_counter() >= end else None)
     finally:
