@@ -1,4 +1,4 @@
-# maplebot — session handoff (updated 2026-11-05, session 22: M1 step 1 fine own position DONE (camshift + selfstate), next = M1 step 2 link executors; session 21: BRAIN-V2 started - key logger, the user's farming example, KeyDriver executor (default); NEXT = M1 movement skills, see 'BRAIN-V2: THE PLAN'; session 20: look-alike maps by name; session 19: tracker + `--tracker` shim; session 18: GPU detection `--gpu`; session 17: game data from the client files)
+# maplebot — session handoff (updated 2026-11-05, end of session 22: M1 movement DONE (camshift + selfstate, moves + Travel + sim + `goto`, live 80 % first try, the user: natural), stalls fixed (14.4 fps); NEXT = M2 Hunt skill - see 'START HERE: M2'; session 21: BRAIN-V2 started - key logger, farming example, KeyDriver; session 20: look-alike maps by name; session 19: tracker + `--tracker` shim; session 18: GPU detection `--gpu`; session 17: game data from the client files)
 
 ## Goal
 A **fully automated mob farmer** for **MapleStory Classic World** (official GMS Classic, launched 2026-10-21):
@@ -6,7 +6,35 @@ find mobs, fight them like a player, pick up loot, use potions, and **navigate p
 later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never reads memory or packets.
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
-## BRAIN-V2: THE PLAN - START HERE (written 2026-11-05, end of session 21; next = M1)
+## START HERE: M2 (written 2026-11-05, end of session 22)
+**State:** branch `brain-v2` (all committed; `main` = last good, the user merges). Full pytest suite green.
+M0 done except `obs.state` (SelfState + tracks cover most of it; add the per-tick record when M2 needs it).
+**M1 done** (details: 'M1 step 1' + 'M1 steps 2-4' below): `nav/selfstate.SelfTracker` (exact x/y, ground/rope/air,
+vx/vy) on `obs.me_map` (tag + camera from `perception/camshift.PlatformShift`); `brain/moves.py` (one state machine
+per link kind, knockback recover, no back-and-forth), `brain/travel.Travel(nav, dst, dst_x)` (`step(now, s,
+driver)`, re-plan, blacklist, stuck), `nav/sim.py` + `tools/nav/sim_tour.py` (offline tours, 97 %),
+`python -m maplebot goto OUT [--to P [X]] [--seconds S] --jump shift` (live, implies --gpu). NavMap.arc = jump
+landing by height. Live `runs/g4`: 11/11 trips, 80 % moves first try (gate 90 % missed only by mob knockback),
+direction flips inside the user's own range. **The user: "very impressed with platforming, looked natural";
+watch for left-right-left-right - "looks very botlike" (fixed, keep it that way).**
+**Also this session:** loop stalls fixed (LD check on its own thread, throttled wide tag search: 9.5 -> 14.4 fps);
+`timings.parts` per perceive part in ticks; `tools/nav/live_check.py RUN`.
+**Weapon:** the farming example was with the SPEAR; the user switches to a POLEARM soon (different reach) -> M2 reach
+from data + learned live, never a constant.
+**LD:** one came 06:42 between runs (no bot running) - gap LDs again; keep `maplebot watch` running all session.
+
+### First steps for M2 (next session)
+1. Read this block, then 'M2 - Hunt skill' below, 'FARMING EXAMPLE', and skim `brain/moves.py` + `brain/travel.py`
+   (the Hunt skill reuses Travel to reach targets on other platforms and the Move/Wish/KeyDriver pattern).
+2. `git switch brain-v2`; pytest green; `maplebot watch` running (by the user).
+3. Reach data: export the attack boxes (Skill.wz Power Strike `lt/rb`, Character.wz afterimages per weapon type:
+   spear stab vs polearm swing) with HaRepacker (`tools/cwdata/export.ps1`) into `assets build`; check offline
+   against the farming example's killing distances (median 72 px in front, p90 120, spear) via `tools/play/kills.py`.
+4. Then `brain/brain_v2.py` (new file, from scratch): reflexes (LD/HP stop, potions, buff) + Hunt(target) using
+   tracks (`obs.mobs`) + SelfState + Travel; `--brain v2` in run/serve; live A/B vs the old brain by kills by last hit.
+5. Live runs: the user positions the character and says go; Claude runs them (stop run/serve only, never `watch`).
+
+## BRAIN-V2: THE PLAN (written 2026-11-05, end of session 21)
 Branch **`brain-v2`** (from `main` = the merged `perception` work). `main` stays the last good state; the user
 merges. The user is unhappy with the old brain (`brain/brain.py`, 1335 lines of timers tuned on one map/weapon) and
 gets constant Lie Detectors; the rewrite should **fight + platform + path like the user** (farming example below).
@@ -76,7 +104,6 @@ Runner: `--brain v2` selects BrainV2 (old brain default until the A/B); BrainV2 
   px.** The user's idea: LD on the GPU - held back (the thread already keeps it off the loop; CPU path works without
   --gpu); do it if CPU contention shows. `tools/nav/live_check.py RUN` = these numbers. M0 KeyDriver check: DONE.
 - The user will switch the spear to a POLEARM soon (different reach -> M2 reach from data + learned live).
-- Next: step 2, link executors.
 
 ### M1 steps 2-4 (session 22, 2026-11-05): moves + Travel + sim + `goto` - first live tours
 - `brain/moves.py` (link state machines), `brain/travel.py`, `nav/sim.py` (+ SimDriver), `tools/nav/sim_tour.py`,
@@ -108,10 +135,10 @@ Runner: `--brain v2` selects BrainV2 (old brain default until the A/B); BrainV2 
   (mobs) + a few landings elsewhere (296 / -12 / -5 / 111 / 79 / 93: re-planned fine).
 - **M1 gate (>= 90 % first try live) not met, 80 %; the gap is mob knockback on a busy map** -> M2 (the hunt
   attacks what's in the way) is the fix, not more movement tuning. Next: M2.
-; then step 5 gate (>= 90 % first try live); in M2 the
-  hunt attacks the mobs in the way (knockback is the main live failure on the hub).
+- Known open points (movement): falls in the sim 26/37 (air momentum after walking off an edge unknown - measure
+  live); landings elsewhere are re-planned fine; ladders hide our tag sometimes (minimap fallback works).
 
-### M1 - movement skills (NEXT): Travel along a NavMap route, live on Line 1 <Area 1> (10003061)
+### M1 - movement skills (DONE, session 22 - the original plan, kept for reference)
 Existing pieces: `nav/navmap.py` (platforms, ropes, links walk/fall/drop/jump/grab/descend/exit/let_go/leap,
 `route(src, pos, dst, dst_x)` = Dijkstra in seconds, `landing()`, `step_ahead`, `rope_at`, `platform_at`);
 `nav/localize.py` (minimap dot -> map x/y, 16 px coarse -> `obs.map_pos / platform / rope`);
@@ -179,11 +206,6 @@ Behaviour cloning of movement (state + waypoint + recent keys -> keys held) from
 M1 scripts as the fallback when it makes no progress; combat stays scripted. Sim / RL only if BC stalls. A local
 LLM planner (town trips etc.) = idea level only.
 
-### First steps for the next session (M1)
-1. Read this plan + 'brain-v2 executor' + 'FARMING EXAMPLE' below; `git switch brain-v2`; pytest green.
-2. Ask the user for the M0 live check (old brain on KeyDriver, 3 min) if not done yet, and whether the farming
-   example was with the spear.
-3. M1 step 1 (fine own position) offline on the farming recording; then the link executors, Travel, `goto`.
 
 ## Older start-here (sessions 11-13, background only): (session 13: loot off + idle LD watch in serve, 884 tests - see 'Session 13'; session 12: map recognised on F7, 806 tests - see 'Session 12'; end of session 11, 774 tests green; session 10: out-of-MP plain attack; **session 11: jump & drop groundwork, see below**)
 **The user's goal: TARGETING ACCURACY and KILL RATE** (Perion Street Corner = benchmark, packed with fast bots).
