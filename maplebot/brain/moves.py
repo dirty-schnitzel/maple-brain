@@ -37,6 +37,9 @@ def _sign(v):
 class Move:
     kind = "move"
     base_s = 0.5                                         # expected time beyond the walking
+    grounded = ("approach",)                             # phases in which we should be standing/walking: thrown into
+                                                         # the air or pushed against the walk key there = knockback
+    max_knocks = 4
 
     def __init__(self, nav, link, hz: Humanizer | None = None, now: float = 0.0, s=None):
         self.nav, self.link, self.hz = nav, link, hz or Humanizer()
@@ -44,6 +47,8 @@ class Move:
         self.t_phase = now
         self.left_ground = False                         # we were seen in the air / off the source since take-off
         self.stop_early = self.hz.between(0, 8)           # varied let-go point (px), on top of the slide
+        self.knocks, self.last_hold = 0, set()
+        self.dir_since, self.dir_held = now, 0            # when we started holding the current walk direction
         self.setup(s)
         walk = abs(self.target_x() - s.x) if s is not None and self.target_x() is not None else 0.0
         self.expected = walk / WALK + self.base_s
@@ -65,9 +70,48 @@ class Move:
             return Wish()
         if now - self.t0 > self.timeout:
             return self.fail("timeout")
-        if s.state == "air":
+        n = node_of(s)
+        if self.link is not None:
+            if n == self.link.dst and n is not None:     # there, whichever way (a ladder instead of a drop...)
+                return self.done()
+            if n is not None and n != self.link.src:
+                return self.fail(f"on {n}")
+        if self.phase == "recover":                      # knocked back: let it settle, then start over
+            if s.state == "ground" and abs(s.vx) < 30:
+                self.go("approach", now)
+                self.restart(s)
+            return Wish()
+        if self.phase in self.grounded and self.knocked(now, s):
+            self.knocks += 1
+            if self.knocks > self.max_knocks:
+                return self.fail("knocked back")
+            self.timeout += 1.5
+            self.go("recover", now)
+            return Wish()
+        if s.state == "air" and self.phase == "air":
             self.left_ground = True
-        return self.tick(now, s)
+        w = self.tick(now, s)
+        d = (1 if "right" in w.hold else 0) - (1 if "left" in w.hold else 0)
+        if d != self.dir_held:
+            self.dir_held, self.dir_since = d, now
+        self.last_hold = w.hold
+        return w
+
+    def knocked(self, now, s) -> bool:
+        """A mob's touch: pushed against the walk key we've held for a while (turning round, the old momentum
+        points the other way for ~0.2 s: walkForce 1400 px/s^2 + the picture's lag), or thrown up before we took
+        off."""
+        if self.link is not None and self.nav.is_rope(self.link.src):
+            return False
+        d = (1 if "right" in self.last_hold else 0) - (1 if "left" in self.last_hold else 0)
+        pushed = d != 0 and s.vx * d < -60 and now - self.dir_since > 0.25
+        return pushed or (s.state == "air" and node_of(s) is None and s.vy < -60)
+
+    def restart(self, s):
+        """After a knockback: pick the take-off again from where we are now."""
+        if hasattr(self, "x_t") and hasattr(self, "dir") and self.dir and hasattr(self, "w_lo"):
+            self.x_t = self.pick(self.w_lo, self.w_hi, s.x)
+            self.x_s = self.runup_point()
 
     def done(self) -> Wish:
         self.status = "done"
@@ -79,6 +123,28 @@ class Move:
 
     def go(self, phase, now):
         self.phase, self.t_phase = phase, now
+        if phase == "air":
+            self.left_ground = False                     # counted from this take-off on
+
+    def off_ropes(self, lo, hi, gap=24.0):
+        """[lo, hi] without the stretches near a rope/ladder hanging from (or standing on) the source platform:
+        holding down there climbs onto it instead of dropping (runs/g2 137 s). The widest part nearest the
+        middle is kept; nothing left -> [lo, hi]."""
+        src = self.nav.platforms.get(self.link.src)
+        if src is None:
+            return lo, hi
+        bad = sorted(r.x for r in self.nav.ropes if lo - gap <= r.x <= hi + gap and src.y_at(src.clamp(r.x))
+                     is not None and (abs(r.top - src.y_at(src.clamp(r.x))) <= 25
+                                      or abs(r.bottom - src.y_at(src.clamp(r.x))) <= 25))
+        parts, a = [], lo
+        for x in bad:
+            if x - gap > a:
+                parts.append((a, min(hi, x - gap)))
+            a = max(a, x + gap)
+        if a < hi:
+            parts.append((a, hi))
+        parts = [p for p in parts if p[1] - p[0] >= 4]
+        return max(parts, key=lambda p: p[1] - p[0]) if parts else (lo, hi)
 
     # -- helpers
     def pick(self, lo, hi, x, margin=3.0):
@@ -190,6 +256,7 @@ class Walk(Move):
     """Surfaces meet: walk across onto dst."""
     kind = "walk"
     base_s = 0.3
+    grounded = ()
 
     def setup(self, s):
         dst = self.nav.platforms[self.link.dst]
@@ -218,6 +285,7 @@ class Jump(Move):
     """A jump: dir 0 = straight up through dst (stand, jump); +-1 = a running jump that way."""
     kind = "jump"
     base_s = 0.7
+    grounded = ("approach", "run")
 
     def setup(self, s):
         k = self.link
@@ -258,7 +326,11 @@ class Drop(Move):
     base_s = 0.8
 
     def setup(self, s):
-        self.x_t = self.pick(*self.safe(self.link.lo, self.link.hi), s.x, margin=6)
+        self.w_lo, self.w_hi = self.off_ropes(*self.safe(self.link.lo, self.link.hi))
+        self.x_t = self.pick(self.w_lo, self.w_hi, s.x, margin=6)
+
+    def restart(self, s):
+        self.x_t = self.pick(self.w_lo, self.w_hi, s.x, margin=6)
 
     def target_x(self):
         return self.x_t
@@ -286,6 +358,7 @@ class Fall(Move):
     """Walk off the end of the platform."""
     kind = "fall"
     base_s = 0.6
+    grounded = ()
 
     def setup(self, s):
         self.edge = self.link.lo if self.link.dir < 0 else self.link.hi
@@ -308,6 +381,7 @@ class Grab(Move):
     """Platform -> rope: jump (running if dir) and hold up in the air (the user: `up while left+shift`)."""
     kind = "grab"
     base_s = 0.7
+    grounded = ("approach", "run")
 
     def setup(self, s):
         k = self.link

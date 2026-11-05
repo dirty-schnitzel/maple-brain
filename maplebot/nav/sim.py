@@ -168,6 +168,11 @@ class SimDriver:
     def busy(self, key=None):
         return any(t1 > self.now and (key is None or k == key) for k, t0, t1 in self.taps)
 
+    def cancel_taps(self, key=None):
+        n = len(self.taps)
+        self.taps = [t for t in self.taps if t[1] <= self.now or (key is not None and t[0] != key)]
+        return n - len(self.taps)
+
     def keys(self, now) -> set:
         self.now = now
         self.taps = [t for t in self.taps if t[2] > now]

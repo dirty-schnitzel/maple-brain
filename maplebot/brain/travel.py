@@ -89,10 +89,14 @@ class Travel:
             self._apply(driver, wish)
             return self.status
         self.log.append((m.kind, m.status == "done", round(now - m.t0, 2), round(m.expected, 2), m.reason))
+        if hasattr(driver, "cancel_taps"):
+            driver.cancel_taps()                           # nothing of this move may fire during the next one
+        if m.knocks:
+            self._event(now, "knocked", f"{m.kind} x{m.knocks}")
         if m.status == "failed":
             k = m.link
             self._event(now, "failed", f"{m.kind} {m.reason}")
-            if k is not None:
+            if k is not None and m.reason != "knocked back":          # mobs, not the link: don't blame it
                 self.fails[k] = self.fails.get(k, 0) + 1
                 if self.fails[k] >= 2:
                     self.avoid.add(k)

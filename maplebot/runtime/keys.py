@@ -83,6 +83,14 @@ class KeyDriver:
                 return bool(self.taps or self.tap_up)
             return key in self.tap_up or any(t[0] == key for t in self.taps)
 
+    def cancel_taps(self, key: str | None = None) -> int:
+        """Drop queued taps (of `key`, or all) that haven't gone down yet; one already down finishes normally.
+        brain-v2: a move that ended must not leave a jump queued for the next one."""
+        with self.lock:
+            n = len(self.taps)
+            self.taps = [t for t in self.taps if key is not None and t[0] != key]
+            return n - len(self.taps)
+
     def held(self) -> set:
         with self.lock:
             return set(self.down)

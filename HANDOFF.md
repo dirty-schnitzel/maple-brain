@@ -78,6 +78,23 @@ Runner: `--brain v2` selects BrainV2 (old brain default until the A/B); BrainV2 
 - The user will switch the spear to a POLEARM soon (different reach -> M2 reach from data + learned live).
 - Next: step 2, link executors.
 
+### M1 steps 2-4 (session 22, 2026-11-05): moves + Travel + sim + `goto` - first live tours
+- `brain/moves.py` (link state machines), `brain/travel.py`, `nav/sim.py` (+ SimDriver), `tools/nav/sim_tour.py`,
+  `runtime/goto.py` (`python -m maplebot goto OUT [--to P [X]] [--seconds S] --jump shift`, implies --gpu).
+  NavMap.arc: walking-jump landing from the real arc (reach depends on the height), Nav.jump_vx 155 calibrated.
+  Sim tour (200 trips, Line 1): 197-198 done, ~96 % of moves first try.
+- **Live `runs/g1`:** hub 273 -> 79 in 7.4 s (walk, rope grab, leap, walk_to), all first try.
+  **`runs/g2` (3 min tour): 8/10 trips, 50/80 moves first try (62 %).** Causes: (1) Bubblings on the hub knock us
+  back (also MISS touches) mid run-up / crouch; (2) a jump tap queued by a failed attempt fired in the next one
+  (no up held -> flew past the rope); (3) a drop at a ladder top climbed down the ladder instead (then timeout).
+  Fixed (not live-tested yet): knockback -> 'recover' phase + retry, not blamed on the link; Travel cancels queued
+  taps between moves (KeyDriver.cancel_taps); drops avoid +-24 px of ropes/ladders at the platform; any move
+  reaching its dst by any way = done, an unexpected node fails at once. **The user: "very impressed with
+  platforming, looked natural to my eye".** A Lie Detector came at 06:42:34 BETWEEN runs (kd3 ended 06:30, g1
+  started 06:44) - again a gap LD.
+- Next: re-run the live tour (`goto runs\g3 --seconds 180`); then step 5 gate (>= 90 % first try live); in M2 the
+  hunt attacks the mobs in the way (knockback is the main live failure on the hub).
+
 ### M1 - movement skills (NEXT): Travel along a NavMap route, live on Line 1 <Area 1> (10003061)
 Existing pieces: `nav/navmap.py` (platforms, ropes, links walk/fall/drop/jump/grab/descend/exit/let_go/leap,
 `route(src, pos, dst, dst_x)` = Dijkstra in seconds, `landing()`, `step_ahead`, `rope_at`, `platform_at`);
