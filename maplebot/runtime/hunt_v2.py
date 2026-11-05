@@ -51,7 +51,7 @@ def hunt_v2(rig, rec, t0: float, until) -> str:
                 t = tg - t0
                 obs = perceiver.observe(frame, t, screen.cursor())
                 tp = time.perf_counter()
-                s = me.update(t, obs.me_map, obs.map_pos)
+                s = me.update(t, obs.me_map, obs.map_pos, driver.want)
                 if obs.lie_detector:
                     driver.release_all()
                     say("LIE DETECTOR on screen -> keys released, siren until its window is gone")

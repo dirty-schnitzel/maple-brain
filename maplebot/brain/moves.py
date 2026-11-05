@@ -116,7 +116,7 @@ class Move:
             return None
         if now - self.still_since < 0.4:
             return None
-        if not any(abs(r.x - s.x) <= 4 and min(abs(r.top - s.y), abs(r.bottom - s.y)) <= 12 for r in self.nav.ropes):
+        if not any(abs(r.x - s.x) <= 16 and min(abs(r.top - s.y), abs(r.bottom - s.y)) <= 16 for r in self.nav.ropes):
             return None
         self.still_since = None
         return Wish({"right" if d > 0 else "left"}, [("jump", JUMP_TAP, self.hz.between(0.03, 0.1))])

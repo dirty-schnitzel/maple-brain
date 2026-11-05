@@ -9,6 +9,10 @@ hidden on some ladders). State:
   Nothing hovers in this game: off every surface but not moving for HOVER_S at a rope's height within HOVER_TOL of
   its x = on that rope (runs/v2 08:51: hung on ladder 778 for 21 s read as x 785-788, "air" -> the brain waited to
   land forever; our tag's x drifts a few px on ladders).
+  Holding a walk key STUCK_S without moving, next to a ladder (within HOVER_TOL, spanning our height) = hanging on
+  it, whatever the height says (runs/v2 09:21: hung under the top of ladder 778, read as standing on platform 65
+  via the minimap's floor; walk keys did nothing for 14 s). `update(..., held=keys we hold)`. Only a walk key on its
+  own counts (an attack freezes us in place); once found, the hang holds until we move (HANG_MOVE px).
 With only the minimap the tolerances are the minimap's (Nav.surface_tol / rope_tol).
 """
 from collections import deque
@@ -19,6 +23,9 @@ from ..config import Nav
 HOVER_S = 0.25                    # s off every surface without moving = holding on to something
 HOVER_V = 30.0                    # px/s: "not moving" on both axes
 HOVER_TOL = 16.0                  # px from a rope's x for a hovering body to count as on it
+STUCK_S = 0.4                     # s a walk key is held without moving: we aren't on a floor
+STUCK_V = 5.0                     # px/s
+HANG_MOVE = 4.0                   # px: a detected hang lasts until we move this far
 
 
 @dataclass
@@ -47,6 +54,8 @@ class SelfTracker:
         self.hist = deque()                               # (t, x, y, src)
         self.last: SelfState | None = None
         self.hover_since = None
+        self.walk_since = None                            # a walk key held on its own continuously since
+        self.hang = None                                  # (rope index, x, y): found hanging there
 
     def _velocity(self, t):
         pts = [(ti, x, y) for ti, x, y, s in self.hist if t - ti <= self.window]
@@ -59,7 +68,15 @@ class SelfTracker:
         vy = sum((p[0] - mt) * p[2] for p in pts) / den
         return vx, vy
 
-    def update(self, t: float, me_map=None, map_pos=None) -> SelfState | None:
+    def _ladder_near(self, x, y, tol=HOVER_TOL, reach=20):
+        """The rope / ladder we may be hanging on: within tol of its x, our height within reach of its span."""
+        best = None
+        for i, r in enumerate(self.nav.ropes):
+            if abs(r.x - x) <= tol and r.top - reach <= y <= r.bottom + reach                     and (best is None or abs(r.x - x) < best[0]):
+                best = (abs(r.x - x), i)
+        return None if best is None else best[1]
+
+    def update(self, t: float, me_map=None, map_pos=None, held=None) -> SelfState | None:
         if me_map is not None:
             x, y, src = me_map[0], me_map[1], "tag"
             gtol, rtol = self.ground_tol, self.rope_tol
@@ -85,7 +102,21 @@ class SelfTracker:
                     plat = mm
         else:
             plat = self.nav.platform_at(x, y, tol=gtol)
-        if plat is not None and abs(vy) < self.still_vy:
+        keys = set(held or ())
+        walking = bool({"left", "right"} & keys) and not keys - {"left", "right", "up", "down"}
+        self.walk_since = (self.walk_since if self.walk_since is not None else t) if walking else None
+        if self.hang is not None and (abs(x - self.hang[1]) > HANG_MOVE or abs(y - self.hang[2]) > HANG_MOVE):
+            self.hang = None
+        if self.hang is None and plat is not None and walking and abs(vx) < STUCK_V                 and t - self.walk_since >= STUCK_S:
+            i = self._ladder_near(x, y)
+            if i is not None:                               # walking does nothing: we hang on the ladder
+                self.hang = (i, x, y)
+        if self.hang is not None:
+            plat = None
+            s.state, s.rope = "rope", self.nav.rope_id(self.hang[0])
+        if s.state == "rope":
+            pass
+        elif plat is not None and abs(vy) < self.still_vy:
             s.state, s.platform = "ground", plat.id
             if src == "tag":
                 s.y = plat.y_at(x) if plat.y_at(x) is not None else y      # on the floor: its y is exact
