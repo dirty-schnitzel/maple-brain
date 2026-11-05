@@ -44,6 +44,18 @@ def main(argv=None) -> int:
     v.add_argument("--frames", action="store_true", help="also save every 3rd frame (~50 MB per 10 min)")
     v.add_argument("--frames-every", type=int, default=None, help="save every Nth frame (implies --frames; 1 = all)")
     v.add_argument("--observe", action="store_true", help="record only: you play, the bot presses no keys")
+    g = sub.add_parser("goto", help="brain-v2 movement test: travel to a platform, or a tour of random goals "
+                       "(elevated; implies --gpu)")
+    g.add_argument("out", type=Path)
+    g.add_argument("--to", type=float, nargs="+", default=None, metavar=("PLATFORM", "X"),
+                   help="one trip to this platform id (and x on it), then stop")
+    g.add_argument("--seconds", type=float, default=180)
+    g.add_argument("--jump", default="shift")
+    g.add_argument("--hp-stop", type=float, default=0.45)
+    g.add_argument("--map", type=int, default=None)
+    g.add_argument("--seed", type=int, default=None)
+    g.add_argument("--no-focus", action="store_true")
+    g.add_argument("--frames-every", type=int, default=3)
     lm = sub.add_parser("livemap", help="console map of the running hunt (tracks; needs --gpu), redrawn in place")
     lm.add_argument("dir", type=Path, nargs="?", default=Path("runs/manual"),
                     help="a run folder, or a folder of hunts (the newest is followed)")
@@ -69,6 +81,15 @@ def main(argv=None) -> int:
     if a.cmd == "watch":
         from .runtime.runner import watch
         return watch(a.out, a.seconds)
+    if a.cmd == "goto":
+        from .config import Config
+        from .keyboard import validate
+        from .runtime.goto import goto
+        validate(a.jump)
+        cfg = Config()
+        cfg.keys.jump, cfg.safety.hp_stop, cfg.perception.map_id = a.jump, a.hp_stop, a.map
+        to = (int(a.to[0]), a.to[1] if len(a.to) > 1 else None) if a.to else None
+        return goto(a.out, cfg, a.seconds, to, focus=not a.no_focus, frames_every=a.frames_every, seed=a.seed)
     if a.cmd == "assets":
         from .gamedata import EXPORT, build
         build(a.export or EXPORT)
