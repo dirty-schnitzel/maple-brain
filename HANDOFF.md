@@ -1,4 +1,4 @@
-# maplebot — session handoff (updated 2026-11-05, session 23: M2 combat LIVE 14.3 kills/min (the user: "SERIOUSLY impressive"), brain v2 restructured into brain/v2/ parts, NEXT = hold-to-attack - see 'Session 23'; session 22: M1 movement DONE (camshift + selfstate, moves + Travel + sim + `goto`, live 80 % first try, the user: natural), stalls fixed (14.4 fps); NEXT = M2 Hunt skill - see 'START HERE: M2'; session 21: BRAIN-V2 started - key logger, farming example, KeyDriver; session 20: look-alike maps by name; session 19: tracker + `--tracker` shim; session 18: GPU detection `--gpu`; session 17: game data from the client files)
+# maplebot — session handoff (updated 2026-11-05, session 23: M2 combat LIVE 14.3 kills/min (the user: "SERIOUSLY impressive"), brain v2 restructured into brain/v2/ parts, hold-until-death + re-press committed, NOT live-tested - see 'START HERE NEXT SESSION' in 'Session 23'; session 22: M1 movement DONE (camshift + selfstate, moves + Travel + sim + `goto`, live 80 % first try, the user: natural), stalls fixed (14.4 fps); NEXT = M2 Hunt skill - see 'START HERE: M2'; session 21: BRAIN-V2 started - key logger, farming example, KeyDriver; session 20: look-alike maps by name; session 19: tracker + `--tracker` shim; session 18: GPU detection `--gpu`; session 17: game data from the client files)
 
 ## Goal
 A **fully automated mob farmer** for **MapleStory Classic World** (official GMS Classic, launched 2026-10-21):
@@ -7,7 +7,7 @@ later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never 
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
 ## Session 23 (2026-11-05, branch `brain-v2`): M2 Hunt skill, COMBAT ONLY (the user: "start m2, focus on combat only")
-Built offline, all tests green; **not live-tested yet** (next: a live A/B, see below). No loot, no patrol (M3), no buff.
+Live since then (results further down this section). No loot, no patrol (M3), no buff.
 - **Reach from the client data:** `tools/cwdata/export.ps1` now also exports `Character\Afterimage` (attack boxes per
   weapon type: lt/rb per stance) + `Skill\{000,100,..}.img` (pack `Packs\Skill_00000.ms`); `assets build` writes
   `assets/mcw/attacks.json`. **Spear and polearm have the SAME boxes** (both weapons: stabT1/T2, swingT2, swingP1/P2;
@@ -92,23 +92,29 @@ Built offline, all tests green; **not live-tested yet** (next: a live A/B, see b
   walk keys while the attack is held (footwork `fight`), and any other key mid-hold -> a real let-go + press again
   0.12-0.25 s later (Weapon RE-PRESS; `Hands.stolen`). **The user: careful, Nexon watches for input tampering** ->
   never fake keyboard input (e.g. repeating a key that isn't the last pressed); only patterns a real keyboard + hand
-  make. The sim now models the repeat: old code 6.5 kills/min, fixed 12.1. (SendInput's injected flag is visible to
-  anti-cheat regardless - only hardware input avoids it.)
-- **NEXT (agreed): hold-to-attack** = a Weapon state `pressure`: hold the attack key while any live mob stays in reach
-  in front (swarmed / more hits needed / the next walks in), tap for a lone single swing, release after a short
-  varied nothing-in-reach moment or to move/turn - REPLACES the swing-cycle timer. Then live vs `runs/v2b`.
-- **NEXT:** live, Line 1, the user positions the character: `run runs2a --seconds 180 --brain v2` (elevated,
-  `watch` running), then the same with the old brain (`run runs1a --seconds 180 --gpu --tracker`); compare kills
-  by last hit (v2 logs its own; v1: re-count from ticks - `tools/play/kills.py` needs a bot variant) + the user's
-  eye (natural? swings at nothing? pendulums?). Then the polearm (`--weapon poleArm`, same boxes), loot (z bursts),
-  buff `1`, M3.
+  make. The sim now models the repeat: old code 6.5 kills/min, fixed 12.1. **`dfa25c1` NOT live-tested yet.**
+- **Lie Detectors (the user asked 2026-11-05 if Nexon "knows"):** unknown. SendInput events carry the injected flag;
+  whether it's used isn't public. LDs also came with no bot running (06:42 today, session 9) -> more like account-level
+  suspicion than a live input check. Keep making play human-like; do NOT build anti-cheat evasion (hiding the injected
+  flag, hardware input spoofing) - Claude declined that. The ban risk is the user's call.
+- **START HERE NEXT SESSION:**
+  1. Live check of `dfa25c1`: `..\auto-maple\.venv\Scripts\python -m maplebot serve runs\v2 --brain v2` (F7 / F8,
+     elevated, `watch` running; the user runs it). The question: does the attack really stay on until the mob dies,
+     mobs kept at spear's length, no hesitation? Analyse with `tools/combat/compare.py RUN...` (compare with
+     `runs/v2/20261105_092129_1`, 18.2 kills/min = best session so far). `Weapon` stats: holds, held_on, got_away,
+     represses. Watch `got_away` (no walking while holding: the bot lets go, steps in, presses again).
+  2. Measure SWING_PERIOD live (0.55-0.7 s is a guess): hit reactions during uninterrupted holds.
+  3. Remaining pauses: knockback into the air before a press (Weapon presses only on the ground).
+  4. Then the A/B vs the old brain (`run ... --gpu --tracker`; `tools/play/kills.py` needs a bot variant), polearm
+     (`--weapon poleArm`, same boxes), loot (z bursts), buff `1`, skill rotation (the user: later; plain attack is the
+     default, MP potions are too expensive), M3. Lag: the `Latency` idea above, still not built.
 
 ## START HERE: M2 (written 2026-11-05, end of session 22)
 **ROADMAP (brain-v2; details per milestone in 'BRAIN-V2: THE PLAN' below):**
 - [x] **M0 foundation** - key logger + the user's farming example, KeyDriver executor (default), loop stalls fixed.
   Open: `obs.state` (one fixed per-tick record of us + tracks + active skill) - add when M2 needs it.
 - [x] **M1 movement** - exact own position, link moves, Travel along NavMap routes, `goto`; live 80 % first try.
-- [ ] **M2 Hunt skill (NEXT)** - WHEN TO HIT: reach per weapon from the client data + learned live (spear now,
+- [ ] **M2 Hunt skill (IN PROGRESS, combat live: see 'Session 23')** - WHEN TO HIT: reach per weapon from the client data + learned live (spear now,
   polearm soon); tap attacks while walking; strike only when a live track is in reach; target = cheapest by route
   cost over all tracked mobs (other platforms via Travel); z-burst loot; reflexes (potions, buff `1`, plain attack
   `c` out of MP). New `brain/brain_v2.py` behind `--brain v2`; A/B vs the old brain by kills by last hit.
