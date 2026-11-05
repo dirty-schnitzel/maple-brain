@@ -7,8 +7,8 @@ driver = runtime/keys.KeyDriver or a fake):
     ledger     (v2/ledger.py)     track history, kills by our last hit, contested mobs, swing outcomes
     scene      (v2/scene.py)      us + every live mob relative to us, once per tick; Facing
     targeting  (v2/targeting.py)  one score per mob = a sum of named terms; keep / switch / none
-    weapon     (v2/combat.py)     WHEN TO HIT: ready -> swing -> cooldown
-    footwork   (v2/combat.py)     target on our platform: a rule table (turn / hold / wait / approach / stand)
+    weapon     (v2/combat.py)     WHEN TO HIT: ready -> pressure (hold) -> let go
+    footwork   (v2/combat.py)     target on our platform: a rule table (turn / hold / wait / fight / approach / stand)
     trips      (v2/trips.py)      target elsewhere: Travel (M1); nothing to fight: roam (until M3)
 
 Modes (ticks log): LOCAL (fighting on our platform) / TRAVEL (going to the target) / ROAM / IDLE.
@@ -95,7 +95,7 @@ class BrainV2:
             self.trips.end(driver)
             self.mode = "LOCAL"
             self.weapon.step(sc, obs, driver)
-            self.footwork.step(sc, x, tg.standoff, driver)
+            self.footwork.step(sc, x, tg.standoff, driver, holding=self.weapon.state == "pressure")
         elif x is not None:                              # go to it, swinging at whatever is in reach on the way
             st = self.trips.go(now, s, driver, ("target", x.id), x.platform, tg.goal_x(x, s))
             if st is not None:

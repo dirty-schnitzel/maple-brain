@@ -95,7 +95,7 @@ class Targeting:
             self.target, self.cost = None, None
         else:
             if best.id != self.target:
-                self.standoff = self.hz.between(best.sure.lo + 25, best.sure.hi - 20)
+                self.standoff = self.hz.between(best.sure.hi - 30, best.sure.hi - 12)  # spear's length
                 self.stats["targets"] += 1
                 self.say(f"target {best.m.get('mob')} id {best.id} on {best.platform} dx {best.dx:.0f} "
                          f"dy {best.dy:.0f}, cost {best_cost:.1f}s, standoff {self.standoff:.0f}")
@@ -103,9 +103,14 @@ class Targeting:
         self.next_pick = sc.now + self.hz.between(0.22, 0.4)
 
     def current(self, sc):
-        """The target's Seen this tick; gone (dead / lost) -> forget it and re-pick at once."""
+        """The target's Seen this tick; gone (dead / lost) -> re-pick NOW (not next tick: a tick without a target
+        roams off elsewhere - the flapping after kills in runs/v2b-c)."""
         x = sc.get(self.target)
         if x is None and self.target is not None:
             self.target = None
-            self.next_pick = sc.now
+            if sc.s.state != "air":
+                self.pick(sc)
+                x = sc.get(self.target)
+            else:
+                self.next_pick = sc.now
         return x

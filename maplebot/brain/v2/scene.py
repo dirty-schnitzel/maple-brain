@@ -87,9 +87,12 @@ class Scene:
         """Predicted px in front of us (negative = behind)."""
         return self.facing * x.pdx
 
-    def in_reach(self, x: Seen) -> bool:
+    def in_reach(self, x: Seen, keep: bool = False) -> bool:
         """WHEN TO HIT: predicted in front between the stab's near edge and the sure far edge, at a height every
-        stance reaches."""
+        stance reaches. keep=True (already holding the attack): the ACTUAL position within the maybe reach - a mob
+        our hits knock back moves away fast, its prediction leaves the reach long before it does."""
+        if keep:
+            return x.maybe.lo - 6 <= self.facing * x.dx <= x.maybe.hi and x.sure.ylo <= x.dy <= x.sure.yhi
         f = self.front(x)
         return x.maybe.lo + 4 <= f <= x.sure.hi - 4 and x.sure.ylo <= x.dy <= x.sure.yhi
 

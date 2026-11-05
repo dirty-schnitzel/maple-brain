@@ -73,7 +73,7 @@ def test_swings_at_a_mob_in_reach_in_front(line1):
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273)], s)
-    assert _taps(drv, "space") and br.stats["swings"] == 1
+    assert "space" in drv.want and br.stats["swings"] == 1
 
 
 def test_no_swing_out_of_reach_walks_toward_it_instead(line1):
@@ -90,7 +90,7 @@ def test_predicts_a_mob_walking_into_reach(line1):
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     hi = br.reach.vs(BUBBLING)[0].hi
     _tick(br, drv, 0.0, [_mob(1, 1400 + hi + 20, 198, 273, vx=-80)], s)    # 20 px out now, 16 px in when it lands
-    assert _taps(drv, "space")
+    assert "space" in drv.want
     assert -80 * SWING_LAND_S < -20
 
 
@@ -101,7 +101,7 @@ def test_a_mob_behind_us_turns_us_round_first(line1):
     _tick(br, drv, 0.0, [_mob(1, 1330, 198, 273)], s)
     assert not _taps(drv, "space") and _taps(drv, "left") and br.facing == -1
     _tick(br, drv, 0.3, [_mob(1, 1330, 198, 273)], s)
-    assert _taps(drv, "space")
+    assert "space" in drv.want
 
 
 def test_never_swings_at_nothing_or_at_dying_mobs(line1):
@@ -113,23 +113,31 @@ def test_never_swings_at_nothing_or_at_dying_mobs(line1):
     assert br.stats["swings"] == 0
 
 
-def test_a_lone_mob_gets_a_tap_then_the_key_is_held_while_it_stays_in_reach(line1):
+def test_holds_while_the_mob_is_knocked_back_and_lets_go_after_it_dies(line1):
     br, drv = _brain(line1), SimDriver()
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273)], s)
-    assert _taps(drv, "space") and "space" not in drv.want and br.weapon.state == "cooldown"
-    held_at = None
-    for i in range(1, 20):                            # still there after the tap: the fight goes on -> hold
-        t = i * 0.07
-        _tick(br, drv, t, [_mob(1, 1480, 198, 273)], s)
-        if "space" in drv.want and held_at is None:
-            held_at = t
-    assert held_at is not None and held_at <= 0.7 and br.weapon.state == "pressure"
-    gone = 1.4
+    assert "space" in drv.want and not _taps(drv, "space") and br.weapon.state == "pressure"
+    for i in range(1, 8):                             # knocked back: moving away fast, still within the maybe reach
+        _tick(br, drv, i * 0.07, [_mob(1, 1480 + 8 * i, 198, 273, vx=220)], s)
+        assert "space" in drv.want, i
     for i in range(10):                               # it died: let go within ~0.15-0.35 s
-        _tick(br, drv, gone + i * 0.07, [], s)
+        _tick(br, drv, 0.6 + i * 0.07, [], s)
     assert "space" not in drv.want and br.weapon.state == "ready"
+
+
+def test_no_turning_while_the_attack_is_held(line1):
+    br, drv = _brain(line1), SimDriver()                # the game ignores a direction key mid-swing (runs/v2c)
+    br.facing = 1
+    s = SelfState(0, 1400, 198, "tag", "ground", 273)
+    _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273), _mob(2, 1340, 198, 273)], s)
+    assert "space" in drv.want
+    _tick(br, drv, 0.07, [_mob(2, 1340, 198, 273)], s)  # the one in front died; the other is behind
+    assert not _taps(drv, "left") and br.facing == 1
+    for i in range(2, 12):
+        _tick(br, drv, i * 0.07, [_mob(2, 1340, 198, 273)], s)
+    assert br.stats["turns"] == 1 and br.facing == -1  # let go, turned, and (now in front) holds at it again
 
 
 def test_swarmed_holds_at_once(line1):
@@ -169,7 +177,7 @@ def test_out_of_mp_without_potions_uses_the_plain_attack(line1):
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273)], s, mp=0.01, mp_potions=False)
-    assert _taps(drv, "c") and not _taps(drv, "space")
+    assert "c" in drv.want and "space" not in drv.want
 
 
 # ---------------------------------------------------------------- reflexes
@@ -266,16 +274,16 @@ def _hunt(nav, seconds, seed, start=(273, 1400)):
     sim = Sim(nav, *start)
     mobs = FakeMobs(nav, br.reach, nav.spawns, rng)
     t, nxt, hist, facing = 0.0, 0.0, [], 1
-    flips, down, next_auto = [], False, 0.0
+    flips, down, next_auto, swing_t = [], False, 0.0, -9.0
     while t < seconds:
         keys = drv.keys(t)
         d = ("right" in keys) - ("left" in keys)
-        if d and d != facing:
+        if d and d != facing and t - swing_t > 0.55:              # the game ignores direction keys mid-swing
             flips.append(t)
             facing = d
         if "space" in keys and (not down or t >= next_auto):      # a press swings; held, it swings again
             mobs.swing(t, facing, sim.b.x, sim.b.y)               # every 0.6 s (the game's repeat)
-            next_auto = t + 0.6
+            next_auto, swing_t = t + 0.6, t
         down = "space" in keys
         b = sim.step(keys, 0.005)
         mobs.step(t, 0.005)
@@ -341,7 +349,7 @@ def test_footwork_rule_table(line1):
     br, drv = _brain(line1), SimDriver()
     fw = br.footwork
     br.facing = 1
-    for mob_x, want in [(1700, "approach"), (1480, "stand"), (1340, "turn")]:
+    for mob_x, want in [(1700, "approach"), (1480, "fight"), (1340, "turn")]:
         br.facing = 1
         fw.step(_scene(line1, [_mob(1, mob_x, 198, 273)]), _scene(line1, [_mob(1, mob_x, 198, 273)]).mobs[0],
                 90.0, drv)
@@ -353,12 +361,14 @@ def test_footwork_rule_table(line1):
     assert fw.state == "hold"
 
 
-def test_weapon_ready_tap_cooldown_pressure(line1):
+def test_weapon_ready_pressure_brief_release(line1):
     from maplebot.brain.v2.combat import Hands
     br, drv = _brain(line1), SimDriver()
     h = Hands(drv)
-    sc = _scene(line1, [_mob(1, 1480, 198, 273)])
-    assert br.weapon.step(sc, _obs(), h) and br.weapon.state == "cooldown"
-    assert not br.weapon.step(_scene(line1, [_mob(1, 1480, 198, 273)], now=0.1), _obs(), h)
-    assert br.weapon.step(_scene(line1, [_mob(1, 1480, 198, 273)], now=0.9), _obs(), h)
-    assert br.weapon.state == "pressure" and "space" in drv.want
+    mob = [_mob(1, 1480, 198, 273)]
+    assert br.weapon.step(_scene(line1, mob), _obs(), h) and br.weapon.state == "pressure" and "space" in drv.want
+    until = br.weapon.until
+    br.weapon.step(_scene(line1, mob, now=until + 0.01), _obs(), h)
+    assert br.weapon.state == "cooldown" and "space" not in drv.want          # let go briefly
+    br.weapon.step(_scene(line1, mob, now=until + 0.3), _obs(), h)
+    assert br.weapon.state == "pressure" and "space" in drv.want              # and pressed again
