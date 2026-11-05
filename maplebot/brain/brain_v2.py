@@ -29,7 +29,6 @@ from .reach import SWING_LAND_S, Reach
 from .travel import Travel
 
 LIVE = ("live", "hit", "hidden")
-TURN_COST = 0.6                 # s added to a new target behind us (runs/v2b: 33 of 45 pendulum flips = target changes)
 KILL_WINDOW = (0.2, 1.0)        # swing press -> its target turns dying (farming example: peak 0.5-0.8 s, few after 1.0)
 
 
@@ -56,7 +55,6 @@ class BrainV2:
         self.unreachable = {}                             # platform -> until
         self.route_cache = {}
         self.roam_wait = 0.0
-        self.lost_until = 0.0
         self.stats = collections.Counter()
         self.kill_t = []
         self.strikes = collections.deque()                # (t, ids in our weapon's reach at that swing)
@@ -214,10 +212,9 @@ class BrainV2:
         crowd = sum(1 for o in live if o is not m and o.get("platform") == m.get("platform")
                     and abs(o["x"] - m["x"]) <= 120)
         extra = -0.25 * min(crowd, 3) + (1.5 if now - self.contested.get(m["id"], -9) < 3.0 else 0.0)
-        if self.facing and m["id"] != self.target and _sign(m["x"] - s.x) == -self.facing:
-            extra += TURN_COST                            # turning round for a new target: only if clearly better
         if self._here(m, s, dy):
-            return max(0.0, abs(dx) - self.standoff) / WALK + extra
+            turn = 0.25 if self.facing and _sign(dx) != self.facing else 0.0
+            return max(0.0, abs(dx) - self.standoff) / WALK + turn + extra
         pid = m.get("platform")
         if pid is None or pid not in self.nav.platforms or now < self.unreachable.get(pid, 0.0):
             return None
@@ -232,10 +229,7 @@ class BrainV2:
             if m is cur or m["state"] == "hidden" and m.get("unseen", 0) > 0.5:
                 continue
             c = self._cost(now, m, obs, s, live)
-            margin = 0.0
-            if best is cur and cur is not None:           # a trip under way for it: switch only for a clear gain
-                margin = 1.0 if self.travel is not None and self.travel_for == ("target", cur["id"]) else 0.5
-            if c is not None and (best_cost is None or c < best_cost - margin):
+            if c is not None and (best_cost is None or c < best_cost - (0.5 if best is cur and cur is not None else 0)):
                 best, best_cost = m, c
         if best is None or best_cost is None:
             if self.target is not None:
@@ -277,7 +271,6 @@ class BrainV2:
         if tgt is None and self.target is not None:
             self.target = None
             self.next_pick = now
-            self.lost_until = now + self.hz.between(0.6, 1.0)
         if tgt is not None:
             dx, dy = self._rel(tgt, obs, s)
             if self._here(tgt, s, dy):
@@ -365,10 +358,6 @@ class BrainV2:
 
     def _roam(self, now, obs, s, driver, live):
         self._try_swing(now, obs, s, driver, live)
-        tr = self.travel
-        if tr is not None and tr.status == "run" and self.travel_for and self.travel_for[0] == "target"                 and now < self.lost_until:                # the target just vanished: keep going a moment (it may
-            tr.step(now, s, driver)                       # reappear) instead of turning off to roam elsewhere
-            return None
         if self.travel is not None and self.travel_for and self.travel_for[0] == "roam":
             return self._travel(now, obs, s, driver, live, self.travel_for, self.travel.dst, self.travel.dst_x)
         if self.travel is not None and s.state == "air":
