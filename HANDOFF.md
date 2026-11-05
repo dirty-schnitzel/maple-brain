@@ -101,7 +101,14 @@ Runner: `--brain v2` selects BrainV2 (old brain default until the A/B); BrainV2 
   ladder - this looks very botlike".** -> no back-and-forth anywhere: walk_to turns round at most once, then 1-2
   short taps and close enough = arrived; descend like a player: walk at the ladder and press down while passing
   over it (down stops + catches), missed -> a tap or two, down again (max 3). Sim 200/200, descend 10/10.
-- Next: re-run the live tour (`goto runs\g4 --seconds 180`); then step 5 gate (>= 90 % first try live); in M2 the
+- **Live `runs/g4` (3 min): 11/11 trips done, 45/56 moves first try (80 %).** Back-and-forth by numbers
+  (direction flips of the held walk key; pendulum = 3+ flips in 2.5 s): g2 11, g3 8, **g4 3** pendulums per 3 min,
+  flips 19 -> 10/min. The user's own farming: 19 flips/min, ~8.5 pendulums per 3 min (turning to fight) - g4 is
+  inside the human range; its 3 were jump run-up retries ~1 s apart after knockbacks. Failures: mostly 'knocked'
+  (mobs) + a few landings elsewhere (296 / -12 / -5 / 111 / 79 / 93: re-planned fine).
+- **M1 gate (>= 90 % first try live) not met, 80 %; the gap is mob knockback on a busy map** -> M2 (the hunt
+  attacks what's in the way) is the fix, not more movement tuning. Next: M2.
+; then step 5 gate (>= 90 % first try live); in M2 the
   hunt attacks the mobs in the way (knockback is the main live failure on the hub).
 
 ### M1 - movement skills (NEXT): Travel along a NavMap route, live on Line 1 <Area 1> (10003061)
