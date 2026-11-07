@@ -5,14 +5,14 @@ What the screen shows is not the raw canvas: the game draws it semi-transparent 
 backdrop (screen ~ 0.45-0.6 x canvas + offset), and canvases are transparent where the map has nothing (~40-50 %;
 Henesys Townstreet is one house on a strip). Plain colour error fails, and correlation alone lets a small canvas
 match some patch of any minimap. Two cues together:
-1. **The window's frame**: the minimap window wraps the canvas - a bright border 1 px outside it on all four sides
-   (~230 vs ~70-110 inside; narrow maps sit centred in a wider window, still with a brighter edge beside them).
-   Top and bottom must both be bright; left and right on average (markers can sit against one side).
-   Every canvas size is tried at every position (box sums); a size fits only where all four edges are bright.
-2. **The picture**: canvases of a fitting size are correlated (TM_CCOEFF_NORMED over their opaque pixels, which
-   shrugs off the blend's gain/offset) at that spot, +-1 px.
+1. **The window's frame**: the window is measured on screen (localize.find_window). Its size is never predicted from
+   a canvas, because it needn't be the canvas': Ant Tunnel IV shows 112 of its 172 rows and scrolls them with the
+   player, and a long name widens it around a narrow map. A map fits if its canvas is at least as tall as the window
+   and, centred in it, has edges there: darker than what's just outside, on average over the two sides.
+2. **The picture**: each fitting canvas is correlated over its opaque pixels (which shrugs off the blend's
+   gain/offset) at the row it fits best when it's taller than the window, then trimmed (see _corr), +-1 px.
 A winner needs a minimum correlation and a lead over any other fitting map, averaged over a few frames
-(markers move; a frame with the window covered is skipped). ~0.3 s per frame with all 335 maps.
+(markers move; a frame with the window covered is skipped).
 3. **The name, only to break a tie** (Line 1 <Area 1> vs <Area 2>: minimaps 0.89 vs 0.88): the window prints the
    map's name above the canvas. Each tied map's name is drawn in Arial Bold 12 px (no smoothing - closest to the
    game's font; others scored near 0), lined up on the part the names share ("Line 1 <Area ") and compared on the
@@ -26,12 +26,14 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from .localize import SEARCH
+from .localize import EDGE, MIN_OPAQUE, Window, find_window, scroll_row
 
 NAME_FONT = Path(os.environ.get("WINDIR", "C:/Windows")) / "Fonts" / "arialbd.ttf"
 NAME_SIZE = 12
 NAME_MIN, NAME_LEAD = 0.5, 0.15  # tie broken by the name: best >= 0.5 and 0.15 ahead (Line 1: 0.82 vs 0.54 / 0.43)
 TRIM = 0.03     # share of worst-fitting pixels dropped (markers); offline sweep 0/0.03/0.08/0.15: best margins
+WIDTH_TOL = 6   # the measured window vs a canvas: a marker on the frame row narrows it (A Split Road 235 of 239)
+CENTRE_TOL = 2  # a canvas' x vs the window's centre, px (measured off by at most 1.5)
 
 
 @dataclass
@@ -40,7 +42,7 @@ class MapMatch:
     score: float = 0.0            # correlation of the winner (or of the best candidate)
     runner_up: int | None = None  # the next fitting map and its score (for the log)
     runner_score: float = 0.0
-    origin: tuple | None = None   # screen (x, y) of the canvas' top-left
+    origin: tuple | None = None   # screen (x, y) of the canvas' top-left (above the window if it's scrolled down)
     why: str = ""                 # why there's no winner
     fits: list = field(default_factory=list)   # [(score, map_id)] of every map whose size fits the frame
 
@@ -50,12 +52,21 @@ class _Canvas:
     bgr: np.ndarray
     mask: np.ndarray              # 3-channel 0/255, opaque pixels
     n: int                        # opaque pixel count
+    gray: np.ndarray              # float32
+    opaque: np.ndarray            # bool, one channel
+
+    def rows(self, row: int, h: int) -> "_Canvas":
+        """The part of the canvas a window `h` tall shows from `row` on."""
+        o = self.opaque[row:row + h]
+        return _Canvas(np.ascontiguousarray(self.bgr[row:row + h]), np.ascontiguousarray(self.mask[row:row + h]),
+                       int(o.sum()), self.gray[row:row + h], o)
 
 
 def _canvas(img) -> _Canvas:
     bgr = np.ascontiguousarray(img[..., :3])
     a = img[..., 3] > 0 if img.shape[2] == 4 else np.ones(img.shape[:2], bool)
-    return _Canvas(bgr, np.ascontiguousarray(np.repeat(a[..., None].astype(np.uint8) * 255, 3, 2)), int(a.sum()))
+    return _Canvas(bgr, np.ascontiguousarray(np.repeat(a[..., None].astype(np.uint8) * 255, 3, 2)), int(a.sum()),
+                   cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY).astype(np.float32), a)
 
 
 def _draw_name(text: str, font) -> np.ndarray:
@@ -121,28 +132,6 @@ def name_scores(frame, origin: tuple, names: dict[int, str]) -> dict[int, float]
     return out
 
 
-def frame_contrast(gray: np.ndarray, w: int, h: int) -> np.ndarray:
-    """For every top-left (y, x) of a w x h rectangle: how well it sits in a bright frame - edge contrast = mean
-    brightness 1 px outside minus 1 px inside; the weaker of top and bottom, or the sides' average if lower (bright
-    markers - portals, players - against one side weaken it: A Split Road's right edge 34 vs ~140 top/bottom).
-    Shape (H - h - 1, W - w - 1); index [y - 1, x - 1]."""
-    H, W = gray.shape
-    if H < h + 2 or W < w + 2:
-        return np.full((0, 0), -255.0)
-    g = gray.astype(np.float64)
-    rs = np.zeros((H, W + 1)); rs[:, 1:] = np.cumsum(g, 1)          # row segment sums: rs[y, x+w] - rs[y, x]
-    cs = np.zeros((H + 1, W)); cs[1:] = np.cumsum(g, 0)             # column segment sums
-    hseg = (rs[:, w:] - rs[:, :-w]) / w                             # [y, x]: mean of row y over x..x+w-1
-    vseg = (cs[h:] - cs[:-h]) / h                                   # [y, x]: mean of column x over y..y+h-1
-    ny, nx = H - h - 1, W - w - 1
-    ys, xs = slice(1, 1 + ny), slice(1, 1 + nx)
-    top = hseg[0:ny, xs] - hseg[ys, xs]
-    bottom = hseg[h + 1:h + 1 + ny, xs] - hseg[h:h + ny, xs]
-    left = vseg[ys, 0:nx] - vseg[ys, xs]
-    right = vseg[ys, w + 1:w + 1 + nx] - vseg[ys, w:w + nx]
-    return np.minimum(np.minimum(top, bottom), (left + right) / 2)
-
-
 def _corr(region, c: _Canvas, x: int, y: int, trim: float = TRIM) -> float:
     """Correlation of the canvas with the screen, top-left within +-1 px of (x, y) in `region`: the spot by masked
     TM_CCOEFF_NORMED, then a trimmed correlation there - fit screen = gain * canvas + offset over the opaque pixels,
@@ -169,19 +158,30 @@ def _corr(region, c: _Canvas, x: int, y: int, trim: float = TRIM) -> float:
     return float(np.corrcoef(a[keep], b[keep])[0, 1])
 
 
+def _centred_x(gray: np.ndarray, win: Window, cw: int) -> int | None:
+    """Screen x of a canvas `cw` wide if one sits in the window: centred, give or take CENTRE_TOL px, with its sides
+    darker than what's beside them, on average (a bright marker against one side weakens that one: A Split Road's right
+    edge 34 vs ~140 at the top and bottom). None: no such edges, the canvas on screen has another width."""
+    x = win.x + (win.w - cw) // 2
+    best, at = EDGE, None
+    for s in range(max(x - CENTRE_TOL, 1), x + CENTRE_TOL + 1):
+        if s + cw >= gray.shape[1]:
+            break
+        contrast = (gray[:, s - 1].mean() - gray[:, s].mean() + gray[:, s + cw].mean() - gray[:, s + cw - 1].mean()) / 2
+        if contrast >= best:
+            best, at = contrast, s
+    return at
+
+
 class MapIdentifier:
-    def __init__(self, canvases: dict[int, np.ndarray], edge: float = 50.0, min_score: float = 0.5,
-                 lead: float = 0.05, min_opaque: int = 200, names: dict[int, str] | None = None):
-        """canvases: BGRA (or BGR) pictures by map id. `edge`: a frame edge must be this much brighter outside than
-        inside; `min_opaque`: canvases with fewer opaque pixels can't be told apart and are left out. `names`: map
-        names (map.json "name") to break ties between look-alike minimaps."""
+    def __init__(self, canvases: dict[int, np.ndarray], min_score: float = 0.5, lead: float = 0.05,
+                 min_opaque: int = MIN_OPAQUE, names: dict[int, str] | None = None):
+        """canvases: BGRA (or BGR) pictures by map id. `min_opaque`: canvases with fewer opaque pixels can't be told
+        apart and are left out. `names`: map names (map.json "name") to break ties between look-alike minimaps."""
         self.names = names or {}
         full = {k: _canvas(c) for k, c in canvases.items()}
         self.canvases = {k: c for k, c in full.items() if c.n >= min_opaque}
-        self.by_size: dict[tuple, list[int]] = {}
-        for k, c in self.canvases.items():
-            self.by_size.setdefault((c.bgr.shape[1], c.bgr.shape[0]), []).append(k)
-        self.edge, self.min_score, self.lead = edge, min_score, lead
+        self.min_score, self.lead, self.min_opaque = min_score, lead, min_opaque
 
     @classmethod
     def load(cls, root: Path, **kw) -> "MapIdentifier":
@@ -197,21 +197,22 @@ class MapIdentifier:
                     pass
         return cls(canvases, names=kw.pop("names", names), **kw)
 
-    def fits(self, frame) -> dict[int, tuple]:
-        """Every map whose canvas size fits a framed window on screen: {map id: (score, screen x, screen y)}."""
-        x0, y0, x1, y1 = SEARCH
-        region = np.ascontiguousarray(frame[y0:y1, x0:x1])
-        gray = cv2.cvtColor(region, cv2.COLOR_BGR2GRAY)
+    def fits(self, frame, win: Window) -> dict[int, tuple]:
+        """Every map the measured window can be showing: {map id: (score, canvas' screen x, canvas' screen y)}."""
+        gray = cv2.cvtColor(np.ascontiguousarray(frame[win.y:win.y + win.h]), cv2.COLOR_BGR2GRAY).astype(np.float32)
         best = {}
-        for (w, h), ids in self.by_size.items():
-            fc = frame_contrast(gray, w, h)
-            if fc.size == 0 or fc.max() < self.edge:
+        for k, c in self.canvases.items():
+            ch, cw = c.bgr.shape[:2]
+            if cw > win.w + WIDTH_TOL or ch < win.h - 2:
                 continue
-            for yy, xx in zip(*np.nonzero(fc >= self.edge)):        # usually exactly one spot
-                for k in ids:
-                    sc = _corr(region, self.canvases[k], xx + 1, yy + 1)
-                    if k not in best or sc > best[k][0]:
-                        best[k] = (sc, x0 + xx + 1, y0 + yy + 1)
+            x = _centred_x(gray, win, cw)
+            if x is None:
+                continue
+            h = min(ch, win.h)
+            row = scroll_row(c.gray, c.opaque, gray[:h, x:x + cw], range(ch - h + 1))[1] if ch > h else 0
+            part = c.rows(row, h)
+            if part.n >= self.min_opaque:
+                best[k] = (_corr(frame, part, x, win.y), x, win.y - row)
         return best
 
     def identify(self, frames) -> MapMatch:
@@ -221,8 +222,13 @@ class MapIdentifier:
             return MapMatch(None, why="no minimaps on disk (assets build)")
         if isinstance(frames, np.ndarray):
             frames = [frames]
-        found = [(fr, f) for fr, f in ((fr, self.fits(fr)) for fr in frames) if f]
-        per = [f for _, f in found]
+        found = []
+        for fr in frames:
+            win = find_window(fr)
+            f = self.fits(fr, win) if win is not None else None
+            if f:
+                found.append((fr, f, win))
+        per = [f for _, f, _ in found]
         if not per:
             return MapMatch(None, why="no minimap window of a known size (closed or covered?)")
         ids = {k for f in per for k in f}
@@ -247,11 +253,11 @@ class MapIdentifier:
     def _by_name(self, found, tied: dict[int, str]) -> int | None:
         """The tied map whose name the window shows (scores averaged over the frames), or None."""
         tot, n = {}, 0
-        for fr, f in found:
+        for fr, f, win in found:
             k0 = next((k for k in tied if k in f), None)
             if k0 is None:
                 continue
-            sc = name_scores(fr, f[k0][1:], tied)
+            sc = name_scores(fr, (f[k0][1], win.y), tied)           # the name sits above the window, scrolled or not
             if not sc:
                 continue
             n += 1

@@ -292,8 +292,10 @@ def test_f7_does_not_hunt_when_the_map_cant_be_told(tmp_path, monkeypatch, capsy
     """Wrong sprites / footholds are worse than none: no hunt, say why; the next F7 tries again."""
     script = lambda name, n: (3 <= n <= 4 or 30 <= n <= 31) if name == START else (45 <= n <= 46)  # noqa: E731
     code, out, stub, loaded, console = _serve_ident(tmp_path, monkeypatch, capsys, [None, 42], script, 1)
+    assert "frame saved:" in console
     assert "can't tell which map this is: two maps look alike" in console and "not started" in console
-    assert loaded == [42] and len(list(out.iterdir())) == 1     # only the second F7 hunted
+    assert loaded == [42] and len([p for p in out.iterdir() if p.is_dir()]) == 1     # only the second F7 hunted
+    assert len(list(out.glob("unknown_map_*.png"))) == 1         # the frame of the F7 that failed, to look at later
 
 
 def test_each_f7_checks_the_map_again(tmp_path, monkeypatch, capsys):

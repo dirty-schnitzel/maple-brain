@@ -145,10 +145,11 @@ def _load_map(rig: "Rig", map_id: int, say) -> bool:
     return True
 
 
-def _init_map(rig: "Rig", say, frames: int = 3) -> bool:
+def _init_map(rig: "Rig", say, frames: int = 3, save_to: Path | None = None) -> bool:
     """Start of a hunt (game in front, capture calibrated): which map are we on? --map given -> that one. Otherwise
     the minimap is matched against every map's (a few frames ~0.25 s apart) and that map is loaded. False = can't
-    tell: don't hunt (wrong sprites / footholds are worse than none)."""
+    tell: don't hunt (wrong sprites / footholds are worse than none); the frame goes to `save_to`, a failed start
+    records nothing else to look at afterwards."""
     if rig.ident is None:
         return True
     shots = [rig.screen.grab()]
@@ -162,6 +163,12 @@ def _init_map(rig: "Rig", say, frames: int = 3) -> bool:
         near = f"; best {m.fits[0][1]} {_map_name(m.fits[0][1])} {m.fits[0][0]:.2f}" if m.fits else ""
         alt = f", {m.runner_up} {_map_name(m.runner_up)} {m.runner_score:.2f}" if m.runner_up is not None else ""
         say(f"can't tell which map this is: {m.why}{near}{alt} - open the minimap (uncovered) or pass --map")
+        if save_to is not None:
+            import cv2
+            save_to.mkdir(parents=True, exist_ok=True)
+            path = save_to / f"unknown_map_{datetime.now():%Y%m%d_%H%M%S}.png"
+            cv2.imwrite(str(path), shots[-1])
+            say(f"frame saved: {path}")
         return False
     if m.map_id != rig.cfg.perception.map_id:
         alt = f" (next: {m.runner_up} {_map_name(m.runner_up)} {m.runner_score:.2f})" if m.runner_up is not None else ""
@@ -374,7 +381,7 @@ def run(out: Path, seconds: float, cfg: Config, focus: bool = True, frames_every
             time.sleep(rig.hz.vary(0.2))
         time.sleep(rig.hz.vary(1.0))
         say(f"game picture at x {rig.screen.calibrate()} ({rig.screen.kind})")       # measured with the game in front
-        if not _init_map(rig, say):
+        if not _init_map(rig, say, save_to=out):
             return 1
         if focus and not rig.kb.focused():           # loading a map takes ~25 s (GPU warm-up): focus may have
             say(f"game lost focus while loading (foreground: '{foreground_title()}') - bringing it back")   # moved
@@ -431,7 +438,7 @@ def serve(out_root: Path, cfg: Config, frames: int = 0,
                 say(f"{start_key.upper()} ignored: the game isn't the focused window")
                 continue
             cols = rig.screen.calibrate()                    # the game is in front now: measure where it is
-            if not _init_map(rig, say):
+            if not _init_map(rig, say, save_to=out_root):
                 chirp(False)
                 say(f"not started - {start_key.upper()} to try again")
                 continue

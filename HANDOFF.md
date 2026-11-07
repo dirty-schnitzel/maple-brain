@@ -6,6 +6,29 @@ find mobs, fight them like a player, pick up loot, use potions, and **navigate p
 later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never reads memory or packets.
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
+## Map recognition: the window is measured, not predicted (2026-11-07, branch `dev`, NOT live-tested with a hunt)
+The user: "new maps are not recognized and we always have to add some kind of fix for every map". Root cause: identify
+and the locator both assumed the minimap window = the canvas. It needn't be:
+- **Scrolled:** Ant Tunnel IV (canvas 219x172) shows 219x112, 1:1, and scrolls with the player: rows 0-111 at the top,
+  60-171 in the lower right; never sideways. East Rocky Mountain I shows all its 128 rows, the minimap was maxed (grey
+  "+"), and nothing in map.json predicts it. Only 3 positions seen: centred-on-player is possible, not proven.
+- **Widened:** a long name makes the window wider than the canvas (Rain-Forest: 144 px in 232), the canvas centred,
+  see-through strips beside it whose brightness follows the scenery. Don't measure a canvas' sides from the strips.
+- **Too big:** the old SEARCH (x < 330, y < 330) ruled out Henesys, Lith Harbor, Henesys Market, Ellinia, Forest of
+  Patience Step 2, Forest North of Ellinia. How the game shows those is NOT known yet (may scroll sideways -> refused).
+
+`localize.find_window` measures the outer window; `identify.fits` places each canvas at its centre (edge check as the old
+frame check), at the best scroll row; `MinimapLocator.follow` tracks the row every tick (~1 ms), `lost` = no position until
+calibrate finds it (a portal, a covered window); `origin` stays the canvas' corner, above the window while scrolled.
+Failed F7: frame saved to the run folder (`unknown_map_*.png`).
+Results: live frame lower right of Ant Tunnel IV: score 0.88, row 60, x 2152 on the rope at 2150 (the user was on that
+ladder). Old vs new code on 199 recorded frames: 188 same, 10 both refuse, 1 only new, 0 only old, 0 disagree. All 301
+canvases drawn in simulated windows: 254 right, 0 wrong, 43 ties (names off in that test), 4 low scores. Known limit: strips
+as dim as the canvas = no edge = refused (not seen live; the old check refused too).
+**Discussed, not decided:** read the title (Tesseract or letter templates), then let the picture confirm. Whole-name Arial
+templates can't do it (right map first in 7 of 16 frames), real letter reading is untested. `I/II/III/IV` are its hard
+case, which the pictures tell apart; the two fail in opposite places. The user: finish and test this first.
+
 ## Session 23 (2026-11-05, branch `brain-v2`): M2 Hunt skill, COMBAT ONLY (the user: "start m2, focus on combat only")
 Live since then (results further down this section). No loot, no patrol (M3), no buff.
 - **Reach from the client data:** `tools/cwdata/export.ps1` now also exports `Character\Afterimage` (attack boxes per

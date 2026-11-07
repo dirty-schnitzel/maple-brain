@@ -1,9 +1,10 @@
 """Which map are we on (nav/identify.py): the on-screen minimap vs every map's canvas in assets/mcw.
 
-Fixtures (tests/fixtures/mapid/*.png) are the minimap search area (localize.SEARCH, 330x290 from y 40) of recorded
-frames, 3 consecutive saved frames (~0.15-0.3 s apart) per map; the matching runs against all ~300 downloaded
-minimaps (`assets update --all`), so look-alikes are in play (East Rocky Mountain I vs IV, Snail Hunting Ground III
-vs Hot Sand, Henesys Townstreet's single house that matched anything before the frame check).
+Fixtures (tests/fixtures/mapid/*.png) are the screen's corner (x 0-330, y 40-330) of recorded frames, 3 consecutive
+saved frames (~0.15-0.3 s apart) per map; the matching runs against all ~300 minimaps of assets/mcw, so look-alikes are
+in play (East Rocky Mountain I vs IV, Snail Hunting Ground III vs Hot Sand, Henesys Townstreet's single house that
+matched anything before the frame check). 10005063_ant_tunnel4_lower: a live frame from the lower right of Ant Tunnel
+IV, the window scrolled down to the canvas' rows 60-171.
 """
 from pathlib import Path
 
@@ -11,19 +12,20 @@ import cv2
 import numpy as np
 import pytest
 
-from maplebot.nav.identify import NAME_FONT, MapIdentifier, frame_contrast, name_scores
-from maplebot.nav.localize import SEARCH
+from maplebot.nav.identify import NAME_FONT, MapIdentifier, name_scores
+from maplebot.nav.localize import Window, find_window
 
 ROOT = Path(__file__).resolve().parents[1]
 FX = ROOT / "tests" / "fixtures" / "mapid"
 MCW = ROOT / "assets" / "mcw"
+CROP = (0, 40, 330, 330)        # x0, y0, x1, y1 of the fixtures
 
 
 def frame(name: str) -> np.ndarray:
     """A 1366x768 frame with the fixture crop in its place."""
     f = np.zeros((768, 1366, 3), np.uint8)
     crop = cv2.imread(str(FX / f"{name}.png"))
-    x0, y0, x1, y1 = SEARCH
+    x0, y0, x1, y1 = CROP
     f[y0:y1, x0:x1] = crop
     return f
 
@@ -92,12 +94,84 @@ def _art(seed, h=60, w=140):
     return np.dstack([img, np.full((h, w), 255, np.uint8)])
 
 
-def test_frame_contrast_peaks_where_the_canvas_sits():
-    f = _window(_art(1)[..., :3], at=(20, 72))
-    x0, y0, x1, y1 = SEARCH
-    fc = frame_contrast(cv2.cvtColor(f[y0:y1, x0:x1], cv2.COLOR_BGR2GRAY), 140, 60)
-    y, x = np.unravel_index(fc.argmax(), fc.shape)
-    assert (x + 1 + x0, y + 1 + y0) == (20, 72) and fc.max() > 50
+@pytest.mark.parametrize("name,box", [
+    ("10004040_perion_0", (6, 72, 243, 85)), ("42_snail3_0", (7, 72, 199, 101)),
+    ("10003061_line1_area1_0", (6, 72, 266, 66)),
+    ("10004050_east_rocky_0", (7, 72, 171, 128)),             # the 125 px canvas, centred in a wider window
+    ("10005063_ant_tunnel4_lower_0", (6, 72, 219, 112)),      # 112 rows of a 172-row canvas
+    ("50_split_road_crowd_0", (7, 72, 235, 68))])             # a marker on the frame row: 235 of 239
+def test_the_window_is_measured_on_screen(name, box):
+    assert find_window(frame(name)) == Window(*box)
+
+
+def test_a_window_is_found_wherever_it_sits():
+    assert find_window(_window(_art(1)[..., :3], at=(20, 90))) == Window(20, 90, 140, 60)
+
+
+def test_no_window_on_a_blank_or_covered_screen():
+    assert find_window(np.full((768, 1366, 3), 90, np.uint8)) is None
+    assert find_window(frame("covered_inventory_0")) is None
+
+
+def test_scrolled_window_live_frame(ident):
+    """Lower right of Ant Tunnel IV: the window shows rows 60-171 of the 172 (no map of that size fits any more)."""
+    m = ident.identify(frame("10005063_ant_tunnel4_lower_0"))
+    assert m.map_id == 10005063, m
+    assert m.score > 0.8 and m.score - m.runner_score >= 0.3
+    assert m.origin == (6, 72 - 60)                            # the canvas' top sits above the window
+
+
+@pytest.mark.parametrize("row", [0, 30, 60])
+def test_each_scroll_position_of_a_tall_canvas(row):
+    """At the top, in the middle, at the bottom: same map; a same-width map of another picture doesn't get it."""
+    tall, other = _art(1, 172, 140), _art(2, 172, 140)
+    ident = MapIdentifier({1: tall, 2: other})
+    m = ident.identify(_window(tall[row:row + 112, :, :3]))
+    assert m.map_id == 1 and m.origin == (10, 72 - row), m
+
+
+def test_a_canvas_shorter_than_the_window_never_fits():
+    big, short = _art(1, 100, 140), _art(4, 60, 140)
+    m = MapIdentifier({1: big, 2: short}).identify(_window(big[..., :3]))
+    assert m.map_id == 1 and all(k != 2 for _, k in m.fits)
+
+
+def test_a_map_wider_than_the_old_search_area():
+    """Henesys is 431 px wide; it couldn't be found while the search stopped at x 330."""
+    wide = _art(5, 74, 431)
+    m = MapIdentifier({1: wide, 2: _art(6, 74, 431)}).identify(_window(wide[..., :3], at=(6, 72)))
+    assert m.map_id == 1
+
+
+def _strips_window(canvas_bgr, width, left, right, at=(6, 72)):
+    """_window with a window wider than the canvas: it sits centred, see-through strips of brightness `left` / `right`
+    beside it (live: The Rain-Forest East of Henesys, one strip ~190 over light scenery, the other ~150)."""
+    h, w = canvas_bgr.shape[:2]
+    f = _window(np.zeros((h, width, 3), np.uint8), at)
+    x, y = at
+    c = x + (width - w) // 2
+    f[y:y + h, x:c], f[y:y + h, c + w:x + width] = left, right
+    f[y:y + h, c:c + w] = (0.5 * canvas_bgr + 40).astype(np.uint8)
+    return f
+
+
+@pytest.mark.parametrize("left,right", [(190, 150), (150, 190)])
+def test_a_narrow_canvas_in_a_wider_window(left, right):
+    a, b = _art(1, 51, 144), _art(2, 51, 144)
+    m = MapIdentifier({1: a, 2: b}).identify(_strips_window(b[..., :3], 232, left, right))
+    assert m.map_id == 2 and m.origin == (50, 72), m
+
+
+def test_a_narrow_canvas_without_any_edge_is_refused_not_guessed():
+    """Strips as dim as the picture (not seen live; the old frame check refused it too): no answer beats a wrong one."""
+    a, b = _art(1, 51, 144), _art(2, 51, 144)
+    assert MapIdentifier({1: a, 2: b}).identify(_strips_window(b[..., :3], 232, 120, 120)).map_id is None
+
+
+def test_a_canvas_of_the_wrong_width_has_no_edges_at_the_centre():
+    a, b = _art(1, 51, 144), _art(2, 51, 100)
+    m = MapIdentifier({1: a, 2: b}).identify(_strips_window(a[..., :3], 232, 150, 190))
+    assert m.map_id == 1 and all(k != 2 for _, k in m.fits)
 
 
 def test_picks_the_right_one_of_two_same_size_maps():
@@ -153,6 +227,14 @@ def test_identical_minimaps_with_different_names_pick_the_named_one(shown):
     names = {1: "Line 1 <Area 1>", 2: "Line 1 <Area 2>"}
     m = MapIdentifier({1: a, 2: a.copy()}, names=names).identify(_named_window(a[..., :3], names[shown]))
     assert m.map_id == shown and m.why == "told apart by the name"
+
+
+@pytest.mark.skipif(not NAME_FONT.exists(), reason="needs Arial Bold")
+def test_tied_scrolled_maps_read_the_name_above_the_window_not_above_the_canvas():
+    a = _art(1, 172, 140)
+    names = {1: "Line 1 <Area 1>", 2: "Line 1 <Area 2>"}
+    m = MapIdentifier({1: a, 2: a.copy()}, names=names).identify(_named_window(a[60:172, :, :3], names[2]))
+    assert m.map_id == 2 and m.why == "told apart by the name"
 
 
 def test_identical_minimaps_with_the_same_name_are_still_refused():

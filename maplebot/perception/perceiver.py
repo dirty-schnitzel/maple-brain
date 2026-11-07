@@ -106,11 +106,14 @@ class Perceiver:
 
     def _locate(self, frame, obs):
         """Minimap dot -> obs.dot; with a locator also our map position, platform and rope. The minimap canvas is
-        searched (3.6 ms) until found, at most about once a second (window closed / covered)."""
+        searched (3.6 ms) until found, at most about once a second (window closed / covered). A window showing only
+        part of the canvas scrolls with us: followed every tick, before the dot is read against it."""
         loc = self.locator
-        if loc is not None and loc.origin is None and obs.t - self.canvas_try >= 1.0:
+        if loc is not None and (loc.origin is None or loc.lost) and obs.t - self.canvas_try >= 1.0:
             self.canvas_try = obs.t
             loc.calibrate(frame)
+        if loc is not None:
+            loc.follow(frame)
         obs.dot = hud.minimap_dot(frame, loc.dot_box() if loc is not None else hud.MINIMAP_BOX)
         w = loc.where(obs.dot) if loc is not None else None
         if w is not None:
