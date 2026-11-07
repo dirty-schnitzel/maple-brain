@@ -203,7 +203,9 @@ def test_a_tooltip_from_the_cursor_is_not_taken_for_mp_potions():
     """pkg_sprites7b frame 300: the cursor on Del opened the potion's tooltip over End/PgDn."""
     f = img("quickslot_tooltip_over_end.jpg")
     assert hud.slot_filled(f, "end") is True                                  # the raw reading is fooled...
-    p = Perceiver(Config(), TAG)
+    cfg = Config()
+    cfg.keys.hp_potion, cfg.keys.mp_potion = "delete", "end"                  # where these screenshots have them
+    p = Perceiver(cfg, TAG)
     for i in range(5):
         p.observe(img("quickslot_hp_potions_4.jpg"), i * 0.05)                # End empty before
     obs = p.observe(f, 0.3, cursor=(990, 678))                                # ...cursor over the slots: skipped

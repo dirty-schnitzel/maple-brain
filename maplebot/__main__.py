@@ -1,4 +1,4 @@
-"""python -m maplebot run <out_dir> [--seconds 60] [--attack space] [--jump shift]
+"""python -m maplebot run <out_dir> [--seconds 60] [--attack KEY] [--jump shift]
    python -m maplebot assets build [--export DIR]   (game data from the client export, see assets/README.md)
 
 Must run elevated (the game is elevated; Windows drops simulated keys from a lower-integrity process).
@@ -7,6 +7,8 @@ import argparse
 import sys
 from pathlib import Path
 
+from .config import Keys
+
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="maplebot")
@@ -14,10 +16,10 @@ def main(argv=None) -> int:
     r = sub.add_parser("run", help="hunt live (elevated)")
     r.add_argument("out", type=Path)
     r.add_argument("--seconds", type=float, default=60)
-    r.add_argument("--attack", default="space")
-    r.add_argument("--basic-attack", default="c", help="plain attack used while out of MP and MP potions")
-    r.add_argument("--jump", default="shift")
-    r.add_argument("--pickup", default="z")
+    r.add_argument("--attack", default=Keys.attack)
+    r.add_argument("--basic-attack", default=Keys.basic_attack, help="plain attack used while out of MP and MP potions")
+    r.add_argument("--jump", default=Keys.jump)
+    r.add_argument("--pickup", default=Keys.pickup)
     r.add_argument("--hp-stop", type=float, default=0.45)
     r.add_argument("--map", type=int, default=None, help="Classic World map id (42 = Snail Hunting Ground III); "
                    "default: recognised from the minimap at the start")
@@ -29,22 +31,22 @@ def main(argv=None) -> int:
     r.add_argument("--weapon", default="spear", help="brain v2: weapon type for the reach (spear, poleArm, ...)")
     r.add_argument("--no-focus", action="store_true", help="don't bring the game to front; wait for you to")
     r.add_argument("--frames-every", type=int, default=3, help="save every Nth frame (1 = all, for tracker tests)")
-    v = sub.add_parser("serve", help="stay loaded; F7 starts hunting, F8 stops (elevated, game focused)")
+    v = sub.add_parser("serve", help=f"stay loaded; {Keys.start.upper()} starts hunting, {Keys.stop.upper()} stops (elevated, game focused)")
     v.add_argument("out", type=Path, nargs="?", default=Path("runs/manual"), help="one folder per hunt in here")
-    v.add_argument("--attack", default="space")
-    v.add_argument("--basic-attack", default="c", help="plain attack used while out of MP and MP potions")
-    v.add_argument("--jump", default="shift")
-    v.add_argument("--pickup", default="z")
+    v.add_argument("--attack", default=Keys.attack)
+    v.add_argument("--basic-attack", default=Keys.basic_attack, help="plain attack used while out of MP and MP potions")
+    v.add_argument("--jump", default=Keys.jump)
+    v.add_argument("--pickup", default=Keys.pickup)
     v.add_argument("--hp-stop", type=float, default=0.45)
-    v.add_argument("--map", type=int, default=None, help="fix the map; default: recognised from the minimap on every F7")
+    v.add_argument("--map", type=int, default=None, help="fix the map; default: recognised from the minimap on every start")
     v.add_argument("--loot", action="store_true", help="pick up drops (off: a pet does it)")
     v.add_argument("--loot-sight", action="store_true", help="experimental: loot what's seen on the ground")
     v.add_argument("--gpu", action="store_true", help="find mobs on the GPU (whole screen; needs torch + CUDA)")
     v.add_argument("--tracker", action="store_true", help="the brain uses the tracker's tracks (needs --gpu)")
     v.add_argument("--brain", choices=["v1", "v2"], default="v1", help="v2 = brain-v2 combat (implies --gpu)")
     v.add_argument("--weapon", default="spear", help="brain v2: weapon type for the reach (spear, poleArm, ...)")
-    v.add_argument("--start-key", default="f7")
-    v.add_argument("--stop-key", default="f8")
+    v.add_argument("--start-key", default=Keys.start)
+    v.add_argument("--stop-key", default=Keys.stop)
     v.add_argument("--frames", action="store_true", help="also save every 3rd frame (~50 MB per 10 min)")
     v.add_argument("--frames-every", type=int, default=None, help="save every Nth frame (implies --frames; 1 = all)")
     v.add_argument("--observe", action="store_true", help="record only: you play, the bot presses no keys")
@@ -54,7 +56,7 @@ def main(argv=None) -> int:
     g.add_argument("--to", type=float, nargs="+", default=None, metavar=("PLATFORM", "X"),
                    help="one trip to this platform id (and x on it), then stop")
     g.add_argument("--seconds", type=float, default=180)
-    g.add_argument("--jump", default="shift")
+    g.add_argument("--jump", default=Keys.jump)
     g.add_argument("--hp-stop", type=float, default=0.45)
     g.add_argument("--map", type=int, default=None)
     g.add_argument("--seed", type=int, default=None)
@@ -126,8 +128,9 @@ def main(argv=None) -> int:
         for k in (a.start_key, a.stop_key):
             if k not in VK:
                 ap.error(f"hotkeys must be F1-F12, got {k!r}")
+        cfg.keys.start, cfg.keys.stop = a.start_key, a.stop_key
         every = a.frames_every if a.frames_every is not None else (3 if a.frames else 0)
-        return serve(a.out, cfg, a.start_key, a.stop_key, frames=every, observe=a.observe)
+        return serve(a.out, cfg, frames=every, observe=a.observe)
     return 2
 
 

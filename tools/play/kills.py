@@ -1,10 +1,13 @@
-"""Kills by LAST HIT: a mob counts as ours if our attack (space/c) came <= W s (default 0.8, use 1.0) before it
+"""Kills by LAST HIT: a mob counts as ours if our attack (Keys.swing_keys) came <= W s (default 0.8, use 1.0) before it
 turned dying, with it <= 130 px in front of us at that swing, same level.  usage: kills.py RUN [W]"""
 import json, sys, bisect, collections
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))          # run as a plain script too
+from maplebot.config import Keys
 d=sys.argv[1]; W=float(sys.argv[2]) if len(sys.argv)>2 else 0.8
 ticks=[json.loads(x) for x in open(d+'/ticks.jsonl')]
 keys=[json.loads(x) for x in open(d+'/keys.jsonl')]
-att=[k['t'] for k in keys if k['key'] in ('space','c') and k['down']]
+att=[k['t'] for k in keys if k['key'] in Keys().swing_keys and k['down']]
 turns=[(k['t'],k['key']) for k in keys if k['key'] in ('left','right') and k['down']]
 tt=[t for t,_ in turns]
 def facing(t):

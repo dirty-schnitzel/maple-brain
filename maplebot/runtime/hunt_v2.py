@@ -11,6 +11,7 @@ from ..brain.brain_v2 import BrainV2
 from ..keyboard import FocusLost, foreground_title
 from ..nav.selfstate import SelfTracker
 from ..perception.perceiver import Perceiver
+from .exp_meter import ExpMeter
 from .keys import KeyDriver
 
 
@@ -32,6 +33,7 @@ def hunt_v2(rig, rec, t0: float, until) -> str:
     perceiver = Perceiver(cfg, rig.self_tag, rig.sprites, lie_detector=rig.lie, locator=rig.locator)
     me = SelfTracker(nav, cfg.nav)
     brain = BrainV2(cfg, nav, hz, log=say)
+    exp = ExpMeter()
     s0, m0 = brain.reach.vs(next(iter(m.mob_id for m in rig.sprites.mobs), None))
     say(f"brain v2 (combat): weapon {cfg.combat.weapon}, sure reach {s0.lo:.0f}..{s0.hi:.0f} px in front "
         f"(maybe {m0.lo:.0f}..{m0.hi:.0f}), attack {cfg.keys.attack} / plain {cfg.keys.basic_attack}")
@@ -51,6 +53,8 @@ def hunt_v2(rig, rec, t0: float, until) -> str:
                 t = tg - t0
                 obs = perceiver.observe(frame, t, screen.cursor())
                 tp = time.perf_counter()
+                if line := exp.update(t, obs.exp_points):
+                    say(line)
                 s = me.update(t, obs.me_map, obs.map_pos, driver.want)
                 if obs.lie_detector:
                     driver.release_all()
@@ -78,8 +82,10 @@ def hunt_v2(rig, rec, t0: float, until) -> str:
             except FocusLost:
                 driver.release_all()
                 say(f"PAUSED: game not focused (foreground: '{foreground_title()}'); keys released")
+                paused = time.perf_counter()
                 while not kb.focused() and until() is None:
                     time.sleep(hz.vary(0.2))
+                exp.pause(time.perf_counter() - paused)
                 if kb.focused():
                     say("resumed")
                     brain.reset(driver)
@@ -98,6 +104,7 @@ def hunt_v2(rig, rec, t0: float, until) -> str:
     elapsed = time.perf_counter() - start
     st = brain.stats
     say(status)
+    say(exp.summary())
     say(f"kills (last hit) {st['kills']} = {60 * st['kills'] / max(elapsed, 1):.1f}/min; swings {st['swings']} "
         f"({st['swings'] / max(st['kills'], 1):.1f} per kill); targets {st['targets']}, trips {st['trips']}, "
         f"turns {st['turns']}")

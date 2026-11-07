@@ -1,6 +1,11 @@
 """Behaviour in the first N seconds of runs (what preceded the Lie Detectors). usage: early_profile.py N RUN..."""
 import json, re, sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))          # run as a plain script too
+from maplebot.config import Keys
+
+SWING_KEYS = Keys().swing_keys
 N = float(sys.argv[1])
 print(f"{'run':14s} {'Z':>4s} {'Zmax5s':>6s} {'bursts':>6s} {'turns':>5s} {'walk>2s':>7s} {'farEng':>6s} {'swingS':>6s} {'stepbk':>6s} {'stand%':>6s} {'kills':>5s} {'map':>4s}")
 for run in sys.argv[2:]:
@@ -29,7 +34,7 @@ for run in sys.argv[2:]:
             if walk_start is not None and a["obs"]["t"] - walk_start > 2.0:
                 long_walks += 1
             walk_start = None
-        swing += dt if held == "space" else 0
+        swing += dt if held in SWING_KEYS else 0
         stand += dt if held is None else 0
     dur = T[-1]["obs"]["t"] - t0
     zmax = max((sum(1 for z in zs if s <= z < s + 5) for s in zs), default=0)

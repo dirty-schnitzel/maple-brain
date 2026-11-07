@@ -1,14 +1,18 @@
-"""Reach of our attack, measured on a recording: for every attack press (space / c), the screen offset (dx in front,
+"""Reach of our attack, measured on a recording: for every attack press (Keys.swing_keys), the screen offset (dx in front,
 dy = mob feet - our feet, y down) of each mob that turned hit/dying 0.15..0.9 s later (HIT) vs mobs that stayed
 live (MISS: out of reach, or not reached by a 1-mob skill). Screen px on both sides -> no camera error.
-usage: reach.py RUN [--keys space,c]"""
+usage: reach.py RUN [--keys KEY,KEY]"""
 import bisect
 import collections
 import json
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))          # run as a plain script too
+from maplebot.config import Keys
 
 
-def main(run, keys=("space", "c")):
+def main(run, keys=Keys().swing_keys):
     ticks = [json.loads(x) for x in open(f"{run}/ticks.jsonl")]
     kl = [json.loads(x) for x in open(f"{run}/keys.jsonl")]
     att = [k["t"] for k in kl if k["key"] in keys and k["down"]]
@@ -58,5 +62,5 @@ def main(run, keys=("space", "c")):
 
 if __name__ == "__main__":
     a = sys.argv[1:]
-    k = a[a.index("--keys") + 1].split(",") if "--keys" in a else ("space", "c")
+    k = a[a.index("--keys") + 1].split(",") if "--keys" in a else Keys().swing_keys
     main(a[0], tuple(k))

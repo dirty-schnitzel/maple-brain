@@ -17,6 +17,7 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+from maplebot.config import Keys                            # noqa: E402
 from maplebot.nav.navmap import NavMap                      # noqa: E402
 from maplebot.nav.selfstate import SelfTracker              # noqa: E402
 from maplebot.perception.camshift import PlatformShift      # noqa: E402
@@ -102,9 +103,9 @@ def report(out, nav, keys, n_fallback):
     cause = {"jump": 0, "drop": 0, "rope_off": 0, "edge/other": 0}
     for a, b, after in eps:
         ks = [k for t, k in downs if a["t"] - 0.6 <= t <= a["t"] + 0.05]
-        if "shift" in ks and "down" in ks:
+        if Keys.jump in ks and "down" in ks:
             cause["drop"] += 1
-        elif "shift" in ks:
+        elif Keys.jump in ks:
             cause["jump"] += 1
         elif any(p["state"] == "rope" for p in out if a["t"] - 0.5 <= p["t"] < a["t"]):
             cause["rope_off"] += 1
@@ -113,8 +114,8 @@ def report(out, nav, keys, n_fallback):
     lens = [b["t"] - a["t"] for a, b, _ in eps]
     print(f"air episodes {len(eps)}: started by {cause}; length s {_pct(lens)}; ended "
           f"{ {k: sum(x['state'] == k for _, _, x in eps) for k in ('ground', 'rope')} }")
-    # grabs: shift then up within 0.5 s -> rope within 1 s?
-    grabs = [t for t, k in downs if k == "up" and any(k2 == "shift" and 0 <= t - t2 <= 0.5 for t2, k2 in downs)]
+    # grabs: jump then up within 0.5 s -> rope within 1 s?
+    grabs = [t for t, k in downs if k == "up" and any(k2 == Keys.jump and 0 <= t - t2 <= 0.5 for t2, k2 in downs)]
     ok = sum(any(e["state"] == "rope" and 0 <= e["t"] - t <= 1.0 for e in out) for t in grabs)
     print(f"grabs (shift then up): {len(grabs)}, on a rope within 1 s: {ok}")
 

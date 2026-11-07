@@ -4,12 +4,20 @@ from dataclasses import dataclass, field
 
 @dataclass
 class Keys:
-    attack: str = "space"     # the main attack (Power Strike: costs MP)
+    attack: str = "q"         # the main attack (Power Strike: costs MP)
     basic_attack: str = "c"   # plain attack, no MP: used while out of MP with no MP potions left (the user)
     jump: str = "shift"
     pickup: str = "z"
     hp_potion: str = "delete"  # not on the test character yet
     mp_potion: str = "end"
+    start: str = "f7"         # serve: starts a hunt (F1-F12)
+    stop: str = "f8"          # serve: stops it
+    old_attacks: tuple = ("space",)   # attack keys of older recordings: only the tools reading runs/ use these
+
+    @property
+    def swing_keys(self) -> tuple:
+        """Every key that means a swing in a recording (tools/combat, tools/play)."""
+        return (self.attack, self.basic_attack, *self.old_attacks)
 
 
 @dataclass
@@ -126,7 +134,7 @@ class Timing:
     idle_walk_min_s: float = 2.0        # nothing to attack: walk a random 2-3 s, then stand still for a spawn
     idle_walk_max_s: float = 3.0        # (the user, after pkg_potions1's lie detector test)
     idle_looks_before_patrol: int = 3
-    # jumping (keys.jump, shift). Map 10001070 Rain-Forest East of Henesys: 60 px pit walls - the user, 2026-11-02
+    # jumping (keys.jump). Map 10001070 Rain-Forest East of Henesys: 60 px pit walls - the user, 2026-11-02
     jump_press_s: float = 0.07          # how long jump is held per press (varied)
     jump_cooldown_s: float = 0.8        # one jump is ~0.6 s in the air: no new press before this
     step_jump_min: float = 12           # a jumpable step ahead (map px from its wall): jump at a random distance in

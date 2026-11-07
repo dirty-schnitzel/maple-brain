@@ -35,7 +35,7 @@ def main(run, weapon="spear"):
     ticks = [json.loads(x) for x in open(f"{run}/ticks.jsonl")]
     sst = {r["n"]: r for r in map(json.loads, open(f"{run}/selfstate.jsonl"))}
     kl = [json.loads(x) for x in open(f"{run}/keys.jsonl")]
-    att = sorted(k["t"] for k in kl if k["key"] in ("space", "c") and k["down"])
+    att = sorted(k["t"] for k in kl if k["key"] in Config().keys.swing_keys and k["down"])
     turns = [(k["t"], 1 if k["key"] == "right" else -1) for k in kl if k["key"] in ("left", "right") and k["down"]]
     tt = [t for t, _ in turns]
     cfg = Config()

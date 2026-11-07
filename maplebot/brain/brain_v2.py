@@ -6,6 +6,7 @@ driver = runtime/keys.KeyDriver or a fake):
     reflexes   (v2/reflexes.py)   potions, HP stop, which attack key
     ledger     (v2/ledger.py)     track history, kills by our last hit, contested mobs, swing outcomes
     scene      (v2/scene.py)      us + every live mob relative to us, once per tick; Facing
+    breaks     (v2/breaks.py)     short beats after a fight, a real break every few minutes at a safe spot
     targeting  (v2/targeting.py)  one score per mob = a sum of named terms; keep / switch / none; locked mid-fight
     weapon     (v2/combat.py)     WHEN TO HIT: ready -> pressure (hold until the engaged mob dies) -> let go
     footwork   (v2/combat.py)     fighting here: a rule table (turn / brace / wait / fight / approach / stand)
@@ -14,19 +15,21 @@ driver = runtime/keys.KeyDriver or a fake):
 The attack logic end to end (reach -> scene -> targeting -> here -> weapon/footwork -> ledger): v2/combat.py's doc.
 
 The decision each tick, in order (step):
+    a beat / break going on, or one starting now (never mid-fight, never in the air) -> BREAK: no keys
     target on our platform, or the one we're engaged on and still in keep reach  -> LOCAL: weapon + footwork
     the weapon still finishing a fight (reacting to a death)                     -> LOCAL: stand, weapon only
     target elsewhere                                                            -> TRAVEL; hold the attack only while
                                                                                    the trip is walking
     nothing to fight                                                            -> ROAM / IDLE
 
-Modes (ticks log): LOCAL (fighting here) / TRAVEL (going to the target) / ROAM / IDLE.
+Modes (ticks log): LOCAL (fighting here) / TRAVEL (going to the target) / ROAM / IDLE / BREAK.
 How to change behaviour: a score term, a rule in a table, a state, or a parameter with its data source - never a
 special case in here.
 """
 import collections
 
 from .reach import Reach
+from .v2.breaks import Breaks
 from .v2.combat import Footwork, Hands, Weapon
 from .v2.ledger import Ledger
 from .v2.reflexes import Reflexes
@@ -45,9 +48,10 @@ class BrainV2:
         self.reflexes = Reflexes(cfg, hz, self.stats, self.say)
         self.ledger = Ledger(self.reach, self.stats, self.say)
         self.targeting = Targeting(nav, hz, self.ledger, self.stats, self.say)
-        self.weapon = Weapon(cfg, hz, self.reflexes, self.ledger, self.stats)
+        self.weapon = Weapon(cfg, hz, self.reflexes, self.ledger, self.stats, self.face)
         self.footwork = Footwork(nav, hz, self.face, self.stats)
         self.trips = Trips(nav, hz, {"jump": cfg.keys.jump}, cfg.keys.jump, self.targeting, self.stats, self.say)
+        self.breaks = Breaks(nav, hz, self.stats, self.say)
         self.mode = "IDLE"
         self.scene = None
         self.hands = None
@@ -90,12 +94,17 @@ class BrainV2:
             driver.release_all()
             return stop
         if s is None:
-            self.weapon.release(driver)
+            self.weapon.release(driver, now)
             driver.hold(set())
             return None
         self.ledger.update(now, obs)
         self.face.from_keys(getattr(driver, "want", None) or set(), now)
-        sc = self.scene = Scene.build(now, obs, s, self.face.dir, self.reach)
+        sc = self.scene = Scene.build(now, obs, s, self.face.dir, self.reach, self.face.turning(now))
+        if self.breaks.resting(sc, self.weapon.state == "pressure", obs.hp_now):
+            self.trips.end(driver)
+            driver.hold(set())
+            self.mode = "BREAK"
+            return None
         tg = self.targeting
         tg.lock = self.weapon.engaged if self.weapon.state == "pressure" else None
         if tg.due(now) and s.state != "air" and (s.state == "ground" or not self.trips.running):
@@ -132,5 +141,6 @@ class BrainV2:
         return {"mode": self.mode, "target": tg.target, "swing": self.weapon.last,
                 "cost": None if tg.cost is None else round(tg.cost, 2), "standoff": round(tg.standoff),
                 "facing": self.face.dir, "weapon": self.weapon.state, "footwork": self.footwork.state,
+                "rest": self.breaks.kind,
                 "travel": None if tr is None else {"dst": tr.dst, "move": tr.move.kind if tr.move else None,
                                                    "phase": tr.move.phase if tr.move else None}}

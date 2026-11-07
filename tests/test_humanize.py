@@ -5,7 +5,7 @@ from maplebot.brain.brain import Brain
 from maplebot.config import Config, Humanize
 from maplebot.humanize import Humanizer
 
-from test_brain import mob, obs
+from test_brain import PICKUP, mob, obs
 
 
 def test_vary_stays_within_the_jitter_band_and_is_never_constant():
@@ -55,7 +55,7 @@ def test_brain_pickup_presses_have_varied_spacing():
     brain._go_loot(obs(0.0), 5, "test", dying=False)
     t, z_times = 0.0, []
     while brain.mode == "LOOT" and t < 4:
-        if any(isinstance(a, Tap) and a.key == "z" for a in brain.step(obs(t))):
+        if any(isinstance(a, Tap) and a.key == PICKUP for a in brain.step(obs(t))):
             z_times.append(t)
         t += 0.01                                                            # fine ticks: see the real spacing
     gaps = [round(b - a, 2) for a, b in zip(z_times, z_times[1:])]

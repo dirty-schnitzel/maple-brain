@@ -1,5 +1,6 @@
 """brain-v2 M2 (combat): reach from the client's attack boxes, WHEN TO HIT, targets, reflexes, and a hunt in the
 movement sim on the real Line 1 map with fake mobs (walk, get hit, die, respawn)."""
+import collections
 import random
 from pathlib import Path
 from types import SimpleNamespace
@@ -8,6 +9,8 @@ import pytest
 
 from maplebot.brain.brain_v2 import BrainV2
 from maplebot.brain.reach import SWING_LAND_S, Reach, body, boxes_vs
+from maplebot.brain.v2.breaks import Breaks
+from maplebot.brain.v2.scene import Scene
 from maplebot.config import Config
 from maplebot.humanize import Humanizer
 from maplebot.nav.navmap import NavMap
@@ -16,6 +19,9 @@ from maplebot.nav.sim import Sim, SimDriver
 
 ASSETS = Path(__file__).resolve().parents[1] / "assets" / "mcw"
 BUBBLING = 14
+ATTACK = Config().keys.attack
+BASIC, PICKUP = Config().keys.basic_attack, Config().keys.pickup
+HP_POTION, MP_POTION = Config().keys.hp_potion, Config().keys.mp_potion
 
 
 @pytest.fixture(scope="module")
@@ -73,7 +79,7 @@ def test_swings_at_a_mob_in_reach_in_front(line1):
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273)], s)
-    assert "space" in drv.want and br.stats["swings"] == 1
+    assert ATTACK in drv.want and br.stats["swings"] == 1
 
 
 def test_no_swing_out_of_reach_walks_toward_it_instead(line1):
@@ -81,7 +87,7 @@ def test_no_swing_out_of_reach_walks_toward_it_instead(line1):
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1700, 198, 273)], s)
-    assert not _taps(drv, "space") and drv.want == {"right"}
+    assert not _taps(drv, ATTACK) and drv.want == {"right"}
 
 
 def test_predicts_a_mob_walking_into_reach(line1):
@@ -90,7 +96,7 @@ def test_predicts_a_mob_walking_into_reach(line1):
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     hi = br.reach.vs(BUBBLING)[0].hi
     _tick(br, drv, 0.0, [_mob(1, 1400 + hi + 20, 198, 273, vx=-80)], s)    # 20 px out now, 16 px in when it lands
-    assert "space" in drv.want
+    assert ATTACK in drv.want
     assert -80 * SWING_LAND_S < -20
 
 
@@ -99,9 +105,9 @@ def test_a_mob_behind_us_turns_us_round_first(line1):
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1330, 198, 273)], s)
-    assert not _taps(drv, "space") and _taps(drv, "left") and br.facing == -1
+    assert not _taps(drv, ATTACK) and _taps(drv, "left") and br.facing == -1
     _tick(br, drv, 0.3, [_mob(1, 1330, 198, 273)], s)
-    assert "space" in drv.want
+    assert ATTACK in drv.want
 
 
 def test_never_swings_at_nothing_or_at_dying_mobs(line1):
@@ -118,13 +124,13 @@ def test_holds_while_the_mob_is_knocked_back_and_lets_go_after_it_dies(line1):
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273)], s)
-    assert "space" in drv.want and not _taps(drv, "space") and br.weapon.state == "pressure"
+    assert ATTACK in drv.want and not _taps(drv, ATTACK) and br.weapon.state == "pressure"
     for i in range(1, 8):                             # knocked back: moving away fast, still within the maybe reach
         _tick(br, drv, i * 0.07, [_mob(1, 1480 + 8 * i, 198, 273, vx=220)], s)
-        assert "space" in drv.want, i
+        assert ATTACK in drv.want, i
     for i in range(10):                               # it died: let go within ~0.15-0.35 s
         _tick(br, drv, 0.6 + i * 0.07, [], s)
-    assert "space" not in drv.want and br.weapon.state == "ready"
+    assert ATTACK not in drv.want and br.weapon.state == "ready"
 
 
 def test_no_turning_while_the_attack_is_held(line1):
@@ -132,12 +138,194 @@ def test_no_turning_while_the_attack_is_held(line1):
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273), _mob(2, 1340, 198, 273)], s)
-    assert "space" in drv.want
+    assert ATTACK in drv.want
     _tick(br, drv, 0.07, [_mob(2, 1340, 198, 273)], s)  # the one in front died; the other is behind
     assert not _taps(drv, "left") and br.facing == 1
-    for i in range(2, 12):
+    for i in range(2, 30):
         _tick(br, drv, i * 0.07, [_mob(2, 1340, 198, 273)], s)
     assert br.stats["turns"] == 1 and br.facing == -1  # let go, turned, and (now in front) holds at it again
+    assert ATTACK in drv.want
+
+
+def test_turns_only_after_the_swing_is_over(line1):
+    br, drv = _brain(line1), SimDriver()
+    br.facing = 1
+    s = SelfState(0, 1400, 198, "tag", "ground", 273)
+    _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273)], s)
+    t = 0.07
+    while ATTACK in drv.want:                        # the mob is gone; a new one behind us: let go first
+        _tick(br, drv, t, [_mob(2, 1340, 198, 273)], s)
+        t += 0.07
+    up = t
+    while not _taps(drv, "left") and t < up + 2:
+        _tick(br, drv, t, [_mob(2, 1340, 198, 273)], s)
+        t += 0.07
+    assert 0.6 <= t - up <= 1.0                       # a tap during the swing's tail is lost in the game
+
+
+def test_no_attack_on_top_of_a_turn(line1):
+    br, drv = _brain(line1), SimDriver()
+    br.facing = 1
+    s = SelfState(0, 1400, 198, "tag", "ground", 273)
+    _tick(br, drv, 0.0, [_mob(1, 1330, 198, 273)], s)
+    assert _taps(drv, "left")
+    _tick(br, drv, 0.07, [_mob(1, 1330, 198, 273)], s)
+    assert ATTACK not in drv.want                    # pressed on top of the walk key it can eat the turn
+    _tick(br, drv, 0.25, [_mob(1, 1330, 198, 273)], s)
+    assert ATTACK in drv.want
+
+
+def test_a_dry_hold_means_we_look_the_other_way(line1):
+    br, drv = _brain(line1), SimDriver()
+    br.facing = 1                                     # we think; the game dropped the turn: the mob never reacts
+    s = SelfState(0, 1400, 198, "tag", "ground", 273)
+    t = 0.0
+    while br.stats["dry"] == 0 and t < 3.0:
+        _tick(br, drv, t, [_mob(1, 1480, 198, 273)], s)
+        t += 0.07
+    assert 1.8 <= t <= 2.6 and ATTACK not in drv.want
+    t0 = t
+    while not _taps(drv, "right") and t < t0 + 2:     # once the swing is over: a tap toward it, then press again
+        _tick(br, drv, t, [_mob(1, 1480, 198, 273)], s)
+        t += 0.07
+    assert _taps(drv, "right") and br.facing == 1
+    for i in range(6):
+        _tick(br, drv, t + i * 0.07, [_mob(1, 1480, 198, 273)], s)
+    assert ATTACK in drv.want
+
+
+def test_a_hold_that_knocks_the_mob_back_is_not_dry(line1):
+    br, drv = _brain(line1), SimDriver()
+    br.facing = 1
+    s = SelfState(0, 1400, 198, "tag", "ground", 273)
+    t = 0.0
+    while t < 6.0:                                    # the tracker says "live", but every 0.8 s it jumps 60 px away
+        _tick(br, drv, t, [_mob(1, 1460 + 60 * (int(t / 0.8) % 2 == 0 and (t % 0.8) < 0.07), 198, 273)], s)
+        t += 0.07
+    assert br.stats["dry"] == 0 and ATTACK in drv.want
+
+
+# ---------------------------------------------------------------- breaks
+def _breaks_scene(mobs, s, now, line1):
+    return Scene.build(now, _obs(mobs), s, 1, Reach("spear"))
+
+
+def test_a_beat_after_a_fight_only_with_nothing_near(line1):
+    far, near = _mob(2, 2200, 198, 273), _mob(2, 1500, 198, 273)
+    s = SelfState(0, 1400, 198, "tag", "ground", 273)
+    for mob, want in ((far, True), (near, False)):
+        hits = 0
+        for seed in range(40):
+            b = Breaks(line1, Humanizer(seed=seed), collections.Counter(), lambda m: None)
+            b.resting(_breaks_scene([mob], s, 1.0, line1), True)
+            hits += b.resting(_breaks_scene([mob], s, 1.1, line1), False)
+        assert (0 < hits < 40) if want else hits == 0
+
+
+def test_no_beat_on_the_way_to_a_target(line1):
+    s = SelfState(0, 1400, 198, "tag", "ground", 273)
+    b = Breaks(line1, Humanizer(seed=1), collections.Counter(), lambda m: None)
+    assert not any(b.resting(_breaks_scene([_mob(2, 2200, 198, 273)], s, i * 0.1, line1), False) for i in range(50))
+
+
+def _rope_spot(nav):
+    i, r = max(enumerate(nav.ropes), key=lambda e: e[1].bottom - e[1].top)
+    return SelfState(0, r.x, (r.top + r.bottom) / 2, "tag", "rope", rope=nav.rope_id(i))
+
+
+def test_a_break_stops_on_a_rope_for_5_to_20_s(line1):
+    s = _rope_spot(line1)
+    b = Breaks(line1, Humanizer(seed=3), collections.Counter(), lambda m: None)
+    b.resting(_breaks_scene([], s, 0.0, line1), False)
+    t = b.due + 0.1
+    assert b.resting(_breaks_scene([], s, t, line1), False) and b.kind == "break"
+    start, due = t, b.due
+    while b.resting(_breaks_scene([], s, t, line1), False):
+        t += 0.1
+    assert 5 <= t - start <= 20.2 and b.due > due    # done: the next one 2-5 min on
+
+
+def test_a_rope_break_keeps_the_head_under_the_platform_and_the_feet_over_the_floor_mobs(line1):
+    r = line1.ropes[9]                                # x 2082, 75..181: the short kind, platforms at both ends
+    b = Breaks(line1, Humanizer(seed=3), collections.Counter(), lambda m: None)
+
+    def safe(y, vy=0.0):
+        s = SelfState(0, r.x, y, "tag", "rope", rope=line1.rope_id(9), vy=vy)
+        return b.safe(_breaks_scene([], s, 0.0, line1))
+
+    assert safe(r.top + 69)                           # runs/v2: no hit in 25 s
+    assert not safe(r.top + 47)                       # runs/v2 12:25: head above the platform, 5 hits
+    assert not safe(r.bottom - 10)                    # in reach of the mobs on the floor
+    assert not safe(r.top + 70, vy=-120.0)            # climbing: we'd come to rest 18 px higher
+    assert safe(r.top + 85, vy=-120.0)
+
+
+def test_damage_ends_a_rest_for_good(line1):
+    s = _rope_spot(line1)
+    say = []
+    b = Breaks(line1, Humanizer(seed=3), collections.Counter(), say.append)
+    b.resting(_breaks_scene([], s, 0.0, line1), False, 700)
+    t = b.due + 0.1
+    assert b.resting(_breaks_scene([], s, t, line1), False, 700)
+    assert b.resting(_breaks_scene([], s, t + 1, line1), False, 710)      # HP going up (regen, potion): rest on
+    assert not b.resting(_breaks_scene([], s, t + 2, line1), False, 660)
+    assert b.kind is None and b.due > t + 100 and b.stats["rests_hurt"] == 1
+    assert not b.resting(_breaks_scene([], s, t + 2.1, line1), False, 660)  # not due again: no new break on the spot
+
+
+def test_damage_ends_a_beat(line1):
+    s = SelfState(0, 1400, 198, "tag", "ground", 273)
+    for seed in range(40):
+        b = Breaks(line1, Humanizer(seed=seed), collections.Counter(), lambda m: None)
+        b.resting(_breaks_scene([], s, 1.0, line1), True, 700)
+        if b.resting(_breaks_scene([], s, 1.1, line1), False, 700):
+            assert not b.resting(_breaks_scene([], s, 1.2, line1), False, 650) and b.kind is None
+            return
+    raise AssertionError("no beat in 40 seeds")
+
+
+def test_a_break_never_starts_between_mobs_or_mid_fight(line1):
+    s = SelfState(0, 1400, 198, "tag", "ground", 273)
+    b = Breaks(line1, Humanizer(seed=3), collections.Counter(), lambda m: None)
+    b.resting(_breaks_scene([], s, 0.0, line1), False)
+    late = b.ropes_only_until + 1
+    assert not b.resting(_breaks_scene([_mob(1, 1200, 198, 273), _mob(2, 1600, 198, 273)], s, late, line1), False)
+    assert not b.resting(_breaks_scene([], s, late + 0.1, line1), True)
+    assert b.kind is None
+
+
+def test_a_ground_break_waits_for_the_ropes_first(line1):
+    b = Breaks(line1, Humanizer(seed=3), collections.Counter(), lambda m: None)
+    p = next(p for p in line1.platforms.values() if not any(
+        abs(y - p.y_at((p.left + p.right) / 2)) < 90 and abs(x - (p.left + p.right) / 2) < 160 for x, y in line1.spawns))
+    x = (p.left + p.right) / 2
+    s = SelfState(0, x, p.y_at(x), "tag", "ground", p.id)
+    b.resting(_breaks_scene([], s, 0.0, line1), False)
+    assert not b.resting(_breaks_scene([], s, b.due + 0.1, line1), False)
+    assert b.resting(_breaks_scene([], s, b.ropes_only_until + 0.1, line1), False)
+
+
+def test_a_mob_on_top_of_us_ends_a_ground_break_and_it_stays_due(line1):
+    b = Breaks(line1, Humanizer(seed=3), collections.Counter(), lambda m: None)
+    s = SelfState(0, 1400, 198, "tag", "ground", 273)
+    b.resting(_breaks_scene([], s, 0.0, line1), False)
+    due = b.due
+    b.kind, b.until = "break", due + 30
+    assert not b.resting(_breaks_scene([_mob(1, 1460, 198, 273)], s, due + 1, line1), False)
+    assert b.kind is None and b.due == due
+
+
+def test_keys_go_up_for_a_break_and_the_hunt_resumes(line1):
+    br, drv = _brain(line1), SimDriver()
+    br.facing = 1
+    s = _rope_spot(line1)
+    _tick(br, drv, 0.0, [], s)
+    drv.hold({"up"})
+    _tick(br, drv, br.breaks.due + 0.1, [], s)
+    assert br.mode == "BREAK" and not drv.want
+    end = br.breaks.until + 0.1
+    _tick(br, drv, end, [], s)
+    assert br.mode != "BREAK"
 
 
 def test_swarmed_holds_at_once(line1):
@@ -145,7 +333,7 @@ def test_swarmed_holds_at_once(line1):
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273), _mob(2, 1500, 198, 273)], s)
-    assert "space" in drv.want and not _taps(drv, "space") and br.stats["holds"] == 1
+    assert ATTACK in drv.want and not _taps(drv, ATTACK) and br.stats["holds"] == 1
 
 
 def test_held_attack_survives_knockback_into_the_air_but_not_a_rope(line1):
@@ -154,11 +342,11 @@ def test_held_attack_survives_knockback_into_the_air_but_not_a_rope(line1):
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     mobs = [_mob(1, 1480, 198, 273), _mob(2, 1500, 198, 273), _mob(3, 1530, 198, 273)]
     _tick(br, drv, 0.0, mobs, s)
-    assert drv.want == {"space"}
+    assert drv.want == {ATTACK}
     _tick(br, drv, 0.1, mobs, SelfState(0.1, 1392, 185, "tag", "air"))     # a touch knocked us up and back
-    assert "space" in drv.want                        # Maple attacks in the air: keep holding (runs/v2 09:21: 152 cuts)
+    assert ATTACK in drv.want                        # Maple attacks in the air: keep holding (runs/v2 09:21: 152 cuts)
     _tick(br, drv, 0.2, mobs, SelfState(0.2, 1397, 150, "tag", "rope", rope=-1))
-    assert "space" not in drv.want                    # no attacks on a rope
+    assert ATTACK not in drv.want                    # no attacks on a rope
 
 
 def test_holds_until_the_death_animation_then_lets_go_a_human_reaction_later(line1):
@@ -166,12 +354,12 @@ def test_holds_until_the_death_animation_then_lets_go_a_human_reaction_later(lin
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     t = 0.0
-    while t < 5.0:                                    # 5 s on one tough mob: never let go
-        _tick(br, drv, t, [_mob(1, 1480, 198, 273)], s)
-        assert "space" in drv.want, t
+    while t < 5.0:                                    # 5 s on one tough mob, reacting to the hits: never let go
+        _tick(br, drv, t, [_mob(1, 1480, 198, 273, state="hit" if int(t / 0.8) % 2 else "live")], s)
+        assert ATTACK in drv.want, t
         t += 0.07
     died = t
-    while "space" in drv.want and t < died + 1.0:     # death animation: let go 0.18-0.32 s later
+    while ATTACK in drv.want and t < died + 1.0:     # death animation: let go 0.18-0.32 s later
         _tick(br, drv, t, [_mob(1, 1480, 198, 273, state="dying")], s)
         t += 0.07
     assert 0.18 <= t - died <= 0.32 + 0.15
@@ -186,7 +374,7 @@ def test_after_a_kill_another_mob_in_reach_keeps_the_key_held(line1):
     other = 2 if first == 1 else 1
     for i in range(1, 12):
         _tick(br, drv, i * 0.07, [_mob(first, 1480, 198, 273, state="dying"), _mob(other, 1510, 198, 273)], s)
-        assert "space" in drv.want, i
+        assert ATTACK in drv.want, i
     assert br.weapon.engaged == other and br.stats["held_on"] == 1
 
 
@@ -206,7 +394,7 @@ def test_out_of_mp_without_potions_uses_the_plain_attack(line1):
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273)], s, mp=0.01, mp_potions=False)
-    assert "c" in drv.want and "space" not in drv.want
+    assert BASIC in drv.want and ATTACK not in drv.want
 
 
 # ---------------------------------------------------------------- reflexes
@@ -214,7 +402,7 @@ def test_potions_and_hp_stop(line1):
     br, drv = _brain(line1), SimDriver()
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     assert _tick(br, drv, 0.0, [], s, hp=0.3, mp=0.05) is None
-    assert _taps(drv, "delete") and _taps(drv, "end")
+    assert _taps(drv, HP_POTION) and _taps(drv, MP_POTION)
     assert _tick(br, drv, 0.1, [], s, hp=0.3, hp_potions=False) is not None
 
 
@@ -312,14 +500,14 @@ def _hunt(nav, seconds, seed, start=(273, 1400)):
             flips.append(t)
             facing = d
         pressed = keys - prev_keys
-        if "space" in pressed:
+        if ATTACK in pressed:
             repeat_ok = True
         elif pressed:                                             # another key went down: the held attack's
             repeat_ok = False                                     # repeat stops (like the game, runs/v2 09:53)
-        if "space" in keys and (not down or (repeat_ok and t >= next_auto)):   # a press swings; held (and still
+        if ATTACK in keys and (not down or (repeat_ok and t >= next_auto)):   # a press swings; held (and still
             mobs.swing(t, facing, sim.b.x, sim.b.y)                           # the last key) every 0.6 s
             next_auto, swing_t = t + 0.6, t
-        down = "space" in keys
+        down = ATTACK in keys
         prev_keys = keys
         b = sim.step(keys, 0.005)
         mobs.step(t, 0.005)
@@ -402,11 +590,11 @@ def test_weapon_states_ready_pressure_got_away(line1):
     br, drv = _brain(line1), SimDriver()
     h = Hands(drv)
     assert br.weapon.step(_scene(line1, [_mob(1, 1480, 198, 273)]), _obs(), h, target=1)
-    assert br.weapon.state == "pressure" and br.weapon.engaged == 1 and "space" in drv.want
+    assert br.weapon.state == "pressure" and br.weapon.engaged == 1 and ATTACK in drv.want
     far = [_mob(1, 1700, 198, 273)]                   # it got away: out of keep reach for 0.3-0.5 s -> let go
     for i in range(1, 10):
         br.weapon.step(_scene(line1, far, now=i * 0.07), _obs(), h, target=1)
-    assert br.weapon.state == "ready" and "space" not in drv.want and br.stats["got_away"] == 1
+    assert br.weapon.state == "ready" and ATTACK not in drv.want and br.stats["got_away"] == 1
 
 
 def test_a_mob_walking_into_us_is_never_predicted_behind_us(line1):
@@ -431,15 +619,15 @@ def test_another_key_mid_hold_gets_a_real_re_press_of_the_attack(line1):
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     mob = [_mob(1, 1480, 198, 273)]
     _tick(br, drv, 0.0, mob, s)
-    assert "space" in drv.want
-    br.hands.tap("delete", 0.08)                      # a potion mid-fight
+    assert ATTACK in drv.want
+    br.hands.tap(HP_POTION, 0.08)                      # a potion mid-fight
     _tick(br, drv, 0.07, mob, s)
-    assert "space" not in drv.want                    # key up ...
+    assert ATTACK not in drv.want                    # key up ...
     t, back = 0.07, None
     while t < 0.6:
         t += 0.035
         _tick(br, drv, t, mob, s)
-        if "space" in drv.want:
+        if ATTACK in drv.want:
             back = t
             break
     assert back is not None and 0.12 <= back - 0.07 <= 0.25 + 0.04 and br.stats["represses"] == 1   # ... and down
@@ -452,4 +640,4 @@ def test_no_walk_keys_while_the_attack_is_held(line1):
     _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273)], s)
     for i in range(1, 5):                             # knocked back to 150 px: maybe reach, not sure - still holding
         _tick(br, drv, i * 0.07, [_mob(1, 1550, 198, 273)], s)
-        assert drv.want == {"space"} and br.footwork.state == "fight"
+        assert drv.want == {ATTACK} and br.footwork.state == "fight"

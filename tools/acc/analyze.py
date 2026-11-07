@@ -4,6 +4,11 @@ walk->swing transitions (target dx at the swing, mob speed, HP lost in the next 
 import json, re, sys, collections
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))          # run as a plain script too
+from maplebot.config import Keys
+
+SWING_KEYS = Keys().swing_keys
+
 run = Path(sys.argv[1])
 rows = [json.loads(l) for l in open(run / "ticks.jsonl", encoding="utf-8")]
 log = open(run / "log.txt", encoding="utf-8").read()
@@ -64,7 +69,7 @@ for i, r in enumerate(rows):
         m = re.match(r"Hold\((\w+)\)", a)
         if m: new = m.group(1)
         if a.startswith("Release"): new = None
-    if held in ("left", "right") and new == "space":
+    if held in ("left", "right") and new in SWING_KEYS:
         d = tdx(o)
         back = [x for x in rows[max(0, i - 6):i] if o["t"] - x["obs"]["t"] >= 0.12 and tdx(x["obs"]) is not None]
         v = None

@@ -1,7 +1,8 @@
 """brain-v2: the per-tick picture every part reads (M0's obs.state): us + every live mob relative to us, computed ONCE.
 
-Nothing here decides anything. `Facing` is the one place that knows which way we look (from the walk keys we hold or
-tap) and when we may turn again (a varied TURN_GAP after the last turn).
+Nothing here decides anything. `Facing` is the one place that knows which way we think we look (from the walk keys we
+hold or tap), when a turn can work (a varied TURN_GAP after the last one, never during a swing's tail) and when a turn
+has landed. It's a BELIEF: nothing on screen confirms it, the game drops direction keys mid-swing / in knockback.
 
 Reach tests (step 2 of the attack logic, described end to end in v2/combat.py):
     in_reach(x)        start a hold: the PREDICTED position (pdx) in front, from the stab's near edge to the SURE
@@ -16,6 +17,8 @@ from ..reach import SWING_LAND_S, Box
 LIVE = ("live", "hit", "hidden")
 UNSEEN_MAX = 1.5                  # s a track may go unseen and still count as there
 TURN_GAP = (0.6, 0.9)             # s between two turns (varied)
+TURN_SETTLE = (0.12, 0.2)         # s after a turn before the attack goes down: pressed on top of the walk key, it can
+                                  # eat the turn (runs/v2 10:19 t=256: walk key 0.07 s, then 5.9 s of swings at nothing)
 
 
 def sign(v):
@@ -50,26 +53,43 @@ class Seen:
 
 
 class Facing:
-    """Which way we look, and when we may turn again: a varied TURN_GAP after the last turn (was max 2 turns per
-    2.5 s: runs/v2 08:40 stood ~14 s in all with the target behind; the user: turning looked fine, don't overfit)."""
+    """Which way we believe we look, and when we may turn again: a varied TURN_GAP after the last turn (was max 2
+    turns per 2.5 s: runs/v2 08:40 stood ~14 s in all with the target behind; the user: turning looked fine, don't
+    overfit) and not before the last swing is over (`swung`). `doubt`: the evidence says we look the other way."""
 
     def __init__(self, hz=None):
         self.dir = 0                                      # +1 right / -1 left / 0 unknown
         self.hz = hz
         self.last_turn, self.gap = -9.0, TURN_GAP[0]
+        self.settled_at = 0.0                             # a turn has landed from then on
+        self.swing_over = 0.0                             # the game takes direction keys again from then on
 
     def face(self, d, now):
         if d and d != self.dir:
             if self.dir:
                 self.last_turn = now
                 self.gap = self.hz.between(*TURN_GAP) if self.hz is not None else TURN_GAP[0]
+                settle = self.hz.between(*TURN_SETTLE) if self.hz is not None else TURN_SETTLE[0]
+                self.settled_at = max(now, self.swing_over) + settle
             self.dir = d
 
     def from_keys(self, keys, now):
         self.face(("right" in keys) - ("left" in keys), now)
 
+    def swung(self, over):
+        """The attack key came up: the swing under way ends at `over`."""
+        self.swing_over = over
+
+    def doubt(self):
+        """We look the other way after all. Footwork's rules then turn us toward the target like any mob behind us
+        (if we were right, that tap only points us where we already look)."""
+        self.dir = -self.dir
+
     def can_turn(self, now) -> bool:
-        return now - self.last_turn >= self.gap
+        return now - self.last_turn >= self.gap and now >= self.swing_over
+
+    def turning(self, now) -> bool:
+        return now < self.settled_at
 
 
 @dataclass
@@ -78,9 +98,10 @@ class Scene:
     s: object                     # SelfState
     facing: int
     mobs: list = field(default_factory=list)          # [Seen], in the tracker's order
+    turning: bool = False                             # a turn hasn't landed yet: no fresh attack press
 
     @classmethod
-    def build(cls, now, obs, s, facing: int, reach) -> "Scene":
+    def build(cls, now, obs, s, facing: int, reach, turning: bool = False) -> "Scene":
         out = []
         for m in obs.mobs:
             if m.get("kind", "mob") != "mob" or m["state"] not in LIVE or m.get("unseen", 0) > UNSEEN_MAX:
@@ -96,7 +117,7 @@ class Scene:
             if sign(pdx) != sign(dx):
                 pdx = 0.0
             out.append(Seen(m, dx, dy, pdx, sure, maybe, here))
-        return cls(now, s, facing, out)
+        return cls(now, s, facing, out, turning)
 
     def get(self, tid):
         return next((x for x in self.mobs if x.id == tid), None)

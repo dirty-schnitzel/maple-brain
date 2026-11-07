@@ -10,6 +10,7 @@ from pathlib import Path
 import pytest
 
 from maplebot.brain.actions import Hold, Release, Tap
+from maplebot.config import Keys
 from maplebot.brain.brain import Brain
 from maplebot.config import Config
 from maplebot.nav.navmap import NavMap
@@ -31,7 +32,7 @@ def jbrain(request):
     return Brain(cfg, navmap=RAIN)
 
 
-def jumps(acts, key="shift"):
+def jumps(acts, key=Keys.jump):
     return [a for a in acts if isinstance(a, Tap) and a.key == key]
 
 

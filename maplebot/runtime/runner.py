@@ -175,7 +175,7 @@ def _setup(cfg: Config, say, focus: bool):
         say("MapleStory window not found")
         return None
     hz = Humanizer(cfg.humanize.jitter, cfg.humanize.seed, cfg.humanize.drift)
-    kb = Keyboard(hwnd, hz, cfg.humanize)
+    kb = Keyboard(hwnd, hz, cfg.humanize, cfg.keys)
     if focus and not kb.focused():
         say("switching to the game in 3s - hands off the keyboard and mouse")
         time.sleep(3)
@@ -202,7 +202,7 @@ def _setup(cfg: Config, say, focus: bool):
 
 class _NoKeys:
     """Executor stand-in for observe mode: the player is at the keys - never press, never release anything
-    (Keyboard.release_all sends key-ups for the arrows/shift/space: it would cut the player's own jumps)."""
+    (Keyboard.release_all sends key-ups for the arrows/shift/attack: it would cut the player's own jumps)."""
     last_move = 0.0
 
     def run(self, action):
@@ -388,12 +388,12 @@ def run(out: Path, seconds: float, cfg: Config, focus: bool = True, frames_every
     return 0 if status == "ok" else 2
 
 
-def serve(out_root: Path, cfg: Config, start_key: str = "f7", stop_key: str = "f8", frames: int = 0,
+def serve(out_root: Path, cfg: Config, frames: int = 0,
           hotkeys: Hotkeys | None = None, poll_s: float = 0.03, max_hunts: int | None = None,
           observe: bool = False) -> int:
-    """Stay loaded: `start_key` starts a hunt, `stop_key` stops it; Ctrl+C in the console quits. Each hunt is
+    """Stay loaded: cfg.keys.start starts a hunt, cfg.keys.stop stops it; Ctrl+C in the console quits. Each hunt is
     recorded in its own folder under `out_root` (log + ticks; every `frames`-th frame, 0 = none; True = 3). `max_hunts`: for tests.
-    `observe`: F7 starts a recording only - the player plays, the bot never touches a key."""
+    `observe`: the start key starts a recording only - the player plays, the bot never touches a key."""
     out_root = Path(out_root)
     out_root.mkdir(parents=True, exist_ok=True)
     t0 = time.perf_counter()
@@ -404,6 +404,7 @@ def serve(out_root: Path, cfg: Config, start_key: str = "f7", stop_key: str = "f
     rig = _setup(cfg, say, focus=False)
     if rig is None:
         return 1
+    start_key, stop_key = cfg.keys.start, cfg.keys.stop
     hk = hotkeys or Hotkeys([start_key, stop_key])
     what = "start recording (observe: the bot presses no keys, yours are recorded)" if observe else "start hunting"
     say(f"ready: {start_key.upper()} = {what}, {stop_key.upper()} = stop, Ctrl+C here = quit "

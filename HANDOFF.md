@@ -97,7 +97,53 @@ Live since then (results further down this section). No loot, no patrol (M3), no
   whether it's used isn't public. LDs also came with no bot running (06:42 today, session 9) -> more like account-level
   suspicion than a live input check. Keep making play human-like; do NOT build anti-cheat evasion (hiding the injected
   flag, hardware input spoofing) - Claude declined that. The ban risk is the user's call.
+- **Wrong-way holds + breaks (2026-11-05, NOT live-tested, not committed yet):** live `dfa25c1` sessions ran 12.8-14.9
+  kills/min. The user: "stuck pressing space when monsters are BEHIND it". Cause: `Facing` is a belief from the walk keys
+  we send; the game drops them mid-swing / in knockback, nothing corrected it (`runs/v2/20261105_101934_3` t=29: mob 54 px
+  "in front" untouched 3 s, then a mob 63 px "behind" got hit; t=256: 5.9 s). Fix: no turn until the swing is over
+  (SWING_TAIL_S after key-up), no attack press on top of a turn (TURN_SETTLE), and Weapon DRY: DRY_S in reach with no
+  reaction in front -> let go, `Facing.doubt`, footwork turns us. Sim: belief wrong 354 s -> 6 s of 942 / 740 s held,
+  11.8 -> 14.2 kills/min. Replay of DRY on 5 real runs (~21 min): 5 fires. Holds believed facing right failed 27 %
+  vs 9 % left: unexplained. Swing period looks like ~0.81 s live, not SWING_PERIOD's 0.55-0.7 (one hold measured).
+  **Breaks** (`brain/v2/breaks.py`, mode BREAK, stats beats / breaks / rest_s): beat = fight over, nothing within 250 px,
+  50 %: 0.5-3 s; break = every 2-5 min, 10-40 s uniform, stops on the next rope mid-climb (no mob within 120 px), ground
+  only after 20-40 s more (no mob within 350 px, no spawn within 150 px). Sim: 12.2 kills/min over 3 min, 9.1-11.7 over 10 min
+  (4 seeds), most breaks on ropes, due-to-start lag 2-292 s: it waits for a rope, doesn't walk to one. If that's too late live,
+  add a trip to the nearest rope. Tune the constants at the top of breaks.py.
+- **Live `runs/v2/20261105_104455_1` (13.4 min, 13.9 kills/min, dry 2, 4 breaks, 45 beats):** the user: stuck on a ladder at
+  the end. Not the breaks: a walk key right after the attack key doesn't move us (swing tail) -> SelfTracker read
+  "hanging on the ladder" (next to one), Travel pressed up on the floor 3.3 s until the trip failed. 4 such freezes in the
+  3 runs replayed, 0 after the fix (`ATTACK_FREEZE_S`). 2 of the 4 breaks ended in a hit 15-31 px under a ladder's top:
+  ROPE_END_PX 30 -> 45. The fix came after that run started; `runs/v2/20261105_105915_2` still has the old tracker.
+- **Breaks, round 2 (the user: "pauses with its head bobbing above the ladder, taking dmg"; "taking damage during break =
+  break over"):** 45 px wasn't enough: head above the platform, mobs walking by hit it (27 live rope breaks: feet < 50 px
+  under the top: 9 of 13 hit; >= 60 px: 1 of 14). Now ROPE_TOP_PX 65 / ROPE_FOOT_PX 35, judged where we come to rest
+  (COAST_S); any HP drop ends a beat / break, next break 2-5 min on (stat `rests_hurt`). Short ropes leave only a 6-9 px
+  window: watch that breaks still happen (sim OK). **Open, not fixed:** `runs/v2/20261105_120425_5` t=1039: 12.6 s of `up`
+  read as rope -12 at its top (x 276, y 75), four trips failed "stuck" until a leap; once in 5 runs.
+- **Ladder 778 (the user: "seems to be an issue with this ladder"):** the tag reads +10 px there, past rope_tol 7: every
+  climb flipped rope / air, Travel let go of `up`; stopped at y 26, 13 px under platform 65's floor, the "camera may be off"
+  floor fallback read that as standing on it: attacks did nothing, head above the platform, mobs hit (`runs/v2/
+  20261105_191331_8` t=98, 8 s; `20261105_122553_6` t=414, 21 s). SelfTracker: stays on a rope within HOVER_TOL unless
+  moving sideways; no floor fallback when tag + minimap both read below the floor next to a ladder. Replay of the last 7
+  runs: ground-below-floor ticks 387 -> 0. Why the tag is +10 on this ladder (map x?) not looked into.
+- **Stuck on a cart (2026-11-06, the user: "stuck on one of the carts of the bottom platform"; NOT live-tested, not committed):**
+  `runs/v2/20261106_162027_12` t=447 (25 s) and t=798 (24 s): a drop from 273 at x 383-388 landed on the end of cart 275
+  (right end 382), read as x 388 y 266: past the footholds = "air", the brain waits to land, Travel's "stuck" can't end
+  a trip in the air. Same at the ends of 7, 19, 46, 56 (`20261106_115104_11` t=108: 52 s on 46). At rest the tag's x creeps
+  to the minimap's value (383.5 -> 388.1), cause not looked into. SelfTracker: still HOVER_S, no rope, at surface height
+  within HOVER_TOL past a platform's end = on that end (`ledge`, x clamped, held until we move). Replay of 108 Line 1 runs:
+  every platform-end spell gone. Left: `20261105_124143_7` t=351 (47 s, x 273 y -38, under rope 1's bottom), `20261106_104547_3`
+  t=943 (4 s, x 254 y 58): other causes, not looked into. Those still have no way out of "air".
+- **Breaks halved (2026-11-06, the user; not live-tested):** BREAK_S 10-40 -> 5-20 s, BEAT_S 0.5-3 -> 0.25-1.5 s. How often they come (BREAK_EVERY_S 2-5 min, BEAT_CHANCE) unchanged.
+- **EXP/hour (2026-11-06, v2 only, not committed):** `runtime/exp_meter.py`: total = HUD points now - at the start (the user: never
+  a sum of rises; party EXP included), level-up keeps the total and drops the small remainder. Every 5 min the log says session +
+  last 5 min EXP/hour; the end of the hunt says total + EXP/hour. Session = one F7-F8 hunt; breaks count as time, focus pauses don't.
+  **Mesos: dropped for now, later "items" feature** (the bottom-right "You have gained mesos (+4)" lines are on screen; v2 doesn't loot).
+- **All game keys + the serve hotkeys are set in ONE place: `Keys` in config.py (2026-11-07, the user); attack is now `q`** (older commands in this file still say `space`). CLI flags only override; `Keyboard` and `serve` read `cfg.keys`; tests take constants from it; tools reading recordings use `Keys.swing_keys` (attack, plain, `old_attacks`) so old `space` runs still read. Left on purpose: arrows (left/right/up/down double as direction names), lookup tables (SCAN, VK, hud.SLOTS), and the retired standalone `tools/hunt*.py`, `experiment1.py`, `bg_input_test.py`. Not live-tested.
 - **START HERE NEXT SESSION:**
+  0. Live check of the two items above: are the wrong-way holds gone (`dry` in stats, should be a few per session), do
+     the pauses look human?
   1. Live check of `dfa25c1`: `..\auto-maple\.venv\Scripts\python -m maplebot serve runs\v2 --brain v2` (F7 / F8,
      elevated, `watch` running; the user runs it). The question: does the attack really stay on until the mob dies,
      mobs kept at spear's length, no hesitation? Analyse with `tools/combat/compare.py RUN...` (compare with

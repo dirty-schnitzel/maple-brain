@@ -9,6 +9,8 @@ import maplebot.runtime.runner as runner
 from maplebot.config import Config
 from maplebot.keyboard import FocusLost
 
+START, STOP = Config().keys.start, Config().keys.stop
+
 FX = Path(__file__).parent / "fixtures"
 
 
@@ -168,21 +170,21 @@ def _serve(tmp_path, monkeypatch, script, focus_script=None, max_hunts=2, observ
     monkeypatch.setattr(runner, "chirp", lambda up: None)
     monkeypatch.setattr(runner.time, "sleep", lambda s: None)
     monkeypatch.setattr(runner, "ASSETS", FX)
-    hk = runner.Hotkeys(["f7", "f8"], key_down=ScriptedKeys(script))
+    hk = runner.Hotkeys([START, STOP], key_down=ScriptedKeys(script))
     code = runner.serve(tmp_path / "manual", Config(), hotkeys=hk, max_hunts=max_hunts, observe=observe)
     return code, holder["kb"], tmp_path / "manual"
 
 
 def test_serve_f7_starts_a_hunt_f8_stops_it_and_f7_starts_another(tmp_path, monkeypatch):
     # F7 down at polls 3-4 and 30-31; F8 down at its polls 20-21 and 45-46 (polled once per tick while hunting)
-    script = lambda name, n: (3 <= n <= 4 or 30 <= n <= 31) if name == "f7" else (20 <= n <= 21 or 45 <= n <= 46)  # noqa: E731
+    script = lambda name, n: (3 <= n <= 4 or 30 <= n <= 31) if name == START else (20 <= n <= 21 or 45 <= n <= 46)  # noqa: E731
     code, kb, out = _serve(tmp_path, monkeypatch, script)
     assert code == 0
     hunts = sorted(out.iterdir())
     assert len(hunts) == 2
     for h in hunts:
         log = (h / "log.txt").read_text(encoding="utf-8")
-        assert "stopped by F8" in log
+        assert f"stopped by {STOP.upper()}" in log
         ticks = (h / "ticks.jsonl").read_text(encoding="utf-8").splitlines()
         assert len(ticks) > 5
         assert not (h / "frames").exists()                                   # manual hunts: no frames by default
@@ -191,8 +193,8 @@ def test_serve_f7_starts_a_hunt_f8_stops_it_and_f7_starts_another(tmp_path, monk
 
 def test_serve_observe_records_but_never_touches_a_key(tmp_path, monkeypatch):
     """Jump measurements (session 11): the player plays while serve records. Not even a release - the keyboard's
-    release_all sends key-ups for arrows/shift/space and would cut the player's own jump."""
-    script = lambda name, n: (name == "f7" and 3 <= n <= 4) or (name == "f8" and 20 <= n <= 21)  # noqa: E731
+    release_all sends key-ups for arrows/shift/attack and would cut the player's own jump."""
+    script = lambda name, n: (name == START and 3 <= n <= 4) or (name == STOP and 20 <= n <= 21)  # noqa: E731
     code, kb, out = _serve(tmp_path, monkeypatch, script, max_hunts=1, observe=True)
     assert code == 0
     (hunt,) = list(out.iterdir())
@@ -202,14 +204,14 @@ def test_serve_observe_records_but_never_touches_a_key(tmp_path, monkeypatch):
 
 
 def test_serve_holding_f7_starts_only_one_hunt(tmp_path, monkeypatch):
-    script = lambda name, n: (name == "f7" and n >= 2) or (name == "f8" and n == 15)  # noqa: E731
+    script = lambda name, n: (name == START and n >= 2) or (name == STOP and n == 15)  # noqa: E731
     _, _, out = _serve(tmp_path, monkeypatch, script, max_hunts=1)
     assert len(list(out.iterdir())) == 1
 
 
 def test_serve_ignores_f7_when_the_game_is_not_focused(tmp_path, monkeypatch):
     # unfocused for the first presses: F7 at polls 3-4 is ignored; the one at 40-41 (focused by then) starts
-    script = lambda name, n: (3 <= n <= 4 or 40 <= n <= 41) if name == "f7" else n == 20  # noqa: E731
+    script = lambda name, n: (3 <= n <= 4 or 40 <= n <= 41) if name == START else n == 20  # noqa: E731
     focus = lambda n: n > 1                     # focused() is asked on each F7 press: the 1st is unfocused  # noqa: E731
     _, kb, out = _serve(tmp_path, monkeypatch, script, focus_script=focus, max_hunts=1)
     hunts = list(out.iterdir())
@@ -226,7 +228,7 @@ def test_serve_measures_the_game_picture_at_every_start(tmp_path, monkeypatch):
             super().__init__(hwnd)
             made.append(self)
     monkeypatch.setattr(runner, "Screen", CountingScreen)
-    script = lambda name, n: (3 <= n <= 4 or 30 <= n <= 31) if name == "f7" else (20 <= n <= 21 or 45 <= n <= 46)  # noqa: E731
+    script = lambda name, n: (3 <= n <= 4 or 30 <= n <= 31) if name == START else (20 <= n <= 21 or 45 <= n <= 46)  # noqa: E731
     holder = {}
 
     def make_kb(hwnd, *_):
@@ -238,7 +240,7 @@ def test_serve_measures_the_game_picture_at_every_start(tmp_path, monkeypatch):
     monkeypatch.setattr(runner, "chirp", lambda up: None)
     monkeypatch.setattr(runner.time, "sleep", lambda s: None)
     monkeypatch.setattr(runner, "ASSETS", FX)
-    hk = runner.Hotkeys(["f7", "f8"], key_down=ScriptedKeys(script))
+    hk = runner.Hotkeys([START, STOP], key_down=ScriptedKeys(script))
     runner.serve(tmp_path / "manual", Config(), hotkeys=hk, max_hunts=2)
     assert len(made) == 1 and made[0].calibrated == 2
 
@@ -278,7 +280,7 @@ def _serve_ident(tmp_path, monkeypatch, capsys, answers, script, max_hunts):
 
 
 def test_f7_recognises_the_map_and_loads_it_before_hunting(tmp_path, monkeypatch, capsys):
-    script = lambda name, n: (name == "f7" and 3 <= n <= 4) or (name == "f8" and 20 <= n <= 21)  # noqa: E731
+    script = lambda name, n: (name == START and 3 <= n <= 4) or (name == STOP and 20 <= n <= 21)  # noqa: E731
     code, out, stub, loaded, console = _serve_ident(tmp_path, monkeypatch, capsys, [10004050], script, 1)
     assert code == 0 and loaded == [10004050]
     assert stub.calls == [3]                                     # a few frames, averaged
@@ -288,7 +290,7 @@ def test_f7_recognises_the_map_and_loads_it_before_hunting(tmp_path, monkeypatch
 
 def test_f7_does_not_hunt_when_the_map_cant_be_told(tmp_path, monkeypatch, capsys):
     """Wrong sprites / footholds are worse than none: no hunt, say why; the next F7 tries again."""
-    script = lambda name, n: (3 <= n <= 4 or 30 <= n <= 31) if name == "f7" else (45 <= n <= 46)  # noqa: E731
+    script = lambda name, n: (3 <= n <= 4 or 30 <= n <= 31) if name == START else (45 <= n <= 46)  # noqa: E731
     code, out, stub, loaded, console = _serve_ident(tmp_path, monkeypatch, capsys, [None, 42], script, 1)
     assert "can't tell which map this is: two maps look alike" in console and "not started" in console
     assert loaded == [42] and len(list(out.iterdir())) == 1     # only the second F7 hunted
@@ -296,7 +298,7 @@ def test_f7_does_not_hunt_when_the_map_cant_be_told(tmp_path, monkeypatch, capsy
 
 def test_each_f7_checks_the_map_again(tmp_path, monkeypatch, capsys):
     """The player may walk to another map between hunts."""
-    script = lambda name, n: (3 <= n <= 4 or 30 <= n <= 31) if name == "f7" else (20 <= n <= 21 or 45 <= n <= 46)  # noqa: E731
+    script = lambda name, n: (3 <= n <= 4 or 30 <= n <= 31) if name == START else (20 <= n <= 21 or 45 <= n <= 46)  # noqa: E731
     _, out, stub, loaded, _ = _serve_ident(tmp_path, monkeypatch, capsys, [42, 50], script, 2)
     assert loaded == [42, 50] and len(list(out.iterdir())) == 2
 
@@ -315,8 +317,8 @@ def test_map_given_with_option_skips_recognition(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(runner, "ASSETS", FX)
     cfg = Config()
     cfg.perception.map_id = 42
-    script = lambda name, n: (name == "f7" and 3 <= n <= 4) or (name == "f8" and 20 <= n <= 21)  # noqa: E731
-    hk = runner.Hotkeys(["f7", "f8"], key_down=ScriptedKeys(script))
+    script = lambda name, n: (name == START and 3 <= n <= 4) or (name == STOP and 20 <= n <= 21)  # noqa: E731
+    hk = runner.Hotkeys([START, STOP], key_down=ScriptedKeys(script))
     runner.serve(tmp_path / "manual", cfg, hotkeys=hk, max_hunts=1)
     assert loaded == [42] and "map fixed by --map: 42" in capsys.readouterr().out
 
@@ -346,7 +348,7 @@ def test_serve_watches_for_the_lie_detector_between_hunts(tmp_path, monkeypatch)
     IdleLieScreen.answered = False
     clock = iter(range(0, 10 ** 6))
     monkeypatch.setattr(runner.time, "perf_counter", lambda: next(clock) * 0.1)   # idle polls 0.1 s apart
-    script = lambda name, n: (name == "f7" and n >= 400) or (name == "f8" and 5 <= n <= 6)  # noqa: E731
+    script = lambda name, n: (name == START and n >= 400) or (name == STOP and 5 <= n <= 6)  # noqa: E731
     _, _, out = _serve(tmp_path, monkeypatch, script, max_hunts=1, screen=IdleLieScreen)
     assert len(sirens) == 2 and len(list(out.glob("lie_idle_*.png"))) == 1
 

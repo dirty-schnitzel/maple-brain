@@ -8,7 +8,7 @@ Botting is against Nexon's ToS; supervising it doesn't change that.
 
 ```powershell
 # from C:\Users\Yoav\dev\maple-work, in an admin terminal
-..\auto-maple\.venv\Scripts\python -m maplebot run runs\my_run --seconds 60 --attack space --jump shift
+..\auto-maple\.venv\Scripts\python -m maplebot run runs\my_run --seconds 60 --jump shift
 ```
 Switch into the game within 180 s. Alt-Tab out to pause. Output: `log.txt`, `ticks.jsonl` (every tick's
 observation + actions), `frames/` (full-res every 3rd tick).

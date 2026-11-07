@@ -5,6 +5,12 @@ import collections
 import json
 import re
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))          # run as a plain script too
+from maplebot.config import Keys
+
+SWING_KEYS = Keys().swing_keys
 
 
 def q(v, p):
@@ -36,7 +42,7 @@ def one(run):
             tgt_changes += 1
             prev_tgt = v.get("target")
         held = tm.get("held") or []
-        a = "space" in held or "c" in held
+        a = any(k in held for k in SWING_KEYS)
         if v.get("mode") == "LOCAL" and o.get("me"):
             m = next((m for m in o.get("mobs") or [] if m["id"] == v.get("target")), None)
             if m and m.get("src") != "none":

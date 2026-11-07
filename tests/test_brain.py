@@ -6,6 +6,9 @@ from maplebot.brain.brain import Brain
 from maplebot.config import Config
 from maplebot.perception.perceiver import Observation
 
+ATTACK = Config().keys.attack
+BASIC, PICKUP = Config().keys.basic_attack, Config().keys.pickup
+HP_POTION, MP_POTION = Config().keys.hp_potion, Config().keys.mp_potion
 PX, FEET = 680.0, 579.0
 
 
@@ -67,9 +70,9 @@ def test_walks_to_far_target_then_hits_without_stopping_first(brain):
     it should seamlessly walk to it and hit'. The swing ends the walk; the slide carries us into reach."""
     engaged(brain, 0.0, mob(-300))
     assert brain.step(obs(0.1, target=mob(-300)))[-1] == Hold("left")       # far: walk
-    assert brain.step(obs(0.2, target=mob(-70)))[-1] == Hold("space")      # at the release point: attack
+    assert brain.step(obs(0.2, target=mob(-70)))[-1] == Hold(ATTACK)      # at the release point: attack
     acts = brain.step(obs(0.3, target=mob(-60)))
-    assert acts[-1] == Hold("space") and Release() not in acts             # (slid into reach) keep attacking
+    assert acts[-1] == Hold(ATTACK) and Release() not in acts             # (slid into reach) keep attacking
 
 
 def test_standing_just_out_of_reach_walks_in_at_once(brain):
@@ -87,7 +90,7 @@ def test_swinging_from_just_outside_reach_steps_in(brain):
         acts += brain.step(obs(t, target=mob(-72)))
         t += 0.05
     assert Tap("left", brain.cfg.timing.step_s) in acts
-    assert acts[-1] == Hold("space")
+    assert acts[-1] == Hold(ATTACK)
 
 
 def back_steps(brain, acts, key="left"):
@@ -98,7 +101,7 @@ def back_steps(brain, acts, key="left"):
 def test_contact_range_steps_back_but_hit_zone_edge_does_not(brain):
     brain.cfg.timing.back_skip_p = 0.0
     engaged(brain, 0.0, mob(60))
-    assert brain.step(obs(0.1, target=mob(45)))[-1] == Hold("space")        # 45px: hit, don't dance (was 50px)
+    assert brain.step(obs(0.1, target=mob(45)))[-1] == Hold(ATTACK)        # 45px: hit, don't dance (was 50px)
     acts = brain.step(obs(0.2, target=mob(30)))
     assert back_steps(brain, acts)                                           # 30px: contact -> step away
 
@@ -122,7 +125,7 @@ def test_too_close_steps_back_once_then_fights_instead_of_dancing(brain):
     steps = [a for a in seen if isinstance(a, Tap) and a.key == "left"]
     assert len(steps) == 1 and steps[0].secs >= 0.24                         # one real step, not a twitch
     assert flips(seen) <= 2                                                  # step away, turn back: that's all
-    assert seen[-1] == Hold("space")                                         # then stand and fight
+    assert seen[-1] == Hold(ATTACK)                                         # then stand and fight
 
 
 def test_steps_back_again_after_the_cooldown(brain):
@@ -183,19 +186,19 @@ def test_far_walk_in_is_one_continuous_hold_until_the_hit(brain):
     while dx < -50:
         a = brain.step(obs(t, target=mob(dx), scene_dx=6.0 if dx < -76 else 0.0, dot=(100.0 + dx / 15, 90.0)))
         acts += a
-        if Hold("space") in a:
+        if Hold(ATTACK) in a:
             break
         dx += 6.0
         t += 0.05
     keys = [a for a in acts if isinstance(a, (Hold, Release, Tap))]
-    assert keys[-1] == Hold("space")
+    assert keys[-1] == Hold(ATTACK)
     assert all(k == Hold("left") for k in keys[:-1])                         # nothing but walking before it
 
 
 def test_mid_fight_brief_loss_keeps_swinging(brain):
     engaged(brain, 0.0, mob(55))
     brain.step(obs(0.1, target=mob(55), target_bar=True))
-    assert brain.step(obs(0.5))[-1] == Hold("space")                        # lost sight 0.4s: keep swinging
+    assert brain.step(obs(0.5))[-1] == Hold(ATTACK)                        # lost sight 0.4s: keep swinging
 
 
 # ---------------------------------------------------------------- proof of mob
@@ -300,7 +303,7 @@ def test_loot_off_by_default_a_kill_goes_straight_back_to_seek(brain):
     while t < 3.0:
         seen += brain.step(obs(t))
         t += 0.1
-    assert brain.mode != "LOOT" and not any(isinstance(a, Tap) and a.key == "z" for a in seen)
+    assert brain.mode != "LOOT" and not any(isinstance(a, Tap) and a.key == PICKUP for a in seen)
 
 
 @pytest.mark.loot_off
@@ -455,7 +458,7 @@ def _after_unseen_hit(brain, t0, knock=0.0, until=None, walk=6.0, hp=0.97, **kw)
         for a in acts:
             if isinstance(a, Hold):
                 held = a.key if a.key in ("left", "right") else None
-                if a.key == "space":
+                if a.key == ATTACK:
                     swings.append((pos, brain.facing))
             elif isinstance(a, Release) or (isinstance(a, Tap) and a.key in ("left", "right")):
                 held = None
@@ -542,7 +545,7 @@ def test_a_far_mob_in_an_avoided_direction_is_still_ignored(brain):
 
 def test_no_damage_no_blind_swinging(brain):
     acts = brain.step(obs(0.0)) + brain.step(obs(0.1, moving=[]))
-    assert Hold("space") not in acts
+    assert Hold(ATTACK) not in acts
 
 
 def test_hit_by_something_unseen_while_looting_stops_and_swings(brain):
@@ -675,7 +678,7 @@ def _loot_walk(brain, t, moved_per_tick=6.0, dot=(100.0, 90.0), max_t=8.0, scene
                 held = a.key
             elif isinstance(a, Release) or (isinstance(a, Tap) and a.key in ("left", "right")):
                 held = None
-            if isinstance(a, Tap) and a.key == "z":
+            if isinstance(a, Tap) and a.key == PICKUP:
                 if log is not None:
                     log.append(pos)
                 if still is not None and held is None:
@@ -718,7 +721,7 @@ def test_loot_sweep_presses_pickup_while_walking(brain):
     acts, _ = _loot_walk(brain, 0.25)
     walking_taps = 0
     for prev, a in zip(acts, acts[1:]):
-        if isinstance(a, Tap) and a.key == "z" and prev == Hold("right"):
+        if isinstance(a, Tap) and a.key == PICKUP and prev == Hold("right"):
             walking_taps += 1
     assert walking_taps >= 2
 
@@ -732,10 +735,10 @@ def test_loot_sweep_is_not_too_slow(brain):
 def test_loot_waits_for_the_drop_then_walks_onto_it_and_picks_up(brain):
     """pkg_020746: pressed Z during the death animation, before anything had dropped, from too far away."""
     acts = _kill_at(brain, 60)
-    assert brain.mode == "LOOT" and not any(isinstance(a, Tap) and a.key == "z" for a in acts)
+    assert brain.mode == "LOOT" and not any(isinstance(a, Tap) and a.key == PICKUP for a in acts)
     acts, t = _loot_walk(brain, 0.25)
     holds = [i for i, a in enumerate(acts) if a == Hold("right")]
-    zs = [i for i, a in enumerate(acts) if isinstance(a, Tap) and a.key == "z"]
+    zs = [i for i, a in enumerate(acts) if isinstance(a, Tap) and a.key == PICKUP]
     assert holds and zs and min(holds) < min(zs)                           # walked first, picked up after
     first_hold_t = 0.25 + 0.05 * sum(1 for _ in range(0))                  # (timing checked below)
     assert brain.mode == "SEEK" and brain.stats["loot_pickups"] == 1 and len(zs) >= 3
@@ -745,7 +748,7 @@ def test_loot_waits_for_the_drop_then_walks_onto_it_and_picks_up(brain):
 def test_loot_does_not_start_walking_during_the_death_animation(brain):
     _kill_at(brain, 60)
     acts = brain.step(obs(0.5, exp=0.25, scene_dx=0.0))                    # 0.3s after the kill
-    assert not any(isinstance(a, (Hold, Tap)) and getattr(a, "key", "") in ("right", "z") for a in acts)
+    assert not any(isinstance(a, (Hold, Tap)) and getattr(a, "key", "") in ("right", PICKUP) for a in acts)
 
 
 def test_far_loot_is_not_worth_walking_to(brain):
@@ -774,7 +777,7 @@ def test_loot_found_by_hitting_it_is_picked_up_and_only_briefly_ignored(brain):
         t += 0.1
     assert brain.mode == "LOOT"
     acts, t = _loot_walk(brain, t)
-    assert [a.key for a in acts if isinstance(a, Tap)].count("z") >= 3
+    assert [a.key for a in acts if isinstance(a, Tap)].count(PICKUP) >= 3
     S = brain.cfg.perception.screen_per_minimap
     acts = brain.step(obs(t + 15, moving=[mob(0)], dot=(100.0 + 62 / S, 90.0)))   # 15s later a snail there
     assert any(isinstance(a, Track) for a in acts)
@@ -785,7 +788,7 @@ def test_pickup_presses_are_spread_out_like_a_player(brain):
     _kill_at(brain, 10)
     t, z_times = 0.25, []
     while brain.mode == "LOOT" and t < 4:
-        if any(isinstance(a, Tap) and a.key == "z" for a in brain.step(obs(t, exp=0.25))):
+        if any(isinstance(a, Tap) and a.key == PICKUP for a in brain.step(obs(t, exp=0.25))):
             z_times.append(t)
         t += 0.05
     assert len(z_times) >= 4
@@ -891,7 +894,7 @@ def test_loot_found_by_hitting_it_is_picked_up_without_the_death_wait(brain):
         t += 0.1
     start, first_z = t, None
     while brain.mode == "LOOT" and first_z is None:
-        if any(isinstance(a, Tap) and a.key == "z" for a in brain.step(obs(t))):
+        if any(isinstance(a, Tap) and a.key == PICKUP for a in brain.step(obs(t))):
             first_z = t
         t += 0.05
     assert first_z is not None and first_z - start < 0.5
@@ -1074,11 +1077,11 @@ def _step_down_scenario(b):
     acts = []
     for i in range(1, 8):
         acts += b.step(obs(i * 0.05, target=low, dot=(100.0 - i * 0.4, 90.0)))
-    assert Hold("left") in acts and Hold("space") not in acts
+    assert Hold("left") in acts and Hold(ATTACK) not in acts
     assert b.mode == "ENGAGE" and b.stats["not_a_mob"] == 0
     same = mob(-60)                                                        # we dropped: now on its level
     acts = b.step(obs(0.5, target=same))
-    assert acts[-1] == Hold("space")
+    assert acts[-1] == Hold(ATTACK)
 
 
 # ---------------------------------------------------------------- anticipating a mob that walks toward us
@@ -1088,7 +1091,7 @@ def _snail_comes(brain, start_dx, speed, t0=0.1, until=1.6, bar=True):
     while t < until:
         a = brain.step(obs(t, target=mob(dx), target_bar=bar, bar=[mob(dx)] if bar else ()))
         acts += a
-        if first_swing is None and Hold("space") in a:
+        if first_swing is None and Hold(ATTACK) in a:
             first_swing = dx
         step = speed * 0.05
         dx = dx + step if dx < 0 else dx - step
@@ -1178,7 +1181,7 @@ def test_a_fought_target_that_vanishes_is_given_up_quickly_and_its_spot_looted(s
     while t < gone_at + 3.0 and b.mode == "ENGAGE":
         acts = b.step(obs(t))
         if t - gone_at > b.cfg.timing.keep_close_s + 0.2:
-            swings_late += acts.count(Hold("space"))
+            swings_late += acts.count(Hold(ATTACK))
         t += 0.05
     assert b.mode in ("LOOT", "SEEK") and t - gone_at < b.cfg.timing.keep_close_s + 0.2   # (in reach: maybe hidden)
     assert swings_late == 0
@@ -1203,14 +1206,14 @@ def pobs(t, hp=1.0, mp=1.0, hp_potions=True, mp_potions=False, **kw):
 
 def test_drinks_an_hp_potion_below_20_percent(brain):
     acts = brain.step(pobs(0.0, hp=0.18))
-    assert acts[0] == Tap("delete", brain.cfg.timing.potion_press_s)
+    assert acts[0] == Tap(HP_POTION, brain.cfg.timing.potion_press_s)
     assert not any(isinstance(a, Stop) for a in acts) and brain.stats["potions"] == 1
 
 
 def test_with_potions_45_percent_is_no_stop_and_no_potion_yet(brain):
     acts = brain.step(pobs(0.0, hp=0.55))   # above hp_potion_at (50 %)
     assert not any(isinstance(a, Stop) for a in acts)
-    assert Tap("delete", brain.cfg.timing.potion_press_s) not in acts
+    assert Tap(HP_POTION, brain.cfg.timing.potion_press_s) not in acts
 
 
 def test_no_hp_potions_left_stops_at_45_percent(brain):
@@ -1225,7 +1228,7 @@ def test_unknown_potion_slot_counts_as_none(brain):
 def test_potions_are_spaced_out_randomly(brain):
     t, taps = 0.0, []
     while t < 3.0:
-        if Tap("delete", brain.cfg.timing.potion_press_s) in brain.step(pobs(t, hp=0.15)):
+        if Tap(HP_POTION, brain.cfg.timing.potion_press_s) in brain.step(pobs(t, hp=0.15)):
             taps.append(t)
         t += 0.05
     gaps = [b - a for a, b in zip(taps, taps[1:])]
@@ -1236,16 +1239,16 @@ def test_potions_are_spaced_out_randomly(brain):
 def test_drinking_mid_fight_keeps_fighting(brain):
     engaged(brain, 0.0, mob(-60))
     acts = brain.step(pobs(0.1, hp=0.15, target=mob(-60), target_bar=True, bar=[mob(-60)]))
-    assert acts[0] == Tap("delete", brain.cfg.timing.potion_press_s)
-    assert acts[-1] == Hold("space") and brain.mode == "ENGAGE"
+    assert acts[0] == Tap(HP_POTION, brain.cfg.timing.potion_press_s)
+    assert acts[-1] == Hold(ATTACK) and brain.mode == "ENGAGE"
 
 
 def test_mp_potion_below_10_percent_only_if_there_are_some(brain):
     acts = brain.step(pobs(0.0, mp=0.05, mp_potions=True))
-    assert Tap("end", brain.cfg.timing.potion_press_s) in acts
+    assert Tap(MP_POTION, brain.cfg.timing.potion_press_s) in acts
     b2 = Brain(brain.cfg)
     acts = b2.step(pobs(0.0, mp=0.05, mp_potions=False))
-    assert Tap("end", brain.cfg.timing.potion_press_s) not in acts and not any(isinstance(a, Stop) for a in acts)
+    assert Tap(MP_POTION, brain.cfg.timing.potion_press_s) not in acts and not any(isinstance(a, Stop) for a in acts)
 
 
 # ---------------------------------------------------------------- out of MP: plain attack (the user: out of MP and
@@ -1256,41 +1259,41 @@ def _fight_tick(b, t, mp, mp_potions=False):
 
 def test_out_of_mp_and_potions_swings_with_the_plain_attack(brain):
     engaged(brain, 0.0, mob(-60))
-    assert _fight_tick(brain, 0.1, mp=1.0)[-1] == Hold("space")
+    assert _fight_tick(brain, 0.1, mp=1.0)[-1] == Hold(ATTACK)
     acts = _fight_tick(brain, 0.2, mp=0.01)
-    assert acts[-1] == Hold("c") and brain.stats["basic_switches"] == 1
+    assert acts[-1] == Hold(BASIC) and brain.stats["basic_switches"] == 1
 
 
 def test_low_mp_with_potions_keeps_the_skill(brain):
     engaged(brain, 0.0, mob(-60))
-    assert _fight_tick(brain, 0.1, mp=0.01, mp_potions=True)[-1] == Hold("space")
+    assert _fight_tick(brain, 0.1, mp=0.01, mp_potions=True)[-1] == Hold(ATTACK)
 
 
 def test_skill_again_once_mp_refilled_with_a_gap_against_flip_flop(brain):
     s = brain.cfg.safety
     engaged(brain, 0.0, mob(-60))
-    assert _fight_tick(brain, 0.1, mp=0.01)[-1] == Hold("c")
+    assert _fight_tick(brain, 0.1, mp=0.01)[-1] == Hold(BASIC)
     mid = (s.basic_below_mp + s.skill_again_mp) / 2                  # between the two: stays plain
-    assert _fight_tick(brain, 0.2, mp=mid)[-1] == Hold("c")
-    assert _fight_tick(brain, 0.3, mp=s.skill_again_mp)[-1] == Hold("space")
-    assert _fight_tick(brain, 0.4, mp=mid)[-1] == Hold("space")      # until out of MP again
-    assert _fight_tick(brain, 0.5, mp=0.01)[-1] == Hold("c")
+    assert _fight_tick(brain, 0.2, mp=mid)[-1] == Hold(BASIC)
+    assert _fight_tick(brain, 0.3, mp=s.skill_again_mp)[-1] == Hold(ATTACK)
+    assert _fight_tick(brain, 0.4, mp=mid)[-1] == Hold(ATTACK)      # until out of MP again
+    assert _fight_tick(brain, 0.5, mp=0.01)[-1] == Hold(BASIC)
     assert brain.stats["basic_switches"] == 2
 
 
 def test_a_few_casts_worth_of_mp_is_enough_for_the_skill(brain):
     """oom2: 13-29 of 275 MP (5-10 %) and the bot still swung C; a Power Strike costs ~4-6 MP."""
     engaged(brain, 0.0, mob(-60))
-    assert _fight_tick(brain, 0.1, mp=0.05)[-1] == Hold("space")
-    assert _fight_tick(brain, 0.2, mp=0.01)[-1] == Hold("c")
-    assert _fight_tick(brain, 0.3, mp=0.05)[-1] == Hold("space")
+    assert _fight_tick(brain, 0.1, mp=0.05)[-1] == Hold(ATTACK)
+    assert _fight_tick(brain, 0.2, mp=0.01)[-1] == Hold(BASIC)
+    assert _fight_tick(brain, 0.3, mp=0.05)[-1] == Hold(ATTACK)
 
 
 def test_new_mp_potions_bring_the_skill_back(brain):
     engaged(brain, 0.0, mob(-60))
-    assert _fight_tick(brain, 0.1, mp=0.01)[-1] == Hold("c")
+    assert _fight_tick(brain, 0.1, mp=0.01)[-1] == Hold(BASIC)
     acts = _fight_tick(brain, 0.2, mp=0.01, mp_potions=True)
-    assert acts[-1] == Hold("space") and Tap("end", brain.cfg.timing.potion_press_s) in acts
+    assert acts[-1] == Hold(ATTACK) and Tap(MP_POTION, brain.cfg.timing.potion_press_s) in acts
 
 
 # ---------------------------------------------------------------- used-up potions: the slot keeps the icon with a
@@ -1300,7 +1303,7 @@ def _mp_dry(b, t0, secs, mp=0.01, dt=0.05, **kw):
     """MP stuck at `mp` with the End slot reading filled; returns every tap time of End."""
     taps, t = [], t0
     while t < t0 + secs:
-        if Tap("end", b.cfg.timing.potion_press_s) in b.step(pobs(t, mp=mp, mp_potions=True, **kw)):
+        if Tap(MP_POTION, b.cfg.timing.potion_press_s) in b.step(pobs(t, mp=mp, mp_potions=True, **kw)):
             taps.append(t)
         t += dt
     return taps
@@ -1314,7 +1317,7 @@ def test_potions_that_do_nothing_are_used_up(brain):
 def test_used_up_mp_potions_switch_to_the_plain_attack(brain):
     engaged(brain, 0.0, mob(-60))
     _mp_dry(brain, 0.1, 4.0, target=mob(-60), target_bar=True, bar=[mob(-60)])
-    assert _fight_tick(brain, 4.2, mp=0.01, mp_potions=True)[-1] == Hold("c")
+    assert _fight_tick(brain, 4.2, mp=0.01, mp_potions=True)[-1] == Hold(BASIC)
 
 
 def test_used_up_potions_are_probed_now_and_then_and_a_restock_counts(brain):
@@ -1327,7 +1330,7 @@ def test_used_up_potions_are_probed_now_and_then_and_a_restock_counts(brain):
     _mp_dry(b2, 0.0, 4.0)
     t, first = 4.0, None
     while first is None:
-        if Tap("end", tm.potion_press_s) in b2.step(pobs(t, mp=0.02, mp_potions=True)):
+        if Tap(MP_POTION, tm.potion_press_s) in b2.step(pobs(t, mp=0.02, mp_potions=True)):
             first = t
         t += 0.05
     brain = b2
@@ -1469,7 +1472,7 @@ def test_after_looting_a_mob_in_reach_is_fought_at_once(sbrain):
 def _hitting(b, dx=60, bar=False):
     assert Track(mob(dx)) in b.step(obs(0.0, lib=[mob(dx)]))
     b.step(obs(0.1, target=mob(dx), target_bar=bar, bar=[mob(dx)] if bar else ()))
-    assert b.step(obs(0.2, target=mob(dx), target_bar=bar, bar=[mob(dx)] if bar else ()))[-1] == Hold("space")
+    assert b.step(obs(0.2, target=mob(dx), target_bar=bar, bar=[mob(dx)] if bar else ()))[-1] == Hold(ATTACK)
 
 
 def dying(t, **kw):
@@ -1483,14 +1486,14 @@ def test_someone_elses_kill_stops_the_swing_at_once_and_is_not_looted(sbrain):
     swept their drop with Z (18 times in 5 min)."""
     _hitting(sbrain)
     acts = sbrain.step(dying(0.25))
-    assert Hold("space") not in acts                                         # no swinging at a corpse
+    assert Hold(ATTACK) not in acts                                         # no swinging at a corpse
     t, seen = 0.3, []
     while t < 1.5:
         seen += sbrain.step(dying(t) if t < 0.6 else obs(t))
         t += 0.05
     assert sbrain.mode == "SEEK" and sbrain.stats["others_kills"] == 1
-    assert not any(isinstance(a, Tap) and a.key == "z" for a in seen)
-    assert Hold("space") not in seen
+    assert not any(isinstance(a, Tap) and a.key == PICKUP for a in seen)
+    assert Hold(ATTACK) not in seen
 
 
 def test_our_kill_still_plays_the_death_animation_and_is_looted(sbrain):
@@ -1585,7 +1588,7 @@ def _sight_walk(b, t, drops, max_t=12.0, sticky=(), slide=True, mobs_at=None, pi
                 held = a.key
             elif isinstance(a, Release) or (isinstance(a, Tap) and a.key in ("left", "right")):
                 held = None
-            if isinstance(a, Tap) and a.key == "z":
+            if isinstance(a, Tap) and a.key == PICKUP:
                 still = held not in ("left", "right") and slide_left == 0
                 if taps is not None:
                     taps.append((pos, still))
@@ -1637,7 +1640,7 @@ def test_sight_walking_past_a_drop_keeps_the_walk_key_down_and_spams_z_briefly(l
         o.drops = [(int(PX + 40 - 6 * i - 12), int(FEET - 26), 24, 24)] if 40 - 6 * i > -40 else []
         acts_all.append((t, b.step(o)))
         t += 0.05
-    zs = [tt for tt, acts in acts_all for a in acts if a == Tap("z", b.cfg.timing.pickup_press_s)]
+    zs = [tt for tt, acts in acts_all for a in acts if a == Tap(PICKUP, b.cfg.timing.pickup_press_s)]
     tm = b.cfg.timing
     assert tm.pass_taps_min <= len(zs) <= tm.pass_taps_max
     assert zs[-1] - zs[0] <= longest(b, tm.pass_window_max_s) + 0.06
@@ -1789,7 +1792,7 @@ def test_sight_walking_bursts_vary_in_presses_gaps_and_total_time():
         for i in range(40):                                                     # walking past one drop
             o = obs(t, scene_dx=-6.0 if b.held else 0.0)
             o.drops = [(int(PX + 40 - 6 * i - 12), int(FEET - 26), 24, 24)] if 40 - 6 * i > -40 else []
-            if any(isinstance(a, Tap) and a.key == "z" for a in b.step(o)):
+            if any(isinstance(a, Tap) and a.key == PICKUP for a in b.step(o)):
                 zs.append(t)
             t += 0.05
         counts.add(len(zs))
@@ -1811,7 +1814,7 @@ def test_sight_more_presses_when_several_drops_lie_together(lbrain):
         for i in range(40):
             o = obs(t, scene_dx=-6.0 if b.held else 0.0)
             o.drops = [(int(PX + d - 6 * i - 12), int(FEET - 26), 24, 24) for d in drops_at if d - 6 * i > -40]
-            n += sum(isinstance(a, Tap) and a.key == "z" for a in b.step(o))
+            n += sum(isinstance(a, Tap) and a.key == PICKUP for a in b.step(o))
             t += 0.05
         return n
     assert burst([40, 55]) == burst([40]) + 1
@@ -1934,7 +1937,7 @@ def test_a_wide_stump_walking_at_us_gets_the_swing_earlier_than_a_snail(brain):
     acts, t, dx, first = [], 0.1, -110.0, None
     while t < 1.6 and abs(dx) > 45:
         a = brain.step(obs(t, target=mob(dx, w=62), target_bar=True, bar=[mob(dx, w=62)]))
-        if first is None and Hold("space") in a:
+        if first is None and Hold(ATTACK) in a:
             first = dx
         dx += 45 * 0.05
         t += 0.05
@@ -1982,7 +1985,7 @@ def test_a_slow_potion_still_counts_as_working(brain):
 def test_used_up_hp_potions_get_one_last_press_before_the_stop(brain):
     brain.potions_out["HP"] = 1000.0                          # wrongly judged used up, next probe far away
     acts = brain.step(pobs(10.0, hp=0.44))
-    assert Tap("delete", brain.cfg.timing.potion_press_s) in acts and not any(isinstance(a, Stop) for a in acts)
+    assert Tap(HP_POTION, brain.cfg.timing.potion_press_s) in acts and not any(isinstance(a, Stop) for a in acts)
     t = 10.0
     while t < 12.0:                                          # it works -> potions back, no stop
         t += 0.05
@@ -2049,28 +2052,28 @@ def _mp_tick(b, t, mp_now, mp_max=359):
 def test_skill_cost_is_measured_and_the_plain_attack_comes_below_one_cast(brain):
     engaged(brain, 0.0, mob(-60))
     t, mp = 0.1, 60
-    assert _mp_tick(brain, t, mp)[-1] == Hold("space")
+    assert _mp_tick(brain, t, mp)[-1] == Hold(ATTACK)
     for _ in range(2):                                            # two casts of 19 MP each
         t += 0.8; mp -= 19
         _mp_tick(brain, t, mp)
     assert brain.skill_cost == 19 and mp == 22
     t += 0.8; mp -= 19                                            # 3 MP left: less than a cast
-    assert _mp_tick(brain, t, mp)[-1] == Hold("c")
-    assert _mp_tick(brain, t + 5.0, 18)[-1] == Hold("c")          # regen to 18: still short of 19
-    assert _mp_tick(brain, t + 9.0, 19)[-1] == Hold("space")      # enough for a cast: the skill again
+    assert _mp_tick(brain, t, mp)[-1] == Hold(BASIC)
+    assert _mp_tick(brain, t + 5.0, 18)[-1] == Hold(BASIC)          # regen to 18: still short of 19
+    assert _mp_tick(brain, t + 9.0, 19)[-1] == Hold(ATTACK)      # enough for a cast: the skill again
 
 
 def test_skill_that_isnt_firing_is_noticed_without_a_known_cost(brain):
     engaged(brain, 0.0, mob(-60))
     t = 0.1
     acts = _mp_tick(brain, t, 17)
-    assert acts[-1] == Hold("space")                              # 4.7 %: above the old 2.5 % share threshold
-    while t < 2.5 and brain.attack_key == "space":
+    assert acts[-1] == Hold(ATTACK)                              # 4.7 %: above the old 2.5 % share threshold
+    while t < 2.5 and brain.attack_key == ATTACK:
         t += 0.1
         acts = _mp_tick(brain, t, 17)
-    assert brain.attack_key == "c" and brain.skill_min_mp == 18 and t <= 0.1 + 1.5 * 1.3
-    assert _mp_tick(brain, t + 3.0, 17)[-1] == Hold("c")
-    assert _mp_tick(brain, t + 6.0, 18)[-1] == Hold("space")
+    assert brain.attack_key == BASIC and brain.skill_min_mp == 18 and t <= 0.1 + 1.5 * 1.3
+    assert _mp_tick(brain, t + 3.0, 17)[-1] == Hold(BASIC)
+    assert _mp_tick(brain, t + 6.0, 18)[-1] == Hold(ATTACK)
 
 
 def test_mp_dropping_while_not_holding_the_skill_isnt_a_cast(brain):

@@ -1,6 +1,12 @@
 """Find ENGAGE stops in recorded runs: ticks where no key is held and no swing/step is tapped (>= 0.15 s).
 Usage: python tools/engage_stops.py runs/NAME [runs/NAME2 ...]"""
 import json, sys, re, collections
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))          # run as a plain script too
+from maplebot.config import Keys
+
+SWING_KEYS = Keys().swing_keys
 MOVE = ("left", "right", "up", "down")
 def parse(a):
     m = re.match(r"(\w+)\((.*)\)", a)
@@ -19,7 +25,7 @@ for run in sys.argv[1:]:
             elif k == "Tap":
                 key = arg.split(",")[0].strip("'\" ")
                 if key in MOVE or held not in MOVE: held = None
-                if key in MOVE or key == "space": swing = True   # a step/turn is movement
+                if key in MOVE or key in SWING_KEYS: swing = True   # a step/turn is movement
         o = tk["obs"]; t = o["t"]
         idle = tk["mode"] == "ENGAGE" and held is None and not swing
         if idle:

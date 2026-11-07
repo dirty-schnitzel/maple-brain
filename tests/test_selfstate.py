@@ -92,3 +92,85 @@ def test_a_found_hang_holds_until_we_move_and_attacking_doesnt_count(nav):
     for i in range(15):
         s = st2.update(i * 0.04, me_map=(1621, 198), map_pos=(1619.6, 202.1), held={"c", "right"})
     assert s.state == "ground"
+
+
+def test_a_walk_key_right_after_the_attack_key_is_no_hang(nav):
+    st = SelfTracker(nav)                          # runs/v2 10:44 t=792: the swing's tail holds us still, next to a ladder
+    t = 0.0
+    for i in range(10):
+        st.update(t, me_map=(2084, 73), map_pos=(2083.9, 74.2), held={"c"})
+        t += 0.04
+    for i in range(16):                            # key up, 0.64 s of a walk key without moving
+        s = st.update(t, me_map=(2084, 73), map_pos=(2083.9, 74.2), held={"left"})
+        t += 0.04
+    assert s.state == "ground" and s.platform == 79
+    for i in range(25):                            # still no move long after the swing: that's a real hang
+        s = st.update(t, me_map=(2084, 73), map_pos=(2083.9, 74.2), held={"left"})
+        t += 0.04
+    assert s.state == "rope"
+
+
+def test_climbing_a_ladder_whose_tag_reads_10_px_off_stays_on_it(nav):
+    st = SelfTracker(nav)                          # ladder x 778, top 15: runs/v2 19:15, rope / air flips, `up` let go
+    t, y = 0.0, 150.0
+    for i in range(10):
+        s = st.update(t, me_map=(788, y), map_pos=(787.7, y), held=set())
+        t += 0.04
+    assert s.state == "rope"
+    while y > 40:
+        y -= 5
+        s = st.update(t, me_map=(788, y), map_pos=(787.7, y), held={"up"})
+        t += 0.04
+        assert s.state == "rope", y
+
+
+def test_under_a_ladder_top_is_not_the_floor(nav):
+    st = SelfTracker(nav)                          # runs/v2 19:13: y 26, floor 13: tag and minimap agree
+    for i in range(12):
+        s = st.update(i * 0.04, me_map=(788, 26.4), map_pos=(788, 26.4), held={"c"})
+    assert s.state == "rope" and s.platform is None
+    st = SelfTracker(nav)                          # on the floor there: the minimap reads 10.4, off camera or not
+    for i in range(12):
+        s = st.update(i * 0.04, me_map=(788, 26.4), map_pos=(788, 10.4), held={"c"})
+    assert s.state == "ground" and s.platform == 65
+
+
+def test_leaping_off_a_ladder_leaves_it(nav):
+    st = SelfTracker(nav)
+    t = 0.0
+    for i in range(10):
+        st.update(t, me_map=(788, 100), map_pos=(787.7, 100), held=set())
+        t += 0.04
+    for i in range(10):
+        s = st.update(t, me_map=(788 + 8 * i, 100 - i), map_pos=(787.7, 100), held={"left"})
+        t += 0.04
+    assert s.state == "air"
+
+
+def test_standing_just_past_a_platforms_end_is_on_it(nav):
+    """runs/v2 20261106_162027_12 t=798: dropped onto cart 275 (right end 382), read x 388 y 266."""
+    st = SelfTracker(nav)
+    s = st.update(0.0, me_map=(388.1, 266.2), map_pos=(388.1, 266.2))
+    assert s.state == "air"                          # not yet: could be passing through
+    for i in range(1, 12):
+        s = st.update(i * 0.05, me_map=(388.1, 266.2), map_pos=(388.1, 266.2))
+    assert s.state == "ground" and s.platform == 275
+    assert (s.x, s.y) == (382, 260)
+    for i in range(12, 40):                          # and it stays so: no flipping back to air
+        s = st.update(i * 0.05, me_map=(388.1, 266.2), map_pos=(388.1, 266.2))
+        assert s.state == "ground" and s.platform == 275
+
+
+def test_falling_past_a_platforms_end_stays_air(nav):
+    st = SelfTracker(nav)
+    for i in range(10):
+        s = st.update(i * 0.05, me_map=(388, 240 + i * 8), map_pos=(388, 266))
+        assert s.state == "air"
+
+
+def test_leaving_a_platforms_end_lets_go_of_it(nav):
+    st = SelfTracker(nav)
+    for i in range(12):
+        st.update(i * 0.05, me_map=(388.1, 266.2), map_pos=(388.1, 266.2))
+    s = st.update(0.65, me_map=(396, 282), map_pos=(388, 282))
+    assert s.state == "air" and st.ledge is None

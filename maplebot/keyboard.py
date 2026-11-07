@@ -65,12 +65,13 @@ class Keyboard:
     Timing is humanized: a short random reaction pause before each new key-down, and every press length and
     after-tap pause is randomized (`hz` = Humanizer, `hcfg` = config.Humanize)."""
 
-    def __init__(self, hwnd, hz=None, hcfg=None):
-        from .config import Humanize
+    def __init__(self, hwnd, hz=None, hcfg=None, keys=None):
+        from .config import Humanize, Keys
         from .humanize import Humanizer
         self.hwnd = hwnd
         self.held: set[str] = set()
         self.hcfg = hcfg or Humanize()
+        self.keys = keys or Keys()
         self.hz = hz or Humanizer(self.hcfg.jitter, self.hcfg.seed)
 
     def focused(self) -> bool:
@@ -107,7 +108,7 @@ class Keyboard:
         time.sleep(self.hz.vary(self.hcfg.tap_gap_s if gap_s is None else gap_s))
 
     def release_all(self) -> None:
-        for k in list(self.held) + ["left", "right", "up", "down", "shift", "ctrl", "alt", "space"]:
+        for k in list(self.held) + ["left", "right", "up", "down", "ctrl", "alt", self.keys.jump, self.keys.attack]:
             try:
                 _send(k, True)
             except (OSError, KeyError):
