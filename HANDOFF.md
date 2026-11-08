@@ -6,6 +6,29 @@ find mobs, fight them like a player, pick up loot, use potions, and **navigate p
 later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never reads memory or packets.
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
+## NEXT: accuracy + speed plan (2026-11-08, after the per-press live run; the user: "the most significant change in
+## bot behavior since start, so much more accurate and lethal")
+Where a tick goes (`runs/v2/press1`, median 58 ms = 16 fps, p90 72, p99 119): grab+resize 11, perceive 47 = gpu 15 +
+world (tracker) 10 + self tag 7 + camshift 6 + hud 4 + scene 3 + locate 2; brain 0.2. The GPU is a quarter of it; the
+rest is CPU work run one after another. 16 fps costs LATENCY (gap after a swing 0.25 s vs the user's 0.09; turn 0.5 vs
+0.36) but the biggest error is EVIDENCE: 22 of 59 presses at weak tracks (our own body / pet, a dying mob's spot).
+Accuracy (offline first on press1 / react1 frames, `bot_presses.py` + marked frames as the check):
+  A1. No mob detections on our own character + pet: mask our box (known from the tag) in the detector.
+  A2. A detection on a dying track's spot belongs to that track (association), never a new live track.
+  A3. HP bars on with sprites (find_mob_bars; check the Perion fog case): a bar emptied by our hit = the kill ~0.25 s
+      before the death animation - the user's own cue (they stop ~0.3 s into the killing swing).
+  A4. Effect-robust sprite scores (ignore bright saturated spark / arc pixels): mobs stay visible under our hits.
+  A5. Hit time per weapon from the client (SWING_LAND_S is still 0.45 fixed; live polearm ~0.50-0.56).
+Speed (target >= 30 fps, frame -> decision < 35 ms; measure tick p50/p90 + the gap after a swing vs the user):
+  S1. Overlap: CPU parts (self tag, camshift, hud) in threads while the GPU detector runs -> the tick ~ the longest
+      part, not the sum.
+  S2. Move self-tag and camshift matching onto the GPU (the GpuNCC machinery already exists); upload the frame once,
+      resize there.
+  S3. Slow things slower: HUD HP/MP digits, lie detector, minimap at ~4-5 Hz instead of every tick.
+  S4. Then re-check what the tracker gains from more frames (fewer lost mobs under effects, ghost time).
+Order: A1 + A2 (cheap, offline-testable) -> S1-S3 -> A3 -> A4 -> A5. Live check after each pair with bot_presses.py +
+turning.py, 3 min with frames, marked frames for the user.
+
 ## START HERE: attack per press - clean kills, instant turns (2026-11-08, branch `dev`)
 **Goal of the session (the user):** drop the held attack key. Attack with presses, humanized press lengths and
 humanized gaps between them, while promising CLEAN KILLS: no swing after the mob's death (other bots on Ant Tunnel IV
