@@ -60,6 +60,12 @@ class TrackCfg:
     edge_max: int = 2             # ... per frame, in turns of their own
     probe_players: bool = False   # also beside every character (track1b: +2 of 82 mobs, +4 false, +10 ms: off)
 
+    @classmethod
+    def for_mob_score(cls, score: float) -> "TrackCfg":
+        """cfg.perception.sprite_score is what a new mob needs from the detector: probes make new mobs too, so they
+        go along with it (near_score stays low: a mob already tracked is followed through what covers it)."""
+        return cls(probe_score=max(cls.probe_score, score))
+
 
 @dataclass
 class Track:

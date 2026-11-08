@@ -1,10 +1,103 @@
-# maplebot — session handoff (updated 2026-11-05, session 23: M2 combat LIVE 14.3 kills/min (the user: "SERIOUSLY impressive"), brain v2 restructured into brain/v2/ parts, hold-until-death + re-press committed, NOT live-tested - see 'START HERE NEXT SESSION' in 'Session 23'; session 22: M1 movement DONE (camshift + selfstate, moves + Travel + sim + `goto`, live 80 % first try, the user: natural), stalls fixed (14.4 fps); NEXT = M2 Hunt skill - see 'START HERE: M2'; session 21: BRAIN-V2 started - key logger, farming example, KeyDriver; session 20: look-alike maps by name; session 19: tracker + `--tracker` shim; session 18: GPU detection `--gpu`; session 17: game data from the client files)
+# maplebot — session handoff (updated 2026-11-08: NEXT SESSION = "START HERE: attack per press" below - remove the held attack key, clean kills, instant turns; 2026-11-07: map recognition measures the minimap window; session 23 (2026-11-05): M2 combat LIVE 14.3 kills/min (the user: "SERIOUSLY impressive"), brain v2 restructured into brain/v2/ parts, hold-until-death + re-press committed, NOT live-tested - see 'START HERE NEXT SESSION' in 'Session 23'; session 22: M1 movement DONE (camshift + selfstate, moves + Travel + sim + `goto`, live 80 % first try, the user: natural), stalls fixed (14.4 fps); NEXT = M2 Hunt skill - see 'START HERE: M2'; session 21: BRAIN-V2 started - key logger, farming example, KeyDriver; session 20: look-alike maps by name; session 19: tracker + `--tracker` shim; session 18: GPU detection `--gpu`; session 17: game data from the client files)
 
 ## Goal
 A **fully automated mob farmer** for **MapleStory Classic World** (official GMS Classic, launched 2026-10-21):
 find mobs, fight them like a player, pick up loot, use potions, and **navigate platforms (jump up / drop down,
 later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never reads memory or packets.
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
+
+## START HERE: attack per press - clean kills, instant turns (2026-11-08, branch `dev`)
+**Goal of the session (the user):** drop the held attack key. Attack with presses, humanized press lengths and
+humanized gaps between them, while promising CLEAN KILLS: no swing after the mob's death (other bots on Ant Tunnel IV
+"hit exactly and accurately every target, and stop hitting immediately after death"). Also: turn to face mobs
+behind us fast, and to the mob attacking us AT ONCE (the user: "facing the mob attacking you should also be
+instant"). The user dislikes added logic layers ("no no no 'track must be proven'"): prefer better evidence and
+simpler mechanics over new rules. The user can record a new keylogged session (see step 1).
+
+**Branch state:** `dev` = main + `9a32d7f` (map recognition). UNCOMMITTED on dev (ask before committing):
+`--mob-score` flag (run/serve; sets perception.sprite_score + TrackCfg.for_mob_score probe score; test in
+test_world.py), REACT_S 0.18-0.32 -> 0.04-0.10 s (v2/combat.py), `tools/combat/probe/` (analysis scripts + README).
+1106 tests green. The user's game setup now: polearm with SLOW attack speed, `q` set to the PLAIN attack (saves MP),
+in a PARTY -> MP drops don't count swings and EXP rises are party shares, not kills (use `probe/after.py`,
+`probe/stale.py`, frames). Live runs this session: `runs/v2/2026110{7_191504_1,7_191658_1,7_191756_1,7_191848_2}`
+(--mob-score 0.65/0.70/0.80/0.80, the last with frames), `runs/v2/` itself (a 3-min `run` with frames, REACT_S old),
+`runs/v2/react1` (3 min, frames, REACT_S new). Run tests with `run ... --frames-every 3` into a SUBFOLDER.
+
+### Why the bot swings after deaths (measured, Ant Tunnel IV)
+1. **The held key races the death animation.** Clean kill, `runs/v2/react1` t=71 (`react1/kill_71.png`): killing
+   hit (spark + 810 dmg, mob HP ~420) 71.46 -> death animation 71.69 (~0.23 s later) -> the swing ends ~71.75 and,
+   the key still down, the game starts the next (long overhead) swing -> key up 71.85. The death shows ~0.05 s
+   before the next swing starts: no reaction to the death animation wins that, human or bot. REACT_S 0.04-0.10
+   cut death -> key up from 0.36 to 0.18 s median (p90 0.97 -> 0.55), which removed the SECOND extra swing, not the
+   first. (Retracted guess: "the game queues a swing from the key's repeats" - the clean clip shows the next swing
+   start before the key-up.)
+2. **Mobs vanish under our own hit effects.** Re-running the GPU detector on frames where the tracker lost a proven
+   mob next to us (`probe/lost.py`, `runs/v2`): 52 of 60 found NOTHING there even at 0.4 - the mob is there
+   (`runs/minimap_check/lost.png`) under the hit spark, our swing's white/blue arc (big with the polearm), damage
+   numbers, or in its hit pose. Gaps: median 0.17 s, p90 0.7, up to 1.3 s for live mobs; 0.35 / 1.2 s for dead ones -
+   they overlap, so no timeout separates "covered" from "dead" (a 0.3 s cap: -15 of 26 s ghost time but 13 of 53
+   live mobs dropped mid-fight). That's why the tracker keeps a mob next to us 1.2 s unseen (fight_s) and the scene
+   1.5 s (UNSEEN_MAX) -> swings at the dead (`runs/v2/marked_*.png`, `mark.py`).
+3. **Weak matches keep ghosts alive / start false mobs.** The Zombie Mushroom template (mob 21) also matches cave
+   scenery, effects, chat, the minimap at 0.51-0.67 (real mobs 0.80-0.98; `runs/minimap_check/det.png`). New-track
+   threshold sprite_score 0.65 let 30 such tracks start (fixed by --mob-score 0.70: they peak < 0.70); following
+   uses near_score 0.55 and keeps a dead mob's track alive on empty space, our body, effects, then can snap onto
+   another mob (`runs/v2/20261107_191848_2` t=62-64.5, track 84). --mob-score 0.65/0.70/0.80 didn't change the share
+   of attack time with a real mob in reach (61-69 %).
+4. **HP bars are unused.** `hud.find_mob_bars` is OFF whenever sprites are on (perceiver.py:229, a Perion-fog fix),
+   so brain v2 never had them. On Ant Tunnel frames a bar sat over a mob in reach in 56 % of real-fight frames vs 3 %
+   of ghost frames (JPEG frames need S > 200, live 235). A bar emptying at the killing hit is the ~0.25 s-earlier
+   signal a player uses ("sees the bar about to empty").
+
+### The user's own play = the model (keylogged: `runs/play/20261105_000802_1`, 18.5 min, Line 1, normal-speed spear)
+`probe/presses.py`, `probe/human.py`, `probe/human_turn.py`:
+- Attack presses: 411; 81 % taps (< 0.35 s); press length p10 0.075 / median 0.127 / p90 0.855 s (31 holds > 1 s).
+- Gaps between presses in a fight (< 2 s): p10 0.17, p25 0.23, median 0.83, p75 1.04, p90 1.36 s - two groups:
+  double taps ~0.17-0.23 s and a rhythm of ~one press per swing ~0.8-1.0 s.
+- Clean kills: 117 of 129 kills by last hit had no press at nothing within 1 s after the death; 12 had exactly one.
+  Killing press -> death visible p10 0.21 / median 0.59 / p90 0.76 s. Death -> next press median 2.1 s.
+- Turns: a mob within 110 px behind -> the user faces it after median 0.21 s (p90 0.45).
+- A NEW recording with the slow polearm on Ant Tunnel IV would fit today's setup better (the user offered):
+  `..\auto-maple\.venv\Scripts\python -m maplebot serve runs\play --observe --gpu --tracker --frames` (F7..F8, 10-15
+  min; keys.jsonl + ticks + frames). Then re-run the three probes on it.
+
+### NEW ISSUE (analysed, NOT fixed): turning too slowly, hitting with mobs behind (the user, 2026-11-08)
+`probe/turning.py` on `runs/v2/react1` and `runs/v2` (3 min each), mobs proven (peak >= 0.8), same level:
+- A mob came within 110 px behind 23x / 26x: we turned to it 7x / 3x, after median 0.6 / 1.4 s; mostly it left or
+  died first (16 / 23 of them). The user: 0.21 s median.
+- Attack held with a mob close behind and nothing in front: 3.6 / 5.0 s per 3 min.
+- Hit by a mob within 80 px (HP drop): 17x / 12x, already facing it 11 / 5; otherwise we turned after median 3.5 /
+  1.5 s (p90 4.9 / 13.4 s).
+- Time with a mob close behind, by state: `ready + brace` (can't turn yet: TURN_GAP 0.6-0.9 s after the last turn,
+  SWING_TAIL_S 0.6-0.8 s after the key-up) ~4 s; `pressure + brace` (holding: no turns while the key is held, by
+  design) 2-3 s; `pressure + fight, target elsewhere` up to 5.4 s (holding at a mob/ghost in front, targeting LOCKED on
+  the engaged mob while another one behind hits us).
+- Causes in code: the hold itself (v2/combat.py Footwork rule `fight`: no walk keys while held; Weapon only lets go on
+  death / GOT_AWAY_S 0.3-0.5 / DRY), the lock on the engaged mob (targeting), Facing.can_turn (TURN_GAP, swing tail),
+  the `close` condition (behind AND <= standoff + 15), and no notion of "who is hitting us" (an HP drop is never tied
+  to the mob next to us). Per-press attacks remove the first two; the swing tail is real (the game ignores direction
+  keys mid-swing) but should be the real swing length, not 0.6-0.8 s + TURN_GAP on top.
+
+### Plan for the session
+1. **Measure the game first** (short live tests with `--frames`, or the user's new recording): (a) a press DURING a
+   swing - ignored, or queued as the next swing? (decides whether double taps are safe; the user double-taps
+   ~0.2 s apart); (b) a direction key mid-swing - ignored or applied at the swing's end?; (c) real swing lengths per
+   stance with the slow polearm (stab vs overhead swing; ~0.4-1 s in the frames) - can also come from the client:
+   `Character/Weapon` (attackSpeed, in the cw-data copy, not exported yet) + `Character.wz` stance frame delays;
+   (d) shortest press the game takes.
+2. **Weapon per press** (replace pressure/hold in v2/combat.py, keep its doc section true - see memory): press when a
+   live mob is in reach in front and the last swing is over; press length drawn from the user's taps; next press
+   decided at the swing's end on fresh evidence (death animation seen / HP bar empty / mob gone) - by then the death
+   animation is up (killing hit + ~0.23 s), so the extra swing can't start. Gaps humanized from the user's rhythm,
+   never fixed (memory: no fixed timings).
+3. **Evidence for "dead":** turn the HP-bar reader on in v2 (find_mob_bars with sprites; check Perion fog separately),
+   a bar emptied at our hit = the kill. Optional, bigger: make sprite scores ignore effect pixels (bright, saturated
+   sparks/arcs) so mobs stay visible through hits - test offline on `runs/v2` frames first.
+4. **Turning:** with no hold, turn at the next swing's end toward a mob close behind; a mob that just hit us (HP drop,
+   the nearest one within ~80 px) wins over the current target. Target the user's 0.21 s.
+5. **Check** with the probes against the user's baseline: presses at nothing after a kill (user: 12 of 129 kills),
+   death -> next press, mob behind -> turn (user 0.21 s), hits taken from behind, swings per kill. 3-min `run` with
+   frames on Ant Tunnel IV; mark frames for the user.
 
 ## Map recognition: the window is measured, not predicted (2026-11-07, branch `dev`, NOT live-tested with a hunt)
 The user: "new maps are not recognized and we always have to add some kind of fix for every map". Root cause: identify

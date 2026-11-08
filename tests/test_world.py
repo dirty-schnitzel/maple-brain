@@ -3,7 +3,7 @@ import numpy as np
 from maplebot.nav.navmap import NavMap
 from maplebot.perception.gpu_sprites import Hit
 from maplebot.perception.sprites import Pose
-from maplebot.perception.world import Camera, World
+from maplebot.perception.world import Camera, TrackCfg, World
 
 MAP = {"footholds": {"1": {"id": 1, "x1": 0, "y1": 500, "x2": 2000, "y2": 500, "prev": 0, "next": 0}},
        "vrBounds": {"left": -500, "top": -500, "right": 3000, "bottom": 1268}, "mobs": [{"id": 8, "x": 500, "y": 500}]}
@@ -135,3 +135,11 @@ def test_a_live_mob_where_one_died_is_a_new_track():
     trs = w.update(0.10, [hit(504, score=0.9)], ME, ME_MAP)                    # a new Pig steps in
     live = [tr for tr in trs if tr.state != "dying"]
     assert len(live) == 1 and live[0].id != 1 and any(tr.id == 1 and tr.state == "dying" for tr in trs)
+
+
+def test_a_higher_mob_score_raises_what_makes_a_new_mob_not_what_follows_one():
+    """--mob-score: probes make new mobs too; a tracked mob stays followed through its near search."""
+    base = TrackCfg()
+    c = TrackCfg.for_mob_score(0.8)
+    assert c.probe_score == 0.8 and c.near_score == base.near_score
+    assert TrackCfg.for_mob_score(0.5).probe_score == base.probe_score      # never below the default

@@ -132,9 +132,11 @@ def _load_map(rig: "Rig", map_id: int, say) -> bool:
             import json
             mj = json.loads((ASSETS / "mcw" / "maps" / str(map_id) / "map.json").read_text(encoding="utf-8"))
             from ..cover import Cover
+            from ..perception.world import TrackCfg
             sprites.track_ctx = (navmap, mj, {
                 i: json.loads((ASSETS / "mcw" / "mobs" / str(i) / "mob.json").read_text(encoding="utf-8"))
-                for i in g.mob_ids}, None, Cover.for_map(map_id, ASSETS / "mcw"))
+                for i in g.mob_ids}, TrackCfg.for_mob_score(cfg.perception.sprite_score),
+                Cover.for_map(map_id, ASSETS / "mcw"))
         locator = MinimapLocator.for_map(map_id, ASSETS / "mcw", cfg.nav, navmap)
         rig.maps[map_id] = (sprites, locator)
         say(f"map {map_id} {_map_name(map_id)}: sprites for "

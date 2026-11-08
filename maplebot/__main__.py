@@ -7,7 +7,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from .config import Keys
+from .config import Keys, Perception
 
 
 def main(argv=None) -> int:
@@ -29,6 +29,8 @@ def main(argv=None) -> int:
     r.add_argument("--tracker", action="store_true", help="the brain uses the tracker's tracks (needs --gpu)")
     r.add_argument("--brain", choices=["v1", "v2"], default="v1", help="v2 = brain-v2 combat (implies --gpu)")
     r.add_argument("--weapon", default="spear", help="brain v2: weapon type for the reach (spear, poleArm, ...)")
+    r.add_argument("--mob-score", type=float, default=None, help="a new mob needs a sighting this good (default "
+                   f"{Perception.sprite_score}); mobs already tracked are followed at any score")
     r.add_argument("--no-focus", action="store_true", help="don't bring the game to front; wait for you to")
     r.add_argument("--frames-every", type=int, default=3, help="save every Nth frame (1 = all, for tracker tests)")
     v = sub.add_parser("serve", help=f"stay loaded; {Keys.start.upper()} starts hunting, {Keys.stop.upper()} stops (elevated, game focused)")
@@ -45,6 +47,8 @@ def main(argv=None) -> int:
     v.add_argument("--tracker", action="store_true", help="the brain uses the tracker's tracks (needs --gpu)")
     v.add_argument("--brain", choices=["v1", "v2"], default="v1", help="v2 = brain-v2 combat (implies --gpu)")
     v.add_argument("--weapon", default="spear", help="brain v2: weapon type for the reach (spear, poleArm, ...)")
+    v.add_argument("--mob-score", type=float, default=None, help="a new mob needs a sighting this good (default "
+                   f"{Perception.sprite_score}); mobs already tracked are followed at any score")
     v.add_argument("--start-key", default=Keys.start)
     v.add_argument("--stop-key", default=Keys.stop)
     v.add_argument("--frames", action="store_true", help="also save every 3rd frame (~50 MB per 10 min)")
@@ -114,6 +118,8 @@ def main(argv=None) -> int:
         cfg.perception.loot_by_sight = a.loot and a.loot_sight
         cfg.perception.gpu = a.gpu or a.brain == "v2"
         cfg.brain, cfg.combat.weapon = a.brain, a.weapon
+        if a.mob_score is not None:
+            cfg.perception.sprite_score = a.mob_score
         if a.brain == "v2":
             from .brain.reach import Reach
             try:

@@ -62,7 +62,11 @@ Footwork - where to stand while fighting the target on our platform. One RULE TA
 from .scene import sign
 
 SWING_PERIOD = (0.55, 0.7)      # s per swing while held - a guess from the press -> hit timing; measure live
-REACT_S = (0.18, 0.32)          # s from the death animation to letting go: a human's response (uniform)
+REACT_S = (0.04, 0.10)          # s from SEEING the death animation to letting go (uniform). Was 0.18-0.32: on top
+                                # of seeing it (~0.06 s) and the loop (~0.04 s) the key stayed down into the next
+                                # swing - 1-2 swings at nothing after each kill (Ant Tunnel IV, slow polearm ~1 s per
+                                # swing). The user: a player watching the HP drain expects the kill and lets go at once;
+                                # what shows is death -> key up, now ~0.15-0.2 s. Still drawn fresh every time.
 GOT_AWAY_S = (0.3, 0.5)         # s the engaged mob may be out of keep reach before we let go and follow
 REPRESS_S = (0.12, 0.25)        # s between letting go and pressing the attack key again (another key took the repeat)
 SWING_TAIL_S = (0.6, 0.8)       # s a swing goes on after the key came up: direction keys are ignored until then (live
