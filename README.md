@@ -22,7 +22,7 @@ It never reads game memory or packets.
 <td><img src="docs/img/vision.gif" alt="The same seconds with the bot's tracks, target, reach and HUD reading drawn on top" width="100%"></td>
 </tr>
 <tr>
-<td colspan="2" align="center"><sub>Ant Tunnel IV, two kills in 7.5 s of a live run (<code>runs/v2/press1</code>). Player names and chat are pixelated.
+<td colspan="2" align="center"><sub>Ant Tunnel IV, two kills in 7.5 s of a live run (<code>runs/v2/press1</code>). The bot's own name tag is pixelated.
 <br>Box colours: <b>green</b> = a mob seen this frame (with its match score), <b>magenta</b> = the current target, <b>orange</b> = a weak match,
 <b>red</b> = a mob the tracker still believes in but can't see right now (often hidden under hit effects), <b>grey</b> = dying.
 The cyan band is the weapon's reach in front of us.</sub></td>
@@ -198,9 +198,9 @@ Current state and next steps: [HANDOFF.md](HANDOFF.md). Full history: [HISTORY.m
 python tools\readme\make_images.py runs\v2\press1 87.5 95
 ```
 
-Builds `docs/img/{play,vision}.gif`, `screen.png` and `livemap.txt` from a recorded run. Every player and pet
-name tag, the chat box and the HUD's character name are pixelated. A tag found in one frame is also hidden in the
-two frames before and after it, so a tag the finder misses for one frame stays hidden. Check the frames by eye
-before you publish new ones.
+Builds `docs/img/{play,vision}.gif`, `screen.png` and `livemap.txt` from a recorded run. The GIFs hide only the
+bot's own name tag. `screen.png` hides every name tag, the chat box and the HUD's character name. A tag found in
+one frame is also hidden in the two frames before and after it, so a tag the finder misses for one frame stays
+hidden. Check the frames by eye before you publish new ones.
 
 </details>

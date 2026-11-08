@@ -5,8 +5,8 @@ usage: make_images.py [RUN_DIR] [T0] [T1]   (default: runs/v2/press1 87.5 95 = t
      docs/img/play.gif    (the same seconds as the game shows them)
      docs/img/screen.png  (one full frame with what the bot reads called out)
      docs/img/livemap.txt (the console map at one tick, for the README's code block)
-Every player / pet / mob name tag, the chat box and the HUD's character name are pixelated: the
-pictures go on a public page."""
+The GIFs hide only our own name tag (other players' names stay, the user's choice); screen.png hides every
+name tag, the chat box and the HUD's character name."""
 import json
 import sys
 from pathlib import Path
@@ -93,14 +93,21 @@ def tag_boxes(img, tick):
     return [(x + cam[0], y + cam[1], w, h) for x, y, w, h in find_tags(img) + loose_tags(img)]
 
 
-def anonymize(img, tick, tags=()):
-    """Pixelate every name tag (`tags`: map-coordinate boxes found on this frame AND its neighbours, so a tag the
-    finders miss for a frame still gets hidden; ours from the self position), the chat box and the HUD name."""
+def anonymize(img, tick, tags=(), only_ours=False):
+    """Pixelate name tags (`tags`: map-coordinate boxes found on this frame AND its neighbours, so a tag the
+    finders miss for a frame still gets hidden; ours also from the self position), the chat box and the HUD name.
+    only_ours: hide only OUR name (tags found right under us + the self-position box); other players' stay."""
     cam = tick["obs"].get("cam") or (0, 0)
+    s = tick["timings"].get("self") or {}
     for x, y, w, h in tags:
         x, y = int(x - cam[0]), int(y - cam[1])
+        if only_ours:
+            if s.get("x") is None:
+                continue
+            mx, my = s["x"] - cam[0], s["y"] - cam[1]
+            if not (abs(x + w / 2 - mx) <= 110 and -15 <= y - my <= 50):
+                continue
         pixelate(img, x - 12, y - 5, x + w + 12, y + h + 5)
-    s = tick["timings"].get("self") or {}
     if s.get("x") is not None and tick["obs"].get("cam"):
         mx, my = int(s["x"] - cam[0]), int(s["y"] - cam[1])
         pixelate(img, mx - 75, my + 1, mx + 75, my + 24)
@@ -225,7 +232,7 @@ def main(run=ROOT / "runs/v2/press1", t0=87.5, t1=95.0):
     near = [sum(found[max(0, i - 2):i + 3], []) for i in range(len(win))]
     plain, seen, times = [], [], []
     for img, r, tags in zip(imgs, win, near):
-        img = anonymize(img, r, tags)
+        img = anonymize(img, r, tags, only_ours=True)        # the GIFs: only our own name is hidden
         plain.append(img[box[1]:box[3], box[0]:box[2]].copy())
         seen.append(overlay(img.copy(), r)[box[1]:box[3], box[0]:box[2]])
         times.append(r["obs"]["t"])
@@ -242,7 +249,7 @@ def main(run=ROOT / "runs/v2/press1", t0=87.5, t1=95.0):
     # the screen shot: the tick in the window with the most live mobs on screen
     best = max(win, key=lambda r: sum(1 for m in r["obs"].get("mobs") or [] if m.get("kind") == "mob"
                                       and m["state"] == "live"))
-    cv2.imwrite(str(OUT / "screen.png"), screen(run, best, near[win.index(best)]))
+    cv2.imwrite(str(OUT / "screen.png"), screen(run, best, near[win.index(best)]))   # all names hidden here
     print(f"docs/img/screen.png: t={best['obs']['t']:.2f}")
     from maplebot.livemap import View
     view = View(10005063, 118)
