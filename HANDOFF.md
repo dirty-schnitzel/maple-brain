@@ -123,6 +123,16 @@ in a PARTY -> MP drops don't count swings and EXP rises are party shares, not ki
    swings at nothing after a death 7-14 % (the user 10 %). 1106 tests green. Still a fixed number: SWING_LAND_S 0.45
    (reach.py, the prediction horizon; live hit ~0.50-0.56 with the polearm). The probes `after.py` / `stale.py` /
    `turning.py` read held-key time and need a per-press version before step 5.
+   **LIVE `runs/v2/press1`** (committed code 4f31e36, 3 min Ant Tunnel IV, party, --mob-score 0.70, started on a
+   rope): 59 presses (20/min), 13 kills by last hit (55 deaths not ours: party), 4.5 swings/kill, 9 HP potions.
+   `probe/bot_presses.py`: aimed at a mob seen well in front 37, stale tracks only 18, nothing 4; 19 deaths in
+   front, 3 presses at no solid mob <= 1 s after one. Gap after the swing p10/50/90 0.09/0.25/1.13 (user
+   0.015/0.09/0.46), 0 presses mid-swing. `turning.py` vs `react1` (the hold): mob behind -> turned 16/25 (was
+   7/23) median 0.5 s (user 0.36); hit by a mob within 80 px -> turned median 0.36 s (was 3.46), never-turned 0.
+   `marked_presses.png`: the stale presses are WEAK TRACKS (0.58-0.60) ON OUR OWN BODY / PET (track 41: 4 presses at
+   58-62 s; 148 "hidden" at 145 s) and a weak new track starting ON A DYING MOB (222 on 213 at 198.5; 162.4 alike)
+   -> the unclean presses. Next = step 3 evidence (perception, not a brain rule): no mob detections on our own
+   character (we know our box from the tag), no new live track on a dying mob's spot, then the HP bars.
    (Original plan text:) **Weapon per press** (replace pressure/hold in v2/combat.py, keep its doc section true - see memory): press when a
    live mob is in reach in front and the last swing is over; press length drawn from the user's taps; next press
    decided at the swing's end on fresh evidence (death animation seen / HP bar empty / mob gone) - by then the death

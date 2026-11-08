@@ -8,6 +8,7 @@ Written while chasing air swings / extra swings after kills on Ant Tunnel IV. Ro
 | after.py | `after.py RUN_DIR` | death of the mob we fought -> attack key up (median/p90), per kill |
 | turning.py | `turning.py RUN_DIR [...]` | mob close behind -> turn latency; what the bot was doing; hit from behind -> turn |
 | human.py | `human.py runs/play/RUN` | OLD (attack key `space` hardcoded, counts presses): use human_swings.py |
+| bot_presses.py | `bot_presses.py RUN_DIR [N]` | brain v2 per-press runs: each press aimed at a solid / stale / no mob, presses <= 1 s after a death in front, gap after the swing vs the user; marks the N worst -> marked_presses.png |
 | human_swings.py | `human_swings.py runs/play/RUN [SWING_S]` | the user's play by SWINGS (a key-down starts one if none is going on; 0.90 s polearm, 0.80 spear): clean kills, death timing, when the mashing stops, swing rhythm |
 | human_turn.py | `human_turn.py runs/play/RUN` | the user's turn latency to a mob close behind |
 | presses.py | `presses.py runs/play/RUN ...` | the user's attack press length / gaps (keys.jsonl) |
