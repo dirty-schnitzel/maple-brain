@@ -1,0 +1,1 @@
+runs/v2/press1 frames 000300.jpg..000432.jpg (t 40.8-49.2 s), Ant Tunnel IV 10005063, a fight: brain v2 per-press live run 2026-11-08. JPEG q85. Used by tools/perf/bench.py + tests/test_perf.py

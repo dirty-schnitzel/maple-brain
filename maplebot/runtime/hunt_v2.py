@@ -41,6 +41,7 @@ def hunt_v2(rig, rec, t0: float, until) -> str:
         f"mob score {cfg.perception.sprite_score}")
     driver = KeyDriver(kb.send, kb.focused, hz, cfg.humanize).start()
     status, start, frames_n = "ok", time.perf_counter(), 0
+    speed = []                                   # (tick ms, perceiver parts) per tick: the speed line at the end
     try:
         while (reason := until()) is None:
             try:
@@ -75,6 +76,7 @@ def hunt_v2(rig, rec, t0: float, until) -> str:
                     timings["parts"] = perceiver.parts
                 if hasattr(rig.sprites, "all_hits"):
                     timings["gpu_ms"] = round(rig.sprites.last_ms, 1)
+                speed.append((1000 * (tb - tick0), dict(getattr(perceiver, "parts", None) or {})))
                 rec.tick(frame, obs, [], brain.mode, timings)
                 if stop:
                     driver.release_all()
@@ -113,4 +115,18 @@ def hunt_v2(rig, rec, t0: float, until) -> str:
     say(brain.reach.check(next(iter(m.mob_id for m in rig.sprites.mobs), None)))
     say("reach learned (dx band: hits/n) " + json.dumps({k: list(v) for k, v in brain.reach.learned().items()}))
     say("stats " + json.dumps(dict(st, frames=frames_n, fps=round(frames_n / max(elapsed, 1e-6), 1))))
+    say(speed_line(speed))
     return status
+
+
+def speed_line(speed) -> str:
+    """'speed: tick p50 / p90 ms, parts p50' over the hunt's ticks - compare with tools/perf/bench.py (the replay
+    regression test's numbers; live adds the capture and the game's own GPU load)."""
+    if not speed:
+        return "speed: no ticks"
+    ticks = sorted(t for t, _ in speed)
+    names = {k for _, p in speed for k in p}
+    med = {k: sorted(p.get(k, 0.0) for _, p in speed)[len(speed) // 2] for k in names}
+    parts = ", ".join(f"{k} {v:.1f}" for k, v in sorted(med.items(), key=lambda kv: -kv[1]) if v >= 0.05)
+    p50, p90 = ticks[len(ticks) // 2], ticks[int(0.9 * (len(ticks) - 1))]
+    return f"speed: tick p50 {p50:.0f} ms ({1000 / p50:.1f} fps), p90 {p90:.0f} ms; perceive parts p50 [{parts}]"

@@ -20,6 +20,12 @@ Accuracy (offline first on press1 / react1 frames, `bot_presses.py` + marked fra
   A4. Effect-robust sprite scores (ignore bright saturated spark / arc pixels): mobs stay visible under our hits.
   A5. Hit time per weapon from the client (SWING_LAND_S is still 0.45 fixed; live polearm ~0.50-0.56).
 Speed (target >= 30 fps, frame -> decision < 35 ms; measure tick p50/p90 + the gap after a swing vs the user):
+  S0. DONE: speed regression. `tools/perf/bench.py` replays the live v2 tick (resize from 2560x1440 -> perceive ->
+      self state -> brain) on tests/fixtures/perf_ant4 (45 fight frames from press1) in its own process;
+      tests/test_perf.py fails when the tick median is > 25 % (+2 ms) over tests/perf_baseline.json (this machine:
+      59.6 ms = 16.8 fps; repeats within ~5 %) or a part > 50 % (+3 ms) over its own; EVERY pytest run ends with a
+      "bot speed" line (conftest.py), FASTER by > 15 % says to re-baseline (`bench.py --baseline`). Live runs end
+      with a `speed:` line in log.txt (hunt_v2.speed_line). In the fight frames the HUD costs 12-13 ms (run average 4).
   S1. Overlap: CPU parts (self tag, camshift, hud) in threads while the GPU detector runs -> the tick ~ the longest
       part, not the sum.
   S2. Move self-tag and camshift matching onto the GPU (the GpuNCC machinery already exists); upload the frame once,
