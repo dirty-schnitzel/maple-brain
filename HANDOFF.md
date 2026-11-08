@@ -1,4 +1,4 @@
-# maplebot — session handoff (updated 2026-11-08: NEXT SESSION = "START HERE: attack per press" below - remove the held attack key, clean kills, instant turns; 2026-11-07: map recognition measures the minimap window; session 23 (2026-11-05): M2 combat LIVE 14.3 kills/min (the user: "SERIOUSLY impressive"), brain v2 restructured into brain/v2/ parts, hold-until-death + re-press committed, NOT live-tested - see 'START HERE NEXT SESSION' in 'Session 23'; session 22: M1 movement DONE (camshift + selfstate, moves + Travel + sim + `goto`, live 80 % first try, the user: natural), stalls fixed (14.4 fps); NEXT = M2 Hunt skill - see 'START HERE: M2'; session 21: BRAIN-V2 started - key logger, farming example, KeyDriver; session 20: look-alike maps by name; session 19: tracker + `--tracker` shim; session 18: GPU detection `--gpu`; session 17: game data from the client files)
+# maplebot — session handoff (updated 2026-11-08 late: NEXT SESSION = "START HERE NEXT SESSION: accuracy + speed" below - attack per press is DONE + live (the user: "the most significant change in bot behavior since start"), speed regression test in place; earlier 2026-11-08: attack per press plan; 2026-11-07: map recognition measures the minimap window; session 23 (2026-11-05): M2 combat LIVE 14.3 kills/min (the user: "SERIOUSLY impressive"), brain v2 restructured into brain/v2/ parts, hold-until-death + re-press committed, NOT live-tested - see 'START HERE NEXT SESSION' in 'Session 23'; session 22: M1 movement DONE (camshift + selfstate, moves + Travel + sim + `goto`, live 80 % first try, the user: natural), stalls fixed (14.4 fps); NEXT = M2 Hunt skill - see 'START HERE: M2'; session 21: BRAIN-V2 started - key logger, farming example, KeyDriver; session 20: look-alike maps by name; session 19: tracker + `--tracker` shim; session 18: GPU detection `--gpu`; session 17: game data from the client files)
 
 ## Goal
 A **fully automated mob farmer** for **MapleStory Classic World** (official GMS Classic, launched 2026-10-21):
@@ -6,8 +6,37 @@ find mobs, fight them like a player, pick up loot, use potions, and **navigate p
 later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never reads memory or packets.
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
-## NEXT: accuracy + speed plan (2026-11-08, after the per-press live run; the user: "the most significant change in
-## bot behavior since start, so much more accurate and lethal")
+## START HERE NEXT SESSION: accuracy + speed (2026-11-08, after the per-press live run; the user: "the most
+## significant change in bot behavior since start, so much more accurate and lethal")
+**Branch state:** `dev`, everything committed (main untouched; the user merges). Commits this session:
+`4f31e36` attack per press (one press per swing, next decided after the swing; swing length from the client,
+`--attack-speed`, default weapon poleArm) -> `bda9f6d` live check (`runs/v2/press1`, `probe/bot_presses.py`) ->
+`939a189` this plan -> `a375cae` speed regression test. 1107 tests green. Details of the per-press work: the section
+"attack per press" below (steps 1-2 DONE, step 3 = A1-A4 here).
+**Rules learned this session:** no scripted / probe input in a populated map - check the screen and get the user's OK
+for the spot first (memory "no scripted input in public": the Ant Tunnel probe got the user reported). Live tests
+of normal hunting on Ant Tunnel IV are fine after the user's OK.
+
+**The speed regression test (S0 below) - how to use it:**
+- Every `pytest` run (the venv: `..\auto-maple\.venv\Scripts\python -m pytest`) ends with a `bot speed` section:
+  `bot speed (replay, 40 frames): 15.8 fps, tick 63.1 ms (p90 73.6) = resize .. + perceive .. [gpu .., hud .., world
+  .., self .., camshift .., locate .., scene ..] + brain .. | baseline 16.8 fps, tick 59.6 ms (2026-11-08)`.
+  Look at it after EVERY change: it says "N % slower" past 10 %, "FASTER ... re-baseline" past 15 %.
+- `tests/test_perf.py` FAILS when the tick median > baseline x 1.25 + 2 ms, or any part's median > its baseline x 1.5
+  + 3 ms (message names the part). A failing first try is measured again (the game may hold the GPU); the faster
+  counts. Skipped without CUDA / torch, without the fixture, or on a machine with no baseline (the baseline stores
+  `machine` = host + GPU name; another PC needs its own `--baseline`). Takes ~20 s.
+- It runs `tools/perf/bench.py --json` in its OWN process (inside pytest, after the other GPU tests, it read ~17 %
+  slow). Standalone repeats agree within ~5 % (59.6-64.8 ms seen).
+- After a deliberate speed change (S1-S3, or a new perception part worth its cost): `..\auto-maple\.venv\Scripts\python
+  tools\perf\bench.py --baseline` (rewrites tests/perf_baseline.json) and commit it with the change.
+- Bench any recorded run: `bench.py --frames runs/v2/press1/frames --map 10005063 --n 200`. The fixture
+  (tests/fixtures/perf_ant4, 45 JPEG q85 frames, 7.8 MB, SOURCE.txt) is a fight stretch of press1 (t 40.8-49.2 s);
+  the first 5 frames are warm-up. NOT measured: the dxcam capture itself, the key driver thread, ticks/frames writing.
+- Live: every v2 run's log.txt now ends with `speed: tick p50 .. ms (.. fps), p90 ..; perceive parts p50 [..]`
+  (hunt_v2.speed_line) - compare with the replay; live adds the capture and the game's own GPU load (press1: 58 ms).
+- Already visible: in the fight frames the HUD read costs 12-13 ms per tick (run average 4) - an S3 candidate.
+
 Where a tick goes (`runs/v2/press1`, median 58 ms = 16 fps, p90 72, p99 119): grab+resize 11, perceive 47 = gpu 15 +
 world (tracker) 10 + self tag 7 + camshift 6 + hud 4 + scene 3 + locate 2; brain 0.2. The GPU is a quarter of it; the
 rest is CPU work run one after another. 16 fps costs LATENCY (gap after a swing 0.25 s vs the user's 0.09; turn 0.5 vs
@@ -35,7 +64,8 @@ Speed (target >= 30 fps, frame -> decision < 35 ms; measure tick p50/p90 + the g
 Order: A1 + A2 (cheap, offline-testable) -> S1-S3 -> A3 -> A4 -> A5. Live check after each pair with bot_presses.py +
 turning.py, 3 min with frames, marked frames for the user.
 
-## START HERE: attack per press - clean kills, instant turns (2026-11-08, branch `dev`)
+## attack per press - clean kills, instant turns (2026-11-08, branch `dev`; steps 1-2 DONE + live, steps 3-4 = the
+## accuracy plan above)
 **Goal of the session (the user):** drop the held attack key. Attack with presses, humanized press lengths and
 humanized gaps between them, while promising CLEAN KILLS: no swing after the mob's death (other bots on Ant Tunnel IV
 "hit exactly and accurately every target, and stop hitting immediately after death"). Also: turn to face mobs
