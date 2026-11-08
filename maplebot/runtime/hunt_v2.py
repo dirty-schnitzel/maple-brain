@@ -35,7 +35,8 @@ def hunt_v2(rig, rec, t0: float, until) -> str:
     brain = BrainV2(cfg, nav, hz, log=say)
     exp = ExpMeter()
     s0, m0 = brain.reach.vs(next(iter(m.mob_id for m in rig.sprites.mobs), None))
-    say(f"brain v2 (combat): weapon {cfg.combat.weapon}, sure reach {s0.lo:.0f}..{s0.hi:.0f} px in front "
+    say(f"brain v2 (combat): weapon {cfg.combat.weapon} (attack speed {brain.reach.attack_speed}, swing "
+        f"{brain.reach.swing_s:.2f} s), sure reach {s0.lo:.0f}..{s0.hi:.0f} px in front "
         f"(maybe {m0.lo:.0f}..{m0.hi:.0f}), attack {cfg.keys.attack} / plain {cfg.keys.basic_attack}, "
         f"mob score {cfg.perception.sprite_score}")
     driver = KeyDriver(kb.send, kb.focused, hz, cfg.humanize).start()

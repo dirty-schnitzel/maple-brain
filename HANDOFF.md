@@ -14,7 +14,8 @@ behind us fast, and to the mob attacking us AT ONCE (the user: "facing the mob a
 instant"). The user dislikes added logic layers ("no no no 'track must be proven'"): prefer better evidence and
 simpler mechanics over new rules. The user can record a new keylogged session (see step 1).
 
-**Branch state:** `dev` = main + `9a32d7f` (map recognition). UNCOMMITTED on dev (ask before committing):
+**Branch state (2026-11-08 late):** `dev` = `a6158f7` + UNCOMMITTED: steps 1-2 below (probes, per-press Weapon,
+swing length from the client, `--attack-speed`). Older note: `dev` = main + `9a32d7f` (map recognition). UNCOMMITTED on dev (ask before committing):
 `--mob-score` flag (run/serve; sets perception.sprite_score + TrackCfg.for_mob_score probe score; test in
 test_world.py), REACT_S 0.18-0.32 -> 0.04-0.10 s (v2/combat.py), `tools/combat/probe/` (analysis scripts + README).
 1106 tests green. The user's game setup now: polearm with SLOW attack speed, `q` set to the PLAIN attack (saves MP),
@@ -85,7 +86,44 @@ in a PARTY -> MP drops don't count swings and EXP rises are party shares, not ki
    stance with the slow polearm (stab vs overhead swing; ~0.4-1 s in the frames) - can also come from the client:
    `Character/Weapon` (attackSpeed, in the cw-data copy, not exported yet) + `Character.wz` stance frame delays;
    (d) shortest press the game takes.
-2. **Weapon per press** (replace pressure/hold in v2/combat.py, keep its doc section true - see memory): press when a
+   **STEP 1 DONE (2026-11-08).** Client: body `00002000.img` swingT2/P1/P2 = 300+150+350 = 800 ms, stabT1/T2 =
+   300+100+350 = 750 ms; attackSpeed every polearm (0144xxxx) = 8, spears 6-7. Scaled x (10 + speed) / 16: polearm
+   0.90 s, spear 0.80 s. **Live probe** `runs/probe/sauna1` (`swing_live.py`, 21 trials, Regular Sauna, 60 fps;
+   `swing_read.py`'s automatic reading is unreliable there - steam, other players overlapping - so read by eye with
+   zoomed strips + an arc-pixel count; `runs/probe/swing1` is USELESS: on a ladder in a crowded Ant Tunnel, the user
+   got reported - see memory "no scripted input in public"):
+   - swing ends +0.89..0.92 s after the key-down (all 6 single/short trials); the white slash arc peaks +0.50..0.56
+     (the hit), a gold starburst shows the wind-up from ~+0.05;
+   - a key-down DURING a swing is IGNORED, not queued (6 double taps, 2nd press +0.23..+0.76: one arc each);
+   - the attack fires on key-DOWN EVENTS: holding q 2.5 s with one key-down (no auto-repeat) = ONE swing. A held key
+     only keeps swinging through the keyboard's repeats (KeyDriver emulates them) - why "held key = last pressed";
+   - 21 ms and 29 ms taps both swing (d: any press length works);
+   - a direction tap released BEFORE the swing ends is DROPPED (5 trials, +0.24..+0.72); one still down at the end
+     (+0.90..0.97) turns us; a direction tap 0.09-0.16 s before the attack press turns that swing (turn_first x2).
+   **The user's polearm play** (`runs/play/20261108_224651_1`, 8.4 min Ant Tunnel IV, party;
+   `probe/human_swings.py` rebuilds SWINGS from the keylog with the rule above):
+   - MASHING: 893 presses, all taps (deciles 0.074..0.111 s, median 0.083), press -> press median 0.18 s; 626 of them
+     ignored mid-swing, 267 swings (32/min). Next swing starts after the last one's end: with a mob in front, deciles
+     0, .015, .03, .052, .068, .09 (median), .112, .15, .188, .458, .98 s;
+   - clean kills 64 of 71 (90 %; spear recording 140/153); the 7 others had exactly ONE swing at nothing;
+   - killing swing start -> death visible p10/50/90 0.62 / 0.78 / 0.93 s (just before the swing's end at 0.90);
+   - the user stops mashing BEFORE the death shows: last press of the burst median 0.48 s before it (p90 0.12 after)
+     = ~0.3 s into the killing swing - predicting the kill from the HP bar, not reacting to the death;
+   - turn to a mob behind: median 0.36 s, p90 1.03 (spear: 0.21). An LD came at 471 s of this MANUAL play.
+2. **DONE 2026-11-08, NOT live-tested, uncommitted on `dev`:** v2/combat.py Weapon = one press per swing (`ready` ->
+   `swing` -> `ready`), Hands / RE-PRESS / GOT_AWAY / REACT_S / SWING_PERIOD / SWING_TAIL_S gone. The next press is
+   decided at swing end + a gap drawn from the user's deciles (`Humanizer.pick`, combat.GAP_DECILES, median 0.09 s):
+   engaged mob live and in keep reach, or another live mob in reach in front -> press (PRESS_S 0.088, varied by the
+   driver); a dying / gone mob gets no press (CLEAN KILL). Turns only once our swing is over (Facing.swung = swing
+   end), TURN_SETTLE before the press after a turn. Targeting locked while engaged. Swing length from the CLIENT:
+   export.ps1 now writes Character/00002000.img.xml + weapons.json, `assets build` puts stance_ms / speeds / items in
+   attacks.json, `Reach.swing_s` = longest swing stance x (10 + attackSpeed) / 16 (polearm 0.90, spear 0.85);
+   `Combat.attack_speed` / `--attack-speed` overrides (Booster), default weapon now poleArm. Sim (tests): game rules
+   per the probe, deaths show 0.15-0.45 s after the killing hit; 4 x 3 min: ~10 kills/min, 3.5-3.9 swings/kill,
+   swings at nothing after a death 7-14 % (the user 10 %). 1106 tests green. Still a fixed number: SWING_LAND_S 0.45
+   (reach.py, the prediction horizon; live hit ~0.50-0.56 with the polearm). The probes `after.py` / `stale.py` /
+   `turning.py` read held-key time and need a per-press version before step 5.
+   (Original plan text:) **Weapon per press** (replace pressure/hold in v2/combat.py, keep its doc section true - see memory): press when a
    live mob is in reach in front and the last swing is over; press length drawn from the user's taps; next press
    decided at the swing's end on fresh evidence (death animation seen / HP bar empty / mob gone) - by then the death
    animation is up (killing hit + ~0.23 s), so the extra swing can't start. Gaps humanized from the user's rhythm,

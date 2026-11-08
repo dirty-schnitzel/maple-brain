@@ -7,7 +7,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from .config import Keys, Perception
+from .config import Combat, Keys, Perception
 
 
 def main(argv=None) -> int:
@@ -28,7 +28,9 @@ def main(argv=None) -> int:
     r.add_argument("--gpu", action="store_true", help="find mobs on the GPU (whole screen; needs torch + CUDA)")
     r.add_argument("--tracker", action="store_true", help="the brain uses the tracker's tracks (needs --gpu)")
     r.add_argument("--brain", choices=["v1", "v2"], default="v1", help="v2 = brain-v2 combat (implies --gpu)")
-    r.add_argument("--weapon", default="spear", help="brain v2: weapon type for the reach (spear, poleArm, ...)")
+    r.add_argument("--weapon", default=Combat.weapon, help="brain v2: weapon type for the reach (poleArm, spear, ...)")
+    r.add_argument("--attack-speed", type=int, default=None, help="brain v2: the weapon's attackSpeed, sets the swing "
+                   "length (default: the usual one for the type in the client data; a Booster takes 2 off)")
     r.add_argument("--mob-score", type=float, default=None, help="a new mob needs a sighting this good (default "
                    f"{Perception.sprite_score}); mobs already tracked are followed at any score")
     r.add_argument("--no-focus", action="store_true", help="don't bring the game to front; wait for you to")
@@ -46,7 +48,9 @@ def main(argv=None) -> int:
     v.add_argument("--gpu", action="store_true", help="find mobs on the GPU (whole screen; needs torch + CUDA)")
     v.add_argument("--tracker", action="store_true", help="the brain uses the tracker's tracks (needs --gpu)")
     v.add_argument("--brain", choices=["v1", "v2"], default="v1", help="v2 = brain-v2 combat (implies --gpu)")
-    v.add_argument("--weapon", default="spear", help="brain v2: weapon type for the reach (spear, poleArm, ...)")
+    v.add_argument("--weapon", default=Combat.weapon, help="brain v2: weapon type for the reach (poleArm, spear, ...)")
+    v.add_argument("--attack-speed", type=int, default=None, help="brain v2: the weapon's attackSpeed, sets the swing "
+                   "length (default: the usual one for the type in the client data; a Booster takes 2 off)")
     v.add_argument("--mob-score", type=float, default=None, help="a new mob needs a sighting this good (default "
                    f"{Perception.sprite_score}); mobs already tracked are followed at any score")
     v.add_argument("--start-key", default=Keys.start)
@@ -117,7 +121,7 @@ def main(argv=None) -> int:
         cfg.perception.loot = a.loot
         cfg.perception.loot_by_sight = a.loot and a.loot_sight
         cfg.perception.gpu = a.gpu or a.brain == "v2"
-        cfg.brain, cfg.combat.weapon = a.brain, a.weapon
+        cfg.brain, cfg.combat.weapon, cfg.combat.attack_speed = a.brain, a.weapon, a.attack_speed
         if a.mob_score is not None:
             cfg.perception.sprite_score = a.mob_score
         if a.brain == "v2":

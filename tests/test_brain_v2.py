@@ -43,6 +43,24 @@ def _brain(nav, seed=1):
     return BrainV2(Config(), nav, Humanizer(seed=seed))
 
 
+class Drv(SimDriver):
+    """SimDriver that remembers every tap it took: (time asked, key)."""
+
+    def __init__(self):
+        super().__init__()
+        self.log = []
+
+    def tap(self, key, secs, after=0.0):
+        ok = super().tap(key, secs, after)
+        if ok:
+            self.log.append((self.now, key))
+        return ok
+
+
+def _presses(drv, key=ATTACK):
+    return [t for t, k in drv.log if k == key]
+
+
 # ---------------------------------------------------------------- reach
 def test_spear_and_polearm_reach_vs_bubbling_from_the_client_boxes():
     for w in ("spear", "poleArm"):
@@ -50,6 +68,15 @@ def test_spear_and_polearm_reach_vs_bubbling_from_the_client_boxes():
         assert 20 <= sure.lo <= 32 and 130 <= sure.hi <= 142      # stab/swing boxes overlap 52..111 + body +-26
         assert maybe.lo < 5 and 150 <= maybe.hi <= 165
         assert sure.has(72, 0) and not sure.has(170, 0) and not sure.has(80, -60)   # the user's median kill: 72
+
+
+def test_swing_length_from_the_client_stances_and_attack_speed():
+    assert Reach("poleArm").attack_speed == 8 and Reach("poleArm").swing_s == pytest.approx(0.90)   # live 0.89-0.92
+    assert Reach("spear").attack_speed == 7 and Reach("spear").swing_s == pytest.approx(0.85)
+    assert Reach("poleArm", attack_speed=6).swing_s == pytest.approx(0.80)                         # a Booster: -2
+    cfg = Config()
+    cfg.combat.attack_speed = 6
+    assert BrainV2(cfg, None, Humanizer(seed=1)).weapon.swing_s == pytest.approx(0.80 + 0.02)
 
 
 def test_a_wider_mob_is_reached_from_further():
@@ -75,15 +102,15 @@ def _taps(drv, key):
 
 
 def test_swings_at_a_mob_in_reach_in_front(line1):
-    br, drv = _brain(line1), SimDriver()
+    br, drv = _brain(line1), Drv()
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273)], s)
-    assert ATTACK in drv.want and br.stats["swings"] == 1
+    assert _presses(drv) == [0.0] and ATTACK not in drv.want and br.stats["swings"] == 1   # a press, never a hold
 
 
 def test_no_swing_out_of_reach_walks_toward_it_instead(line1):
-    br, drv = _brain(line1), SimDriver()
+    br, drv = _brain(line1), Drv()
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1700, 198, 273)], s)
@@ -91,27 +118,27 @@ def test_no_swing_out_of_reach_walks_toward_it_instead(line1):
 
 
 def test_predicts_a_mob_walking_into_reach(line1):
-    br, drv = _brain(line1), SimDriver()
+    br, drv = _brain(line1), Drv()
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     hi = br.reach.vs(BUBBLING)[0].hi
     _tick(br, drv, 0.0, [_mob(1, 1400 + hi + 20, 198, 273, vx=-80)], s)    # 20 px out now, 16 px in when it lands
-    assert ATTACK in drv.want
+    assert _presses(drv)
     assert -80 * SWING_LAND_S < -20
 
 
 def test_a_mob_behind_us_turns_us_round_first(line1):
-    br, drv = _brain(line1), SimDriver()
+    br, drv = _brain(line1), Drv()
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1330, 198, 273)], s)
     assert not _taps(drv, ATTACK) and _taps(drv, "left") and br.facing == -1
     _tick(br, drv, 0.3, [_mob(1, 1330, 198, 273)], s)
-    assert ATTACK in drv.want
+    assert _presses(drv) == [0.3]
 
 
 def test_never_swings_at_nothing_or_at_dying_mobs(line1):
-    br, drv = _brain(line1), SimDriver()
+    br, drv = _brain(line1), Drv()
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     for i in range(30):
@@ -119,90 +146,88 @@ def test_never_swings_at_nothing_or_at_dying_mobs(line1):
     assert br.stats["swings"] == 0
 
 
-def test_holds_while_the_mob_is_knocked_back_and_lets_go_after_it_dies(line1):
-    br, drv = _brain(line1), SimDriver()
+SWING_END = Reach(Config().combat.weapon).swing_s + 0.02   # + the margin (combat.SWING_MARGIN_S); + the key's way
+GAP_MAX = 0.98 * 1.1                                # the user's longest gap after a swing x the tempo's wander
+
+
+def test_one_press_per_swing_while_the_mob_is_knocked_back_none_after_it_dies(line1):
+    br, drv = _brain(line1), Drv()
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
-    _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273)], s)
-    assert ATTACK in drv.want and not _taps(drv, ATTACK) and br.weapon.state == "pressure"
-    for i in range(1, 8):                             # knocked back: moving away fast, still within the maybe reach
-        _tick(br, drv, i * 0.07, [_mob(1, 1480 + 8 * i, 198, 273, vx=220)], s)
-        assert ATTACK in drv.want, i
-    for i in range(10):                               # it died: let go within ~0.15-0.35 s
-        _tick(br, drv, 0.6 + i * 0.07, [], s)
-    assert ATTACK not in drv.want and br.weapon.state == "ready"
+    t = 0.0
+    while t < 4.0:                                    # knocked back and forth inside the maybe reach, reacting
+        hit = (t % 1.0) < 0.4
+        _tick(br, drv, t, [_mob(1, 1480 + 60 * hit, 198, 273, state="hit" if hit else "live")], s)
+        assert ATTACK not in drv.want                 # never held: the game swings only on key-downs
+        t += 0.07
+    p = _presses(drv)
+    assert 3 <= len(p) <= 5, p
+    assert all(SWING_END <= b - a <= SWING_END + GAP_MAX + 0.1 for a, b in zip(p, p[1:])), p   # never mid-swing
+    while t < 6.5:                                    # it died: not one press more (CLEAN KILL)
+        _tick(br, drv, t, [_mob(1, 1480, 198, 273, state="dying")], s)
+        t += 0.07
+    assert _presses(drv) == p and br.weapon.state == "ready" and br.weapon.engaged is None
 
 
-def test_no_turning_while_the_attack_is_held(line1):
-    br, drv = _brain(line1), SimDriver()                # the game ignores a direction key mid-swing (runs/v2c)
+def test_turns_to_a_mob_behind_only_once_our_swing_is_over(line1):
+    br, drv = _brain(line1), Drv()                # the game drops a direction tap released mid-swing (probe/sauna1)
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273), _mob(2, 1340, 198, 273)], s)
-    assert ATTACK in drv.want
-    _tick(br, drv, 0.07, [_mob(2, 1340, 198, 273)], s)  # the one in front died; the other is behind
-    assert not _taps(drv, "left") and br.facing == 1
-    for i in range(2, 30):
-        _tick(br, drv, i * 0.07, [_mob(2, 1340, 198, 273)], s)
-    assert br.stats["turns"] == 1 and br.facing == -1  # let go, turned, and (now in front) holds at it again
-    assert ATTACK in drv.want
-
-
-def test_turns_only_after_the_swing_is_over(line1):
-    br, drv = _brain(line1), SimDriver()
-    br.facing = 1
-    s = SelfState(0, 1400, 198, "tag", "ground", 273)
-    _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273)], s)
+    assert _presses(drv) == [0.0]
     t = 0.07
-    while ATTACK in drv.want:                        # the mob is gone; a new one behind us: let go first
+    while not _taps(drv, "left") and t < 2.0:         # the one in front died at once; the other is behind
         _tick(br, drv, t, [_mob(2, 1340, 198, 273)], s)
         t += 0.07
-    up = t
-    while not _taps(drv, "left") and t < up + 2:
+    turned = t - 0.07
+    assert br.weapon.swing_end <= turned <= br.weapon.swing_end + 0.08 and br.facing == -1
+    while len(_presses(drv)) < 2 and t < 4.0:         # then at it
         _tick(br, drv, t, [_mob(2, 1340, 198, 273)], s)
         t += 0.07
-    assert 0.6 <= t - up <= 1.0                       # a tap during the swing's tail is lost in the game
+    assert len(_presses(drv)) == 2 and br.stats["turns"] == 1
 
 
 def test_no_attack_on_top_of_a_turn(line1):
-    br, drv = _brain(line1), SimDriver()
+    br, drv = _brain(line1), Drv()
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1330, 198, 273)], s)
     assert _taps(drv, "left")
     _tick(br, drv, 0.07, [_mob(1, 1330, 198, 273)], s)
-    assert ATTACK not in drv.want                    # pressed on top of the walk key it can eat the turn
+    assert not _presses(drv)                         # pressed on top of the walk key it can eat the turn
     _tick(br, drv, 0.25, [_mob(1, 1330, 198, 273)], s)
-    assert ATTACK in drv.want
+    assert _presses(drv) == [0.25]                    # the turn first, then the swing: it faces the new way
 
 
-def test_a_dry_hold_means_we_look_the_other_way(line1):
-    br, drv = _brain(line1), SimDriver()
+def test_a_dry_fight_means_we_look_the_other_way(line1):
+    br, drv = _brain(line1), Drv()
     br.facing = 1                                     # we think; the game dropped the turn: the mob never reacts
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     t = 0.0
-    while br.stats["dry"] == 0 and t < 3.0:
+    while br.stats["dry"] == 0 and t < 4.5:
         _tick(br, drv, t, [_mob(1, 1480, 198, 273)], s)
         t += 0.07
-    assert 1.8 <= t <= 2.6 and ATTACK not in drv.want
+    assert 1.8 <= t <= 4.2 and 2 <= len(_presses(drv)) <= 3
     t0 = t
-    while not _taps(drv, "right") and t < t0 + 2:     # once the swing is over: a tap toward it, then press again
+    while not _taps(drv, "right") and t < t0 + 2:     # a tap toward it, then press again
         _tick(br, drv, t, [_mob(1, 1480, 198, 273)], s)
         t += 0.07
     assert _taps(drv, "right") and br.facing == 1
+    n = len(_presses(drv))
     for i in range(6):
         _tick(br, drv, t + i * 0.07, [_mob(1, 1480, 198, 273)], s)
-    assert ATTACK in drv.want
+    assert len(_presses(drv)) == n + 1
 
 
-def test_a_hold_that_knocks_the_mob_back_is_not_dry(line1):
-    br, drv = _brain(line1), SimDriver()
+def test_presses_that_knock_the_mob_back_are_not_dry(line1):
+    br, drv = _brain(line1), Drv()
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     t = 0.0
     while t < 6.0:                                    # the tracker says "live", but every 0.8 s it jumps 60 px away
         _tick(br, drv, t, [_mob(1, 1460 + 60 * (int(t / 0.8) % 2 == 0 and (t % 0.8) < 0.07), 198, 273)], s)
         t += 0.07
-    assert br.stats["dry"] == 0 and ATTACK in drv.want
+    assert br.stats["dry"] == 0 and len(_presses(drv)) >= 4
 
 
 # ---------------------------------------------------------------- breaks
@@ -316,7 +341,7 @@ def test_a_mob_on_top_of_us_ends_a_ground_break_and_it_stays_due(line1):
 
 
 def test_keys_go_up_for_a_break_and_the_hunt_resumes(line1):
-    br, drv = _brain(line1), SimDriver()
+    br, drv = _brain(line1), Drv()
     br.facing = 1
     s = _rope_spot(line1)
     _tick(br, drv, 0.0, [], s)
@@ -328,58 +353,61 @@ def test_keys_go_up_for_a_break_and_the_hunt_resumes(line1):
     assert br.mode != "BREAK"
 
 
-def test_swarmed_holds_at_once(line1):
-    br, drv = _brain(line1), SimDriver()
+def test_swarmed_presses_at_once(line1):
+    br, drv = _brain(line1), Drv()
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273), _mob(2, 1500, 198, 273)], s)
-    assert ATTACK in drv.want and not _taps(drv, ATTACK) and br.stats["holds"] == 1
+    assert _presses(drv) == [0.0] and br.stats["presses"] == 1
 
 
-def test_held_attack_survives_knockback_into_the_air_but_not_a_rope(line1):
-    br, drv = _brain(line1), SimDriver()
+def test_presses_in_the_air_after_a_knockback_never_on_a_rope(line1):
+    br, drv = _brain(line1), Drv()
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     mobs = [_mob(1, 1480, 198, 273), _mob(2, 1500, 198, 273), _mob(3, 1530, 198, 273)]
     _tick(br, drv, 0.0, mobs, s)
-    assert drv.want == {ATTACK}
-    _tick(br, drv, 0.1, mobs, SelfState(0.1, 1392, 185, "tag", "air"))     # a touch knocked us up and back
-    assert ATTACK in drv.want                        # Maple attacks in the air: keep holding (runs/v2 09:21: 152 cuts)
-    _tick(br, drv, 0.2, mobs, SelfState(0.2, 1397, 150, "tag", "rope", rope=-1))
-    assert ATTACK not in drv.want                    # no attacks on a rope
+    assert _presses(drv) == [0.0]
+    t = 0.07
+    while len(_presses(drv)) < 2 and t < 2.5:        # a touch knocked us up and back: Maple attacks in the air
+        _tick(br, drv, t, mobs, SelfState(t, 1392, 185, "tag", "air"))
+        t += 0.07
+    assert len(_presses(drv)) == 2
+    while t < 5.0:                                    # no attacks on a rope
+        _tick(br, drv, t, mobs, SelfState(t, 1397, 150, "tag", "rope", rope=-1))
+        t += 0.07
+    assert len(_presses(drv)) == 2
 
 
-def test_holds_until_the_death_animation_then_lets_go_a_human_reaction_later(line1):
-    br, drv = _brain(line1), SimDriver()
-    br.facing = 1
+def test_a_death_shown_before_our_swing_is_over_gets_no_press(line1):
+    br, drv = _brain(line1), Drv()                # the user's kills: death visible 0.62 / 0.78 / 0.93 s after the
+    br.facing = 1                                     # killing press (p10/50/90); the swing is over at ~0.92
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
-    t = 0.0
-    while t < 5.0:                                    # 5 s on one tough mob, reacting to the hits: never let go
-        _tick(br, drv, t, [_mob(1, 1480, 198, 273, state="hit" if int(t / 0.8) % 2 else "live")], s)
-        assert ATTACK in drv.want, t
+    _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273)], s)
+    t = 0.07
+    while t < 3.0:
+        _tick(br, drv, t, [_mob(1, 1480, 198, 273, state="live" if t < 0.78 else "dying")], s)
         t += 0.07
-    died = t
-    while ATTACK in drv.want and t < died + 1.0:     # death animation: let go 0.18-0.32 s later
-        _tick(br, drv, t, [_mob(1, 1480, 198, 273, state="dying")], s)
-        t += 0.07
-    assert 0.18 <= t - died <= 0.32 + 0.15
+    assert _presses(drv) == [0.0] and br.stats["swings"] == 1
 
 
-def test_after_a_kill_another_mob_in_reach_keeps_the_key_held(line1):
-    br, drv = _brain(line1), SimDriver()
+def test_after_a_kill_the_next_swing_goes_to_another_mob_in_reach(line1):
+    br, drv = _brain(line1), Drv()
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273), _mob(2, 1510, 198, 273)], s)
     first = br.weapon.engaged
     other = 2 if first == 1 else 1
-    for i in range(1, 12):
-        _tick(br, drv, i * 0.07, [_mob(first, 1480, 198, 273, state="dying"), _mob(other, 1510, 198, 273)], s)
-        assert ATTACK in drv.want, i
-    assert br.weapon.engaged == other and br.stats["held_on"] == 1
+    t = 0.07
+    while len(_presses(drv)) < 2 and t < 2.5:
+        _tick(br, drv, t, [_mob(first, 1480, 198, 273, state="dying"), _mob(other, 1510, 198, 273)], s)
+        t += 0.07
+    assert len(_presses(drv)) == 2 and br.weapon.engaged == other
+    assert _presses(drv)[1] >= br.weapon.swing_end - SWING_END - 0.03 >= SWING_END
 
 
 def test_no_target_switch_mid_fight(line1):
-    br, drv = _brain(line1), SimDriver()
+    br, drv = _brain(line1), Drv()
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1520, 198, 273)], s)
@@ -390,16 +418,16 @@ def test_no_target_switch_mid_fight(line1):
 
 
 def test_out_of_mp_without_potions_uses_the_plain_attack(line1):
-    br, drv = _brain(line1), SimDriver()
+    br, drv = _brain(line1), Drv()
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273)], s, mp=0.01, mp_potions=False)
-    assert BASIC in drv.want and ATTACK not in drv.want
+    assert _presses(drv, BASIC) == [0.0] and not _presses(drv)
 
 
 # ---------------------------------------------------------------- reflexes
 def test_potions_and_hp_stop(line1):
-    br, drv = _brain(line1), SimDriver()
+    br, drv = _brain(line1), Drv()
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     assert _tick(br, drv, 0.0, [], s, hp=0.3, mp=0.05) is None
     assert _taps(drv, HP_POTION) and _taps(drv, MP_POTION)
@@ -408,21 +436,21 @@ def test_potions_and_hp_stop(line1):
 
 # ---------------------------------------------------------------- targets
 def test_target_on_another_platform_starts_a_trip(line1):
-    br, drv = _brain(line1), SimDriver()
+    br, drv = _brain(line1), Drv()
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1700, 73, 79)], s)
     assert br.mode == "TRAVEL" and br.travel is not None and br.travel.dst == 79
 
 
 def test_prefers_the_mob_on_our_platform_over_a_closer_one_upstairs(line1):
-    br, drv = _brain(line1), SimDriver()
+    br, drv = _brain(line1), Drv()
     s = SelfState(0, 1500, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1550, 73, 79), _mob(2, 1800, 198, 273)], s)
     assert br.target == 2
 
 
 def test_kill_counted_by_last_hit(line1):
-    br, drv = _brain(line1), SimDriver()
+    br, drv = _brain(line1), Drv()
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273), _mob(2, 2400, 198, 273)], s)
@@ -443,6 +471,7 @@ class FakeMobs:
             if p is not None:
                 self.mobs.append(self._new(p, x))
         self.pending = []                             # (t land, facing, our x, y)
+        self.deaths, self.after_death = [], 0         # death shown at; swings landing on nothing <= 1.2 s after one
 
     def _new(self, p, x, t=0.0):
         self.next_id += 1
@@ -459,10 +488,13 @@ class FakeMobs:
             _, f, x, y = land
             sure, _ = self.reach.vs(BUBBLING)
             for m in sorted(self.mobs, key=lambda m: abs(m["x"] - x)):     # Power Strike: 1 mob
-                if m["state"] in ("live", "hit") and sure.has(f * (m["x"] - x), m["y"] - y):
-                    m["hp"] -= 1
-                    m["state"], m["until"] = ("dying", t + 0.8) if m["hp"] <= 0 else ("hit", t + 0.6)
+                if m["state"] in ("live", "hit") and m["hp"] > 0 and sure.has(f * (m["x"] - x), m["y"] - y):
+                    m["hp"] -= 1                    # the killing hit: the death animation shows a moment later
+                    m["state"], m["until"] = "hit", t + (self.rng.uniform(0.15, 0.45) if m["hp"] <= 0 else 0.6)
                     break
+            else:
+                if any(0 <= t - d <= 1.2 for d in self.deaths):
+                    self.after_death += 1
         for m in self.mobs:
             p = self.nav.platforms[m["platform"]]
             if m["state"] == "live":
@@ -471,6 +503,9 @@ class FakeMobs:
                     m["vx"] = -m["vx"]
                     m["x"] = p.clamp(m["x"])
                 m["y"] = p.y_at(m["x"]) or m["y"]
+            elif m["state"] == "hit" and t > m["until"] and m["hp"] <= 0:
+                m["state"], m["until"] = "dying", t + 0.8
+                self.deaths.append(t)
             elif m["state"] == "hit" and t > m["until"]:
                 m["state"] = "live"
             elif m["state"] == "dying" and t > m["until"]:
@@ -487,27 +522,20 @@ class FakeMobs:
 def _hunt(nav, seconds, seed, start=(273, 1400)):
     rng = random.Random(seed)
     cfg = Config()
-    br, drv = BrainV2(cfg, nav, Humanizer(seed=seed)), SimDriver()
+    br, drv = BrainV2(cfg, nav, Humanizer(seed=seed)), Drv()
     sim = Sim(nav, *start)
     mobs = FakeMobs(nav, br.reach, nav.spawns, rng)
     t, nxt, hist, facing = 0.0, 0.0, [], 1
-    flips, down, next_auto, swing_t = [], False, 0.0, -9.0
-    prev_keys, repeat_ok = set(), False
-    while t < seconds:
+    flips, swing_end, prev_keys = [], -9.0, set()
+    while t < seconds:                                # the game's rules: runs/probe/sauna1 (see v2/combat.py)
         keys = drv.keys(t)
         d = ("right" in keys) - ("left" in keys)
-        if d and d != facing and t - swing_t > 0.55:              # the game ignores direction keys mid-swing
+        if d and d != facing and t >= swing_end:      # a direction key counts only once our swing is over
             flips.append(t)
             facing = d
-        pressed = keys - prev_keys
-        if ATTACK in pressed:
-            repeat_ok = True
-        elif pressed:                                             # another key went down: the held attack's
-            repeat_ok = False                                     # repeat stops (like the game, runs/v2 09:53)
-        if ATTACK in keys and (not down or (repeat_ok and t >= next_auto)):   # a press swings; held (and still
-            mobs.swing(t, facing, sim.b.x, sim.b.y)                           # the last key) every 0.6 s
-            next_auto, swing_t = t + 0.6, t
-        down = ATTACK in keys
+        if keys - prev_keys & {ATTACK, BASIC} and t >= swing_end:   # a key-DOWN swings; mid-swing ones are ignored
+            mobs.swing(t, facing, sim.b.x, sim.b.y)
+            swing_end = t + br.reach.swing_s
         prev_keys = keys
         b = sim.step(keys, 0.005)
         mobs.step(t, 0.005)
@@ -520,22 +548,23 @@ def _hunt(nav, seconds, seed, start=(273, 1400)):
             s = SelfState(t, x + rng.gauss(0, 2), y, "tag", st, pl, rp, vx, vy)
             assert br.step(t, _obs(mobs.visible(x, y)), s, drv) is None
             nxt = t + 0.07 * rng.uniform(0.7, 1.4)
-    return br, flips
+    return br, flips, mobs
 
 
 @pytest.mark.parametrize("seed", [1, 2])
 def test_hunt_in_the_sim_kills_and_moves_between_platforms(line1, seed):
-    br, flips = _hunt(line1, 90.0, seed)
+    br, flips, mobs = _hunt(line1, 90.0, seed)
     st = br.stats
     assert st["kills"] >= 9, dict(st)                 # the user: 9.7 / min on this map (with other players)
     assert st["swings"] / st["kills"] <= 6, dict(st)  # 3 hits to kill here + some whiffs
-    assert st["trips"] >= 2, dict(st)
+    assert mobs.after_death <= 0.15 * len(mobs.deaths), (mobs.after_death, len(mobs.deaths))   # CLEAN KILLS
+    assert st["trips"] >= 2, dict(st)                 # (the user: 7 of 71 kills had one swing at nothing)
     pendulums = sum(1 for i in range(len(flips) - 2) if flips[i + 2] - flips[i] <= 2.5)
     assert pendulums <= 90 / 60 * 3 * 2, (pendulums, len(flips))   # the user: ~8.5 per 3 min
 
 
 def test_in_the_air_or_on_a_ladder_with_targets_elsewhere_doesnt_crash(line1):
-    br, drv = _brain(line1), SimDriver()                # runs/v2a: started on a ladder -> None < 0 in is_rope
+    br, drv = _brain(line1), Drv()                # runs/v2a: started on a ladder -> None < 0 in is_rope
     mobs = [_mob(1, 1700, 73, 79), _mob(2, 2400, 198, 273)]
     for i, s in enumerate([SelfState(0, 1626, 120, "tag", "air"), SelfState(0, 1626, 120, "tag", "rope", rope=-1),
                            SelfState(0, 1626, 150, "minimap", "air")]):
@@ -570,7 +599,7 @@ def test_targeting_score_is_the_sum_of_its_terms(line1):
 
 
 def test_footwork_rule_table(line1):
-    br, drv = _brain(line1), SimDriver()
+    br, drv = _brain(line1), Drv()
     fw = br.footwork
     br.facing = 1
     for mob_x, want in [(1700, "approach"), (1480, "fight"), (1340, "turn")]:
@@ -585,59 +614,54 @@ def test_footwork_rule_table(line1):
     assert fw.state == "brace"
 
 
-def test_weapon_states_ready_pressure_got_away(line1):
-    from maplebot.brain.v2.combat import Hands
-    br, drv = _brain(line1), SimDriver()
-    h = Hands(drv)
-    assert br.weapon.step(_scene(line1, [_mob(1, 1480, 198, 273)]), _obs(), h, target=1)
-    assert br.weapon.state == "pressure" and br.weapon.engaged == 1 and ATTACK in drv.want
-    far = [_mob(1, 1700, 198, 273)]                   # it got away: out of keep reach for 0.3-0.5 s -> let go
-    for i in range(1, 10):
-        br.weapon.step(_scene(line1, far, now=i * 0.07), _obs(), h, target=1)
-    assert br.weapon.state == "ready" and ATTACK not in drv.want and br.stats["got_away"] == 1
+def test_weapon_states_ready_swing_got_away(line1):
+    br, drv = _brain(line1), Drv()
+    assert br.weapon.step(_scene(line1, [_mob(1, 1480, 198, 273)]), _obs(), drv, target=1)
+    assert br.weapon.state == "swing" and br.weapon.engaged == 1 and _presses(drv) == [0.0]
+    assert br.weapon.swing_end == pytest.approx(SWING_END + 0.02) and br.weapon.next_at >= br.weapon.swing_end
+    far = [_mob(1, 1700, 198, 273)]                   # it got away: out of keep reach -> no press, not engaged
+    t = 0.07
+    while t < br.weapon.next_at + 0.1:
+        assert not br.weapon.step(_scene(line1, far, now=t), _obs(), drv, target=1)
+        t += 0.07
+    assert br.weapon.state == "ready" and br.weapon.engaged is None and _presses(drv) == [0.0]
 
 
 def test_a_mob_walking_into_us_is_never_predicted_behind_us(line1):
     sc = _scene(line1, [_mob(1, 1430, 198, 273, vx=-120)])        # 30 px in front, coming at us fast
     x = sc.mobs[0]
     assert x.pdx == 0.0 and sc.in_reach(x)                        # at us, not past us: hit it, don't turn
-    br, drv = _brain(line1), SimDriver()
+    br, drv = _brain(line1), Drv()
     br.facing = 1
     br.footwork.step(sc, x, 110.0, drv)
     assert br.footwork.state == "fight"
 
 
-def test_a_held_attack_is_kept_to_the_maybe_reach(line1):
+def test_the_engaged_mob_is_kept_to_the_maybe_reach(line1):
     sc = _scene(line1, [_mob(1, 1400 + 150, 198, 273), _mob(2, 1400 + 170, 198, 273)])
     a, b = sc.mobs
     assert sc.in_reach(a, keep=True) and not sc.in_reach(a) and not sc.in_reach(b, keep=True)
 
 
-def test_another_key_mid_hold_gets_a_real_re_press_of_the_attack(line1):
-    br, drv = _brain(line1), SimDriver()                # runs/v2 09:53: the game stops swinging once another key
-    br.facing = 1                                     # goes down; a player presses attack again
+def test_a_potion_mid_fight_doesnt_cost_a_swing(line1):
+    br, drv = _brain(line1), Drv()                # one press per swing: nothing held for another key to cut
+    br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
-    mob = [_mob(1, 1480, 198, 273)]
+    mob = [_mob(1, 1480, 198, 273, state="hit")]
     _tick(br, drv, 0.0, mob, s)
-    assert ATTACK in drv.want
-    br.hands.tap(HP_POTION, 0.08)                      # a potion mid-fight
-    _tick(br, drv, 0.07, mob, s)
-    assert ATTACK not in drv.want                    # key up ...
-    t, back = 0.07, None
-    while t < 0.6:
-        t += 0.035
+    drv.tap(HP_POTION, 0.08)
+    t = 0.07
+    while len(_presses(drv)) < 2 and t < 2.5:
         _tick(br, drv, t, mob, s)
-        if ATTACK in drv.want:
-            back = t
-            break
-    assert back is not None and 0.12 <= back - 0.07 <= 0.25 + 0.04 and br.stats["represses"] == 1   # ... and down
+        t += 0.07
+    assert len(_presses(drv)) == 2 and _presses(drv)[1] <= SWING_END + GAP_MAX + 0.1
 
 
-def test_no_walk_keys_while_the_attack_is_held(line1):
-    br, drv = _brain(line1), SimDriver()
+def test_no_walk_keys_during_our_swing(line1):
+    br, drv = _brain(line1), Drv()
     br.facing = 1
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     _tick(br, drv, 0.0, [_mob(1, 1480, 198, 273)], s)
-    for i in range(1, 5):                             # knocked back to 150 px: maybe reach, not sure - still holding
+    for i in range(1, 12):                            # knocked back to 150 px: maybe reach, not sure
         _tick(br, drv, i * 0.07, [_mob(1, 1550, 198, 273)], s)
-        assert drv.want == {ATTACK} and br.footwork.state == "fight"
+        assert drv.want == set() and br.footwork.state == "fight", i

@@ -12,7 +12,9 @@
                                 `same`: a frame the client reuses, e.g. stand_0 is move_0)
     mobs/<id>/<anim>_<n>.png    one animation frame, RGBA, facing left: the client's canvas as is
     attacks.json                per weapon type (Character Afterimage): attack stance -> [ltx, lty, rbx, rby], the
-                                area a swing hits, relative to our feet, FACING LEFT (x < 0 = in front); brain-v2 reach
+                                area a swing hits, relative to our feet, FACING LEFT (x < 0 = in front); brain-v2 reach.
+                                Also stance_ms (the body's attack stances, ms at speed 6), speeds (weapon type ->
+                                {attackSpeed: count}) and items (weapon id -> [type, attackSpeed]): swing lengths
 Ids are the client's without the zero padding (map 000000042 -> 42, mob 0000002 -> 2). map.json's field names
 (footholds / ladderRopes / mobs / miniMap ...) are the ones the bot has always read (the layout of the maplestory.io
 copy this replaced on 2026-11-03).
@@ -79,7 +81,30 @@ def build_attacks(export: Path) -> dict:
                         differs.append(f"{w}/{st}")
         if boxes:
             out[w] = boxes
-    return {"weapons": out, "differs": differs}
+    return {"weapons": out, "differs": differs, **build_swings(export)}
+
+
+def build_swings(export: Path) -> dict:
+    """Character/00002000.img.xml (the body) -> stance_ms {attack stance: its frames' delays summed, ms, at attack
+    speed 6}; Character/weapons.json -> speeds {weapon type: {attackSpeed: how many weapons}} and items {item id:
+    [type, attackSpeed]}. A swing lasts stance_ms x (10 + attackSpeed) / 16 (brain/reach.py; live check:
+    runs/probe/sauna1, polearm speed 8: 0.89-0.92 s vs 0.90)."""
+    body_p, weap_p = Path(export) / "Character" / "00002000.img.xml", Path(export) / "Character" / "weapons.json"
+    if not body_p.exists() or not weap_p.exists():
+        return {}
+    stances = set()
+    for p in (Path(export) / "Afterimage").glob("*.img.xml"):
+        img = load_xml(p)
+        stances |= {st for lvl in _int_keys(img) for st, v in img[lvl].items() if isinstance(v, dict) and "lt" in v}
+    body = load_xml(body_p)
+    stance_ms = {st: sum(int(f.get("delay", 0)) for k, f in body[st].items() if k.isdigit() and isinstance(f, dict))
+                 for st in sorted(stances) if isinstance(body.get(st), dict)}
+    items, speeds = {}, {}
+    for wid, w in json.loads(weap_p.read_text(encoding="utf-8-sig")).items():
+        items[wid] = [w["afterImage"], int(w["attackSpeed"])]
+        n = speeds.setdefault(w["afterImage"], {})
+        n[str(w["attackSpeed"])] = n.get(str(w["attackSpeed"]), 0) + 1
+    return {"stance_ms": stance_ms, "speeds": speeds, "items": items}
 
 
 # ------------------------------------------------------------------ maps

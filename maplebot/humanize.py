@@ -34,6 +34,18 @@ class Humanizer:
     def between(self, lo: float, hi: float) -> float:
         return lo if self.jitter <= 0 else self.rng.uniform(lo, hi)
 
+    def pick(self, deciles) -> float:
+        """A draw from a measured distribution given by its 11 deciles (p0, p10 .. p100): uniform within the decile
+        band it falls in, carried by the session tempo. Timing modelled on the user's own keylog. The median when
+        timing isn't randomized."""
+        if self.jitter <= 0:
+            return deciles[5]
+        self._wander()
+        u = self.rng.random() * 10
+        i = min(int(u), 9)
+        lo, hi = deciles[i], deciles[i + 1]
+        return self.tempo * (lo + (u - i) * (hi - lo))
+
     def count(self, lo: int, hi: int) -> int:
         """A whole number in [lo, hi] (the middle one when timing isn't randomized)."""
         return (lo + hi) // 2 if self.jitter <= 0 else self.rng.randint(lo, hi)

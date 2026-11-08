@@ -135,6 +135,20 @@ foreach ($i in (Open-Ms "$D\Packs\Skill_00000.ms").WzDirectory.WzImages | ? Name
   Save-Xml $i "$Out\Skill\$($i.Name).xml" }
 "attack boxes: $((Get-ChildItem "$Out\Afterimage").Count) weapon types"
 
+# swing lengths (brain-v2 weapon): the body's attack stance frame delays + every weapon's afterImage type and attackSpeed
+foreach ($sub in 'Character') { if (Test-Path "$Out\$sub") { Remove-Item -Recurse -Force "$Out\$sub" } }
+foreach ($i in (Open-Bms "$D\Character\Character_000.wz").WzDirectory.WzImages | ? Name -eq '00002000.img') {
+  Save-Xml $i "$Out\Character\$($i.Name).xml" }
+$weapons = [ordered]@{}
+foreach ($w in Get-ChildItem "$D\Character\Weapon" -Filter 'Weapon_*.wz') {
+  foreach ($i in (Open-Bms $w.FullName).WzDirectory.WzImages) {
+    $t = $i.GetFromPath('info/afterImage'); $s = $i.GetFromPath('info/attackSpeed')
+    if ($t -and $s) { $weapons[$i.Name.Split('.')[0]] = @{ afterImage = "$($t.Value)"; attackSpeed = [int]"$($s.Value)" } }
+  }
+}
+$weapons | ConvertTo-Json | Set-Content -Encoding utf8 "$Out\Character\weapons.json"
+"swing data: body stances + $($weapons.Count) weapons"
+
 # names
 foreach ($s in Get-ChildItem "$D\String" -Filter '*_000.wz' -Recurse) {
   foreach ($i in (Open-Bms $s.FullName).WzDirectory.WzImages | ? Name -in 'Mob.img', 'Map.img') { Save-Xml $i "$Out\String\$($i.Name).xml" }

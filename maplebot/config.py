@@ -222,7 +222,11 @@ class Safety:
 class Combat:
     """brain-v2 (--brain v2) combat. Reach comes from the client's attack boxes for this weapon type (brain/reach.py),
     never a constant here."""
-    weapon: str = "spear"           # attacks.json weapon type: spear / poleArm (same boxes) / swordOS / axe / ...
+    weapon: str = "poleArm"         # attacks.json weapon type: poleArm / spear (same boxes) / swordOS / axe / ... (the
+                                    # user's weapon since 2026-11-08: a polearm; --weapon)
+    attack_speed: int | None = None  # the weapon's attackSpeed (2 fastest .. 9); None = the usual one for the type in
+                                    # the client (polearm 8, spear 7). Sets the swing length (brain/reach.py swing_s:
+                                    # polearm 0.90 s); a Booster takes 2 off. --attack-speed
     skill_mp: int = 12              # MP the attack skill needs (Power Strike lv 20: 12); below it, with no MP potions,
                                     # swing with keys.basic_attack
 

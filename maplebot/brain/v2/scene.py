@@ -1,14 +1,16 @@
 """brain-v2: the per-tick picture every part reads (M0's obs.state): us + every live mob relative to us, computed ONCE.
 
 Nothing here decides anything. `Facing` is the one place that knows which way we think we look (from the walk keys we
-hold or tap), when a turn can work (a varied TURN_GAP after the last one, never during a swing's tail) and when a turn
-has landed. It's a BELIEF: nothing on screen confirms it, the game drops direction keys mid-swing / in knockback.
+hold or tap), when a turn can work (a varied TURN_GAP after the last one, never before our swing is over: the game
+drops a direction key released mid-swing) and when a turn has landed. It's a BELIEF: nothing on screen confirms it,
+the game drops direction keys mid-swing / in knockback.
 
 Reach tests (step 2 of the attack logic, described end to end in v2/combat.py):
-    in_reach(x)        start a hold: the PREDICTED position (pdx) in front, from the stab's near edge to the SURE
+    in_reach(x)        start on a mob: the PREDICTED position (pdx) in front, from the stab's near edge to the SURE
                        far edge, at a height every stance reaches
-    in_reach(x, keep)  keep holding: the ACTUAL position (dx) in front, up to keep_hi (the MAYBE far edge) - a mob
-                       our hits knock back moves away fast; its prediction leaves the reach long before it does
+    in_reach(x, keep)  go on with the mob we're engaged on: the ACTUAL position (dx) in front, up to keep_hi (the
+                       MAYBE far edge) - a mob our hits knock back moves away fast; its prediction leaves the reach
+                       long before it does
 """
 from dataclasses import dataclass, field
 
@@ -26,8 +28,8 @@ def sign(v):
 
 
 def keep_hi(x) -> float:
-    """How far out a held attack is kept going: the maybe far edge (live, v2 08:40: swings still hit 42 % at
-    150-180 px; holding on costs nothing, a re-press does - halfway (~147) lost kills in the sim, 12.4 vs 13.7)."""
+    """How far out we go on pressing at the engaged mob: the maybe far edge (live, v2 08:40: swings still hit 42 % at
+    150-180 px; halfway (~147) lost kills in the sim, 12.4 vs 13.7)."""
     return x.maybe.hi
 
 
@@ -77,7 +79,7 @@ class Facing:
         self.face(("right" in keys) - ("left" in keys), now)
 
     def swung(self, over):
-        """The attack key came up: the swing under way ends at `over`."""
+        """We pressed the attack key: our swing ends at `over` (Weapon: key-down + swing_s)."""
         self.swing_over = over
 
     def doubt(self):
@@ -128,7 +130,7 @@ class Scene:
 
     def in_reach(self, x: Seen, keep: bool = False) -> bool:
         """WHEN TO HIT: predicted in front between the stab's near edge and the sure far edge, at a height every
-        stance reaches. keep=True (already holding the attack): the ACTUAL position within the maybe reach - a mob
+        stance reaches. keep=True (the mob we're engaged on): the ACTUAL position within the maybe reach - a mob
         our hits knock back moves away fast, its prediction leaves the reach long before it does."""
         if keep:
             return x.maybe.lo - 6 <= self.facing * x.dx <= keep_hi(x) and x.sure.ylo <= x.dy <= x.sure.yhi

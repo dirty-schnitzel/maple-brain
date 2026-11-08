@@ -9,6 +9,11 @@ Spear vs Bubbling: sure 27..137 px in front (dx = mob feet - our feet, in front 
 The user's farming recording agrees: swings hit 70-90 % of the mobs 0..140 px in front, ~30 % past 160
 (tools/combat/reach.py).
 
+Swing length (`swing_s`, the Weapon's clock): the longest of the weapon's swing stances (the body's frame delays,
+attacks.json stance_ms: swings 800 ms, stabs 750) x (10 + attackSpeed) / 16. attackSpeed per weapon item is in the
+client (polearms 8, spears 6-7); the usual one for the type unless config Combat.attack_speed / --attack-speed says
+otherwise (another weapon, a Booster). Polearm: 0.90 s; live 0.89-0.92 s (runs/probe/sauna1).
+
 Learned: every swing logs (dx, dy) of the mobs in front and whether each reacted (hit / dying) 0.25..1.0 s later;
 `learned()` = the hit-rate by distance band. Disagreement with the data is reported (`check()`), not acted on yet.
 """
@@ -64,8 +69,17 @@ def boxes_vs(stances: list, mob_box: tuple) -> tuple:
     return sure, maybe
 
 
+def usual_speed(att: dict, weapon: str) -> int:
+    """The attackSpeed most weapons of this type have in the client (polearm 8, spear 7; normal = 6)."""
+    n = (att.get("speeds") or {}).get(weapon) or {"6": 1}
+    return int(max(n, key=lambda s: (n[s], -int(s))))
+
+
 class Reach:
-    def __init__(self, weapon: str = "spear", root: Path = ROOT, attacks: dict | None = None):
+    def __init__(self, weapon: str = "poleArm", root: Path = ROOT, attacks: dict | None = None,
+                 attack_speed: int | None = None):
+        """`attack_speed`: the weapon's attackSpeed (2 fastest .. 9; a Booster takes 2 off); None = the usual one for
+        the type in the client data."""
         self.root = Path(root)
         att = attacks if attacks is not None else json.loads((self.root / "attacks.json").read_text(encoding="utf-8"))
         weapons = att["weapons"]
@@ -73,6 +87,10 @@ class Reach:
             raise KeyError(f"weapon type {weapon!r} not in attacks.json ({', '.join(sorted(weapons))})")
         self.weapon = weapon
         self.stances = _stances(weapons[weapon])
+        names = [st for st in weapons[weapon] if not st.endswith(FINISHERS) and not st.startswith("prone")]
+        self.attack_speed = attack_speed if attack_speed is not None else usual_speed(att, weapon)
+        stance_ms = att.get("stance_ms") or {}
+        self.swing_s = max(stance_ms.get(st, 800) for st in names) * (10 + self.attack_speed) / 16 / 1000
         self.cache = {}
         self.swings = []                                # (t, [(track id, dx, dy)]) waiting for an outcome
         self.samples = []                               # (dx, dy, hit)
