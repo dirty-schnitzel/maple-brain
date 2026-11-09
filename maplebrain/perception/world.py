@@ -51,6 +51,13 @@ class TrackCfg:
     hidden_vis: float = 0.35      # cover (map objects drawn in front): less of the body visible -> hidden, not missed
     hidden_s: float = 2.0         # hidden this long at most (longer: ghosts in the grass, labels track1b)
     new_vis: float = 0.25         # a new track needs this much of its body visible
+    new_onscreen: float = 0.6     # ... and this much of its body inside the screen (the play area). Half a sprite at
+                                  # the screen edge scores 0.57-0.68 on cave scenery (Ant Tunnel IV's right wall:
+                                  # ghosts 2026-11-09, 37-48 % on screen); real mobs walking in score that at 78 %+
+    edge_score: float = 0.70      # a sighting with less than new_onscreen of the body on screen counts only this good
+                                  # (a known track too: a real mob at the right wall was handed over to the ghost and
+                                  # followed 17 s, air1 2026-11-09). 6 Ant Tunnel runs, such sightings: ghosts p50 0.62,
+                                  # max 0.68 (0 of 1685 kept); real mobs 80 % kept, the rest coast as unseen frames
     player_half_w: int = 24       # a player's body over its name tag (players are drawn over mobs): +-px, height
     player_h: int = 70
     probe_score: float = 0.65     # a new track from a probe (visible-only search beside players / in cover)
@@ -328,6 +335,19 @@ class World:
             self._vis_cache[key] = base & occ
         return self._vis_cache[key]
 
+    def _weak_edge(self, h) -> bool:
+        """A sighting mostly past the screen edge that isn't a good match: no evidence of a mob (edge ghosts)."""
+        return h.score < self.cfg.edge_score and self._onscreen(h.mob_id, h.feet[0], h.feet[1]) < self.cfg.new_onscreen
+
+    def _onscreen(self, mob_id, sx, sy) -> float:
+        """Share of the mob's body box (stand frame) inside the play area: what any detection of it can be based on."""
+        lt, rb = self.body.get(mob_id, ([-30, -50], [30, 0]))
+        w, h = max(1, rb[0] - lt[0]), max(1, rb[1] - lt[1])
+        x0, y0 = sx + lt[0], sy + lt[1]
+        inx = max(0.0, min(x0 + w, SCREEN_W) - max(x0, 0))
+        iny = max(0.0, min(y0 + h, PLAY_H) - max(y0, 0))
+        return inx * iny / (w * h)
+
     def _share(self, mob_id, vmap, sx, sy) -> float:
         if vmap is None:
             return 1.0
@@ -359,7 +379,7 @@ class World:
             tr.vis = self._share(tr.mob_id, self._vis_map(self._layer(tr.platform if not tr.air else None, tr.x,
                                                                        tr.y), C, occ), tr.sx, tr.sy)
         # --- associate the whole-screen hits: same mob type, nearest prediction first
-        hm = [(h, h.feet[0] + C[0], h.feet[1] + C[1]) for h in hits]
+        hm = [(h, h.feet[0] + C[0], h.feet[1] + C[1]) for h in hits if not self._weak_edge(h)]
         pairs = []
         for i, (h, mx, my) in enumerate(hm):
             for j, tr in enumerate(self.tracks):
@@ -397,11 +417,12 @@ class World:
                 found, probe_found = res[:len(todo)], res[len(todo):]
                 taken = [h.feet for i, (h, _, _) in enumerate(hm) if i in used_h]
                 for tr, h in zip(todo, found):
-                    if h is None:
-                        continue
+                    if h is None or self._weak_edge(h):
+                        continue                               # (half a sprite at the edge: only a good match counts)
                     if tr.state == "dying" and not h.pose.anim.startswith("die"):
-                        hm.append((h, h.feet[0] + C[0], h.feet[1] + C[1]))     # a live mob where one died: new
-                        continue
+                        if h.score >= c.probe_score:           # a live mob where one died: a NEW mob, so it needs
+                            hm.append((h, h.feet[0] + C[0], h.feet[1] + C[1]))   # what any new mob needs (the
+                        continue                               # mob score), not the follow bar (ghosts 2026-11-09)
                     if any(abs(f[0] - h.feet[0]) < c.dup_px and abs(f[1] - h.feet[1]) < 20 for f in taken):
                         continue                               # that's another track's mob
                     taken.append(h.feet)
@@ -421,6 +442,9 @@ class World:
                 continue                                       # a near search already took it
             if h.score < c.new_score:
                 continue
+            if self._onscreen(h.mob_id, h.feet[0], h.feet[1]) < c.new_onscreen:
+                self.stats["rejected_edge"] = self.stats.get("rejected_edge", 0) + 1
+                continue                                       # mostly past the screen edge: not a sighting yet
             p = self._on(mx, my)
             if p is None and h.mob_id not in self.flyers and not self._over_platform(mx, my):
                 self.stats["rejected_off_platform"] += 1

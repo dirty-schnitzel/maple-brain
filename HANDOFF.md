@@ -8,6 +8,35 @@ Latest: 2026-11-08 attack per press built + live (`runs/v2/press1`; the user: "t
 behavior since start"), speed regression test, brain v3 planned; 2026-11-07 map recognition measures the minimap
 window; 2026-11-05 M2 combat live, brain v2 split into parts; M1 movement done.
 
+## Edge ghosts at Ant Tunnel IV's right wall (2026-11-09, branch `edge-ghost` off `dev`, NOT committed; fix 3 NOT live-tested)
+**Seen:** `runs/v2/20261109_003124_1` (no frames) 362-382 s: 17 presses + "kill #56" at a "Zombie Mushroom" that isn't
+there; `runs/v2/20261109_011503_1` (frames) 56.5-63 s the same ("stuck on the side of the map"). Both: camera at the
+map's right wall (vrBounds right 2610 = the screen's right edge), track feet at screen x 1366-1376, y ~468, score
+0.57-0.68. Pictures: `ghost_vision.gif` / `ghost_play.gif` / `ghost_live_58.5.png` were made in the session scratchpad
+(make_images.py functions, crop 486..1366 x 110..605).
+**Cause:** born from the search around a DYING mob at the wall (78 -> 89, 509 -> 512 -> 546 -> 547): a live pose there
+became a new track at the follow bar (0.55), past `--mob-score`; tentative -> live on 2 sightings. The visible-only
+search compares half a mushroom (37-48 % of its body on screen) with lit stalagmites. (The whole-screen search pads the
+frame's right / bottom edge with copies of the last column, too.) `--mob-score 0.70` would NOT have stopped it.
+**Third case (live test `runs/v2/air1/20261109_014902_1`, the fix (1)+(2) on):** a REAL mob (track 72, 0.98) walked
+to the wall at 46.6 s; at 47.0 its near search matched the wall spot (0.57-0.64) and the track stayed there 17 s
+(swings, "stuck"). GIFs + still in that run folder (ghost_vision.gif / ghost_play.gif, 44-60 s).
+**Fix (world.py):** (1) a live pose on a dying mob's spot needs `probe_score` (= the mob score), like any new mob;
+(2) `new_onscreen` 0.6: a new track needs 60 % of its body box inside the play area (stat `rejected_edge`);
+(3) `edge_score` 0.70: ANY sighting (whole-screen or near, known tracks too) with < 60 % of the body on screen counts
+only at >= 0.70 (`_weak_edge`). Such sightings in 6 Ant Tunnel runs: ghosts p50 0.62, max 0.68 (0 of 1685 pass);
+real mobs 80 % pass, the rest are unseen frames (coasting). Separate from `--mob-score` (still 0.65).
+Tests: tests/test_world.py (3), tests/test_world_edge.py (real frames, tests/fixtures/edge_ghost, 4 frames). All green;
+bot speed 58.6 ms vs baseline 59.6.
+**Replay, old vs new world.py** (live Perceiver on the recorded frames, mob score 0.65; ~6 fps vs 28 live):
+011503_1 -6 weak (the ghost too), real 89 -> 89; air1 real 87 -> 87, the real mob's track follows it to its death
+(52.1 s) and never sits at the wall (old: 178 frames there); 191848_2 -10 weak, real 103 -> 103; press1 -12 weak,
+real 167 -> 163; react1 -6 weak, real 187 -> 186. The real ones lost / later: at the screen edges 460-750 px away or
+250-430 px above / below us (never targeted), 2 picked up 0.3-0.5 s later at the edge, and ONE near us (press1
+174.5 s): a Horny Mushroom walking in behind a dying one, only seen at 0.575 there, then an off-platform hit: watch
+for "late on a mob that steps in where one died" live.
+**Next:** live run with `--frames` on Ant Tunnel IV (default 0.65), stop after air hitting; the user decides on 0.70.
+
 ## Goal
 A **fully automated mob farmer** for **MapleStory Classic World** (official GMS Classic, launched 2026-10-21):
 find mobs, fight them like a player, pick up loot, use potions, and **navigate platforms (jump up / drop down,

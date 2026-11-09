@@ -1,0 +1,9 @@
+Ant Tunnel IV (10005063), the camera at the map's right wall. JPEG q85 frames of live brain-v2 runs:
+  ghost_58.1.jpg        runs/v2/20261109_011503_1 frame 001617 (t 58.1 s): NO mob at the right edge; the tracker
+                        followed a "Zombie Mushroom" (track 89) at feet (1367, 468), score 0.62, and the bot swung at it
+                        56.5-63 s (born at 56.4 from the search around dying mob 78).
+  real_press1_112.9.jpg runs/v2/press1 frame 001446 (t 112.9 s): a real Zombie Mushroom at the edge, feet (1348, 695)
+  real_react1_47.8.jpg  runs/v2/react1 frame 000351 (t 47.8 s): a real Zombie Mushroom at the edge, feet (1338, 648)
+  ghost_air1_57.5.jpg   runs/v2/air1/20261109_014902_1 frame 001623 (t 57.5 s): NO mob at the right edge; track 72 (a
+                        real mob until it reached the wall at 46.6 s) followed there at (1367, 469), score 0.62, 47-64 s.
+Used by tests/test_world_edge.py (2026-11-09).
