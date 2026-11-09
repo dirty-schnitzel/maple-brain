@@ -11,6 +11,7 @@ from maplebrain.brain.brain_v2 import BrainV2
 from maplebrain.brain.reach import SWING_LAND_S, Reach, body, boxes_vs
 from maplebrain.brain.v2.breaks import Breaks
 from maplebrain.brain.v2.scene import Scene
+from maplebrain.brain.v3.model import Character, Map, Mob
 from maplebrain.config import Config
 from maplebrain.humanize import Humanizer
 from maplebrain.nav.navmap import NavMap
@@ -41,6 +42,12 @@ def _mob(i, x, y, platform, state="live", vx=0.0):
 
 def _brain(nav, seed=1):
     return BrainV2(Config(), nav, Humanizer(seed=seed))
+
+
+def _build(now, mobs, s, facing, **hud):
+    """A Scene from track dicts at SelfState s, looking `facing` (spear reach), via the world model's objects."""
+    obs = _obs(mobs, **hud)
+    return Scene.build(now, [Mob(d) for d in obs.mobs], Character.of(s, facing, obs), Reach("spear"))
 
 
 class Drv(SimDriver):
@@ -232,7 +239,7 @@ def test_presses_that_knock_the_mob_back_are_not_dry(line1):
 
 # ---------------------------------------------------------------- breaks
 def _breaks_scene(mobs, s, now, line1):
-    return Scene.build(now, _obs(mobs), s, 1, Reach("spear"))
+    return _build(now, mobs, s, 1)
 
 
 def test_a_beat_after_a_fight_only_with_nothing_near(line1):
@@ -241,7 +248,7 @@ def test_a_beat_after_a_fight_only_with_nothing_near(line1):
     for mob, want in ((far, True), (near, False)):
         hits = 0
         for seed in range(40):
-            b = Breaks(line1, Humanizer(seed=seed), collections.Counter(), lambda m: None)
+            b = Breaks(Map(line1),Humanizer(seed=seed), collections.Counter(), lambda m: None)
             b.resting(_breaks_scene([mob], s, 1.0, line1), True)
             hits += b.resting(_breaks_scene([mob], s, 1.1, line1), False)
         assert (0 < hits < 40) if want else hits == 0
@@ -249,7 +256,7 @@ def test_a_beat_after_a_fight_only_with_nothing_near(line1):
 
 def test_no_beat_on_the_way_to_a_target(line1):
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
-    b = Breaks(line1, Humanizer(seed=1), collections.Counter(), lambda m: None)
+    b = Breaks(Map(line1),Humanizer(seed=1), collections.Counter(), lambda m: None)
     assert not any(b.resting(_breaks_scene([_mob(2, 2200, 198, 273)], s, i * 0.1, line1), False) for i in range(50))
 
 
@@ -260,7 +267,7 @@ def _rope_spot(nav):
 
 def test_a_break_stops_on_a_rope_for_5_to_20_s(line1):
     s = _rope_spot(line1)
-    b = Breaks(line1, Humanizer(seed=3), collections.Counter(), lambda m: None)
+    b = Breaks(Map(line1),Humanizer(seed=3), collections.Counter(), lambda m: None)
     b.resting(_breaks_scene([], s, 0.0, line1), False)
     t = b.due + 0.1
     assert b.resting(_breaks_scene([], s, t, line1), False) and b.kind == "break"
@@ -272,7 +279,7 @@ def test_a_break_stops_on_a_rope_for_5_to_20_s(line1):
 
 def test_a_rope_break_keeps_the_head_under_the_platform_and_the_feet_over_the_floor_mobs(line1):
     r = line1.ropes[9]                                # x 2082, 75..181: the short kind, platforms at both ends
-    b = Breaks(line1, Humanizer(seed=3), collections.Counter(), lambda m: None)
+    b = Breaks(Map(line1),Humanizer(seed=3), collections.Counter(), lambda m: None)
 
     def safe(y, vy=0.0):
         s = SelfState(0, r.x, y, "tag", "rope", rope=line1.rope_id(9), vy=vy)
@@ -288,7 +295,7 @@ def test_a_rope_break_keeps_the_head_under_the_platform_and_the_feet_over_the_fl
 def test_damage_ends_a_rest_for_good(line1):
     s = _rope_spot(line1)
     say = []
-    b = Breaks(line1, Humanizer(seed=3), collections.Counter(), say.append)
+    b = Breaks(Map(line1),Humanizer(seed=3), collections.Counter(), say.append)
     b.resting(_breaks_scene([], s, 0.0, line1), False, 700)
     t = b.due + 0.1
     assert b.resting(_breaks_scene([], s, t, line1), False, 700)
@@ -301,7 +308,7 @@ def test_damage_ends_a_rest_for_good(line1):
 def test_damage_ends_a_beat(line1):
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     for seed in range(40):
-        b = Breaks(line1, Humanizer(seed=seed), collections.Counter(), lambda m: None)
+        b = Breaks(Map(line1),Humanizer(seed=seed), collections.Counter(), lambda m: None)
         b.resting(_breaks_scene([], s, 1.0, line1), True, 700)
         if b.resting(_breaks_scene([], s, 1.1, line1), False, 700):
             assert not b.resting(_breaks_scene([], s, 1.2, line1), False, 650) and b.kind is None
@@ -311,7 +318,7 @@ def test_damage_ends_a_beat(line1):
 
 def test_a_break_never_starts_between_mobs_or_mid_fight(line1):
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
-    b = Breaks(line1, Humanizer(seed=3), collections.Counter(), lambda m: None)
+    b = Breaks(Map(line1),Humanizer(seed=3), collections.Counter(), lambda m: None)
     b.resting(_breaks_scene([], s, 0.0, line1), False)
     late = b.ropes_only_until + 1
     assert not b.resting(_breaks_scene([_mob(1, 1200, 198, 273), _mob(2, 1600, 198, 273)], s, late, line1), False)
@@ -320,7 +327,7 @@ def test_a_break_never_starts_between_mobs_or_mid_fight(line1):
 
 
 def test_a_ground_break_waits_for_the_ropes_first(line1):
-    b = Breaks(line1, Humanizer(seed=3), collections.Counter(), lambda m: None)
+    b = Breaks(Map(line1),Humanizer(seed=3), collections.Counter(), lambda m: None)
     p = next(p for p in line1.platforms.values() if not any(
         abs(y - p.y_at((p.left + p.right) / 2)) < 90 and abs(x - (p.left + p.right) / 2) < 160 for x, y in line1.spawns))
     x = (p.left + p.right) / 2
@@ -331,7 +338,7 @@ def test_a_ground_break_waits_for_the_ropes_first(line1):
 
 
 def test_a_mob_on_top_of_us_ends_a_ground_break_and_it_stays_due(line1):
-    b = Breaks(line1, Humanizer(seed=3), collections.Counter(), lambda m: None)
+    b = Breaks(Map(line1),Humanizer(seed=3), collections.Counter(), lambda m: None)
     s = SelfState(0, 1400, 198, "tag", "ground", 273)
     b.resting(_breaks_scene([], s, 0.0, line1), False)
     due = b.due
@@ -573,9 +580,8 @@ def test_in_the_air_or_on_a_ladder_with_targets_elsewhere_doesnt_crash(line1):
 
 # ---------------------------------------------------------------- the parts on their own
 def _scene(nav, mobs, x=1400, platform=273, facing=1, now=0.0):
-    from maplebrain.brain.v2.scene import Scene
-    y = nav.platforms[platform].y_at(x)
-    return Scene.build(now, _obs(mobs), SelfState(now, x, y, "tag", "ground", platform), facing, Reach("spear"))
+    y =nav.platforms[platform].y_at(x)
+    return _build(now, mobs, SelfState(now, x, y, "tag", "ground", platform), facing)
 
 
 def test_scene_marks_reach_and_platform(line1):
@@ -616,13 +622,13 @@ def test_footwork_rule_table(line1):
 
 def test_weapon_states_ready_swing_got_away(line1):
     br, drv = _brain(line1), Drv()
-    assert br.weapon.step(_scene(line1, [_mob(1, 1480, 198, 273)]), _obs(), drv, target=1)
+    assert br.weapon.step(_scene(line1, [_mob(1, 1480, 198, 273)]), drv, target=1)
     assert br.weapon.state == "swing" and br.weapon.engaged == 1 and _presses(drv) == [0.0]
     assert br.weapon.swing_end == pytest.approx(SWING_END + 0.02) and br.weapon.next_at >= br.weapon.swing_end
     far = [_mob(1, 1700, 198, 273)]                   # it got away: out of keep reach -> no press, not engaged
     t = 0.07
     while t < br.weapon.next_at + 0.1:
-        assert not br.weapon.step(_scene(line1, far, now=t), _obs(), drv, target=1)
+        assert not br.weapon.step(_scene(line1, far, now=t), drv, target=1)
         t += 0.07
     assert br.weapon.state == "ready" and br.weapon.engaged is None and _presses(drv) == [0.0]
 

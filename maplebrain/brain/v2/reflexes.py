@@ -1,6 +1,9 @@
 """brain-v2 reflexes, first every tick: HP / MP potions (varied cooldowns), the HP stop, and which attack key to use
 (the plain attack when MP can't pay for the skill and there are no MP potions - the user's default: potions are
-expensive)."""
+expensive).
+v3 layer: reflexes (every tick, first, may override). Step 1: `step` still reads the raw Obs (it runs before the
+world model updates: safety first); `attack_key` reads our Character's HUD numbers (or anything with mp_now /
+mp_potions)."""
 
 
 class Reflexes:
@@ -23,7 +26,7 @@ class Reflexes:
                 self.say(f"{kind.upper()} {share:.0%} -> {kind.upper()} potion ({key})")
         return None
 
-    def attack_key(self, obs) -> str:
-        if obs.mp_now is not None and obs.mp_now < self.cfg.combat.skill_mp and not obs.mp_potions:
+    def attack_key(self, me) -> str:
+        if me.mp_now is not None and me.mp_now < self.cfg.combat.skill_mp and not me.mp_potions:
             return self.cfg.keys.basic_attack
         return self.cfg.keys.attack

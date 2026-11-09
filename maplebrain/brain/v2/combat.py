@@ -1,4 +1,6 @@
 """brain-v2 combat: Weapon (when to press the attack key) + Footwork (where to stand), side by side on the driver.
+v3 layer: tasks (the inside of Fight(mob), PLAN-v3.md: unchanged). Step 1: reads the world model (brain/v3/model.py)
+through the Scene: Seen.mob (Mob), sc.me (Character: state, platform, x, HUD for the attack key), the Map's platforms.
 
 THE ATTACK LOGIC, END TO END (each step lives in the file named; keep this section true when changing any of them)
   1. reach      (brain/reach.py)    our weapon's attack boxes from the client data vs the mob's body box -> per mob
@@ -114,7 +116,7 @@ class Weapon:
 
     def _watch(self, sc):
         """DRY (module doc): note any reaction in front (or not being engaged) every tick."""
-        reacted = any(sc.near(i) and (i.m["state"] == "hit" or abs(i.dx) - abs(self.prev_dx.get(i.id, i.dx)) >= KNOCK_PX)
+        reacted = any(sc.near(i) and (i.mob.state == "hit" or abs(i.dx) - abs(self.prev_dx.get(i.id, i.dx)) >= KNOCK_PX)
                       for i in sc.mobs)
         self.prev_dx = {i.id: i.dx for i in sc.mobs}
         if reacted or self.engaged is None:
@@ -125,13 +127,13 @@ class Weapon:
             return target
         return min(ids, key=lambda i: abs(sc.get(i).dx))
 
-    def step(self, sc, obs, driver, allowed=True, target=None) -> bool:
+    def step(self, sc, driver, allowed=True, target=None) -> bool:
         """Decide after each swing whether to press again. True = pressed (a swing booked) this tick."""
         now = self.now = sc.now
         self._watch(sc)
         if now < self.next_at:                            # our swing, or the gap after it
             return False
-        if not allowed or sc.s.state == "rope" or not sc.facing or sc.turning:
+        if not allowed or sc.me.state == "rope" or not sc.facing or sc.turning:
             self.engaged = None
             return False
         x = sc.get(self.engaged) if self.engaged is not None else None
@@ -146,7 +148,7 @@ class Weapon:
             self.engaged = None
             self.facing.doubt()
             return False
-        key = self.reflexes.attack_key(obs)
+        key = self.reflexes.attack_key(sc.me)
         if not driver.tap(key, PRESS_S):
             return False
         self.key = key
@@ -161,8 +163,8 @@ class Weapon:
 class Footwork:
     """Walk keys while fighting the target on our platform: the rule table in the module doc, first match wins."""
 
-    def __init__(self, nav, hz, facing, stats):
-        self.nav, self.hz, self.facing, self.stats = nav, hz, facing, stats
+    def __init__(self, map_, hz, facing, stats):
+        self.map, self.hz, self.facing, self.stats = map_, hz, facing, stats
         self.state = None
         self.rules = [
             ("turn", lambda c: c["behind"] and c["close"] and c["may_turn"]),
@@ -176,12 +178,12 @@ class Footwork:
     def facts(self, sc, x, standoff, driver, swinging=False) -> dict:
         side = sign(x.pdx) or sc.facing or 1
         dist = abs(x.pdx)
-        p = self.nav.platforms.get(sc.s.platform)
+        p = self.map.platform(sc.me.platform)
         return {"side": side, "behind": side != sc.facing, "close": dist <= standoff + 15,
                 "may_turn": self.facing.can_turn(sc.now) and not driver.busy("left") and not driver.busy("right"),
                 "swinging": swinging, "in_reach": sc.in_reach(x) and not sc.turning,
                 "far": dist > standoff + 10 + self.hz.between(0, 8),
-                "edge_ok": p is None or (p.left + 6 < sc.s.x + side * 20 < p.right - 6)}
+                "edge_ok": p is None or (p.left + 6 < sc.me.x + side * 20 < p.right - 6)}
 
     def step(self, sc, x, standoff, driver, swinging=False):
         c = self.facts(sc, x, standoff, driver, swinging)

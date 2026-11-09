@@ -6,6 +6,9 @@ air. A failed trip makes its platform unreachable for 5-8 s (targeting skips it)
 
 Roam (placeholder until M3's patrol): nothing worth fighting tracked -> a spawn point on another platform, weighted by
 the platform's spawns; linger 1-3.5 s after arriving; never linger on a rope.
+
+v3 layer: tasks (Goto = a Travel; roam = today's Hunt goal's quiet-time task). Step 1: reads the world model's Map
+(spawns as Spawn objects, route seconds) instead of NavMap tuples.
 """
 import collections
 import random
@@ -15,8 +18,8 @@ from ..travel import Travel
 
 
 class Trips:
-    def __init__(self, nav, hz, keymap, jump_key, targeting, stats, say):
-        self.nav, self.hz, self.keymap, self.jump_key = nav, hz, keymap, jump_key
+    def __init__(self, map_, hz, keymap, jump_key, targeting, stats, say):
+        self.map, self.hz, self.keymap, self.jump_key = map_, hz, keymap, jump_key
         self.targeting, self.stats, self.say = targeting, stats, say
         self.travel, self.why = None, None
         self.roam_wait = 0.0
@@ -59,7 +62,7 @@ class Trips:
                 if s.state == "ground":
                     driver.hold(set())
                 return None
-            self.travel = Travel(self.nav, pid, x, self.hz, self.keymap)
+            self.travel = Travel(self.map.nav, pid, x, self.hz, self.keymap)
             self.why = why
             self.stats["trips"] += 1
             self.say(f"travel {node_of(s)} x {s.x:.0f} -> {pid} x {x:.0f} ({why[0]})")
@@ -99,18 +102,18 @@ class Trips:
     def roam_goal(self, now, s):
         """A spawn point on another platform, weighted by how many spawns its platform has."""
         by = collections.defaultdict(list)
-        for x, y in self.nav.spawns:
-            p = self.nav.platform_at(x, y, tol=12)
-            if p is not None and p.id != s.platform and self.targeting.unreachable.get(p.id, 0) <= now:
-                by[p.id].append(x)
+        for sp in self.map.spawns:
+            pid = sp.platform
+            if pid is not None and pid != s.platform and self.targeting.unreachable.get(pid, 0) <= now:
+                by[pid].append(sp.x)
         rng = getattr(self.hz, "rng", random)
         for _ in range(8):
             if not by:
                 return None
             pid = rng.choices(list(by), weights=[len(v) for v in by.values()])[0]
             x = rng.choice(by[pid]) + rng.uniform(-40, 40)
-            x = self.nav.platforms[pid].clamp(x)
-            if self.targeting.route_cost(now, s, pid, x) is not None:
+            x = self.map.platforms[pid].clamp(x)
+            if self.map.route_seconds(now, s, pid, x) is not None:
                 return pid, x
             del by[pid]
         return None

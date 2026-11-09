@@ -1,11 +1,15 @@
 """brain-v2 (M2: combat; no loot / patrol plan yet). This file only WIRES the parts; no rules live here.
+brain v3 migration (PLAN-v3.md), step 1 = objects: the parts read the WORLD MODEL (v3/model.py: Map, Mob, Character),
+updated once per tick here, instead of dicts / tuples. Behaviour identical (tools/v3/gate.py). Step 2 moves the
+decision chain below into the planner (goal Hunt -> Fight / Goto / Rest tasks).
 
 Every tick `step(now, obs, s, driver)` (obs = the Perceiver's Obs with tracks in obs.mobs, s = our SelfState,
 driver = runtime/keys.KeyDriver or a fake):
 
     reflexes   (v2/reflexes.py)   potions, HP stop, which attack key
+    world      (v3/model.py)      the world model: Map (+ spawns, route seconds), Mob per track, Character (us)
     ledger     (v2/ledger.py)     track history, kills by our last hit, contested mobs, swing outcomes
-    scene      (v2/scene.py)      us + every live mob relative to us, once per tick; Facing
+    scene      (v2/scene.py)      us + every live mob relative to us, once per tick (Facing: v3/model.py Character)
     breaks     (v2/breaks.py)     short beats after a fight, a real break every few minutes at a safe spot
     targeting  (v2/targeting.py)  one score per mob = a sum of named terms; keep / switch / none; locked mid-fight
     weapon     (v2/combat.py)     WHEN TO HIT: one press per swing, the next decided after the swing on fresh evidence
@@ -33,9 +37,10 @@ from .v2.breaks import Breaks
 from .v2.combat import Footwork, Weapon
 from .v2.ledger import Ledger
 from .v2.reflexes import Reflexes
-from .v2.scene import Facing, Scene
+from .v2.scene import Scene
 from .v2.targeting import Targeting
 from .v2.trips import Trips
+from .v3.model import World
 
 
 class BrainV2:
@@ -44,14 +49,16 @@ class BrainV2:
         self.reach = reach or Reach(cfg.combat.weapon, attack_speed=cfg.combat.attack_speed)
         self.say = log or (lambda msg: None)
         self.stats = collections.Counter()
-        self.face = Facing(hz)
+        self.world = World(nav, hz)
+        self.face = self.world.me.face
+        mp = self.world.map
         self.reflexes = Reflexes(cfg, hz, self.stats, self.say)
         self.ledger = Ledger(self.reach, self.stats, self.say)
-        self.targeting = Targeting(nav, hz, self.ledger, self.stats, self.say)
+        self.targeting = Targeting(mp, hz, self.ledger, self.stats, self.say)
         self.weapon = Weapon(cfg, hz, self.reflexes, self.ledger, self.stats, self.face, self.reach.swing_s)
-        self.footwork = Footwork(nav, hz, self.face, self.stats)
-        self.trips = Trips(nav, hz, {"jump": cfg.keys.jump}, cfg.keys.jump, self.targeting, self.stats, self.say)
-        self.breaks = Breaks(nav, hz, self.stats, self.say)
+        self.footwork = Footwork(mp, hz, self.face, self.stats)
+        self.trips = Trips(mp, hz, {"jump": cfg.keys.jump}, cfg.keys.jump, self.targeting, self.stats, self.say)
+        self.breaks = Breaks(mp, hz, self.stats, self.say)
         self.mode = "IDLE"
         self.scene = None
 
@@ -89,10 +96,11 @@ class BrainV2:
             self.weapon.stop()
             driver.hold(set())
             return None
-        self.ledger.update(now, obs)
-        self.face.from_keys(getattr(driver, "want", None) or set(), now)
-        sc = self.scene = Scene.build(now, obs, s, self.face.dir, self.reach, self.face.turning(now))
-        if self.breaks.resting(sc, self.weapon.busy(now), obs.hp_now):
+        w = self.world
+        w.update(now, obs, s, driver)                    # mobs, us (Facing from the walk keys we hold)
+        self.ledger.update(now, w.mobs)
+        sc = self.scene = Scene.of(w, self.reach)
+        if self.breaks.resting(sc, self.weapon.busy(now), w.me.hp_now):
             self.trips.end(driver)
             driver.hold(set())
             self.mode = "BREAK"
@@ -106,24 +114,24 @@ class BrainV2:
         if x is not None and (x.here or fighting):       # fight it from here (engaged: wherever it stands)
             self.trips.end(driver)
             self.mode = "LOCAL"
-            self.weapon.step(sc, obs, driver, target=x.id)
+            self.weapon.step(sc, driver, target=x.id)
             self.footwork.step(sc, x, tg.standoff, driver, swinging=self.weapon.swinging(now))
         elif self.weapon.swinging(now):                  # our swing is still going: stay, no trip
             self.trips.end(driver)
             self.mode = "LOCAL"
             driver.hold(set())
-            self.weapon.step(sc, obs, driver, target=x.id if x is not None else None)
+            self.weapon.step(sc, driver, target=x.id if x is not None else None)
         elif x is not None:                              # go to it, swinging at whatever is in reach on the way
             st = self.trips.go(now, s, driver, ("target", x.id), x.platform, tg.goal_x(x, s))
             if st is not None:
                 self.mode = "TRAVEL"
-            self.weapon.step(sc, obs, driver, allowed=st == "run" and self.trips.walking(s), target=x.id)
+            self.weapon.step(sc, driver, allowed=st == "run" and self.trips.walking(s), target=x.id)
             self.trips.settle(now, st)
         else:                                            # nothing to fight: roam
             mode, st = self.trips.roam(now, s, driver)
             if mode is not None:
                 self.mode = mode
-            self.weapon.step(sc, obs, driver, allowed=self.trips.travel is None or self.trips.walking(s))
+            self.weapon.step(sc, driver, allowed=self.trips.travel is None or self.trips.walking(s))
             self.trips.settle(now, st)
         return None
 

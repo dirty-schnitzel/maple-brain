@@ -12,6 +12,7 @@ from maplebrain.config import Config
 from maplebrain.humanize import Humanizer
 from maplebrain.nav.navmap import NavMap
 from maplebrain.brain.v2.scene import Scene
+from maplebrain.brain.v3.model import Character, Mob
 from maplebrain.nav.selfstate import SelfState
 
 ASSETS = "assets/mcw"
@@ -58,7 +59,8 @@ def rule_fires(run, weapon="spear"):
         n_ticks += 1
         br.weapon.next_at = br.weapon.swing_end = -9.0  # the rule alone, every tick (no swing timing)
         br.weapon.engaged = None
-        if br.weapon.step(Scene.build(t, obs, s, turns[i - 1][1], br.reach), obs, Null()):
+        me = Character.of(s, turns[i - 1][1], obs)
+        if br.weapon.step(Scene.build(t, [Mob(d) for d in obs.mobs], me, br.reach), Null()):
             if not fires or t - fires[-1] >= 0.9:
                 fires.append(t)
     return fires, att, n_ticks, ticks[-1]["obs"]["t"]

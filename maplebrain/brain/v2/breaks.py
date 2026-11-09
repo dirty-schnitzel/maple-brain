@@ -17,6 +17,9 @@
 Damage ends either kind for good (the user: "taking damage during break = break over"): HP went down -> back to
 hunting, the next break 2-5 min on. Never mid-fight (attack held) and never in the air. Reflexes (potions, HP stop) and
 the lie detector go on during both.
+
+v3 layer: tasks (Rest; PLAN-v3.md makes it a goal of its own in step 2). Step 1: reads the world model's Map (ropes,
+Spawn objects) and our Character from the Scene.
 """
 BEAT_CHANCE = 0.5
 BEAT_S = (0.25, 1.5)
@@ -38,8 +41,8 @@ LEVEL_PX = 80                     # |dy| that counts as our level
 
 
 class Breaks:
-    def __init__(self, nav, hz, stats, say):
-        self.nav, self.hz, self.stats, self.say = nav, hz, stats, say
+    def __init__(self, map_, hz, stats, say):
+        self.map, self.hz, self.stats, self.say = map_, hz, stats, say
         self.kind = None                                  # "beat" / "break" while resting
         self.until = 0.0
         self.due = None                                   # the next break falls due then
@@ -56,16 +59,16 @@ class Breaks:
 
     def safe(self, sc) -> bool:
         """A spot to stop on for a while (module doc)."""
-        s = sc.s
+        s = sc.me
         if s.state == "rope":
             if s.rope is not None:
-                r = self.nav.rope(s.rope)
+                r = self.map.rope(s.rope)
                 if not r.top + ROPE_TOP_PX <= s.y + s.vy * COAST_S <= r.bottom - ROPE_FOOT_PX:
                     return False
             return not self._close(sc, ROPE_CLEAR_PX)
         if s.state != "ground" or sc.now < self.ropes_only_until or self._close(sc, GROUND_CLEAR_PX):
             return False
-        return not any(abs(x - s.x) <= SPAWN_CLEAR_PX and abs(y - s.y) <= LEVEL_PX for x, y in self.nav.spawns)
+        return not any(abs(sp.x - s.x) <= SPAWN_CLEAR_PX and abs(sp.y - s.y) <= LEVEL_PX for sp in self.map.spawns)
 
     def _start(self, kind, secs, now):
         self.kind, self.until = kind, now + secs
@@ -75,11 +78,11 @@ class Breaks:
             self.say(f"break {secs:.0f} s")
 
     def _interrupted(self, sc) -> bool:
-        if sc.s.state == "air":
+        if sc.me.state == "air":
             return True
         if self.kind == "beat":
             return self._close(sc, NEAR_PX)
-        return sc.s.state == "ground" and self._close(sc, DANGER_PX)
+        return sc.me.state == "ground" and self._close(sc, DANGER_PX)
 
     def resting(self, sc, fighting: bool, hp=None) -> bool:
         """One tick. True = stay still this tick (`fighting`: the attack key is held, `hp`: our HP now)."""
@@ -100,7 +103,7 @@ class Breaks:
                 self._plan(now)
             self.kind = None
             return False
-        if fighting or sc.s.state == "air":
+        if fighting or sc.me.state == "air":
             return False
         if now >= self.due and self.safe(sc):
             self._start("break", self.hz.between(*BREAK_S), now)
