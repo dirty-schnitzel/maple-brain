@@ -30,7 +30,9 @@ class Null:
         return False
 
 
-def main(run, weapon="spear"):
+def rule_fires(run, weapon="spear"):
+    """(rule firing times, user swing times, ticks with our exact position, run length s). tools/v3/gate.py
+    fingerprints the firing times (brain v3 migration: must stay identical)."""
     ticks = [json.loads(x) for x in open(f"{run}/ticks.jsonl")]
     sst = {r["n"]: r for r in map(json.loads, open(f"{run}/selfstate.jsonl"))}
     kl = [json.loads(x) for x in open(f"{run}/keys.jsonl")]
@@ -59,15 +61,22 @@ def main(run, weapon="spear"):
         if br.weapon.step(Scene.build(t, obs, s, turns[i - 1][1], br.reach), obs, Null()):
             if not fires or t - fires[-1] >= 0.9:
                 fires.append(t)
+    return fires, att, n_ticks, ticks[-1]["obs"]["t"]
+
+
+def report(fires, att, n_ticks, T) -> list:
     near = lambda v, t: (lambda j: any(abs(v[k] - t) <= 0.35 for k in (j - 1, j) if 0 <= k < len(v)))(
         bisect.bisect_left(v, t))
-    T = ticks[-1]["obs"]["t"]
     a_ok = sum(near(fires, t) for t in att)
     f_ok = sum(near(att, t) for t in fires)
-    print(f"{n_ticks} ticks with our exact position, {T / 60:.1f} min")
-    print(f"user swings {len(att)}: rule agreed within 0.35 s on {a_ok} ({a_ok / len(att):.0%})")
-    print(f"rule firings {len(fires)} ({60 * len(fires) / T:.0f}/min vs user {60 * len(att) / T:.0f}/min): "
-          f"user swung too on {f_ok} ({f_ok / max(1, len(fires)):.0%})")
+    return [f"{n_ticks} ticks with our exact position, {T / 60:.1f} min",
+            f"user swings {len(att)}: rule agreed within 0.35 s on {a_ok} ({a_ok / len(att):.0%})",
+            f"rule firings {len(fires)} ({60 * len(fires) / T:.0f}/min vs user {60 * len(att) / T:.0f}/min): "
+            f"user swung too on {f_ok} ({f_ok / max(1, len(fires)):.0%})"]
+
+
+def main(run, weapon="spear"):
+    print("\n".join(report(*rule_fires(run, weapon))))
 
 
 if __name__ == "__main__":
