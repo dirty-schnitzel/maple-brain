@@ -1,19 +1,20 @@
-# maplebrain — session handoff (updated 2026-11-08)
+# maplebrain — session handoff (updated 2026-11-09)
 **Read this file top to bottom; it holds only the current state.** NEXT SESSION = "START HERE NEXT SESSION (P1)"
 below: brain v3 (**PLAN-v3.md**: world model + planner; Platform / Path / Auto modes) up to **Platform mode** (= Area
 mode, `--mark-platform`). P2 after it: accuracy + speed.
 Sessions 6-23, the old brain (v1), and superseded plans moved verbatim to **HISTORY.md** on 2026-11-08: grep it for
 old runs, numbers and decisions.
-Latest: 2026-11-08 attack per press built + live (`runs/v2/press1`; the user: "the most significant change in bot
+Latest: 2026-11-09 edge ghosts fixed + live-checked (`runs/v2/air1/fix3`), package renamed maplebot -> maplebrain;
+`main` = `dev` = 5998a33, pushed. 2026-11-08 attack per press built + live (`runs/v2/press1`; the user: "the most significant change in bot
 behavior since start"), speed regression test, brain v3 planned; 2026-11-07 map recognition measures the minimap
 window; 2026-11-05 M2 combat live, brain v2 split into parts; M1 movement done.
 
-## Edge ghosts at Ant Tunnel IV's right wall (2026-11-09, branch `edge-ghost` off `dev`: rename ce37440 + fix e68066e; fix 3 NOT live-tested)
+## Edge ghosts at Ant Tunnel IV's right wall (2026-11-09, DONE: fix e68066e on main + dev; live-checked `runs/v2/air1/fix3`)
 **Seen:** `runs/v2/20261109_003124_1` (no frames) 362-382 s: 17 presses + "kill #56" at a "Zombie Mushroom" that isn't
 there; `runs/v2/20261109_011503_1` (frames) 56.5-63 s the same ("stuck on the side of the map"). Both: camera at the
 map's right wall (vrBounds right 2610 = the screen's right edge), track feet at screen x 1366-1376, y ~468, score
-0.57-0.68. Pictures: `ghost_vision.gif` / `ghost_play.gif` / `ghost_live_58.5.png` were made in the session scratchpad
-(make_images.py functions, crop 486..1366 x 110..605).
+0.57-0.68. Pictures of the third case are in `runs/v2/air1/20261109_014902_1` (ghost_vision.gif / ghost_play.gif /
+ghost_live_50.0.png: make_images.py functions, crop 486..1366 x 110..605).
 **Cause:** born from the search around a DYING mob at the wall (78 -> 89, 509 -> 512 -> 546 -> 547): a live pose there
 became a new track at the follow bar (0.55), past `--mob-score`; tentative -> live on 2 sightings. The visible-only
 search compares half a mushroom (37-48 % of its body on screen) with lit stalagmites. (The whole-screen search pads the
@@ -35,7 +36,10 @@ real 167 -> 163; react1 -6 weak, real 187 -> 186. The real ones lost / later: at
 250-430 px above / below us (never targeted), 2 picked up 0.3-0.5 s later at the edge, and ONE near us (press1
 174.5 s): a Horny Mushroom walking in behind a dying one, only seen at 0.575 there, then an off-platform hit: watch
 for "late on a mob that steps in where one died" live.
-**Next:** live run with `--frames` on Ant Tunnel IV (default 0.65), stop after air hitting; the user decides on 0.70.
+**Live check `runs/v2/air1/fix3`** (2.4 min hunting, mob score 0.65, camera at the right wall 85 % of the time): no
+ghost at the wall, every counted sighting < 60 % on screen >= 0.705; the user: "the edge ghost seems resolved". 74
+presses: solid 51 (69 %, was 61 % in 003124_1), stale 16, nothing 7. `--mob-score` stays 0.65 (the user may test 0.70).
+The remaining air presses -> P2 accuracy, A2 / A4 / A6 below.
 
 ## Goal
 A **fully automated mob farmer** for **MapleStory Classic World** (official GMS Classic, launched 2026-10-21):
@@ -64,7 +68,7 @@ pytest must not move (the brain is 0.2 ms of the tick today); each file's header
 
 ## P2 (after Platform mode): accuracy + speed (2026-11-08, after the per-press live run; the user: "the most
 ## significant change in bot behavior since start, so much more accurate and lethal")
-**Branch state:** `dev`, everything committed (main untouched; the user merges). Commits this session:
+**Branch state (2026-11-09):** `main` = `dev` = 5998a33, pushed. Commits of the per-press session (2026-11-08):
 `4f31e36` attack per press (one press per swing, next decided after the swing; swing length from the client,
 `--attack-speed`, default weapon poleArm) -> `bda9f6d` live check (`runs/v2/press1`, `probe/bot_presses.py`) ->
 `939a189` this plan -> `a375cae` speed regression test. 1107 tests green. Details of the per-press work: the section
@@ -99,11 +103,43 @@ rest is CPU work run one after another. 16 fps costs LATENCY (gap after a swing 
 0.36) but the biggest error is EVIDENCE: 22 of 59 presses at weak tracks (our own body / pet, a dying mob's spot).
 Accuracy (offline first on press1 / react1 frames, `bot_presses.py` + marked frames as the check):
   A1. No mob detections on our own character + pet: mask our box (known from the tag) in the detector.
-  A2. A detection on a dying track's spot belongs to that track (association), never a new live track.
+  A2. A detection on a dying track's spot belongs to that track (association), never a new live track. 2026-11-09:
+      the near-search path is done (world.py rule (1): such a hit needs the mob score). STILL OPEN for the
+      whole-screen path: `runs/v2/air1/fix3` #154 born at 108.0 s at 0.658 (just over 0.65) on the fading body of
+      dying #151 under our swing's blue arc, then followed at 0.55-0.61 onto our polearm blade: 3 presses at nothing
+      (`fix3/weak154.png`, `weak154_zoom.png`). Idea: a live-pose hit within the dying track's box during its death
+      animation joins it unless >= confirm_score 0.75. Cost to check: press1 174.5 s, a real Horny Mushroom walking
+      in right behind a dying one (0.575 there) is then picked up later.
   A3. HP bars on with sprites (find_mob_bars; check the Perion fog case): a bar emptied by our hit = the kill ~0.25 s
       before the death animation - the user's own cue (they stop ~0.3 s into the killing swing).
   A4. Effect-robust sprite scores (ignore bright saturated spark / arc pixels): mobs stay visible under our hits.
   A5. Hit time per weapon from the client (SWING_LAND_S is still 0.45 fixed; live polearm ~0.50-0.56).
+  A6. Speech bubbles (pets' "yummy", "FOOD!! FOOD!!") match the Zombie Mushroom's white body at ~0.66 and start
+      tracks that live 2-3.5 s (`runs/v2/20261109_011503_1` #23 #35 #37, air1 #33). Not measured yet: reject hits that
+      are mostly flat white with a dark text line, or test the white-body share.
+  Evidence 2026-11-09 for the user's "a few air hits" (`runs/v2/air1/fix3`): the 16 stale presses were all real
+  mobs within ~150 px of us, unseen 0.5-2.9 s (dying / under our effects) = A4; #154 = A2. Weak tracks of the last 3
+  runs, each at birth and ~1 s later: `fix3/weak_sheet_1..4.png` (dying body + our arc, speech bubbles, real mobs
+  behind the chat box, 3 Horny Mushrooms bunched behind a rope, other players' skills, the minimap window). DROPS
+  are NOT matched as mobs (the user suspected it): a pile of talisman + coins + Horny cap scores 0.23-0.29 on the
+  detector (`fix3/drops_126.png`); no weak track started on one (drops aren't logged in v2 ticks: frames only).
+  Tool for old vs new tracker on recorded frames: the replay used this session (live Perceiver from bench.build with
+  a chosen mob score; a module swap for the old world.py) was NOT committed - rebuild it as tools/perc/ if needed.
+**Recordings with targeting mistakes (all Ant Tunnel IV 10005063, brain v2 per press; frames = every 3rd tick, JPEG):**
+| run | frames | what to look at |
+|---|---|---|
+| `runs/v2/20261109_003124_1` | none | 6.5 min, the user's "ton of attacking the air" run. Edge ghost #512 (+ #546, #547) 354-382 s: 17 presses + fake "kill #56". 222 presses, 61 at a target not seen well in 0.5 s: 17 ghost, 8 weak tracks near us (A1), 36 stale real mobs (A4) |
+| `runs/v2/20261109_011503_1` | 634 | edge ghost #89 56.5-63 s ("stuck on the side"), born from dying #78; speech-bubble tracks #23 #35 #37 (A6); dying body + effect tracks #21 #84 #97. Pictures: ghost_vision.gif / ghost_play.gif (54.5-64.5 s), ghost_live_58.5.png, ghost_live_zoom.png, ghost_spot_on_press1_frame.png, ghost_edge_padding_zoom.png (the whole-screen search's copied edge column) |
+| `runs/v2/air1/20261109_014902_1` | 610 | a REAL mob's track (#72) handed over to the wall spot at 47.0 s, followed 17 s (fix rule 3). ghost_vision.gif / ghost_play.gif (44-60 s), ghost_live_50.0.png; weak #22 #25 #33 (bubble) #53 (a player's skill) |
+| `runs/v2/air1/fix3` | 866 | AFTER the edge fix (live check). #154 108-110.5 s: born on dying #151's body under our arc, 3 presses at nothing (A2: weak154.png, weak154_zoom.png); 16 stale presses at real mobs next to us (A4; t 30.2, 37.2, 38.3, 41.8, 42.9, 45.2, 50.2, 51.6, 74.8, 95.6, 96.7, 120.4, 128.4, 141.7, 150.2, 153.5, 161.0, 162.3); weak_sheet_1..4.png (26 weak tracks of the 3 runs above), drops_126.png (drops are not mobs), midscore_sheet.png (detector hits 0.5-0.75 off real mobs: mostly UI / quickslots / minimap / portal / players). Paused at 168.9 s (focus lost): use t < 168 |
+| `runs/v2/press1` | 970 | marked_presses.png: weak tracks ON OUR BODY / PET (#41 4 presses 58-62 s, #148 at 145 s) and a weak track born on a dying mob (#222 on #213 at 198.5 s; 162.4 s alike) = A1 / A2. late_mob_174.png: 174.5 s a real Horny Mushroom walking in behind a dying one (the case the A2 rule must not lose) |
+| `runs/v2` (root) | 1059 | the hold-era 3-min run: marked_049.96.png / marked_184.98.png / marked_199.09.png = swings at dead mobs kept alive under effects (A4) |
+| `runs/v2/react1` | 958 | kill_71.png / kill_94.png: clean kills (death animation timing); mobs lost under hit effects (`probe/lost.py` on `runs/v2`) |
+| `runs/v2/20261107_191848_2` | 845 | --mob-score 0.80: track #84 t 62-64.5 s keeps a dead mob alive on empty space, then snaps onto another mob (near_score 0.55 follows anything) |
+| `runs/v2/20261107_184350_1` | none | 33 of 35 never-strong tracks = Zombie Mushroom template on scenery (memory "weak tracks = air swings") |
+Check tools: `tools/combat/probe/bot_presses.py RUN` (solid / stale / nothing per press), `tools/readme/make_images.py`
+(overlay + GIF functions; this session's GIF script used them with a crop), `tools/perc/label_eval.py` (by-eye labels).
+
 Speed (target >= 30 fps, frame -> decision < 35 ms; measure tick p50/p90 + the gap after a swing vs the user):
   S0. DONE: speed regression. `tools/perf/bench.py` replays the live v2 tick (resize from 2560x1440 -> perceive ->
       self state -> brain) on tests/fixtures/perf_ant4 (45 fight frames from press1) in its own process;
@@ -117,7 +153,7 @@ Speed (target >= 30 fps, frame -> decision < 35 ms; measure tick p50/p90 + the g
       resize there.
   S3. Slow things slower: HUD HP/MP digits, lie detector, minimap at ~4-5 Hz instead of every tick.
   S4. Then re-check what the tracker gains from more frames (fewer lost mobs under effects, ghost time).
-Order: A1 + A2 (cheap, offline-testable) -> S1-S3 -> A3 -> A4 -> A5. Live check after each pair with bot_presses.py +
+Order: A1 + A2 (cheap, offline-testable) -> A6 -> S1-S3 -> A3 -> A4 -> A5. Live check after each pair with bot_presses.py +
 turning.py, 3 min with frames, marked frames for the user.
 
 ## attack per press - clean kills, instant turns (2026-11-08, branch `dev`; steps 1-2 DONE + live, steps 3-4 = the
