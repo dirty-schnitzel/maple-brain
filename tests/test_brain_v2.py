@@ -7,15 +7,15 @@ from types import SimpleNamespace
 
 import pytest
 
-from maplebot.brain.brain_v2 import BrainV2
-from maplebot.brain.reach import SWING_LAND_S, Reach, body, boxes_vs
-from maplebot.brain.v2.breaks import Breaks
-from maplebot.brain.v2.scene import Scene
-from maplebot.config import Config
-from maplebot.humanize import Humanizer
-from maplebot.nav.navmap import NavMap
-from maplebot.nav.selfstate import SelfState
-from maplebot.nav.sim import Sim, SimDriver
+from maplebrain.brain.brain_v2 import BrainV2
+from maplebrain.brain.reach import SWING_LAND_S, Reach, body, boxes_vs
+from maplebrain.brain.v2.breaks import Breaks
+from maplebrain.brain.v2.scene import Scene
+from maplebrain.config import Config
+from maplebrain.humanize import Humanizer
+from maplebrain.nav.navmap import NavMap
+from maplebrain.nav.selfstate import SelfState
+from maplebrain.nav.sim import Sim, SimDriver
 
 ASSETS = Path(__file__).resolve().parents[1] / "assets" / "mcw"
 BUBBLING = 14
@@ -573,7 +573,7 @@ def test_in_the_air_or_on_a_ladder_with_targets_elsewhere_doesnt_crash(line1):
 
 # ---------------------------------------------------------------- the parts on their own
 def _scene(nav, mobs, x=1400, platform=273, facing=1, now=0.0):
-    from maplebot.brain.v2.scene import Scene
+    from maplebrain.brain.v2.scene import Scene
     y = nav.platforms[platform].y_at(x)
     return Scene.build(now, _obs(mobs), SelfState(now, x, y, "tag", "ground", platform), facing, Reach("spear"))
 

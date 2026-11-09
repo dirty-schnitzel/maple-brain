@@ -4,10 +4,10 @@ rain_base (2 min, started at map x 1118): 25 idle walks left, 1 right - patrol_d
 wall turned it - and the 2nd minute was spent at x -300..-720, past the left portal (-465..-647)."""
 import pytest
 
-from maplebot.brain.actions import Hold
-from maplebot.brain.brain import Brain
-from maplebot.config import Config, Nav
-from maplebot.nav.navmap import NavMap
+from maplebrain.brain.actions import Hold
+from maplebrain.brain.brain import Brain
+from maplebrain.config import Config, Nav
+from maplebrain.nav.navmap import NavMap
 from test_jump import RAIN, at
 
 

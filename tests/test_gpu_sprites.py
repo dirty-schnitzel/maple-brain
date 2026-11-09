@@ -7,7 +7,7 @@ import pytest
 
 torch = pytest.importorskip("torch")
 
-from maplebot.perception.gpu_sprites import GpuSpriteDetector  # noqa: E402
+from maplebrain.perception.gpu_sprites import GpuSpriteDetector  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 MCW = ROOT / "assets" / "mcw"
@@ -78,8 +78,8 @@ def test_flat_areas_are_not_mobs(det):
 def test_gpu_band_gives_the_perceiver_only_our_band(det):
     """--gpu: the whole screen is searched once per frame, `find` keeps the CPU detector's contract (the band
     around our feet, excludes)."""
-    from maplebot.perception.gpu_sprites import GpuBand
-    from maplebot.perception.sprites import SpriteDetector
+    from maplebrain.perception.gpu_sprites import GpuBand
+    from maplebrain.perception.sprites import SpriteDetector
     frame = cv2.imread(str(FX / "library_grass.jpg"))
     spr = cv2.imread(str(MCW / "mobs/8/move_2.png"), cv2.IMREAD_UNCHANGED)
     paste(frame, spr, 300, 120)                          # up in the trees

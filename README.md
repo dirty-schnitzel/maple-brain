@@ -81,12 +81,12 @@ flowchart LR
 ```
 
 All game knowledge comes from the **game's own client files**, exported once with HaRepacker
-(`python -m maplebot assets build`): footholds, ropes, spawns and minimaps for 336 maps; every animation frame,
+(`python -m maplebrain assets build`): footholds, ropes, spawns and minimaps for 336 maps; every animation frame,
 body box and stat for 117 mobs; weapon attack boxes, stance lengths and attack speeds. There are no hand-drawn maps.
 
 ### The live map
 
-`python -m maplebot livemap` draws the running hunt in the console. Here is the tick from the screenshot above:
+`python -m maplebrain livemap` draws the running hunt in the console. Here is the tick from the screenshot above:
 `@` is us, `M`/`Z` are Horny/Zombie Mushroom tracks with their facing, `?` = unseen right now, `^` = in the air.
 
 ```text
@@ -134,26 +134,26 @@ presses.
 
 ```powershell
 # one-time: build the game data from your own client export (see assets/README.md)
-python -m maplebot assets build
+python -m maplebrain assets build
 
 # stay loaded: F7 starts a hunt (the map is recognised then), F8 stops it, Ctrl+C quits
-python -m maplebot serve runs\v2 --brain v2 --frames
+python -m maplebrain serve runs\v2 --brain v2 --frames
 
 # a timed hunt that saves every 3rd frame
-python -m maplebot run runs\v2\my_run --brain v2 --seconds 180 --frames-every 3
+python -m maplebrain run runs\v2\my_run --brain v2 --seconds 180 --frames-every 3
 
 # no hunt: only the Lie Detector siren (keep it running between hunts)
-python -m maplebot watch runs\watch
+python -m maplebrain watch runs\watch
 
 # watch a hunt (or replay a recorded one) as a console map
-python -m maplebot livemap runs\v2
-python -m maplebot livemap runs\v2\press1 --replay
+python -m maplebrain livemap runs\v2
+python -m maplebrain livemap runs\v2\press1 --replay
 
 # record yourself playing (the bot presses nothing): keylog + ticks + frames
-python -m maplebot serve runs\play --observe --gpu --tracker --frames
+python -m maplebrain serve runs\play --observe --gpu --tracker --frames
 ```
 
-Every key the bot uses is defined in one place, `Keys` in `maplebot/config.py`.
+Every key the bot uses is defined in one place, `Keys` in `maplebrain/config.py`.
 
 ## 🧪 Tests
 
@@ -170,11 +170,11 @@ slower than this machine's baseline.
 
 | Path | What's there |
 |---|---|
-| `maplebot/config.py` | every threshold and timing: `Keys`, `Combat`, `Perception`, `Nav`, `Humanize` |
-| `maplebot/perception/` | frame → `Observation`: GPU sprites, tracker, camera shift, own tag, HUD digits, Lie Detector |
-| `maplebot/nav/` | nav map (platforms, ropes, links, routes), minimap localisation, map identification, self state, simulator |
-| `maplebot/brain/` | `brain_v2.py` + `v2/` (reflexes, ledger, scene, breaks, targeting, combat, trips), reach, moves, travel |
-| `maplebot/runtime/` | run / serve / watch, the v2 hunt loop, KeyDriver, keylogger, recorder, EXP meter |
+| `maplebrain/config.py` | every threshold and timing: `Keys`, `Combat`, `Perception`, `Nav`, `Humanize` |
+| `maplebrain/perception/` | frame → `Observation`: GPU sprites, tracker, camera shift, own tag, HUD digits, Lie Detector |
+| `maplebrain/nav/` | nav map (platforms, ropes, links, routes), minimap localisation, map identification, self state, simulator |
+| `maplebrain/brain/` | `brain_v2.py` + `v2/` (reflexes, ledger, scene, breaks, targeting, combat, trips), reach, moves, travel |
+| `maplebrain/runtime/` | run / serve / watch, the v2 hunt loop, KeyDriver, keylogger, recorder, EXP meter |
 | `assets/mcw/` | game data converted from the client export |
 | `tests/` | regressions on real frames, behaviour scenarios, the speed baseline |
 | `tools/` | analysis and probe scripts (combat, nav, perception, perf, the README pictures) |

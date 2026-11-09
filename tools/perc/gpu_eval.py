@@ -14,7 +14,7 @@ import cv2
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from maplebot.perception.gpu_sprites import GpuSpriteDetector  # noqa: E402
+from maplebrain.perception.gpu_sprites import GpuSpriteDetector  # noqa: E402
 
 
 def same(a_id, a_feet, b_id, b_feet, tol=20):

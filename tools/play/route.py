@@ -2,7 +2,7 @@
 usage: python -I tools/play/route.py RUN"""
 import json, sys, collections
 sys.path.insert(0,'.')
-from maplebot.nav.navmap import NavMap
+from maplebrain.nav.navmap import NavMap
 from pathlib import Path
 d=sys.argv[1]
 ticks=[json.loads(x) for x in open(d+'/ticks.jsonl')]

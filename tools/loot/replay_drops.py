@@ -3,7 +3,7 @@ import json, sys, time
 from pathlib import Path
 import cv2, numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from maplebot.perception.drops import DropSpotter
+from maplebrain.perception.drops import DropSpotter
 
 run, out = Path(sys.argv[1]), Path(sys.argv[2]); t0, t1 = float(sys.argv[3]), float(sys.argv[4])
 every = int(sys.argv[5]) if len(sys.argv) > 5 else 4

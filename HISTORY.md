@@ -1,9 +1,9 @@
-# maplebot - history (moved out of HANDOFF.md on 2026-11-08, verbatim, original order)
+# maplebrain - history (moved out of HANDOFF.md on 2026-11-08, verbatim, original order)
 Old sessions, the old brain (v1), superseded plans and the old reference sections. Nothing here is the
 current state: HANDOFF.md is. "below / above" pointers inside refer to the old HANDOFF layout.
 
 ## (old HANDOFF title line)
-# maplebot — session handoff (updated 2026-11-08 late: NEXT SESSION = "START HERE NEXT SESSION: accuracy + speed" below - attack per press is DONE + live (the user: "the most significant change in bot behavior since start"), speed regression test in place; earlier 2026-11-08: attack per press plan; 2026-11-07: map recognition measures the minimap window; session 23 (2026-11-05): M2 combat LIVE 14.3 kills/min (the user: "SERIOUSLY impressive"), brain v2 restructured into brain/v2/ parts, hold-until-death + re-press committed, NOT live-tested - see 'START HERE NEXT SESSION' in 'Session 23'; session 22: M1 movement DONE (camshift + selfstate, moves + Travel + sim + `goto`, live 80 % first try, the user: natural), stalls fixed (14.4 fps); NEXT = M2 Hunt skill - see 'START HERE: M2'; session 21: BRAIN-V2 started - key logger, farming example, KeyDriver; session 20: look-alike maps by name; session 19: tracker + `--tracker` shim; session 18: GPU detection `--gpu`; session 17: game data from the client files)
+# maplebrain — session handoff (updated 2026-11-08 late: NEXT SESSION = "START HERE NEXT SESSION: accuracy + speed" below - attack per press is DONE + live (the user: "the most significant change in bot behavior since start"), speed regression test in place; earlier 2026-11-08: attack per press plan; 2026-11-07: map recognition measures the minimap window; session 23 (2026-11-05): M2 combat LIVE 14.3 kills/min (the user: "SERIOUSLY impressive"), brain v2 restructured into brain/v2/ parts, hold-until-death + re-press committed, NOT live-tested - see 'START HERE NEXT SESSION' in 'Session 23'; session 22: M1 movement DONE (camshift + selfstate, moves + Travel + sim + `goto`, live 80 % first try, the user: natural), stalls fixed (14.4 fps); NEXT = M2 Hunt skill - see 'START HERE: M2'; session 21: BRAIN-V2 started - key logger, farming example, KeyDriver; session 20: look-alike maps by name; session 19: tracker + `--tracker` shim; session 18: GPU detection `--gpu`; session 17: game data from the client files)
 
 ## Session 23 (2026-11-05, branch `brain-v2`): M2 Hunt skill, COMBAT ONLY (the user: "start m2, focus on combat only")
 Live since then (results further down this section). No loot, no patrol (M3), no buff.
@@ -143,7 +143,7 @@ Live since then (results further down this section). No loot, no patrol (M3), no
 - **START HERE NEXT SESSION:**
   0. Live check of the two items above: are the wrong-way holds gone (`dry` in stats, should be a few per session), do
      the pauses look human?
-  1. Live check of `dfa25c1`: `..\auto-maple\.venv\Scripts\python -m maplebot serve runs\v2 --brain v2` (F7 / F8,
+  1. Live check of `dfa25c1`: `..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\v2 --brain v2` (F7 / F8,
      elevated, `watch` running; the user runs it). The question: does the attack really stay on until the mob dies,
      mobs kept at spear's length, no hesitation? Analyse with `tools/combat/compare.py RUN...` (compare with
      `runs/v2/20261105_092129_1`, 18.2 kills/min = best session so far). `Weapon` stats: holds, held_on, got_away,
@@ -178,7 +178,7 @@ M0 done except `obs.state` (SelfState + tracks cover most of it; add the per-tic
 vx/vy) on `obs.me_map` (tag + camera from `perception/camshift.PlatformShift`); `brain/moves.py` (one state machine
 per link kind, knockback recover, no back-and-forth), `brain/travel.Travel(nav, dst, dst_x)` (`step(now, s,
 driver)`, re-plan, blacklist, stuck), `nav/sim.py` + `tools/nav/sim_tour.py` (offline tours, 97 %),
-`python -m maplebot goto OUT [--to P [X]] [--seconds S] --jump shift` (live, implies --gpu). NavMap.arc = jump
+`python -m maplebrain goto OUT [--to P [X]] [--seconds S] --jump shift` (live, implies --gpu). NavMap.arc = jump
 landing by height. Live `runs/g4`: 11/11 trips, 80 % moves first try (gate 90 % missed only by mob knockback),
 direction flips inside the user's own range. **The user: "very impressed with platforming, looked natural";
 watch for left-right-left-right - "looks very botlike" (fixed, keep it that way).**
@@ -186,12 +186,12 @@ watch for left-right-left-right - "looks very botlike" (fixed, keep it that way)
 `timings.parts` per perceive part in ticks; `tools/nav/live_check.py RUN`.
 **Weapon:** the farming example was with the SPEAR; the user switches to a POLEARM soon (different reach) -> M2 reach
 from data + learned live, never a constant.
-**LD:** one came 06:42 between runs (no bot running) - gap LDs again; keep `maplebot watch` running all session.
+**LD:** one came 06:42 between runs (no bot running) - gap LDs again; keep `maplebrain watch` running all session.
 
 ### First steps for M2 (next session)
 1. Read this block, then 'M2 - Hunt skill' below, 'FARMING EXAMPLE', and skim `brain/moves.py` + `brain/travel.py`
    (the Hunt skill reuses Travel to reach targets on other platforms and the Move/Wish/KeyDriver pattern).
-2. `git switch brain-v2`; pytest green; `maplebot watch` running (by the user).
+2. `git switch brain-v2`; pytest green; `maplebrain watch` running (by the user).
 3. Reach data: export the attack boxes (Skill.wz Power Strike `lt/rb`, Character.wz afterimages per weapon type:
    spear stab vs polearm swing) with HaRepacker (`tools/cwdata/export.ps1`) into `assets build`; check offline
    against the farming example's killing distances (median 72 px in front, p90 120, spear) via `tools/play/kills.py`.
@@ -208,7 +208,7 @@ gets constant Lie Detectors; the rewrite should **fight + platform + path like t
 - **Algorithm, not learning, decides WHERE and WHAT:** hunting is a solvable planning problem - zone value = spawns
   x mob EXP / respawn time, travel cost = `NavMap.route` seconds, kill cost = mob HP / our damage, crowding from other
   players' tags. No recording per map. Learning (later, M5) only for HOW keys are pressed (human feel).
-- **A completely new file `maplebot/brain/brain_v2.py`, written from scratch.** Functions may be copied from
+- **A completely new file `maplebrain/brain/brain_v2.py`, written from scratch.** Functions may be copied from
   `brain.py`; the old brain is not edited into the new one. Old brain stays selectable until v2 wins an A/B.
 - **Emphasis on WHEN TO HIT. Weapon range is variable** (the user now uses a SPEAR; the old zones 42/66/92 px were
   tuned on a sword) -> reach comes from data/measurement, never a constant (see M2).
@@ -272,7 +272,7 @@ Runner: `--brain v2` selects BrainV2 (old brain default until the A/B); BrainV2 
 
 ### M1 steps 2-4 (session 22, 2026-11-05): moves + Travel + sim + `goto` - first live tours
 - `brain/moves.py` (link state machines), `brain/travel.py`, `nav/sim.py` (+ SimDriver), `tools/nav/sim_tour.py`,
-  `runtime/goto.py` (`python -m maplebot goto OUT [--to P [X]] [--seconds S] --jump shift`, implies --gpu).
+  `runtime/goto.py` (`python -m maplebrain goto OUT [--to P [X]] [--seconds S] --jump shift`, implies --gpu).
   NavMap.arc: walking-jump landing from the real arc (reach depends on the height), Nav.jump_vx 155 calibrated.
   Sim tour (200 trips, Line 1): 197-198 done, ~96 % of moves first try.
 - **Live `runs/g1`:** hub 273 -> 79 in 7.4 s (walk, rope grab, leap, walk_to), all first try.
@@ -326,7 +326,7 @@ Existing pieces: `nav/navmap.py` (platforms, ropes, links walk/fall/drop/jump/gr
 3. **Travel(route):** `route()` -> links, executed one by one; after each landing compare our platform with the
    link's dst: same -> next link, other -> re-plan from where we are; a link failing twice -> blacklisted for the
    hunt (and logged: navmap fixes). No progress ~1.5 s -> event `stuck`.
-4. **Test harness:** `python -m maplebot goto PLATFORM [X]` (or a serve hotkey) = travel there and stop; a "tour"
+4. **Test harness:** `python -m maplebrain goto PLATFORM [X]` (or a serve hotkey) = travel there and stop; a "tour"
    of random goals over the map logging per link kind: success rate, time vs expected, re-plans. Unit tests on
    the real Line 1 map.json (a route between every pair of platforms; link state machines on a fake clock with
    scripted positions - like tests/test_keys.py).
@@ -386,7 +386,7 @@ Tap blocks the loop); new brain in its own package behind `--brain v2`, old brai
 Milestones: M0 executor + obs.state + key recording -> M1 movement skills (walk/jump/drop/rope, finer own position)
 -> M2 hunt skill -> M3 zone loop + rests -> M4 humanizer from the user's stats, then behaviour cloning.
 **Step -1 (the user's call): record the user farming + keys, analyse before designing.**
-- Built: `maplebot/runtime/keylog.py` `KeyLogger` (WH_KEYBOARD_LL hook on its own thread) -> `RUN/keys.jsonl`
+- Built: `maplebrain/runtime/keylog.py` `KeyLogger` (WH_KEYBOARD_LL hook on its own thread) -> `RUN/keys.jsonl`
   `{"t", "key", "down"}` (+`inj` injected, +`lag` ms >= 5), t = the ticks' obs.t clock; transitions only, downs only
   while the game is focused, ups always; started only in `serve --observe` hunts (F7..F8). Tests `test_keylog.py`.
 - Done: the user recorded 18.5 min on Line 1 (see 'FARMING EXAMPLE'). Record more with
@@ -394,7 +394,7 @@ Milestones: M0 executor + obs.state + key recording -> M1 movement skills (walk/
   `watch` running); analyse with `tools/play/analyze.py RUN`, `kills.py RUN 1.0`, `route.py RUN`.
 
 ## brain-v2 executor: KeyDriver (session 21, 2026-11-05) + the user's notes for brain-v2
-- **Built: `maplebot/runtime/keys.py` `KeyDriver`** - a thread owns the keyboard: `hold(set)` = every key to keep
+- **Built: `maplebrain/runtime/keys.py` `KeyDriver`** - a thread owns the keyboard: `hold(set)` = every key to keep
   down (several at once), `tap(key, secs, after=0)` queued and non-blocking (a 2nd tap of a key still waiting is
   dropped; taps of one key never overlap), random reaction pause per key-down / release pause per key-up (keys
   changed together never flip at the same instant), varied tap lengths, auto-repeat of the last pressed key
@@ -405,7 +405,7 @@ Milestones: M0 executor + obs.state + key recording -> M1 movement skills (walk/
   `Humanize.release_* repeat_*`. Tests `tests/test_keys.py` (12). **Not live-tested yet:** first live run = check
   loop stalls > 0.3 s are gone, and watch for Tap spam / turns and step-backs that behave differently now that the
   old brain's taps no longer block.
-- **The user's notes for brain-v2 (2026-11-05):** (1) **a completely new file `maplebot/brain/brain_v2.py`, from
+- **The user's notes for brain-v2 (2026-11-05):** (1) **a completely new file `maplebrain/brain/brain_v2.py`, from
   scratch** - functions may be copied from brain.py; (2) **emphasis on WHEN TO HIT: the user now uses a SPEAR**
   (longer reach than the sword the old brain's zones 42/66/92 were tuned on); weapons change, range is variable ->
   reach from data (skill/weapon hit boxes in the client files) and/or learned live (distance of swings that hit).
@@ -470,7 +470,7 @@ cover masks + livemap, `9287975` dying fix + edge probes, `a3a9f99` the `--track
   edges. Fixed batch shapes + `warm_near()` at map load (~14 s once per map per process: cudnn.benchmark times each
   new shape, 0.4-4.5 s; unwarmed = 1.3 s stalls mid-hunt; a lower benchmark_limit picks 10-40x slower kernels).
   Frame uploaded to the GPU once per frame (`_dev_frame`, `find` always uploads fresh).
-- **Cover masks** (`maplebot/cover.py`, the user's idea): what the game draws over mobs = tiles/objects of layers
+- **Cover masks** (`maplebrain/cover.py`, the user's idea): what the game draws over mobs = tiles/objects of layers
   above the mob's foothold layer (HeavenClient draw order). Exporter now exports Map/Obj.wz + Tile.wz (5967 + 619
   pictures); `assets build` writes `maps/<id>/cover_<L>.png` + map.json `cover` for 300+ maps (build 7 s -> 2.5 min).
   Verified pixel-exact on the Rain-Forest (upper platforms = layer 0 behind the trees; ground = layer 1, covered by
@@ -479,7 +479,7 @@ cover masks + livemap, `9287975` dying fix + edge probes, `a3a9f99` the `--track
   cover; mob tags ("Lv.7 Pig" under a track's feet) skipped. Cover probes: 4 rotating spots/frame along platforms in
   cover (visible-only search -> new tracks). Probes beside players: built, OFF (`probe_players`: +2 mobs, +4 false,
   +10 ms).
-- `livemap` (`python -m maplebot livemap [runs\manual] [--map ID] [--width N] [--replay --t0 S]`): whole map in the
+- `livemap` (`python -m maplebrain livemap [runs\manual] [--map ID] [--width N] [--replay --t0 S]`): whole map in the
   console, redrawn in place every 0.3 s (the user: "amazing"); `perception/mapascii.py`, `tools/perc/mapascii.py MAP`.
   Focusing its window pauses the bot (game not focused) - just look at it. Hunt logs now name their map (from the
   next serve start; until then `--map`).
@@ -605,8 +605,8 @@ Read 'Priority 2' first (decisions + measurements). Build `perception/world.py` 
 `core.autocrlf=false` (exact bytes). **Merged into `main` 2026-11-03** (fast-forward, after the live run); old state = `b143100`.
 **Pipeline** (full guide: `assets/README.md` 'How it's made' + 'After a game patch'):
 `tools/cwdata/export.ps1` (~10 s; every map + minimap PNG, every mob + frame PNG, UOL/_inlink/_outlink resolved,
-String names) -> `C:\Users\Yoav\dev\cw-data\export` -> `python -m maplebot assets build` (~7 s;
-`maplebot/gamedata.py`, now the converter) -> `assets/mcw` (same layout and field names the bot always read, so no
+String names) -> `C:\Users\Yoav\dev\cw-data\export` -> `python -m maplebrain assets build` (~7 s;
+`maplebrain/gamedata.py`, now the converter) -> `assets/mcw` (same layout and field names the bot always read, so no
 reader changed) + `changes.txt` (what the build changed vs the previous one). Removed: every download path
 (`assets update`, the runner's auto-download on a missing `--map` -> now says "isn't in assets/mcw ... assets build").
 **Diffed against the maplestory.io copy before switching** (every map/mob/frame): footholds, ropes, minimap fields
@@ -697,7 +697,7 @@ Plan (`perception/world.py`):
     strips cut the work 3-6x but the CPU still can't do it every frame; the GPU need shrinks (a GPU ~10x weaker
     would still do strips in ~15-30 ms), it doesn't disappear. Cost grows ~linearly with templates (Perion: 4-5
     mob types). fp16 vs fp32 conv: same speed here -> fp32.
-  - **Built (2026-11-04): `maplebot/perception/gpu_sprites.py` `GpuSpriteDetector`** - whole play area (y < 700),
+  - **Built (2026-11-04): `maplebrain/perception/gpu_sprites.py` `GpuSpriteDetector`** - whole play area (y < 700),
     every stand/move/fly frame x 2 facings: coarse masked NCC at 0.5 (3 batched convs), flat windows -> -1 (std <
     2 grey levels: sky once scored 32 -> 10k peaks, 23 s a frame), local peaks per mob, <= 64 candidates, then
     **refine on the GPU** (full size, +-4 px, each candidate's 3 best coarse poses, grouped convs, one batch) ->
@@ -714,7 +714,7 @@ Plan (`perception/world.py`):
     0.59/tick (client1 0.35); 132 ticks had mobs on screen but none in our band (the tracker's to use). "Hit by
     something unseen" 6.7/min and "lost target before reaching it" 2.7/min unchanged vs CPU (expected: the
     next-to-us gaps are the tracker's job). The user's `serve` was stopped for the run (by command line; `watch`
-    kept). Command: `..\auto-maple\.venv\Scripts\python -m maplebot serve runs\manual --attack space --jump
+    kept). Command: `..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\manual --attack space --jump
     shift --pickup z --loot --loot-sight --frames --gpu`.
     Tests `tests/test_gpu_sprites.py` (equal to OpenCV where scores matter, pasted Pigs anywhere with pose/feet,
     flat frame = nothing). Eval: `tools/perc/gpu_eval.py RUN MAP [--truth F]`.
@@ -945,7 +945,7 @@ algorithm, I'm open to discussion". **Discuss with the user before building.** A
 **Safety first - before ANY live run or series, start the Lie Detector watcher in the background** (session 9: a
 Lie Detector came up seconds after a run ended, nothing was watching; the user had to catch it):
 ```
-..\auto-maple\.venv\Scripts\python -m maplebot watch runs\watch --seconds 14400
+..\auto-maple\.venv\Scripts\python -m maplebrain watch runs\watch --seconds 14400
 ```
 (run_in_background; siren + PNG in runs\watch on detection; the game must be visible - not covered by a window).
 When the user reports a missed Lie Detector: check thoroughly (every frame, the LAST frame, tick gaps, focus
@@ -958,9 +958,9 @@ hunted with `serve`; their report there ("far targets at the screen edge are oft
 acc4..acc10. Commands (always from `C:\Users\Yoav\dev\maple-work`, elevated console - a relative venv path from
 `~` fails):
 ```
-..\auto-maple\.venv\Scripts\python -m maplebot run runs\acc4 --seconds 60 --attack space --jump shift --pickup z --map 10004040 --loot-sight
+..\auto-maple\.venv\Scripts\python -m maplebrain run runs\acc4 --seconds 60 --attack space --jump shift --pickup z --map 10004040 --loot-sight
 ..\auto-maple\.venv\Scripts\python tools\acc\analyze.py runs\acc4
-..\auto-maple\.venv\Scripts\python -m maplebot serve runs\manual --map 10004050 --attack space --jump shift --pickup z --loot-sight --frames
+..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\manual --map 10004050 --attack space --jump shift --pickup z --loot-sight --frames
 ```
 (game in front; mouse OFF the quickslots; HP potions on Del, MP on End; `space` = Power Strike.)
 
@@ -1054,7 +1054,7 @@ may revert all jumping and stay grounded: keep it isolated, every change reverta
   bot stopped as designed. **The `watch` process was killed at the user's request: start it before any run.**
 
 **How it works (where to look):**
-- `maplebot/nav/localize.py` `MinimapLocator`: minimap canvas by template match (sub-pixel origin, `nav.canvas_score`
+- `maplebrain/nav/localize.py` `MinimapLocator`: minimap canvas by template match (sub-pixel origin, `nav.canvas_score`
   0.4 - Rain-Forest scores 0.47-0.62 at (50, 72)), dot -> map (x, y), `NavMap.platform_at` (tries +-8/16 px: x is
   16 px coarse and ~7-15 px right of truth on this map). Perceiver -> `obs.map_pos / platform / rope` (ticks.jsonl).
 - `perception/hud.py minimap_dot`: **hue >= 23, area >= 6** - party members' orange dots (hue 18-19, rims ~20-22)
@@ -1070,8 +1070,8 @@ may revert all jumping and stay grounded: keep it isolated, every change reverta
 
 **Commands** (elevated, from `C:\Users\Yoav\dev\maple-work`; game in front; character on the Rain-Forest floor):
 ```
-..\auto-maple\.venv\Scripts\python -m maplebot watch runs\watch --seconds 14400          # FIRST, in the background
-..\auto-maple\.venv\Scripts\python -m maplebot run runs\rain4 --seconds 180 --attack space --basic-attack c --jump shift --pickup z --map 10001070 --loot-sight
+..\auto-maple\.venv\Scripts\python -m maplebrain watch runs\watch --seconds 14400          # FIRST, in the background
+..\auto-maple\.venv\Scripts\python -m maplebrain run runs\rain4 --seconds 180 --attack space --basic-attack c --jump shift --pickup z --map 10001070 --loot-sight
 ```
 Analysis helpers (scratch, run with `PYTHONPATH=.`): `runs/jump/tmp/relocate.py RUN MAP [-v]` (re-localize saved
 frames offline), `runs/jump/tmp/stuck.py RUN MAP` (position + walk key before each 'blocked' event),
@@ -1099,7 +1099,7 @@ leash/blocked logic needs the dot; in a party it was gone). Full revert of nav: 
 
 ## Session 11 (2026-11-01, 774 tests) - jump & drop, steps 1-2 on Perion Street Corner (offline, no live run)
 The user chose to build jump & drop on **Perion (10004040)**. Built (no brain changes yet; nothing live-tested):
-- **`maplebot/nav/navmap.py` `NavMap`**: platforms = walkable foothold chains (x1 < x2; x1 == x2 wall, x1 > x2
+- **`maplebrain/nav/navmap.py` `NavMap`**: platforms = walkable foothold chains (x1 < x2; x1 == x2 wall, x1 > x2
   ceiling), id = leftmost foothold id. Ends open unless a wall rises above the surface or the map ends there (the
   15 px stubs hanging under small platforms don't close them). Links by 4 px sampling: `walk` (surfaces meet),
   `fall` (walk off an open end), `drop` (down+jump, first floor below), `jump` (dir 0 straight up through a
@@ -1111,7 +1111,7 @@ The user chose to build jump & drop on **Perion (10004040)**. Built (no brain ch
   ground: every platform is >= 180 px up -> the only ways up are 8 ropes** (x -980, -124, 668, 1808, 2166, 2421;
   + 165->83 x 1732 ladder, 191->128 x -813). Small 136 px platforms form 60 px stairs (jumpable). All 31 platforms
   reachable from the ground. Many ropes hang 170+ px over the ground (ungrabbable; mobs only).
-- **`maplebot/nav/localize.py` `MinimapLocator`**: finds the minimap canvas (map.json miniMap) by template match,
+- **`maplebrain/nav/localize.py` `MinimapLocator`**: finds the minimap canvas (map.json miniMap) by template match,
   **sub-pixel** (the 3440->1366 scaling puts the whole frame at x 6.05 in some runs and 6.68 in others - 1 minimap
   px = 16 map px), map = (dot + box corner - origin + marker) * 2^mag - (centerX, centerY). Marker offset fitted:
   `marker_dx 1.2` (on the x=470 rope, 173 perion4 frames, median 0.4 px), `marker_dy 7.25` (floors, median 2.4 px).
@@ -1151,7 +1151,7 @@ leaps, each hop is a link) - `test_rope_moves_seen_live_are_links`. Routes: grou
 exit (was a 1000 px walk to -980); 174 -> 148 = the user's own path over 5 ropes. Config: grab_body 50,
 rope_leap 110, leap_drop 40, leap_land 60. Check script: `runs/jump/tmp/check_moves.py` (run with PYTHONPATH=.).
 
-**To revert jump & drop entirely** (the brain never uses any of it): delete `maplebot/nav/`, `tests/test_navmap.py`,
+**To revert jump & drop entirely** (the brain never uses any of it): delete `maplebrain/nav/`, `tests/test_navmap.py`,
 `tests/test_localize.py`, `tests/fixtures/minimap_perion.npz`; remove `class Nav` + `nav:` from `config.py`; in
 `perception/perceiver.py` drop `locator` / `_locate` / `map_pos, platform, rope` (back to `obs.dot =
 hud.minimap_dot(frame)`) - **but that brings back the clipped-dot bug** (no dot on Perion's right 40 minimap px);
@@ -1273,7 +1273,7 @@ multi-scale) -> it came up seconds after the run's limit, when the bot had exite
   **acc3 12 kills/60 s**, ENGAGE 74 %, 0 lost, 1 hit. Tools: `tools/acc/analyze.py runs/X` (EXP gains, outcomes,
   hits, walk->swing dx), `tools/acc/montage.py runs/X t0 t1 out.png`.
 - **Lie Detector miss explained**: it came up seconds after acc3's 60 s limit (last frame 65.2 s clear) - the bot
-  had exited. Built `python -m maplebot watch [out] [--seconds]` (mss, LD check every 0.3 s, siren, PNG): run it
+  had exited. Built `python -m maplebrain watch [out] [--seconds]` (mss, LD check every 0.3 s, siren, PNG): run it
   in the background during every series.
 - **East Rocky Mountain I = map 10004050** (Blue Snail 3, Red Snail 5, Stump 6, Dark Stump 11; tall
   map 2006x2061, 134 footholds, minimap magnification 4 = 16 map px per minimap px). The user's serve hunt
@@ -1290,7 +1290,7 @@ multi-scale) -> it came up seconds after the run's limit, when the bot had exite
 ## Session 7 state (631 tests)
 **State:** loot by sight works live (pkg_sight3/4: "very good results") but is still **opt-in** (`--loot-sight`,
 `loot_by_sight=False`); every test since pkg_sight2 ran with it on map 50. Ask the user before making it default.
-Live command used: `python -m maplebot run runs\NAME --seconds 300 --attack space --jump shift --pickup z --map 50 --loot-sight`
+Live command used: `python -m maplebrain run runs\NAME --seconds 300 --attack space --jump shift --pickup z --map 50 --loot-sight`
 (game in front, minimap + quickslots uncovered, HP potions ("Egg") in the Delete slot - only 2 left at the end).
 **Next live step:** rerun the 5-min test (pkg_sight6 stopped at 131 s, capture bug, now fixed - see below) and
 watch for a Lie Detector.
@@ -1558,7 +1558,7 @@ drops the blind sweeps missed).
   - LOOT keeps the user's description: burst 3–5 Z on the drop (then 1–2 further across).
 
 ## Environment
-- Project `C:\Users\Yoav\dev\maple-work` (package `maplebot`, tests `tests/`, run outputs `runs/`, old experiments
+- Project `C:\Users\Yoav\dev\maple-work` (package `maplebrain`, tests `tests/`, run outputs `runs/`, old experiments
   `tools/` unused). Not a git repo.
 - Python venv `C:\Users\Yoav\dev\auto-maple\.venv` (Py 3.12: opencv 5, numpy, mss, dxcam, pytest).
 - **The game runs elevated, so the bot must too** (Windows drops SendInput from a lower-integrity process).
@@ -1570,11 +1570,11 @@ drops the blind sweeps missed).
 ```powershell
 ..\auto-maple\.venv\Scripts\python -m pytest                       # 959 tests, ~40 s, no game needed
 Get-Process python | ? Path -like '*auto-maple*'                    # make sure no bot is running
-..\auto-maple\.venv\Scripts\python -m maplebot watch runs\watch --seconds 14400   # Lie Detector siren, no hunt (keep running)
-..\auto-maple\.venv\Scripts\python -m maplebot run runs\NAME --seconds 90 --attack space --jump shift --pickup z --map 42
-..\auto-maple\.venv\Scripts\python -m maplebot assets build    # game data from the client export (assets/README.md)
+..\auto-maple\.venv\Scripts\python -m maplebrain watch runs\watch --seconds 14400   # Lie Detector siren, no hunt (keep running)
+..\auto-maple\.venv\Scripts\python -m maplebrain run runs\NAME --seconds 90 --attack space --jump shift --pickup z --map 42
+..\auto-maple\.venv\Scripts\python -m maplebrain assets build    # game data from the client export (assets/README.md)
 ```
-**Manual testing (the user's own sessions):** `python -m maplebot serve runs\manual --map 42` (same key options
+**Manual testing (the user's own sessions):** `python -m maplebrain serve runs\manual --map 42` (same key options
 as `run`, plus `--frames`; loot is off unless `--loot`): loads once, **F7 = start a hunt, F8 = stop** (all keys released; rising/falling chirp),
 as often as wanted; Ctrl+C in the console quits. Between hunts it still watches for the Lie Detector (siren). Each hunt → `runs\manual\<date_time>_<n>\` (log + ticks; frames
 only with `--frames`). F7 is ignored unless the game is focused. The user finds problems this way, then runs a
@@ -1586,7 +1586,7 @@ actions, timings), `frames/` (JPG every 3rd tick + every Track/Stop/Forget). Run
 
 ## Game data (`assets/mcw/`, read `assets/README.md`)
 - **From the game's own client files only** (session 17; before: a maplestory.io copy). `tools/cwdata/export.ps1`
-  exports a copy of the client's Data folder, `python -m maplebot assets build` (`maplebot/gamedata.py`) converts
+  exports a copy of the client's Data folder, `python -m maplebrain assets build` (`maplebrain/gamedata.py`) converts
   it; the bot only reads local files. All 336 maps (301 with a minimap) and 117 mobs. Classic World ids: Snail 2,
   Blue Snail 3, Red Snail 5; maps 40/41/42 = Snail Hunting Ground I/II/III.
 - `maps/<id>/map.json`: **footholds** (`x1,y1,x2,y2`, `prev/next`, `layerId`, `groupId`), **ladderRopes**

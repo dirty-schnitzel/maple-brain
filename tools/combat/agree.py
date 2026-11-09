@@ -7,12 +7,12 @@ import json
 import sys
 from types import SimpleNamespace
 
-from maplebot.brain.brain_v2 import BrainV2
-from maplebot.config import Config
-from maplebot.humanize import Humanizer
-from maplebot.nav.navmap import NavMap
-from maplebot.brain.v2.scene import Scene
-from maplebot.nav.selfstate import SelfState
+from maplebrain.brain.brain_v2 import BrainV2
+from maplebrain.config import Config
+from maplebrain.humanize import Humanizer
+from maplebrain.nav.navmap import NavMap
+from maplebrain.brain.v2.scene import Scene
+from maplebrain.nav.selfstate import SelfState
 
 ASSETS = "assets/mcw"
 

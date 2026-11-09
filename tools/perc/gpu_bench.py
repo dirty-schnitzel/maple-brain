@@ -16,7 +16,7 @@ import torch.nn.functional as F
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from maplebot.nav.navmap import NavMap  # noqa: E402
+from maplebrain.nav.navmap import NavMap  # noqa: E402
 
 LIVE = ("stand", "move", "fly")
 HALF = "--fp32" not in sys.argv

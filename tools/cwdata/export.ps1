@@ -1,4 +1,4 @@
-# Export Classic World's own client data for maplebot (the single source of game data; see assets/README.md).
+# Export Classic World's own client data for maplebrain (the single source of game data; see assets/README.md).
 # Reads a COPY of the game's Data folder ($D in load.ps1), never the install. Writes to -Out:
 #   Map\*.img.xml                    Map.wz's top images (Physics, ...)
 #   Map\Map<N>\<9-digit id>.img.xml  every map (footholds, ladderRope, life, portal, miniMap, info)

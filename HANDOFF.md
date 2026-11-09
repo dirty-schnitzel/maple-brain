@@ -1,4 +1,4 @@
-# maplebot — session handoff (updated 2026-11-08)
+# maplebrain — session handoff (updated 2026-11-08)
 **Read this file top to bottom; it holds only the current state.** NEXT SESSION = "START HERE NEXT SESSION (P1)"
 below: brain v3 (**PLAN-v3.md**: world model + planner; Platform / Path / Auto modes) up to **Platform mode** (= Area
 mode, `--mark-platform`). P2 after it: accuracy + speed.
@@ -142,7 +142,7 @@ frames), `runs/v2/` itself (a 3-min `run` with frames, the hold), `runs/v2/react
   Killing press -> death visible p10 0.21 / median 0.59 / p90 0.76 s. Death -> next press median 2.1 s.
 - Turns: a mob within 110 px behind -> the user faces it after median 0.21 s (p90 0.45).
 - A NEW recording with the slow polearm on Ant Tunnel IV would fit today's setup better (the user offered):
-  `..\auto-maple\.venv\Scripts\python -m maplebot serve runs\play --observe --gpu --tracker --frames` (F7..F8, 10-15
+  `..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\play --observe --gpu --tracker --frames` (F7..F8, 10-15
   min; keys.jsonl + ticks + frames). Then re-run the three probes on it.
 
 ### NEW ISSUE (analysed, NOT fixed): turning too slowly, hitting with mobs behind (the user, 2026-11-08)
@@ -350,13 +350,13 @@ ticks + keys.jsonl + every 3rd frame; in a party). Tools: `tools/play/analyze.py
   evidence and simpler mechanics over new rule layers ("no no no 'track must be proven'"); plain attack by default
   (MP potions are too expensive); big changes on a branch, `main` = last good, the user merges; ask before
   committing.
-- **Safety rules:** before a live test stop `run` / `serve` only (by command line), NEVER `maplebot watch`; keep
+- **Safety rules:** before a live test stop `run` / `serve` only (by command line), NEVER `maplebrain watch`; keep
   `watch` running all session (LDs come between runs too); scripted / probe input only in a spot the user OKs (an Ant
   Tunnel probe got the user reported); never fake keyboard input; no anti-cheat evasion (hiding the injected flag,
   hardware spoofing): Claude declined that; the ban risk is the user's call.
 
 ## Environment
-- Project `C:\Users\Yoav\dev\maple-work` (package `maplebot`, tests `tests/`, runs `runs/`, analysis tools
+- Project `C:\Users\Yoav\dev\maple-work` (package `maplebrain`, tests `tests/`, runs `runs/`, analysis tools
   `tools/`; `tools/hunt*.py`, `experiment1.py`, `bg_input_test.py` are retired). Git: `main` (last good) and `dev`.
 - Python venv `C:\Users\Yoav\dev\auto-maple\.venv` (Py 3.12: opencv, numpy, mss, dxcam, torch + CUDA, pytest).
 - **The game runs elevated, so the bot must too** (Windows drops SendInput from a lower-integrity process). Check:
@@ -369,13 +369,13 @@ ticks + keys.jsonl + every 3rd frame; in a party). Tools: `tools/play/analyze.py
 ```powershell
 ..\auto-maple\.venv\Scripts\python -m pytest                    # ~1100 tests, no game needed; ends with "bot speed"
 Get-Process python | ? Path -like '*auto-maple*'                 # running bot processes (never stop `watch`)
-..\auto-maple\.venv\Scripts\python -m maplebot watch runs\watch --seconds 14400            # LD siren, no hunt
-..\auto-maple\.venv\Scripts\python -m maplebot serve runs\v2 --brain v2 [--mob-score 0.70] [--frames]   # F7 / F8
-..\auto-maple\.venv\Scripts\python -m maplebot run runs\v2\NAME --brain v2 --seconds 180 --frames-every 3
-..\auto-maple\.venv\Scripts\python -m maplebot serve runs\play --observe --gpu --tracker --frames   # record the user
-..\auto-maple\.venv\Scripts\python -m maplebot goto OUT [--to P [X]] [--seconds S]     # movement test
-..\auto-maple\.venv\Scripts\python -m maplebot livemap [runs\v2]                         # console map of the hunt
-..\auto-maple\.venv\Scripts\python -m maplebot assets build                              # client export -> assets/mcw
+..\auto-maple\.venv\Scripts\python -m maplebrain watch runs\watch --seconds 14400            # LD siren, no hunt
+..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\v2 --brain v2 [--mob-score 0.70] [--frames]   # F7 / F8
+..\auto-maple\.venv\Scripts\python -m maplebrain run runs\v2\NAME --brain v2 --seconds 180 --frames-every 3
+..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\play --observe --gpu --tracker --frames   # record the user
+..\auto-maple\.venv\Scripts\python -m maplebrain goto OUT [--to P [X]] [--seconds S]     # movement test
+..\auto-maple\.venv\Scripts\python -m maplebrain livemap [runs\v2]                         # console map of the hunt
+..\auto-maple\.venv\Scripts\python -m maplebrain assets build                              # client export -> assets/mcw
 ..\auto-maple\.venv\Scripts\python tools\perf\bench.py [--baseline]                     # tick speed vs the baseline
 ```
 `serve`: loads once, F7 starts a hunt (the map is recognised then; ignored unless the game is focused), F8 stops it
@@ -388,7 +388,7 @@ Analysis: `tools/combat/probe/` (README: bot_presses, turning, human_swings, aft
 
 ## Game data (`assets/mcw/`, read `assets/README.md`)
 - **From the game's own client files only.** `tools/cwdata/export.ps1` (HaRepacker) exports a copy of the client's
-  Data folder; `python -m maplebot assets build` (`maplebot/gamedata.py`) converts it; the bot reads local files only.
+  Data folder; `python -m maplebrain assets build` (`maplebrain/gamedata.py`) converts it; the bot reads local files only.
   All 336 maps (301 with a minimap) and 117 mobs.
 - `maps/<id>/map.json`: **footholds** (`x1,y1,x2,y2`, `prev/next`, `layerId`, `groupId`), **ladderRopes**
   (`x, y1, y2, isLadder`), mob spawns (`y` = ground, `walkAreaX1/X2`, `mobTime`), npcs, portals, **miniMap**
@@ -464,7 +464,7 @@ stays where you were hit; other players' drops are invisible to us (no party loo
 - Parametrized fixtures (`brain`, `sbrain`) can't be fetched with `request.getfixturevalue`: write two tests sharing
   a helper.
 - Don't put `tools/` first on sys.path. Run Python on downloaded/untrusted files with `-I`.
-- Other bot repos reviewed for ideas only (none used); jackexyou/maplebot's `scripts/dev/admin_worker.ps1` is a
+- Other bot repos reviewed for ideas only (none used); jackexyou/maplebrain's `scripts/dev/admin_worker.ps1` is a
   privilege-escalation hole: never run it.
 
 ## Backlog (not scheduled)

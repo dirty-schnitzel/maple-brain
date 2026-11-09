@@ -4,7 +4,7 @@ import glob, json, re, sys
 from pathlib import Path
 import cv2, numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from maplebot.perception.tags import find_tags, tag_body
+from maplebrain.perception.tags import find_tags, tag_body
 
 run, out, meso_dir = Path(sys.argv[1]), Path(sys.argv[2]), sys.argv[3]; out.mkdir(parents=True, exist_ok=True)
 T = [json.loads(l) for l in open(run / "ticks.jsonl", encoding="utf-8")]

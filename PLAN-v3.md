@@ -1,4 +1,4 @@
-# maplebot brain v3: layers, world model, modes (P1 = NEXT: migration steps 1-3, up to Platform mode)
+# maplebrain brain v3: layers, world model, modes (P1 = NEXT: migration steps 1-3, up to Platform mode)
 
 Written 2026-11-08 with the user. Direction agreed ("overall excellent design and plan"). **2026-11-09, the user: P1
 priority = get to Platform mode** (= Area mode, `--mark-platform`): migration steps 1-3 below, before the accuracy +

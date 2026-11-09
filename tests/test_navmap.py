@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from maplebot.config import Nav
-from maplebot.nav.navmap import NavMap
+from maplebrain.config import Nav
+from maplebrain.nav.navmap import NavMap
 
 ASSETS = Path(__file__).resolve().parents[1] / "assets" / "mcw"
 

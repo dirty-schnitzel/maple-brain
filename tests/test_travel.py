@@ -4,12 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from maplebot.brain.moves import Jump, Wish, node_of
-from maplebot.brain.travel import Travel
-from maplebot.humanize import Humanizer
-from maplebot.nav.navmap import NavMap
-from maplebot.nav.selfstate import SelfState
-from maplebot.nav.sim import Sim, SimDriver
+from maplebrain.brain.moves import Jump, Wish, node_of
+from maplebrain.brain.travel import Travel
+from maplebrain.humanize import Humanizer
+from maplebrain.nav.navmap import NavMap
+from maplebrain.nav.selfstate import SelfState
+from maplebrain.nav.sim import Sim, SimDriver
 
 ASSETS = Path(__file__).resolve().parents[1] / "assets" / "mcw"
 

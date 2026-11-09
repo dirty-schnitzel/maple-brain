@@ -1,5 +1,5 @@
-"""python -m maplebot run <out_dir> [--seconds 60] [--attack KEY] [--jump shift]
-   python -m maplebot assets build [--export DIR]   (game data from the client export, see assets/README.md)
+"""python -m maplebrain run <out_dir> [--seconds 60] [--attack KEY] [--jump shift]
+   python -m maplebrain assets build [--export DIR]   (game data from the client export, see assets/README.md)
 
 Must run elevated (the game is elevated; Windows drops simulated keys from a lower-integrity process).
 """
@@ -11,7 +11,7 @@ from .config import Combat, Keys, Perception
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(prog="maplebot")
+    ap = argparse.ArgumentParser(prog="maplebrain")
     sub = ap.add_subparsers(dest="cmd", required=True)
     r = sub.add_parser("run", help="hunt live (elevated)")
     r.add_argument("out", type=Path)

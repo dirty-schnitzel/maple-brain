@@ -5,9 +5,9 @@ import cv2
 import numpy as np
 import pytest
 
-from maplebot.config import Config
-from maplebot.perception.perceiver import Perceiver
-from maplebot.perception.sprites import SpriteDetector, _cover, feet_of, load_mob, signature_hues
+from maplebrain.config import Config
+from maplebrain.perception.perceiver import Perceiver
+from maplebrain.perception.sprites import SpriteDetector, _cover, feet_of, load_mob, signature_hues
 
 ROOT = Path(__file__).resolve().parents[1]
 MCW = ROOT / "assets" / "mcw"
@@ -15,7 +15,7 @@ FX = Path(__file__).parent / "fixtures"
 SNAIL, BLUE, RED = 2, 3, 5
 
 pytestmark = pytest.mark.skipif(not (MCW / "maps" / "42" / "map.json").exists(),
-                                reason="run `python -m maplebot assets update 42` first")
+                                reason="run `python -m maplebrain assets update 42` first")
 
 
 @pytest.fixture(scope="module")
@@ -183,7 +183,7 @@ def test_death_animation_is_recognized_where_the_target_was():
     """pkg_human5m 242 s: another player killed our Shroom as our first hit landed (frame 004164: dying;
     004152: alive). Crops of y 470-610, x 600-1100: the Shroom stood at x 833-600, our feet at 579-470."""
     import cv2
-    from maplebot.config import Config
+    from maplebrain.config import Config
     det = SpriteDetector.for_map(50, ROOT / "assets" / "mcw", min_score=0.65)
     thr = Config().perception.die_score
     dying = cv2.imread(str(FX / "dying_shroom.png"))

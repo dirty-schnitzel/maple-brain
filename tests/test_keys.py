@@ -1,8 +1,8 @@
 """KeyDriver (brain-v2 executor): driven by pump(now) with a fake clock - no thread, no real keys."""
-from maplebot.brain.actions import Hold, Release, Tap
-from maplebot.config import Humanize
-from maplebot.humanize import Humanizer
-from maplebot.runtime.keys import KeyDriver, LegacyExecutor
+from maplebrain.brain.actions import Hold, Release, Tap
+from maplebrain.config import Humanize
+from maplebrain.humanize import Humanizer
+from maplebrain.runtime.keys import KeyDriver, LegacyExecutor
 
 
 class Rig:

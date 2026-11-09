@@ -21,8 +21,8 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from maplebot.perception.sprites import load_mob  # noqa: E402
-from maplebot.perception.gpu_sprites import GpuSpriteDetector  # noqa: E402
+from maplebrain.perception.sprites import load_mob  # noqa: E402
+from maplebrain.perception.gpu_sprites import GpuSpriteDetector  # noqa: E402
 
 POSE_MIN = {}           # per-pose floors (none: low hit/die sightings are judged by `supported` instead)
 SURE = 0.75             # hit/die sightings below this need a live sighting of the same mob nearby (see supported)

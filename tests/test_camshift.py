@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
 
-from maplebot.nav.navmap import NavMap, Platform, Seg
-from maplebot.perception.camshift import PlatformShift
+from maplebrain.nav.navmap import NavMap, Platform, Seg
+from maplebrain.perception.camshift import PlatformShift
 
 
 def _nav():

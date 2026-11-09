@@ -6,7 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from maplebot.perception.mapascii import header, render  # noqa: E402
+from maplebrain.perception.mapascii import header, render  # noqa: E402
 
 ap = argparse.ArgumentParser()
 ap.add_argument("map", type=int)

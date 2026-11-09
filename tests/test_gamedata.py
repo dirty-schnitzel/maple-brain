@@ -1,4 +1,4 @@
-"""assets/mcw built from the client export (maplebot/gamedata.py): a tiny fake export in the exporter's XML + PNG
+"""assets/mcw built from the client export (maplebrain/gamedata.py): a tiny fake export in the exporter's XML + PNG
 layout, then the real assets (the client's own data, built 2026-11-03)."""
 import base64
 import json
@@ -8,10 +8,10 @@ import cv2
 import numpy as np
 import pytest
 
-from maplebot import gamedata
-from maplebot.nav.localize import MinimapLocator
-from maplebot.nav.navmap import NavMap
-from maplebot.perception.sprites import SpriteDetector
+from maplebrain import gamedata
+from maplebrain.nav.localize import MinimapLocator
+from maplebrain.nav.navmap import NavMap
+from maplebrain.perception.sprites import SpriteDetector
 
 MCW = Path(__file__).resolve().parents[1] / "assets" / "mcw"
 

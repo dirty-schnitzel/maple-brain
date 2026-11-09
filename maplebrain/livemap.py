@@ -1,9 +1,9 @@
 """Live console map (the user, 2026-11-04): the whole map with us and every tracked mob, redrawn in place every
 ~0.3 s, to set beside the game window.
 
-  python -m maplebot livemap [DIR]            follow the newest hunt under DIR (default runs/manual; serve makes
+  python -m maplebrain livemap [DIR]            follow the newest hunt under DIR (default runs/manual; serve makes
                                               one folder per F7) or DIR itself if it holds ticks.jsonl
-  python -m maplebot livemap RUN --replay     play a recorded run's ticks back at real speed (--speed 2 = faster)
+  python -m maplebrain livemap RUN --replay     play a recorded run's ticks back at real speed (--speed 2 = faster)
 
 Reads ticks.jsonl as the bot writes it (obs.mobs / obs.cam: needs --gpu). The map comes from the run's log.
 """

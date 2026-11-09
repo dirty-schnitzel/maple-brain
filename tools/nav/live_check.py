@@ -10,7 +10,7 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from maplebot.nav.navmap import NavMap  # noqa: E402
+from maplebrain.nav.navmap import NavMap  # noqa: E402
 
 
 def main(run):

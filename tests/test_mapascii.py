@@ -1,4 +1,4 @@
-from maplebot.perception.mapascii import render
+from maplebrain.perception.mapascii import render
 
 M = {"footholds": {"1": {"x1": 0, "y1": 100, "x2": 300, "y2": 100},
                    "2": {"x1": 300, "y1": 100, "x2": 300, "y2": 200},

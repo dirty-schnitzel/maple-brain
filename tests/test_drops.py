@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 import pytest
 
-from maplebot.perception.drops import DropSpotter
+from maplebrain.perception.drops import DropSpotter
 
 FIX = Path(__file__).parent / "fixtures" / "drops"
 FEET = 579

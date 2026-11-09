@@ -1,6 +1,6 @@
 import numpy as np
 
-from maplebot.capture import game_columns
+from maplebrain.capture import game_columns
 
 
 def _screen(w=3440, h=1440):

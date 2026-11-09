@@ -1,6 +1,6 @@
 import json
 
-from maplebot.runtime.keylog import KeyLogger, KeyState, key_name
+from maplebrain.runtime.keylog import KeyLogger, KeyState, key_name
 
 
 def test_names_match_the_bots_key_names():

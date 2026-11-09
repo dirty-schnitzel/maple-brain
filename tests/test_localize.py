@@ -10,9 +10,9 @@ import cv2
 import numpy as np
 import pytest
 
-from maplebot.nav.localize import MinimapLocator
-from maplebot.nav.navmap import NavMap
-from maplebot.perception import hud
+from maplebrain.nav.localize import MinimapLocator
+from maplebrain.nav.navmap import NavMap
+from maplebrain.perception import hud
 
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "assets" / "mcw"
@@ -91,8 +91,8 @@ def test_map_coordinates_formula(loc):
 
 def test_perceiver_reports_map_position_platform_and_rope(loc):
     """Wired into Observation (recorded in ticks.jsonl); no own name tag needed for it."""
-    from maplebot.config import Config
-    from maplebot.perception.perceiver import Perceiver
+    from maplebrain.config import Config
+    from maplebrain.perception.perceiver import Perceiver
     p = Perceiver(Config(), np.load(ROOT / "assets" / "self_tag_gray.npy"), locator=loc)
     obs = p.observe(frame(0), 0.0)
     assert obs.platform == 174 and obs.map_pos is not None and obs.dot is not None
@@ -101,8 +101,8 @@ def test_perceiver_reports_map_position_platform_and_rope(loc):
 
 
 def test_perceiver_without_locator_keeps_the_old_dot():
-    from maplebot.config import Config
-    from maplebot.perception.perceiver import Perceiver
+    from maplebrain.config import Config
+    from maplebrain.perception.perceiver import Perceiver
     p = Perceiver(Config(), np.load(ROOT / "assets" / "self_tag_gray.npy"))
     obs = p.observe(frame(1), 0.0)
     assert obs.dot is not None and obs.map_pos is None and obs.platform is None
@@ -185,8 +185,8 @@ def test_a_full_canvas_never_scrolls(loc):
 
 
 def test_perceiver_reads_the_position_through_the_scroll():
-    from maplebot.config import Config
-    from maplebot.perception.perceiver import Perceiver
+    from maplebrain.config import Config
+    from maplebrain.perception.perceiver import Perceiver
     p = Perceiver(Config(), np.load(ROOT / "assets" / "self_tag_gray.npy"), locator=tall_loc())
     obs = p.observe(tall_frame(), 0.0)
     assert obs.rope == 2150 and obs.map_pos is not None

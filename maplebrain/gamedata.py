@@ -1,7 +1,7 @@
 """MapleStory Classic World game data, built from the game's own client files: the bot's single source of game data.
 
 `tools/cwdata/export.ps1` exports a copy of the client's Data folder with HaRepacker's MapleLib to XML + PNG;
-`python -m maplebot assets build` turns that export into what the bot reads at run time (see assets/README.md):
+`python -m maplebrain assets build` turns that export into what the bot reads at run time (see assets/README.md):
     manifest.json               where it came from, when it was built; per map / mob: name and counts
     changes.txt                 what the last build changed vs the one before (after a game patch: what to re-check)
     maps/<id>/map.json          footholds, ladderRopes, mobs (spawns), npcs, portals, miniMap (+ canvas as base64),

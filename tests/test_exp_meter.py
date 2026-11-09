@@ -1,6 +1,6 @@
 import pytest
 
-from maplebot.runtime.exp_meter import LEVEL_UP_READS, ExpMeter
+from maplebrain.runtime.exp_meter import LEVEL_UP_READS, ExpMeter
 
 
 def test_total_is_current_minus_start_and_a_misread_that_comes_back_adds_nothing():

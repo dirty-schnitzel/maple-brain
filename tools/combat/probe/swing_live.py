@@ -29,11 +29,11 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
-from maplebot.capture import Screen, find_window  # noqa: E402
-from maplebot.config import Keys  # noqa: E402
-from maplebot.keyboard import _send, bring_to_front, user32  # noqa: E402
-from maplebot.perception import hud  # noqa: E402
-from maplebot.perception.selfpos import find_self  # noqa: E402
+from maplebrain.capture import Screen, find_window  # noqa: E402
+from maplebrain.config import Keys  # noqa: E402
+from maplebrain.keyboard import _send, bring_to_front, user32  # noqa: E402
+from maplebrain.perception import hud  # noqa: E402
+from maplebrain.perception.selfpos import find_self  # noqa: E402
 
 HP_STOP = 0.40                           # abort below this share of HP (mobs around: no potions here)
 HALF_W, UP, DOWN = 250, 175, 45          # crop around our tag: wide enough for the polearm's reach + a short walk

@@ -17,8 +17,8 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from maplebot.perception.hud import ui_mask  # noqa: E402
-from maplebot.perception.tags import find_tags  # noqa: E402
+from maplebrain.perception.hud import ui_mask  # noqa: E402
+from maplebrain.perception.tags import find_tags  # noqa: E402
 
 OUT = ROOT / "docs" / "img"
 CHAT = (284, 612, 850, 712)          # chat box incl. its input line (1366x768 frame)
@@ -251,7 +251,7 @@ def main(run=ROOT / "runs/v2/press1", t0=87.5, t1=95.0):
                                       and m["state"] == "live"))
     cv2.imwrite(str(OUT / "screen.png"), screen(run, best, near[win.index(best)]))   # all names hidden here
     print(f"docs/img/screen.png: t={best['obs']['t']:.2f}")
-    from maplebot.livemap import View
+    from maplebrain.livemap import View
     view = View(10005063, 118)
     (OUT / "livemap.txt").write_text(view.frame(best, run), encoding="utf-8")
     print("docs/img/livemap.txt")

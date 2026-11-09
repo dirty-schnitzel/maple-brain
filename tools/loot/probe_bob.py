@@ -4,7 +4,7 @@ import json, sys
 from pathlib import Path
 import cv2, numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from maplebot.perception.tags import find_tags, tag_body
+from maplebrain.perception.tags import find_tags, tag_body
 
 run, out = Path(sys.argv[1]), Path(sys.argv[2]); t0, t1 = float(sys.argv[3]), float(sys.argv[4])
 out.mkdir(parents=True, exist_ok=True)

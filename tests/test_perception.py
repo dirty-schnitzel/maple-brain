@@ -5,10 +5,10 @@ import cv2
 import numpy as np
 import pytest
 
-from maplebot.config import Config
-from maplebot.perception import hud
-from maplebot.perception.perceiver import Perceiver
-from maplebot.perception.selfpos import find_self
+from maplebrain.config import Config
+from maplebrain.perception import hud
+from maplebrain.perception.perceiver import Perceiver
+from maplebrain.perception.selfpos import find_self
 
 FX = Path(__file__).parent / "fixtures"
 TAG = np.load(FX / "self_tag_gray.npy")
@@ -102,7 +102,7 @@ def test_perceiver_observation_fields():
 def test_library_forgets_a_wrong_entry_even_when_the_tracker_box_is_bigger():
     """pkg_swing1: a grass tuft got into the library (47x40); 'not a mob' asked it to forget the tracker's padded
     55x48 template -> shapes never matched, nothing was forgotten, the bot hit the grass 33 times."""
-    from maplebot.perception.mobs import MobLibrary, Tracker, gray
+    from maplebrain.perception.mobs import MobLibrary, Tracker, gray
     f = img("library_grass.jpg")
     x, y, w, h = 690, 542, 47, 40
     lib = MobLibrary()
@@ -115,7 +115,7 @@ def test_library_forgets_a_wrong_entry_even_when_the_tracker_box_is_bigger():
 
 
 def test_library_forget_keeps_entries_that_do_not_match_there():
-    from maplebot.perception.mobs import MobLibrary, gray
+    from maplebrain.perception.mobs import MobLibrary, gray
     f = img("library_grass.jpg")
     lib = MobLibrary()
     lib.add(gray(f)[542:582, 690:737])                                      # the grass
@@ -127,7 +127,7 @@ def test_library_forget_keeps_entries_that_do_not_match_there():
 def test_mobs_a_step_below_us_count_but_not_ones_above():
     """pkg_swing1 start: we stood on a small step; snails on the ground ~60 px below were filtered out as 'not on
     our ground line'. Walking off a step is free; going up needs a jump."""
-    from maplebot.perception.perceiver import reachable_level
+    from maplebrain.perception.perceiver import reachable_level
     feet = 545
     assert reachable_level((900, 560, 40, 26), feet, 18, 80)               # bottom 586: 41 px below
     assert reachable_level((900, 579, 40, 26), feet, 18, 80)               # 60 px below
@@ -222,7 +222,7 @@ def test_one_odd_slot_reading_does_not_flip_the_answer():
 
 # ---------------------------------------------------------------- the game's Lie Detector (anti-bot test)
 def _lie(background=False):
-    from maplebot.perception.liedetector import LieDetector
+    from maplebrain.perception.liedetector import LieDetector
     return LieDetector.load(FX, background=background)
 
 
@@ -248,8 +248,8 @@ def test_the_blue_lie_detector_is_seen_too(name):
 def test_the_quiz_lie_detector_is_seen_and_ships_with_the_bot():
     """The user's screenshot 2026-11-02 14:07: a third kind - a translucent blue box in the centre, 'Question in 10
     seconds' / 'Answer within 10 seconds' (a quiz). No window title, so it matches the words 'Question in'."""
-    from maplebot.perception.liedetector import LieDetector
-    from maplebot.runtime.runner import ASSETS
+    from maplebrain.perception.liedetector import LieDetector
+    from maplebrain.runtime.runner import ASSETS
     frame = cv2.imread(str(FX / "lie_detector_question.jpg"))
     s, loc = _lie().score(frame)
     assert s >= 0.9 and 600 < loc[0] < 700
@@ -257,8 +257,8 @@ def test_the_quiz_lie_detector_is_seen_and_ships_with_the_bot():
 
 
 def test_the_blue_lie_detector_template_ships_with_the_bot():
-    from maplebot.perception.liedetector import LieDetector
-    from maplebot.runtime.runner import ASSETS
+    from maplebrain.perception.liedetector import LieDetector
+    from maplebrain.runtime.runner import ASSETS
     assert LieDetector.load(ASSETS).seen(cv2.imread(str(FX / "lie_detector_blue_game.jpg")))
 
 
@@ -303,8 +303,8 @@ def test_lie_detector_on_its_thread_answers_a_look_later_and_never_blocks():
 def test_a_mob_up_a_gentle_slope_far_away_is_reachable():
     """East Rocky Mountain I (serve 2026-11-01 22:27): Snails / Dark Stumps up the slope at the screen's left edge,
     60-80 px above our feet and 500-900 px away, were never targeted (band 75 px, same level +-35)."""
-    from maplebot.config import Config
-    from maplebot.perception.perceiver import reachable_level
+    from maplebrain.config import Config
+    from maplebrain.perception.perceiver import reachable_level
     z = Config().zones
     feet = 579
     up70 = (100, feet - 70 - 34, 35, 34)                         # bottom 70 px above our feet
@@ -318,7 +318,7 @@ def test_a_mob_up_a_gentle_slope_far_away_is_reachable():
 
 
 def test_a_new_max_needs_two_reads_and_a_covered_hud_keeps_the_last(monkeypatch):
-    from maplebot.perception.perceiver import Perceiver
+    from maplebrain.perception.perceiver import Perceiver
     p = Perceiver.__new__(Perceiver)
     p.new_max = {}
     reads = iter([(700, 783), (701, 7831), (700, 783), None, (650, 800), (650, 800)])

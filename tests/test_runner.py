@@ -5,9 +5,9 @@ from pathlib import Path
 
 import cv2
 
-import maplebot.runtime.runner as runner
-from maplebot.config import Config
-from maplebot.keyboard import FocusLost
+import maplebrain.runtime.runner as runner
+from maplebrain.config import Config
+from maplebrain.keyboard import FocusLost
 
 START, STOP = Config().keys.start, Config().keys.stop
 
@@ -247,7 +247,7 @@ def test_serve_measures_the_game_picture_at_every_start(tmp_path, monkeypatch):
 
 def test_cli_parses_loot_sight():
     """pkg_sight2 never started: a flag edit broke __main__.py and no test imported it."""
-    import maplebot.__main__ as cli
+    import maplebrain.__main__ as cli
     with pytest.raises(SystemExit) as e:
         cli.main(["run", "--help"])
     assert e.value.code == 0
@@ -262,7 +262,7 @@ class StubIdent:
         self.answers, self.calls = list(answers), []
 
     def identify(self, frames):
-        from maplebot.nav.identify import MapMatch
+        from maplebrain.nav.identify import MapMatch
         self.calls.append(len(frames))
         a = self.answers.pop(0)
         if a is None:
@@ -271,7 +271,7 @@ class StubIdent:
 
 
 def _serve_ident(tmp_path, monkeypatch, capsys, answers, script, max_hunts):
-    import maplebot.nav.identify as identify
+    import maplebrain.nav.identify as identify
     stub, loaded = StubIdent(answers), []
     monkeypatch.setattr(identify.MapIdentifier, "load", classmethod(lambda cls, root, **kw: stub))
     monkeypatch.setattr(runner, "_load_map", lambda rig, mid, say: loaded.append(mid) or True)
@@ -306,7 +306,7 @@ def test_each_f7_checks_the_map_again(tmp_path, monkeypatch, capsys):
 
 
 def test_map_given_with_option_skips_recognition(tmp_path, monkeypatch, capsys):
-    import maplebot.nav.identify as identify
+    import maplebrain.nav.identify as identify
     monkeypatch.setattr(identify.MapIdentifier, "load", classmethod(lambda cls, root, **kw: pytest.fail("no ident")))
     loaded = []
     monkeypatch.setattr(runner, "_load_map", lambda rig, mid, say: loaded.append(mid) or True)

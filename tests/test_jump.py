@@ -9,11 +9,11 @@ from pathlib import Path
 
 import pytest
 
-from maplebot.brain.actions import Hold, Release, Tap
-from maplebot.config import Keys
-from maplebot.brain.brain import Brain
-from maplebot.config import Config
-from maplebot.nav.navmap import NavMap
+from maplebrain.brain.actions import Hold, Release, Tap
+from maplebrain.config import Keys
+from maplebrain.brain.brain import Brain
+from maplebrain.config import Config
+from maplebrain.nav.navmap import NavMap
 from test_brain import obs
 
 ASSETS = Path(__file__).resolve().parents[1] / "assets" / "mcw"

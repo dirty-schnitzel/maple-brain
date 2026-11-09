@@ -16,7 +16,7 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from maplebot.nav.navmap import NavMap  # noqa: E402
+from maplebrain.nav.navmap import NavMap  # noqa: E402
 
 COL = {8: (60, 60, 255), 10: (0, 170, 255)}     # Pig red, Ribbon Pig orange (BGR); others yellow
 

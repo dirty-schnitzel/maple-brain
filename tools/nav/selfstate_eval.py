@@ -17,11 +17,11 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from maplebot.config import Keys                            # noqa: E402
-from maplebot.nav.navmap import NavMap                      # noqa: E402
-from maplebot.nav.selfstate import SelfTracker              # noqa: E402
-from maplebot.perception.camshift import PlatformShift      # noqa: E402
-from maplebot.perception.world import Camera                # noqa: E402
+from maplebrain.config import Keys                            # noqa: E402
+from maplebrain.nav.navmap import NavMap                      # noqa: E402
+from maplebrain.nav.selfstate import SelfTracker              # noqa: E402
+from maplebrain.perception.camshift import PlatformShift      # noqa: E402
+from maplebrain.perception.world import Camera                # noqa: E402
 
 
 def main():

@@ -19,12 +19,12 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from maplebot.nav.navmap import NavMap  # noqa: E402
-from maplebot.perception.gpu_sprites import GpuSpriteDetector  # noqa: E402
-from maplebot.perception.mapascii import header, render  # noqa: E402
-from maplebot.perception.world import World, letters, marks  # noqa: E402
-from maplebot.cover import Cover  # noqa: E402
-from maplebot.perception.tags import find_tags  # noqa: E402
+from maplebrain.nav.navmap import NavMap  # noqa: E402
+from maplebrain.perception.gpu_sprites import GpuSpriteDetector  # noqa: E402
+from maplebrain.perception.mapascii import header, render  # noqa: E402
+from maplebrain.perception.world import World, letters, marks  # noqa: E402
+from maplebrain.cover import Cover  # noqa: E402
+from maplebrain.perception.tags import find_tags  # noqa: E402
 
 
 class Shift:

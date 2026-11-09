@@ -21,7 +21,7 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
-from maplebot.perception.selfpos import _hp, _match  # noqa: E402
+from maplebrain.perception.selfpos import _hp, _match  # noqa: E402
 
 PW, PUP, PDN = 150, 160, 0               # pose patch: tag centre +-PW, PUP above the tag top .. PDN below
 DS = 3                                    # downsample for distances (blurred first: a px of tag jitter doesn't count)

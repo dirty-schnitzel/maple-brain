@@ -10,8 +10,8 @@ import sys
 import time
 
 sys.path.insert(0, __file__.rsplit("\\tools", 1)[0])
-from maplebot.capture import find_window  # noqa: E402
-from maplebot.keyboard import EXTENDED, SCAN, foreground_title, user32  # noqa: E402
+from maplebrain.capture import find_window  # noqa: E402
+from maplebrain.keyboard import EXTENDED, SCAN, foreground_title, user32  # noqa: E402
 
 WM_KEYDOWN, WM_KEYUP, WM_ACTIVATE, WM_SETFOCUS = 0x100, 0x101, 0x006, 0x007
 VK = {"right": 0x27, "left": 0x25, "shift": 0x10, "space": 0x20}

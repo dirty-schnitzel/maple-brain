@@ -1,6 +1,6 @@
 import pytest
 
-from maplebot.config import Perception
+from maplebrain.config import Perception
 
 
 @pytest.fixture(autouse=True)

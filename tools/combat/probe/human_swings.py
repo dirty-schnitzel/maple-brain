@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
-from maplebot.config import Keys  # noqa: E402
+from maplebrain.config import Keys  # noqa: E402
 
 R = Path(sys.argv[1])
 SWING_S = float(sys.argv[2]) if len(sys.argv) > 2 else 0.90

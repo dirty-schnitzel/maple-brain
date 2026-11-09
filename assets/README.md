@@ -42,7 +42,7 @@ x1.00, width x0.98, 1 px). The live Snail matches `hit1_0.png` exactly.
    ```
    -> `C:\Users\Yoav\dev\cw-data\export`: every map and mob as XML, every minimap and mob frame as PNG (links
    resolved). Key `WzMapleVersion.BMS`; mobs are in the encrypted pack `Packs\Mob_00000.ms`.
-3. **Build** (~7 s): `..\auto-maple\.venv\Scripts\python -m maplebot assets build` -> `assets/mcw`, rebuilt from
+3. **Build** (~7 s): `..\auto-maple\.venv\Scripts\python -m maplebrain assets build` -> `assets/mcw`, rebuilt from
    scratch next to the old one and swapped in; prints and writes `changes.txt`.
 4. `..\auto-maple\.venv\Scripts\python -m pytest`, then commit `assets/mcw` (it's in git: the diff shows the patch).
 
@@ -57,4 +57,4 @@ what the bot was tuned on. Do steps 1-4, then **read `changes.txt`** (and `git d
 - If the export itself fails: HaRepacker may need an update for a new client format/version (report the error).
 - Then a short live run on the farming map before longer sessions.
 
-Drops (loot) need no assets: they're found by how they bob on the ground (`maplebot/perception/drops.py`).
+Drops (loot) need no assets: they're found by how they bob on the ground (`maplebrain/perception/drops.py`).

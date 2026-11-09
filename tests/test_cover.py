@@ -1,6 +1,6 @@
 import numpy as np
 
-from maplebot.cover import Cover, _paste, build_cover
+from maplebrain.cover import Cover, _paste, build_cover
 
 
 class _Parts:

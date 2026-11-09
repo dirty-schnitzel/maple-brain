@@ -1,9 +1,9 @@
 """No fixed intervals between actions: press lengths, pauses and waits are all randomized (bot-detection)."""
-import maplebot.keyboard as keyboard
-from maplebot.brain.actions import Tap
-from maplebot.brain.brain import Brain
-from maplebot.config import Config, Humanize
-from maplebot.humanize import Humanizer
+import maplebrain.keyboard as keyboard
+from maplebrain.brain.actions import Tap
+from maplebrain.brain.brain import Brain
+from maplebrain.config import Config, Humanize
+from maplebrain.humanize import Humanizer
 
 from test_brain import PICKUP, mob, obs
 

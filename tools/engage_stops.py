@@ -4,7 +4,7 @@ import json, sys, re, collections
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))          # run as a plain script too
-from maplebot.config import Keys
+from maplebrain.config import Keys
 
 SWING_KEYS = Keys().swing_keys
 MOVE = ("left", "right", "up", "down")

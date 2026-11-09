@@ -2,7 +2,7 @@ import json,sys,collections,warnings,random
 sys.path.insert(0,'.'); warnings.filterwarnings('ignore')
 from pathlib import Path
 import cv2,numpy as np
-from maplebot.perception.gpu_sprites import GpuSpriteDetector
+from maplebrain.perception.gpu_sprites import GpuSpriteDetector
 g=GpuSpriteDetector.for_map(10005063,Path('assets/mcw'),min_score=0.4)
 L=[json.loads(l) for l in open('runs/v2/ticks.jsonl',encoding='utf-8')]
 peak={}

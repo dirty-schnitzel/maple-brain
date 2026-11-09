@@ -5,7 +5,7 @@ def test_exp_points_reads_every_labelled_hud_number():
     The HUD text 'EXP. 885 [51.57%]' is exact: 36 labelled numbers from recorded frames (every digit)."""
     import numpy as np
     from pathlib import Path
-    from maplebot.perception import hud
+    from maplebrain.perception import hud
     d = np.load(Path(__file__).parent / "fixtures" / "exp_points.npz")
     x0, y0 = hud.EXP_TEXT
     for strip, label in zip(d["strips"], d["labels"]):
@@ -16,7 +16,7 @@ def test_exp_points_reads_every_labelled_hud_number():
 
 def test_exp_points_is_none_without_the_hud_text():
     import numpy as np
-    from maplebot.perception import hud
+    from maplebrain.perception import hud
     assert hud.exp_points(np.zeros((768, 1366, 3), np.uint8)) is None
 
 
@@ -25,7 +25,7 @@ def test_exp_points_reads_thousands_with_a_comma():
     our kills were logged as 'killed by someone else'. The ',' takes 5 px; labels checked by eye (1,012 / 1,052)."""
     import numpy as np
     from pathlib import Path
-    from maplebot.perception import hud
+    from maplebrain.perception import hud
     d = np.load(Path(__file__).parent / "fixtures" / "exp_points_comma.npz")
     x0, y0 = hud.EXP_TEXT
     for strip, label in zip(d["strips"], d["labels"]):
@@ -40,7 +40,7 @@ def test_minimap_dot_with_party_members_on_the_map():
     import cv2
     import numpy as np
     from pathlib import Path
-    from maplebot.perception import hud
+    from maplebrain.perception import hud
     frame = np.zeros((768, 1366, 3), np.uint8)
     frame[40:200, 0:260] = cv2.imread(str(Path(__file__).parent / "fixtures" / "minimap_party_rain.png"))
     dot = hud.minimap_dot(frame)
@@ -52,7 +52,7 @@ def test_minimap_dot_ignores_a_party_dots_yellowish_rim_in_a_raw_frame():
     enough to pass as a 2nd 'dot' -> only 23 of 1903 ticks had a position. Ours is hue 26-28."""
     import cv2
     import numpy as np
-    from maplebot.perception import hud
+    from maplebrain.perception import hud
     hsv = np.zeros((768, 1366, 3), np.uint8)
     hsv[:, :] = (110, 200, 90)                                         # dark blue minimap background
     cv2.circle(hsv, (100, 100), 3, (21, 230, 240), -1)                 # party dot: yellowish rim (raw frame)

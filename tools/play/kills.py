@@ -3,7 +3,7 @@ turned dying, with it <= 130 px in front of us at that swing, same level.  usage
 import json, sys, bisect, collections
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))          # run as a plain script too
-from maplebot.config import Keys
+from maplebrain.config import Keys
 d=sys.argv[1]; W=float(sys.argv[2]) if len(sys.argv)>2 else 0.8
 ticks=[json.loads(x) for x in open(d+'/ticks.jsonl')]
 keys=[json.loads(x) for x in open(d+'/keys.jsonl')]

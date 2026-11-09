@@ -1,4 +1,4 @@
-"""`python -m maplebot goto OUT [--to PLATFORM [X]] [--seconds S]` - brain-v2 movement, live (M1 step 4).
+"""`python -m maplebrain goto OUT [--to PLATFORM [X]] [--seconds S]` - brain-v2 movement, live (M1 step 4).
 
 No fighting: our position (nav/selfstate on the tracker's camera, so --gpu is implied) -> Travel along NavMap routes
 -> KeyDriver. `--to`: one trip, then stop. Without it: a TOUR of random goals (platforms reachable from where we

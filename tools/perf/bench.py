@@ -41,13 +41,13 @@ def machine() -> str:
 
 def build(map_id: int):
     """The live rig for `map_id` (runner._load_map with --gpu --tracker), a Perceiver, SelfTracker and BrainV2."""
-    from maplebot.brain.brain_v2 import BrainV2
-    from maplebot.config import Config
-    from maplebot.humanize import Humanizer
-    from maplebot.nav.selfstate import SelfTracker
-    from maplebot.perception.liedetector import LieDetector
-    from maplebot.perception.perceiver import Perceiver
-    from maplebot.runtime.runner import ASSETS, Rig, _load_map
+    from maplebrain.brain.brain_v2 import BrainV2
+    from maplebrain.config import Config
+    from maplebrain.humanize import Humanizer
+    from maplebrain.nav.selfstate import SelfTracker
+    from maplebrain.perception.liedetector import LieDetector
+    from maplebrain.perception.perceiver import Perceiver
+    from maplebrain.runtime.runner import ASSETS, Rig, _load_map
     cfg = Config()
     cfg.perception.gpu = cfg.perception.tracker = True
     cfg.perception.sprite_score = 0.70
@@ -63,8 +63,8 @@ def build(map_id: int):
 
 def bench(frames: list, map_id: int = ANT4) -> dict:
     """Median / p90 ms per part over `frames` (paths, in order), and the tick total -> fps."""
-    from maplebot.capture import normalize
-    from maplebot.nav.sim import SimDriver
+    from maplebrain.capture import normalize
+    from maplebrain.nav.sim import SimDriver
     per, me, brain, rig = build(map_id)
     drv = SimDriver()
     imgs = [cv2.imread(str(p)) for p in frames]

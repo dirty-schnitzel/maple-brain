@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from maplebot.nav.navmap import NavMap
-from maplebot.nav.selfstate import SelfTracker
+from maplebrain.nav.navmap import NavMap
+from maplebrain.nav.selfstate import SelfTracker
 
 ASSETS = Path(__file__).resolve().parents[1] / "assets" / "mcw"
 

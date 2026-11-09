@@ -13,11 +13,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from maplebot.brain.travel import Travel            # noqa: E402
-from maplebot.humanize import Humanizer             # noqa: E402
-from maplebot.nav.navmap import NavMap              # noqa: E402
-from maplebot.nav.selfstate import SelfState        # noqa: E402
-from maplebot.nav.sim import Sim, SimDriver         # noqa: E402
+from maplebrain.brain.travel import Travel            # noqa: E402
+from maplebrain.humanize import Humanizer             # noqa: E402
+from maplebrain.nav.navmap import NavMap              # noqa: E402
+from maplebrain.nav.selfstate import SelfState        # noqa: E402
+from maplebrain.nav.sim import Sim, SimDriver         # noqa: E402
 
 
 def seen(b, t, rng, noise):

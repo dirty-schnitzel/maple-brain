@@ -1,10 +1,10 @@
 """Brain scenarios with hand-made observations and a fake clock. Each one is a behaviour seen (or wanted) live."""
 import pytest
 
-from maplebot.brain.actions import Forget, Hold, Learn, Look, Release, Stop, Tap, Track, Untrack
-from maplebot.brain.brain import Brain
-from maplebot.config import Config
-from maplebot.perception.perceiver import Observation
+from maplebrain.brain.actions import Forget, Hold, Learn, Look, Release, Stop, Tap, Track, Untrack
+from maplebrain.brain.brain import Brain
+from maplebrain.config import Config
+from maplebrain.perception.perceiver import Observation
 
 ATTACK = Config().keys.attack
 BASIC, PICKUP = Config().keys.basic_attack, Config().keys.pickup

@@ -1,9 +1,9 @@
 import numpy as np
 
-from maplebot.nav.navmap import NavMap
-from maplebot.perception.gpu_sprites import Hit
-from maplebot.perception.sprites import Pose
-from maplebot.perception.world import Camera, TrackCfg, World
+from maplebrain.nav.navmap import NavMap
+from maplebrain.perception.gpu_sprites import Hit
+from maplebrain.perception.sprites import Pose
+from maplebrain.perception.world import Camera, TrackCfg, World
 
 MAP = {"footholds": {"1": {"id": 1, "x1": 0, "y1": 500, "x2": 2000, "y2": 500, "prev": 0, "next": 0}},
        "vrBounds": {"left": -500, "top": -500, "right": 3000, "bottom": 1268}, "mobs": [{"id": 8, "x": 500, "y": 500}]}

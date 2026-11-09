@@ -12,8 +12,8 @@ import cv2
 import numpy as np
 import pytest
 
-from maplebot.nav.identify import NAME_FONT, MapIdentifier, name_scores
-from maplebot.nav.localize import Window, find_window
+from maplebrain.nav.identify import NAME_FONT, MapIdentifier, name_scores
+from maplebrain.nav.localize import Window, find_window
 
 ROOT = Path(__file__).resolve().parents[1]
 FX = ROOT / "tests" / "fixtures" / "mapid"
@@ -34,7 +34,7 @@ def frame(name: str) -> np.ndarray:
 def ident():
     i = MapIdentifier.load(MCW)
     if len(i.canvases) < 250:
-        pytest.skip("needs every map's minimap: python -m maplebot assets update --all")
+        pytest.skip("needs every map's minimap: python -m maplebrain assets update --all")
     return i
 
 
