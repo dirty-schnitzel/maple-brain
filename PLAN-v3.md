@@ -2,7 +2,8 @@
 
 Written 2026-11-08 with the user. Direction agreed ("overall excellent design and plan"). **2026-11-09, the user: P1
 priority = get to Platform mode** (= Area mode, `--mark-platform`): migration steps 1-3 below, before the accuracy +
-speed plan (HANDOFF "P2"). Not started yet. Design page with the diagrams (private to the user):
+speed plan (HANDOFF "P2"). **2026-11-09: steps 1 (objects) + 2 (planner) DONE on branch `v3`, gate identical
+(tools/v3/gate.py); step 3 next.** Design page with the diagrams (private to the user):
 https://claude.ai/artifact/RVUYFFktHVpu3EbSBCR4Mh
 
 ## Why
@@ -31,7 +32,9 @@ REFLEXES every tick, FIRST, may override: Lie Detector, HP stop, potions, focus
    |
 Character.hands -> KeyDriver
 ```
-The planner never presses keys; tasks never choose goals. Nothing blocks: `character.goto(p)` means "the active
+As built (step 2): the planner re-picks the GOAL ~1x/s + on events, but the active goal names its TASK every tick
+(combat decides in ~70 ms; brain v2's chain was per tick). The planner never presses keys; tasks never choose goals.
+Nothing blocks: `character.goto(p)` means "the active
 goal returns Goto(p, x)" and the task moves us a bit each tick (Travel already works that way).
 
 | Layer | Runs | Owns | Today's code |

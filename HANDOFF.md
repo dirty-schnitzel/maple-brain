@@ -48,6 +48,20 @@ later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never 
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
 ## START HERE NEXT SESSION (P1, the user 2026-11-09): brain v3 up to Platform mode (= Area mode, `--mark-platform`)
+**2026-11-09 (branch `v3` off dev 02a639a): steps 1 + 2 DONE, gate identical; NEXT = step 3** (open decisions asked).
+- Gate: `python tools/v3/gate.py` (sim seeds 1-8 x 180 s + agree.py on runs/play/20261105_000802_1) vs
+  tests/fixtures/v3_gate.json, recorded on dev BEFORE any change (`d4f73f3`); `--quick` = seeds 1-2 x 60 s, also
+  tests/test_v3_gate.py on every pytest. Re-record (`--record`) only on purpose. Proven to catch a 0.5 -> 0.45
+  keep margin (names the 10 s where it starts).
+- Step 1 `9c1957b`: brain/v3/model.py (world model: Mob, Map + Spawn + route seconds, Character = SelfState +
+  Facing + HUD + hands, World) - the v2 parts read these. Step 2: brain/v3/planner.py (Goal / Task contracts,
+  Planner: goal ~1x/s + on events, own rng seeded without drawing from the brain's), v3/goals.py (Hunt = the old
+  chain), v3/tasks.py (Fight / Fight finishing / Goto / Roam / Rest). The goal names its task EVERY tick (combat
+  needs it; PLAN-v3.md's sketch said only when due); every task can_cancel at once (as the chain did).
+- Bot speed 59.4 ms vs 59.6 (brain 0.1 ms). NOTE: with `serve` + `watch` running it reads ~85 ms (test_perf fails):
+  stop them before judging speed.
+- Edit-tool gotcha: a new_string ending in a space loses it (`near =lambda`, `Map(line1),Humanizer`): check.
+Original task:
 Read **PLAN-v3.md** first (layers, contracts, gates). P1 = its migration steps 1-3, in order, on a NEW branch off
 `dev` (e.g. `v3`; `main` = last good, the user merges):
 1. **Objects:** Map / Platform / Mob / Character wrap today's parts; the brain reads them instead of dicts. Record
