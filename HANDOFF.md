@@ -8,7 +8,7 @@ Latest: 2026-11-08 attack per press built + live (`runs/v2/press1`; the user: "t
 behavior since start"), speed regression test, brain v3 planned; 2026-11-07 map recognition measures the minimap
 window; 2026-11-05 M2 combat live, brain v2 split into parts; M1 movement done.
 
-## Edge ghosts at Ant Tunnel IV's right wall (2026-11-09, branch `edge-ghost` off `dev`, NOT committed; fix 3 NOT live-tested)
+## Edge ghosts at Ant Tunnel IV's right wall (2026-11-09, branch `edge-ghost` off `dev`: rename ce37440 + fix e68066e; fix 3 NOT live-tested)
 **Seen:** `runs/v2/20261109_003124_1` (no frames) 362-382 s: 17 presses + "kill #56" at a "Zombie Mushroom" that isn't
 there; `runs/v2/20261109_011503_1` (frames) 56.5-63 s the same ("stuck on the side of the map"). Both: camera at the
 map's right wall (vrBounds right 2610 = the screen's right edge), track feet at screen x 1366-1376, y ~468, score
