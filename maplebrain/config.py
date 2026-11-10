@@ -12,6 +12,8 @@ class Keys:
     mp_potion: str = "end"
     start: str = "f7"         # serve: starts a hunt (F1-F12)
     stop: str = "f8"          # serve: stops it
+    mark: str = "f9"          # serve, platform mode, no hunt running: marks / unmarks the platform we stand on
+    mode: str = "f10"         # serve, no hunt running: next mode (auto -> platform -> auto; path mode later)
     old_attacks: tuple = ("space",)   # attack keys of older recordings: only the tools reading runs/ use these
 
     @property

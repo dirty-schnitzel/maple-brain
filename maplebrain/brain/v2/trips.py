@@ -7,14 +7,19 @@ air. A failed trip makes its platform unreachable for 5-8 s (targeting skips it)
 Roam (placeholder until M3's patrol): nothing worth fighting tracked -> a spawn point on another platform, weighted by
 the platform's spawns; linger 1-3.5 s after arriving; never linger on a rope.
 
+Platform mode (area = the marked platforms): roam only to spots on marked platforms, our own included (area_goal).
+
 v3 layer: tasks (Goto = a Travel; roam = today's Hunt goal's quiet-time task). Step 1: reads the world model's Map
-(spawns as Spawn objects, route seconds) instead of NavMap tuples.
+(spawns as Spawn objects, route seconds) instead of NavMap tuples. Step 3: area_goal (Platform mode).
 """
 import collections
 import random
 
 from ..moves import node_of
 from ..travel import Travel
+
+ROAM_AWAY_PX = 150              # Platform mode: a roam spot on our own platform at least this far from us
+ROAM_EDGE_PX = 40               # a spot on a platform with no spawns: this far inside its ends
 
 
 class Trips:
@@ -81,8 +86,9 @@ class Trips:
         return s.state == "ground" and (mv is None or mv.kind in ("walk_to", "walk") or mv.phase == "approach")
 
     # ------------------------------------------------------------------ roam (M3 replaces this)
-    def roam(self, now, s, driver):
-        """(mode, trip status): ROAM on a roam trip / IDLE lingering / None coasting in the air."""
+    def roam(self, now, s, driver, area=None):
+        """(mode, trip status): ROAM on a roam trip / IDLE lingering / None coasting in the air. `area`: Platform
+        mode's marked platforms (roam only there: area_goal)."""
         if self.travel is not None and self.why and self.why[0] == "roam":
             return "ROAM", self.go(now, s, driver, self.why, self.travel.dst, self.travel.dst_x)
         if self.coast(now, s, driver):
@@ -93,7 +99,7 @@ class Trips:
             self.roam_wait = min(self.roam_wait, now)
         if now < self.roam_wait or s.state == "air":
             return "IDLE", None
-        g = self.roam_goal(now, s)
+        g = self.roam_goal(now, s) if area is None else self.area_goal(now, s, area)
         if g is None:
             self.roam_wait = now + self.hz.between(1.0, 2.0)
             return "IDLE", None
@@ -113,6 +119,38 @@ class Trips:
             pid = rng.choices(list(by), weights=[len(v) for v in by.values()])[0]
             x = rng.choice(by[pid]) + rng.uniform(-40, 40)
             x = self.map.platforms[pid].clamp(x)
+            if self.map.route_seconds(now, s, pid, x) is not None:
+                return pid, x
+            del by[pid]
+        return None
+
+    def area_goal(self, now, s, area):
+        """Platform mode: a spot on a MARKED platform (our own too: one marked platform is roamed end to end), at
+        least ROAM_AWAY_PX from us. A spawn point, weighted like roam_goal; a marked platform with no spawns gets one
+        spot anywhere on it (weight 1). Platforms a failed trip made unreachable are skipped unless all are."""
+        rng = getattr(self.hz, "rng", random)
+        by = collections.defaultdict(list)
+        for sp in self.map.spawns:
+            if sp.platform in area:
+                by[sp.platform].append(sp.x)
+        for pid in sorted(area):
+            p = self.map.platform(pid)
+            if p is not None and not by.get(pid):
+                by[pid] = [rng.uniform(p.left + ROAM_EDGE_PX, p.right - ROAM_EDGE_PX)]
+        reach = {pid: v for pid, v in by.items() if self.targeting.unreachable.get(pid, 0) <= now}
+        by = reach or by
+        for _ in range(8):
+            if not by:
+                return None
+            pid = rng.choices(list(by), weights=[len(v) for v in by.values()])[0]
+            p = self.map.platforms[pid]
+            x = p.clamp(rng.choice(by[pid]) + rng.uniform(-40, 40))
+            if pid == s.platform and abs(x - s.x) < ROAM_AWAY_PX:
+                far = [v for v in by[pid] if abs(v - s.x) >= ROAM_AWAY_PX]
+                if not far:
+                    del by[pid]
+                    continue
+                x = p.clamp(rng.choice(far))
             if self.map.route_seconds(now, s, pid, x) is not None:
                 return pid, x
             del by[pid]

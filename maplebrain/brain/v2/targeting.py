@@ -5,6 +5,10 @@ a preference is a new term here, never a branch elsewhere. None = can't reach it
     turn    same platform and behind us: +0.25 s
     crowd   -0.25 s per other live mob within 120 px of it on its platform (max 3)
     others  +1.5 s while someone else is hitting it (hit seen with no swing of ours, last 3 s)
+    area    Platform mode only (`area` = the marked platforms, set by the goal HuntArea; None = anywhere): a mob
+            off the area can't be a target (None), except FIGHT BACK - on our platform within FIGHT_BACK_PX while
+            `fight_back` (the goal's leash) allows it. A mob with no platform next to us (`here`) counts as in the
+            area while we stand on a marked platform.
 
 The current target is kept unless another scores KEEP_MARGIN better; the mob the weapon is engaged on is
 kept, full stop (`lock`, set by the brain each tick). Re-picked every 0.22-0.4 s (varied), and at once when the
@@ -14,11 +18,14 @@ A trip that failed makes its platform unreachable for 5-8 s (`unreachable`).
 Part of the attack logic described end to end in v2/combat.py.
 v3 layer: tasks (Fight / Goto pick their mob here; the planner's goals will score with the same terms). Step 1: reads
 the world model (brain/v3/model.py): Map (route seconds, cached there now), Seen.mob (Mob) instead of track dicts.
+Step 3: the `area` term (Platform mode).
 """
 from ..moves import WALK
 from .scene import sign
 
 KEEP_MARGIN = 0.5
+FIGHT_BACK_PX = 150             # Platform mode, off the marked platforms: a mob on our platform this close may be
+                                # fought (it's at us; the user 2026-11-09: option B, never chase one off the area)
 
 
 class Targeting:
@@ -27,8 +34,10 @@ class Targeting:
         self.target, self.cost, self.standoff = None, None, 90.0
         self.next_pick = 0.0
         self.unreachable = {}                             # platform -> until
-        self.terms = [self.t_reach, self.t_turn, self.t_crowd, self.t_others]
+        self.terms = [self.t_area, self.t_reach, self.t_turn, self.t_crowd, self.t_others]
         self.lock = None                                  # the mob the weapon is engaged on: never switch mid-fight
+        self.area = None                                  # Platform mode: the marked platform ids (None = anywhere)
+        self.fight_back = True                            # Platform mode: off the area, may we fight back (leash)
 
     # ------------------------------------------------------------------ geometry
     def goal_x(self, x, me):
@@ -39,6 +48,18 @@ class Targeting:
         return p.clamp(gx) if p is not None else gx
 
     # ------------------------------------------------------------------ the score
+    def allowed(self, sc, x) -> bool:
+        """Platform mode's fence (the `area` term): may this mob be a target at all?"""
+        a = self.area
+        if a is None or x.platform in a:
+            return True
+        if x.platform is None and x.here and sc.me.platform in a:
+            return True
+        return self.fight_back and x.here and abs(x.dx) <= FIGHT_BACK_PX
+
+    def t_area(self, sc, x):
+        return 0.0 if self.allowed(sc, x) else None
+
     def t_reach(self, sc, x):
         if x.here:
             return max(0.0, abs(x.dx) - self.standoff) / WALK

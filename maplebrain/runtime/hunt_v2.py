@@ -15,7 +15,8 @@ from .exp_meter import ExpMeter
 from .keys import KeyDriver
 
 
-def hunt_v2(rig, rec, t0: float, until) -> str:
+def hunt_v2(rig, rec, t0: float, until, area=None) -> str:
+    """`area`: platform mode's marked platform ids (serve, F9): the brain hunts only on them (goal HuntArea)."""
     from .runner import alarm, lie_alarm
     cfg, kb, screen, hz = rig.cfg, rig.kb, rig.screen, rig.hz
 
@@ -32,7 +33,10 @@ def hunt_v2(rig, rec, t0: float, until) -> str:
     rig.locator.origin = None
     perceiver = Perceiver(cfg, rig.self_tag, rig.sprites, lie_detector=rig.lie, locator=rig.locator)
     me = SelfTracker(nav, cfg.nav)
-    brain = BrainV2(cfg, nav, hz, log=say)
+    brain = BrainV2(cfg, nav, hz, log=say, area=area)
+    if area:
+        say("platform mode: hunting only on the marked platforms " + ", ".join(
+            describe_platform(nav, p) for p in sorted(area) if p in nav.platforms))
     exp = ExpMeter()
     s0, m0 = brain.reach.vs(next(iter(m.mob_id for m in rig.sprites.mobs), None))
     say(f"brain v2 (combat): weapon {cfg.combat.weapon} (attack speed {brain.reach.attack_speed}, swing "
@@ -117,6 +121,12 @@ def hunt_v2(rig, rec, t0: float, until) -> str:
     say("stats " + json.dumps(dict(st, frames=frames_n, fps=round(frames_n / max(elapsed, 1e-6), 1))))
     say(speed_line(speed))
     return status
+
+
+def describe_platform(nav, pid) -> str:
+    """'273 (y 198, x -305..3185)' - how logs name a platform for the user."""
+    p = nav.platforms[pid]
+    return f"{pid} (y {p.segs[0].y1:.0f}, x {p.left:.0f}..{p.right:.0f})"
 
 
 def speed_line(speed) -> str:

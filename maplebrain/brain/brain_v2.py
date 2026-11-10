@@ -3,6 +3,7 @@ layers and parts; no rules live here.
     step 1 (objects): the parts read the WORLD MODEL (v3/model.py: Map, Mob, Character), updated once per tick here.
     step 2 (planner): the decision chain moved into the PLANNER (v3/planner.py): one goal, Hunt (v3/goals.py), names
            a TASK every tick (v3/tasks.py: Fight / Goto / Roam / Rest). Behaviour identical (tools/v3/gate.py).
+    step 3 (Platform mode): `area` = the platforms marked in serve (F9) -> the goal is HuntArea instead of Hunt.
 
 Every tick `step(now, obs, s, driver)` (obs = the Perceiver's Obs with tracks in obs.mobs, s = our SelfState,
 driver = runtime/keys.KeyDriver or a fake):
@@ -35,13 +36,14 @@ from .v2.ledger import Ledger
 from .v2.reflexes import Reflexes
 from .v2.targeting import Targeting
 from .v2.trips import Trips
-from .v3.goals import Hunt
+from .v3.goals import Hunt, HuntArea
 from .v3.model import World
 from .v3.planner import Planner
 
 
 class BrainV2:
-    def __init__(self, cfg, nav, hz, reach: Reach | None = None, log=None):
+    def __init__(self, cfg, nav, hz, reach: Reach | None = None, log=None, area=None):
+        """`area`: Platform mode's marked platform ids (goal HuntArea); None = auto mode (goal Hunt)."""
         self.cfg, self.nav, self.hz = cfg, nav, hz
         self.reach = reach or Reach(cfg.combat.weapon, attack_speed=cfg.combat.attack_speed)
         self.say = log or (lambda msg: None)
@@ -56,7 +58,8 @@ class BrainV2:
         self.footwork = Footwork(mp, hz, self.face, self.stats)
         self.trips = Trips(mp, hz, {"jump": cfg.keys.jump}, cfg.keys.jump, self.targeting, self.stats, self.say)
         self.breaks = Breaks(mp, hz, self.stats, self.say)
-        self.hunt = Hunt(self.reach, self.weapon, self.footwork, self.targeting, self.trips, self.breaks)
+        parts = (self.reach, self.weapon, self.footwork, self.targeting, self.trips, self.breaks)
+        self.hunt = Hunt(*parts) if area is None else HuntArea(area, mp, hz, self.say, *parts)
         self.planner = Planner([self.hunt], hz, self.say)
 
     # the parts' state, by the names the tests / tools / logs use

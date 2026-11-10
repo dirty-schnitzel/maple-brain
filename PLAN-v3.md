@@ -3,7 +3,8 @@
 Written 2026-11-08 with the user. Direction agreed ("overall excellent design and plan"). **2026-11-09, the user: P1
 priority = get to Platform mode** (= Area mode, `--mark-platform`): migration steps 1-3 below, before the accuracy +
 speed plan (HANDOFF "P2"). **2026-11-09: steps 1 (objects) + 2 (planner) DONE on branch `v3`, gate identical
-(tools/v3/gate.py); step 3 next.** Design page with the diagrams (private to the user):
+(tools/v3/gate.py); step 3 (Platform mode) built + sim-tested, live test next.** Design page with the diagrams
+(private to the user):
 https://claude.ai/artifact/RVUYFFktHVpu3EbSBCR4Mh
 
 ## Why
@@ -81,7 +82,7 @@ change is a score term, a table rule, a state, or a parameter with its data sour
 | Goal | Wants to run when | Tasks | Needs first |
 |---|---|---|---|
 | Hunt | always (baseline) | Fight, Goto (roam) | nothing: today's behaviour ported as-is |
-| HuntArea (Area mode) | platforms are marked this session | Fight the highest-priority target on any marked platform (moving between them), Goto back when outside, Goto a spawn in the area when quiet | marks + marking phase |
+| HuntArea (Area mode) | platform mode + marks (built: replaces Hunt for that hunt) | Fight the highest-priority target on any marked platform (moving between them), fight back off it until the leash, Back when outside, Roam the area when quiet | marks (F9) |
 | FollowPath (Path mode) | an ordered path is marked (later) | Goto the next waypoint (platform, rope or ladder); fight mobs along the way first, then resume | ordered marks incl. ropes/ladders |
 | Rest | 2-5 min since the last break, nothing near | Goto(safe spot), Rest | today's Breaks as a goal |
 | Patrol (Auto mode, M3) | no marks: the default | an area or path computed per map, run like Area / Path | spawns x EXP / respawn; respawn times learned live |
@@ -98,20 +99,26 @@ change is a score term, a table rule, a state, or a parameter with its data sour
 All three are goals over the same world model and tasks; Auto can hand its result to the Path goal. Marking a
 rope/ladder uses `SelfState.rope` (already tracked).
 
-### --mark-platform (Area mode) in detail
-- `serve ... --mark-platform`, F7: the map is recognised and a hunt starts that perceives but presses NO keys
-  (like `--observe`). The SelfTracker knows our platform every tick (livemap shows the same data).
-- F9 (new key in `Keys`) = `map.mark(character.platform)`: chirp + log line ("marked 273, y 198, x -305..3185");
-  F9 again on the same platform unmarks it. Livemap draws marked platforms in their own colour.
-- Marks live in memory only: nothing saved, every session starts fresh (assets built ahead are fine).
-- A key starts hunting: the planner gets HuntArea(map.marked).
-- Targets only on marked platforms (`fence`: a mob off the area scores None); routes may cross unmarked platforms;
-  off the area (fell / knocked) -> no target -> Goto(nearest marked). Mid-fight knockback: the engaged mob stays the
-  target while in keep reach (as today).
-- Gaps to close in today's code (also needed without v3): roam_goal excludes our own platform (one marked platform
-  = never roams inside it) and needs spawns (a marked platform with none = IDLE forever) -> any x on a marked
-  platform as fallback; all marked platforms "unreachable" (5-8 s after failed trips) needs a fallback too; a mob
-  with no platform counts as "here" within 40 px (scene.py) -> allowed only while we stand on a marked platform.
+### Platform mode (Area mode) as built (step 3, 2026-11-09; the user's decisions below)
+- No flag: `serve` has MODES (runtime/marks.py). **F10** = next mode (auto -> platform -> auto; path later), **F9** =
+  mark / unmark the platform we stand on - both only while no hunt runs (pressed mid-hunt: a log line, ignored).
+  F9 only in platform mode: the map is recognised (as at F7), the minimap window measured afresh, our dot -> the
+  platform under it; chirp + log line ("marked 79 (y 73, x 1260..2135); marked on Line 1: 56, 79").
+- Whole platforms. Marks per map, kept until serve ends (back on a map = its marks back); nothing saved.
+- **F7** in platform mode: hunts only on this map's marks (BrainV2(area=...) -> goal HuntArea); none marked -> no
+  hunt (log line, low chirp). A hunt is bound to the marks taken before its F7. The hunt log gets
+  `marked platforms 56,79`; livemap draws those platforms with `*`.
+- Targets only on marked platforms (Targeting's `area` term; routes may cross unmarked ones). Off the area (on an
+  unmarked platform: knocked / fell / a route through): FIGHT BACK - a mob on our platform within FIGHT_BACK_PX 150
+  may be the target, never a trip to one; until the LEASH (36-44 s, drawn per exit, the user: 40): then nothing off
+  the area is fought (the weapon's lock is cut too) and trips press no attack until we stand on a marked platform.
+  Nothing to fight off the area -> Back (nearest marked platform by route seconds). On the area -> Roam among the
+  marked platforms' spots, ours too (Trips.area_goal; a platform with no spawns: any x; unreachable ones only when
+  all are). A mob with no platform next to us counts as on the area while we stand on a marked platform.
+- Sim (tests/test_v3_area.py, Line 1, 79 + 56 marked, a forced drop onto the busy floors 273 / 244 every 25-40 s):
+  every off-area target is a fight-back on our platform; every drop back within leash + route + 15 s (8 seeds: 27
+  drops, slowest 47 s of a 77 s limit); kills 30-38 / 3 min; on the area 28-58 % of the time (the leash: up to
+  ~40 s of fighting back per drop).
 
 ## Unchanged
 The attack logic end to end (v2/combat.py's doc) = the inside of Fight(mob); Travel, moves, the sim (Goto = Travel);
@@ -142,11 +149,15 @@ KeyDriver + real presses, never faked input; safety first every tick; every timi
 - 2026-11-09: P1 = steps 1-3 (objects -> planner -> Platform mode), in that order, before accuracy + speed (P2).
   "Platform mode" = the user's name for Area mode.
 
-## Open decisions (ask at the start of step 3)
+- 2026-11-09 (start of step 3): whole platforms; marks kept until serve ends, per map; F10 = mode (platform /
+  auto, path later), F9 = toggle a platform (platform mode, hunt off), F7 / F8 as before, platform mode with no
+  marks = no hunt; off the area: option B, fight back with a 40 s leash (the user: "verify the bot is not stuck in a
+  targeting loop out of the platform" -> the sim test above).
+
+## Open decisions
 1. ~~Order of work~~ decided 2026-11-09: layers first (steps 1-2), then Platform mode (step 3); accuracy + speed after.
-2. Mark granularity: whole platforms, or an x-range on long ones (Line 1's ground 244 is ~3500 px)? x-range = two
-   presses per mark, ~double the marking work.
-3. Marks across F8 -> F7 within one serve: kept or cleared?
-4. Off-area: swing at mobs in reach on the way back (today's trip behaviour) or ignore them?
-5. Goals compete by score with a keep margin (recommended, like targeting) or a fixed priority list?
+2. ~~Mark granularity~~ / 3. ~~marks across F8 -> F7~~ / 4. ~~off-area~~: decided 2026-11-09 (above).
+5. How goals compete: the user 2026-11-09 likes **TIERS + SCORES** best so far (a higher tier always wins when it
+   wants to run, e.g. Restock > Rest / Buff > Hunt; scores only break ties inside a tier) - discuss before the
+   first competing goal; not needed while one hunting goal runs per hunt.
 6. Path-mode detours: how far may the bot leave the path to fight a nearby mob before the next waypoint?

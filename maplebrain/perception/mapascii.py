@@ -64,15 +64,19 @@ def _slope_char(f) -> str:
     return "=" if abs(k) < 0.25 else ("/" if k < 0 else "\\")
 
 
-def render(m: dict, marks=(), screen=None, width: int = 160, spawns: bool = True, ruler: bool = True) -> str:
+def render(m: dict, marks=(), screen=None, width: int = 160, spawns: bool = True, ruler: bool = True,
+           marked=()) -> str:
     """`marks`: [(text, map x, feet y)], drawn last in order (later ones on top). `screen`: (x0, x1) map x span of
-    what's on screen right now -> `[` `]` on the ruler."""
+    what's on screen right now -> `[` `]` on the ruler. `marked`: [(x1, y1, x2, y2)] floor segments of the platforms
+    marked for platform mode -> drawn `*`."""
     cv = Canvas(m, width)
     for r in m.get("ladderRopes") or []:
         cv.seg(r["x"], r["y1"], r["x"], r["y2"], "H" if r.get("isLadder") else "|")
     fh = list((m.get("footholds") or {}).values())
     for f in sorted(fh, key=lambda f: f["x1"] == f["x2"], reverse=True):   # walls first, floors over them
         cv.seg(f["x1"], f["y1"], f["x2"], f["y2"], _slope_char(f))
+    for x1, y1, x2, y2 in marked:
+        cv.seg(x1, y1, x2, y2, "*")
     if spawns:
         for s in m.get("mobs") or []:
             if not s.get("hidden"):
@@ -115,5 +119,5 @@ def render(m: dict, marks=(), screen=None, width: int = 160, spawns: bool = True
 def header(m: dict) -> str:
     x0, y0, x1, y1 = _bounds(m)
     return (f"{m.get('id')} {m.get('streetName', '')} - {m.get('name', '')}   x {x0}..{x1}  y {y0}..{y1}\n"
-            "legend: = floor  / \\ slope  # wall  | rope  H ladder  O portal  . spawn  @ us  "
+            "legend: = floor  * marked platform  / \\ slope  # wall  | rope  H ladder  O portal  . spawn  @ us  "
             "Xn> mob track (< > facing, ? unseen, x dying, ^ air)  p pet")

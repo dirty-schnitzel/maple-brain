@@ -35,7 +35,8 @@ def main(argv=None) -> int:
                    f"{Perception.sprite_score}); mobs already tracked are followed at any score")
     r.add_argument("--no-focus", action="store_true", help="don't bring the game to front; wait for you to")
     r.add_argument("--frames-every", type=int, default=3, help="save every Nth frame (1 = all, for tracker tests)")
-    v = sub.add_parser("serve", help=f"stay loaded; {Keys.start.upper()} starts hunting, {Keys.stop.upper()} stops (elevated, game focused)")
+    v = sub.add_parser("serve", help=f"stay loaded; {Keys.start.upper()} starts hunting, {Keys.stop.upper()} stops (elevated, game focused); "
+                                     f"between hunts {Keys.mode.upper()} = mode (auto / platform), {Keys.mark.upper()} = mark the platform you stand on")
     v.add_argument("out", type=Path, nargs="?", default=Path("runs/manual"), help="one folder per hunt in here")
     v.add_argument("--attack", default=Keys.attack)
     v.add_argument("--basic-attack", default=Keys.basic_attack, help="plain attack used while out of MP and MP potions")

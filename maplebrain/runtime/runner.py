@@ -2,7 +2,9 @@
 
 Two ways to drive it:
   * run   - one timed hunt (3 s countdown, game brought to front, stops at the time limit)
-  * serve - stays loaded and idle; F7 starts a hunt, F8 stops it (keys released), as often as you like
+  * serve - stays loaded and idle; F7 starts a hunt, F8 stops it (keys released), as often as you like.
+            Between hunts F10 = next mode (auto / platform), F9 = mark / unmark the platform we stand on (platform
+            mode: the hunt stays on the marked platforms; runtime/marks.py)
 
 Safety that does not depend on the brain:
   * keys are only sent while the game has focus; a frame grabbed while focus was leaving is discarded
@@ -30,6 +32,7 @@ from ..humanize import Humanizer
 from ..keyboard import FocusLost, Keyboard, bring_to_front, foreground_title
 from ..perception.perceiver import Perceiver
 from .keys import KeyDriver, LegacyExecutor
+from .marks import Marks
 from .recorder import Recorder
 
 ASSETS = Path(__file__).resolve().parents[2] / "assets"
@@ -76,6 +79,8 @@ class Hotkeys:
         self.was = {n: self.key_down(v) for n, v in self.vk.items()}      # a key already down doesn't count
 
     def pressed(self, name) -> bool:
+        if name not in self.vk:                           # not watched (tests that script only F7 / F8)
+            return False
         now = self.key_down(self.vk[name])
         hit = now and not self.was[name]
         self.was[name] = now
@@ -224,14 +229,15 @@ class _NoKeys:
         pass
 
 
-def _hunt(rig: Rig, rec: Recorder, t0: float, until, observe: bool = False) -> str:
+def _hunt(rig: Rig, rec: Recorder, t0: float, until, observe: bool = False, area=None) -> str:
     """Hunt until `until()` returns a reason (time limit, F8 ...) or the brain stops; returns the status.
     Every key is released at the end, whatever happened. `observe`: perceive and record only - no brain, no keys
-    (the player plays; e.g. jump measurements). A Lie Detector still sounds the siren."""
+    (the player plays; e.g. jump measurements). A Lie Detector still sounds the siren. `area`: platform mode's
+    marked platforms (brain v2 only)."""
     cfg, hz, kb, screen = rig.cfg, rig.hz, rig.kb, rig.screen
     if cfg.brain == "v2" and not observe:
         from .hunt_v2 import hunt_v2
-        return hunt_v2(rig, rec, t0, until)
+        return hunt_v2(rig, rec, t0, until, area=area)
 
     def say(msg):
         rec.say(f"{time.perf_counter() - t0:7.2f}s {msg}")
@@ -397,6 +403,54 @@ def run(out: Path, seconds: float, cfg: Config, focus: bool = True, frames_every
     return 0 if status == "ok" else 2
 
 
+def _platform_here(rig: Rig, say):
+    """Between hunts (F9): (map id, platform id, its description) we stand on, from the minimap - the map recognised
+    first (as at F7).
+    None (said why) when it can't tell: the minimap is covered / closed, we're on a rope or in the air."""
+    from ..perception import hud
+    loc = rig.locator
+    if loc is None or loc.navmap is None:
+        say("no map loaded: can't tell the platform")
+        return None
+    loc.origin, loc.lost = None, False                    # measure the minimap window afresh, as a hunt does
+    frame = rig.screen.grab()
+    if frame is None or not loc.calibrate(frame):
+        say("minimap not found (closed / covered?): can't tell the platform")
+        return None
+    loc.follow(frame)
+    w = loc.where(hud.minimap_dot(frame, loc.dot_box()))
+    if w is None or w.platform is None:
+        say("not standing on a platform (rope / air / no minimap dot): stand on it and try again")
+        return None
+    from .hunt_v2 import describe_platform
+    return rig.cfg.perception.map_id, w.platform, describe_platform(loc.navmap, w.platform)
+
+
+def _mark_here(rig: Rig, marks: Marks, say, out_root: Path):
+    """F9 between hunts: mark / unmark the platform we stand on (platform mode only)."""
+    key = rig.cfg.keys.mark.upper()
+    if marks.mode != "platform":
+        say(f"{key}: platform marks are for platform mode ({rig.cfg.keys.mode.upper()} to switch)")
+        return
+    if not rig.kb.focused():
+        say(f"{key} ignored: the game isn't the focused window")
+        return
+    rig.screen.calibrate()
+    if not _init_map(rig, say, frames=1, save_to=out_root):
+        chirp(False)
+        return
+    here = _platform_here(rig, say)
+    if here is None:
+        chirp(False)
+        return
+    map_id, pid, label = here
+    on = marks.toggle(map_id, pid)
+    area = marks.area(map_id)
+    say(f"{'marked' if on else 'unmarked'} {label}; marked on {_map_name(map_id)}: "
+        + (", ".join(map(str, sorted(area))) or "none"))
+    chirp(on)
+
+
 def serve(out_root: Path, cfg: Config, frames: int = 0,
           hotkeys: Hotkeys | None = None, poll_s: float = 0.03, max_hunts: int | None = None,
           observe: bool = False) -> int:
@@ -413,14 +467,33 @@ def serve(out_root: Path, cfg: Config, frames: int = 0,
     rig = _setup(cfg, say, focus=False)
     if rig is None:
         return 1
-    start_key, stop_key = cfg.keys.start, cfg.keys.stop
-    hk = hotkeys or Hotkeys([start_key, stop_key])
+    start_key, stop_key, mark_key, mode_key = cfg.keys.start, cfg.keys.stop, cfg.keys.mark, cfg.keys.mode
+    hk = hotkeys or Hotkeys([start_key, stop_key, mark_key, mode_key])
     what = "start recording (observe: the bot presses no keys, yours are recorded)" if observe else "start hunting"
     say(f"ready: {start_key.upper()} = {what}, {stop_key.upper()} = stop, Ctrl+C here = quit "
         "(the Lie Detector is watched between hunts too)")
+    marks = Marks()
+    if not observe:
+        say(f"mode: {marks.mode} - {mode_key.upper()} = next mode (auto / platform), {mark_key.upper()} = mark / "
+            "unmark the platform you stand on (platform mode, between hunts)")
     hunts, next_look, n_lie = 0, 0.0, 0
+
+    def until():
+        if hk.pressed(stop_key):
+            return f"stopped by {stop_key.upper()}"
+        for k in (mark_key, mode_key):
+            if hk.pressed(k):
+                say(f"{k.upper()} ignored: a hunt is running ({stop_key.upper()} first)")
+        return None
+
     try:
         while max_hunts is None or hunts < max_hunts:
+            if not observe and hk.pressed(mode_key):
+                say(f"mode: {marks.next_mode()}" + (f" - {mark_key.upper()} on each platform to hunt on"
+                                                     if marks.mode == "platform" else ""))
+                chirp(marks.mode == "platform")
+            if not observe and hk.pressed(mark_key):
+                _mark_here(rig, marks, say, out_root)
             if not hk.pressed(start_key):
                 # idle between hunts: still watch for the Lie Detector (session 9: one came up seconds after a
                 # hunt ended and nothing was looking). Only looks - no key is sent.
@@ -444,16 +517,26 @@ def serve(out_root: Path, cfg: Config, frames: int = 0,
                 chirp(False)
                 say(f"not started - {start_key.upper()} to try again")
                 continue
+            area = None
+            if not observe and marks.mode == "platform":
+                area = marks.area(rig.cfg.perception.map_id)
+                if not area or cfg.brain != "v2":
+                    chirp(False)
+                    say("platform mode needs brain v2 (--brain v2) - not started" if area else
+                        f"platform mode: no platform marked on this map - {mark_key.upper()} on at least one first "
+                        "(not started)")
+                    continue
             hunts += 1
             out = out_root / f"{datetime.now():%Y%m%d_%H%M%S}_{hunts}"
             rec = Recorder(out, every=int(frames) * 3 if frames is True else int(frames))
             say(f"hunt #{hunts} started -> {out} (map {rig.cfg.perception.map_id}, game picture at x {cols}, "
                 f"{rig.screen.kind})")
             rec.log.write(f"map {rig.cfg.perception.map_id} {_map_name(rig.cfg.perception.map_id)}\n")  # livemap
+            if area:
+                rec.log.write(f"marked platforms {','.join(map(str, sorted(area)))}\n")             # livemap
             chirp(True)
             try:
-                status = _hunt(rig, rec, time.perf_counter(),
-                               lambda: f"stopped by {stop_key.upper()}" if hk.pressed(stop_key) else None, observe)
+                status = _hunt(rig, rec, time.perf_counter(), until, observe, area=area)
             finally:
                 rec.close()
             chirp(False)

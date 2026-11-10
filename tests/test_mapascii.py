@@ -17,3 +17,21 @@ def test_render_draws_floors_walls_slopes_ladders_portals_and_marks():
     floor = next(i for i, r in enumerate(rows) if "=" * 25 in r)
     assert "@" in rows[floor - 1] and "." in rows[floor - 1]   # marks sit just above their feet
     assert rows[-2].startswith("[") and "]" in rows[-2]
+
+
+def test_marked_platforms_are_drawn_with_stars():
+    out = render(M, marked=[(0, 100, 300, 100)], width=31)
+    assert any("*" * 25 in r for r in out.splitlines()) and not any("=" * 25 in r for r in out.splitlines())
+
+
+def test_livemap_shows_the_platforms_marked_in_the_hunts_log(tmp_path):
+    from maplebrain.livemap import View
+    run = tmp_path / "20261109_120000_1"
+    run.mkdir()
+    (run / "log.txt").write_text("map 10003061 Victoria Road / Line 1 <Area 1>\nmarked platforms 79\n", encoding="utf-8")
+    v = View(10003061, 160)
+    assert "*" in v.frame({"n": 1, "obs": {"t": 0.0}}, run)
+    plain = tmp_path / "20261109_120500_2"
+    plain.mkdir()
+    (plain / "log.txt").write_text("map 10003061 Victoria Road / Line 1 <Area 1>\n", encoding="utf-8")
+    assert "*" not in v.frame({"n": 1, "obs": {"t": 0.0}}, plain).split("\n", 2)[2]

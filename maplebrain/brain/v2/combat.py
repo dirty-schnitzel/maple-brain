@@ -10,9 +10,11 @@ THE ATTACK LOGIC, END TO END (each step lives in the file named; keep this secti
                                     mob); in_reach(keep) = ACTUAL dx in front up to the maybe far edge (go on with the
                                     mob we're engaged on: our hits knock it back).
   3. targeting  (v2/targeting.py)   which mob to go for (score terms); LOCKED on the mob the weapon is engaged on.
-  4. brain      (brain_v2.py)       target on our platform, or engaged and in keep reach -> fight here (Weapon +
-                                    Footwork); our swing still going (its mob died) -> stay, no trip; target
-                                    elsewhere -> Travel, pressing only while walking; nothing -> roam.
+  4. goal       (v3/goals.py Hunt)  target on our platform, or engaged and in keep reach -> Fight here (Weapon +
+                                    Footwork); our swing still going (its mob died) -> Fight(finishing): stay, no
+                                    trip; target elsewhere -> Goto, pressing only while walking; nothing -> Roam.
+                                    Platform mode (HuntArea): targets only on the marked platforms, fight back off
+                                    them until the leash (then not even the engaged mob, no presses on trips).
   5. Weapon     (here)              ONE PRESS = ONE SWING. After each swing, on what's on screen then: a live mob in
                                     reach in front -> press again (skill or plain: reflexes.attack_key); else nothing.
   6. Footwork   (here)              stand while the target is in sure reach, step in when it isn't, turn only once

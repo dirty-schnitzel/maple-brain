@@ -48,7 +48,18 @@ later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never 
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
 ## START HERE NEXT SESSION (P1, the user 2026-11-09): brain v3 up to Platform mode (= Area mode, `--mark-platform`)
-**2026-11-09 (branch `v3` off dev 02a639a): steps 1 + 2 DONE, gate identical; NEXT = step 3** (open decisions asked).
+**2026-11-10: PAUSED for the VMware pivot (the user: perception + keys for a game running in a VMware VM instead of
+the local process; memory "VMware VM setup"). Steps 1-3 committed on `v3`, merged into `dev`; `main` NOT updated
+(no live run of v3 yet). Resume v3 with step 3's live test after the VM work.**
+**2026-11-09 (branch `v3` off dev 02a639a): steps 1 + 2 DONE, gate identical; step 3 (Platform mode) BUILT +
+sim-tested, NEXT = its live test** (the user positions the character on a map they OK, F10 -> platform, F9 on 1-3
+platforms, F7). Decisions + how it works: PLAN-v3.md "Platform mode as built". New: runtime/marks.py, F9 / F10 in
+`Keys`, v3/goals.py HuntArea (fence + fight back + 36-44 s leash), v3/tasks.py Back, Trips.area_goal, Targeting
+`area` term, livemap `*` = marked. tests/test_v3_area.py (sim, Line 1). Auto mode still gate-identical.
+- **Sim harness bug found (NOT fixed, kept for the gate):** nav/sim.py only knows a key named "jump"; the brain
+  presses `shift` (Trips' keymap) -> in tests/test_brain_v2.py `_hunt` (and so the gate seeds) running jumps and
+  drop-throughs NEVER happen (jump links time out, get blacklisted; e.g. 244 -> 285 on Line 1). test_v3_area
+  translates the key. Fixing `_hunt` = a deliberate gate re-record: ask the user.
 - Gate: `python tools/v3/gate.py` (sim seeds 1-8 x 180 s + agree.py on runs/play/20261105_000802_1) vs
   tests/fixtures/v3_gate.json, recorded on dev BEFORE any change (`d4f73f3`); `--quick` = seeds 1-2 x 60 s, also
   tests/test_v3_gate.py on every pytest. Re-record (`--record`) only on purpose. Proven to catch a 0.5 -> 0.45

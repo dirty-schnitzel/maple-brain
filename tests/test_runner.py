@@ -156,7 +156,8 @@ class ScriptedKeys:
         return self.script(name, self.n[name])
 
 
-def _serve(tmp_path, monkeypatch, script, focus_script=None, max_hunts=2, observe=False, screen=None):
+def _serve(tmp_path, monkeypatch, script, focus_script=None, max_hunts=2, observe=False, screen=None,
+           keys=(START, STOP)):
     holder = {}
 
     def make_kb(hwnd, *_):
@@ -170,9 +171,53 @@ def _serve(tmp_path, monkeypatch, script, focus_script=None, max_hunts=2, observ
     monkeypatch.setattr(runner, "chirp", lambda up: None)
     monkeypatch.setattr(runner.time, "sleep", lambda s: None)
     monkeypatch.setattr(runner, "ASSETS", FX)
-    hk = runner.Hotkeys([START, STOP], key_down=ScriptedKeys(script))
+    hk = runner.Hotkeys(list(keys), key_down=ScriptedKeys(script))
     code = runner.serve(tmp_path / "manual", Config(), hotkeys=hk, max_hunts=max_hunts, observe=observe)
     return code, holder["kb"], tmp_path / "manual"
+
+
+# ---------------------------------------------------------------- serve: modes (F10) and platform marks (F9)
+MARK, MODE = Config().keys.mark, Config().keys.mode
+
+
+def _quit_at(n_quit, presses):
+    """A key script: `presses` = {key: [poll numbers it is down at]}; the start key's poll n_quit = Ctrl+C."""
+    def script(name, n):
+        if name == START and n >= n_quit:
+            raise KeyboardInterrupt
+        return n in presses.get(name, ())
+    return script
+
+
+def test_serve_platform_mode_without_marks_starts_no_hunt(tmp_path, monkeypatch, capsys):
+    script = _quit_at(40, {MODE: [3], START: [10]})
+    code, kb, out = _serve(tmp_path, monkeypatch, script, keys=(START, STOP, MARK, MODE))
+    said = capsys.readouterr().out
+    assert code == 0 and "mode: platform" in said and "no platform marked on this map" in said
+    assert not out.exists() or not any(p.is_dir() for p in out.iterdir())          # no hunt folder
+
+
+def test_serve_marks_toggle_only_in_platform_mode_and_bind_the_hunt(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(runner, "_init_map", lambda rig, say, frames=3, save_to=None: True)
+    monkeypatch.setattr(runner, "_platform_here", lambda rig, say: (rig.cfg.perception.map_id, 273, "273 (y 198)"))
+    monkeypatch.setattr(runner, "_map_name", lambda map_id: "Line 1")
+    # F9 in auto mode (refused), F10 -> platform, F9 marks, F9 unmarks, F9 marks again, F7: brain v1 -> refused
+    script = _quit_at(60, {MARK: [3, 12, 16, 20], MODE: [8], START: [30]})
+    code, kb, out = _serve(tmp_path, monkeypatch, script, keys=(START, STOP, MARK, MODE))
+    said = capsys.readouterr().out
+    assert code == 0
+    assert "platform marks are for platform mode" in said
+    assert said.count("s marked 273") == 2 and said.count("s unmarked 273") == 1
+    assert "platform mode needs brain v2" in said                                 # marks there, v1 can't use them
+
+
+def test_marks_are_kept_per_map_and_modes_cycle():
+    from maplebrain.runtime.marks import Marks
+    m = Marks()
+    assert m.mode == "auto" and m.next_mode() == "platform" and m.next_mode() == "auto"
+    assert m.toggle(1, 273) and m.toggle(1, 79) and m.toggle(2, 5)
+    assert not m.toggle(1, 273)
+    assert m.area(1) == {79} and m.area(2) == {5} and m.area(3) == frozenset()
 
 
 def test_serve_f7_starts_a_hunt_f8_stops_it_and_f7_starts_another(tmp_path, monkeypatch):

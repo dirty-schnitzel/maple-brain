@@ -19,6 +19,7 @@ from .perception.world import letters
 
 ASSETS = Path(__file__).resolve().parents[1] / "assets" / "mcw"
 MAP_RE = re.compile(r"\bmap (?:recognised: )?(\d{6,})\b")
+MARKED_RE = re.compile(r"^marked platforms ([\d,]+)$", re.M)     # serve writes it at F7 in platform mode
 
 
 def _newest(d: Path) -> Path | None:
@@ -51,6 +52,22 @@ class View:
             f = ASSETS / "mobs" / str(i) / "mob.json"
             names[i] = json.loads(f.read_text(encoding="utf-8")).get("name", str(i)) if f.exists() else str(i)
         self.names, self.let = names, letters(names)
+        self.marked = {}                                  # run -> floor segments of its marked platforms
+
+    def marked_segs(self, run: Path) -> list:
+        """Platform mode: the marked platforms' floor segments, from the hunt's log (none in auto mode)."""
+        if run not in self.marked:
+            log = run / "log.txt"
+            m = MARKED_RE.search(log.read_text(encoding="utf-8", errors="replace")) if log.exists() else None
+            segs = []
+            if m:
+                from .nav.navmap import NavMap
+                nav = NavMap.for_map(self.map_id, ASSETS)
+                for pid in map(int, m.group(1).split(",")):
+                    p = nav.platforms.get(pid)
+                    segs += [(s.x1, s.y1, s.x2, s.y2) for s in (p.segs if p else [])]
+            self.marked[run] = segs
+        return self.marked[run]
 
     def frame(self, tick: dict, run: Path) -> str:
         o = tick.get("obs") or {}
@@ -75,7 +92,7 @@ class View:
                  f"{run.name}  tick {tick.get('n')}  t={o.get('t', 0):.1f}s  mode {tick.get('mode')}  "
                  f"HP {o.get('hp_now')}/{o.get('hp_max')}  mobs {len(live)}  "
                  f"({', '.join(f'{self.names.get(i, i)} {c}' for i, c in self.let.items())})",
-                 render(self.mj, marks=marks, screen=scr, width=self.width)]
+                 render(self.mj, marks=marks, screen=scr, width=self.width, marked=self.marked_segs(run))]
         if not o.get("cam") and not o.get("mobs"):
             lines.append("(no tracks in this run: start the bot with --gpu)")
         return "\n".join(lines)
