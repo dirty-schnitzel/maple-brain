@@ -76,7 +76,7 @@ def _run(tmp_path, monkeypatch, focus_script=None, seconds=1.5, screen=None):
         holder["kb"] = FakeKeyboard(hwnd, focus_script)
         return holder["kb"]
 
-    monkeypatch.setattr(runner, "find_window", lambda: 1)
+    monkeypatch.setattr(runner, "find_window", lambda window="maplestory": 1)
     monkeypatch.setattr(runner, "Keyboard", make_kb)
     monkeypatch.setattr(runner, "Screen", screen or FakeScreen)
     monkeypatch.setattr(runner, "alarm", lambda: None)
@@ -164,7 +164,7 @@ def _serve(tmp_path, monkeypatch, script, focus_script=None, max_hunts=2, observ
         holder["kb"] = FakeKeyboard(hwnd, focus_script)
         return holder["kb"]
 
-    monkeypatch.setattr(runner, "find_window", lambda: 1)
+    monkeypatch.setattr(runner, "find_window", lambda window="maplestory": 1)
     monkeypatch.setattr(runner, "Keyboard", make_kb)
     monkeypatch.setattr(runner, "Screen", screen or FakeScreen)
     monkeypatch.setattr(runner, "alarm", lambda: None)
@@ -279,7 +279,7 @@ def test_serve_measures_the_game_picture_at_every_start(tmp_path, monkeypatch):
     def make_kb(hwnd, *_):
         holder["kb"] = FakeKeyboard(hwnd)
         return holder["kb"]
-    monkeypatch.setattr(runner, "find_window", lambda: 1)
+    monkeypatch.setattr(runner, "find_window", lambda window="maplestory": 1)
     monkeypatch.setattr(runner, "Keyboard", make_kb)
     monkeypatch.setattr(runner, "alarm", lambda: None)
     monkeypatch.setattr(runner, "chirp", lambda up: None)
@@ -356,7 +356,7 @@ def test_map_given_with_option_skips_recognition(tmp_path, monkeypatch, capsys):
     loaded = []
     monkeypatch.setattr(runner, "_load_map", lambda rig, mid, say: loaded.append(mid) or True)
     holder = {}
-    monkeypatch.setattr(runner, "find_window", lambda: 1)
+    monkeypatch.setattr(runner, "find_window", lambda window="maplestory": 1)
     monkeypatch.setattr(runner, "Keyboard", lambda hwnd, *_: holder.setdefault("kb", FakeKeyboard(hwnd)))
     monkeypatch.setattr(runner, "Screen", FakeScreen)
     monkeypatch.setattr(runner, "chirp", lambda up: None)
@@ -422,3 +422,30 @@ def test_load_map_from_the_real_assets(monkeypatch):
     assert said[0].startswith("map 42 Maple Road / Snail Hunting Ground III: sprites for Snail (2), Blue Snail (3), "
                               "Red Snail (5)")
     assert rig.cfg.perception.map_id == 42
+
+
+def test_vmware_window_keys_and_picture_go_through_the_vmware_frame(monkeypatch):
+    """--window vmware (2026-11-10, a private server in a VMware guest): the focus guard and the capture both get
+    the VMware frame window (the capture finds the guest display inside it); the log says which window."""
+    asked, made = [], {}
+    monkeypatch.setattr(runner, "find_window", lambda window="maplestory": asked.append(window) or 77)
+    monkeypatch.setattr(runner, "Keyboard", lambda hwnd, *_: made.setdefault("kb", FakeKeyboard(hwnd)))
+    monkeypatch.setattr(runner, "Screen", lambda hwnd: made.setdefault("screen_hwnd", hwnd) and FakeScreen(hwnd))
+    monkeypatch.setattr(runner, "ASSETS", FX)
+    cfg = Config()
+    cfg.window, cfg.perception.map_id = "vmware", None
+    import maplebrain.nav.identify as identify
+    monkeypatch.setattr(identify.MapIdentifier, "load", classmethod(lambda cls, root, **kw: type("I", (), {"canvases": {}})()))
+    said = []
+    assert runner._setup(cfg, said.append, focus=False) is not None
+    assert asked == ["vmware"] and made["screen_hwnd"] == 77
+    assert any("VMware Workstation" in s for s in said)
+
+
+def test_no_vmware_window_says_so_and_stops(monkeypatch):
+    monkeypatch.setattr(runner, "find_window", lambda window="maplestory": 0)
+    cfg = Config()
+    cfg.window = "vmware"
+    said = []
+    assert runner._setup(cfg, said.append, focus=False) is None
+    assert said == ["VMware Workstation window not found"]

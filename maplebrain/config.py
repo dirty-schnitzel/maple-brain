@@ -284,6 +284,9 @@ class Nav:
     spawn_level: float = 80         # only spawns within this height of our feet count (our floor / its pits)
 
 
+WINDOWS = ("maplestory", "vmware")      # Config.window choices (capture.find_window)
+
+
 @dataclass
 class Config:
     keys: Keys = field(default_factory=Keys)
@@ -295,3 +298,5 @@ class Config:
     nav: Nav = field(default_factory=Nav)
     combat: Combat = field(default_factory=Combat)
     brain: str = "v1"               # v1 = brain/brain.py (default until v2 wins the A/B); v2 = brain/brain_v2.py
+    window: str = "maplestory"      # --window: the game's own window, or "vmware" = the game in a VMware guest
+                                    # (capture.find_window). VMware: keep Ctrl+Alt out of Keys (= its release key)

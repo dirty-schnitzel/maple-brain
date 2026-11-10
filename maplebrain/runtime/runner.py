@@ -37,6 +37,7 @@ from .recorder import Recorder
 
 ASSETS = Path(__file__).resolve().parents[2] / "assets"
 VK = {f"f{i}": 0x6F + i for i in range(1, 13)}          # F1 = 0x70 ... F12 = 0x7B
+WINDOW_NAME = {"maplestory": "MapleStory", "vmware": "VMware Workstation"}      # Config.window -> for the log
 
 
 def alarm():
@@ -184,10 +185,12 @@ def _init_map(rig: "Rig", say, frames: int = 3, save_to: Path | None = None) -> 
 
 
 def _setup(cfg: Config, say, focus: bool):
-    hwnd = find_window()
+    hwnd = find_window(cfg.window)
     if not hwnd:
-        say("MapleStory window not found")
+        say(f"{WINDOW_NAME[cfg.window]} window not found")
         return None
+    if cfg.window != "maplestory":
+        say(f"game window: {WINDOW_NAME[cfg.window]} (keys only while it is the focused window)")
     hz = Humanizer(cfg.humanize.jitter, cfg.humanize.seed, cfg.humanize.drift)
     kb = Keyboard(hwnd, hz, cfg.humanize, cfg.keys)
     if focus and not kb.focused():
@@ -550,7 +553,7 @@ def serve(out_root: Path, cfg: Config, frames: int = 0,
     return 0
 
 
-def watch(out: Path, seconds: float, every_s: float = 0.3) -> int:
+def watch(out: Path, seconds: float, every_s: float = 0.3, window: str = "maplestory") -> int:
     """Lie Detector watch with no hunt (session 9: one came up seconds after acc3's time limit, while the bot was
     gone and Claude analysed between runs - nothing looked at the screen). Grabs the game picture every ~0.3 s
     (mss, so a hunt's dxcam in another process is untouched), siren while the window is up, saves the frame.
@@ -566,9 +569,9 @@ def watch(out: Path, seconds: float, every_s: float = 0.3) -> int:
         log.write(line + "\n")
         log.flush()
 
-    hwnd = find_window()
+    hwnd = find_window(window)
     if not hwnd:
-        say("MapleStory window not found")
+        say(f"{WINDOW_NAME[window]} window not found")
         return 1
     screen = Screen(hwnd)
     screen.close()

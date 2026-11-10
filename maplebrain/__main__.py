@@ -7,7 +7,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from .config import Combat, Keys, Perception
+from .config import WINDOWS, Combat, Keys, Perception
 
 
 def main(argv=None) -> int:
@@ -33,6 +33,7 @@ def main(argv=None) -> int:
                    "length (default: the usual one for the type in the client data; a Booster takes 2 off)")
     r.add_argument("--mob-score", type=float, default=None, help="a new mob needs a sighting this good (default "
                    f"{Perception.sprite_score}); mobs already tracked are followed at any score")
+    r.add_argument("--window", choices=WINDOWS, default="maplestory", help="vmware = the game runs in a VMware guest: keys + picture via the VMware window")
     r.add_argument("--no-focus", action="store_true", help="don't bring the game to front; wait for you to")
     r.add_argument("--frames-every", type=int, default=3, help="save every Nth frame (1 = all, for tracker tests)")
     v = sub.add_parser("serve", help=f"stay loaded; {Keys.start.upper()} starts hunting, {Keys.stop.upper()} stops (elevated, game focused); "
@@ -54,6 +55,7 @@ def main(argv=None) -> int:
                    "length (default: the usual one for the type in the client data; a Booster takes 2 off)")
     v.add_argument("--mob-score", type=float, default=None, help="a new mob needs a sighting this good (default "
                    f"{Perception.sprite_score}); mobs already tracked are followed at any score")
+    v.add_argument("--window", choices=WINDOWS, default="maplestory", help="vmware = the game runs in a VMware guest: keys + picture via the VMware window")
     v.add_argument("--start-key", default=Keys.start)
     v.add_argument("--stop-key", default=Keys.stop)
     v.add_argument("--frames", action="store_true", help="also save every 3rd frame (~50 MB per 10 min)")
@@ -69,6 +71,7 @@ def main(argv=None) -> int:
     g.add_argument("--hp-stop", type=float, default=0.45)
     g.add_argument("--map", type=int, default=None)
     g.add_argument("--seed", type=int, default=None)
+    g.add_argument("--window", choices=WINDOWS, default="maplestory", help="vmware = the game runs in a VMware guest: keys + picture via the VMware window")
     g.add_argument("--no-focus", action="store_true")
     g.add_argument("--frames-every", type=int, default=3)
     lm = sub.add_parser("livemap", help="console map of the running hunt (tracks; needs --gpu), redrawn in place")
@@ -83,6 +86,7 @@ def main(argv=None) -> int:
     w = sub.add_parser("watch", help="no hunt: siren if the Lie Detector shows up (keep running between runs)")
     w.add_argument("out", type=Path, nargs="?", default=Path("runs/watch"))
     w.add_argument("--seconds", type=float, default=4 * 3600)
+    w.add_argument("--window", choices=WINDOWS, default="maplestory", help="vmware = the game runs in a VMware guest: keys + picture via the VMware window")
     s = sub.add_parser("assets", help="rebuild assets/mcw from the client export (tools/cwdata/export.ps1; "
                        "see assets/README.md)")
     s.add_argument("action", choices=["build"])
@@ -95,7 +99,7 @@ def main(argv=None) -> int:
         return follow(a.dir, a.every, a.width, a.map)
     if a.cmd == "watch":
         from .runtime.runner import watch
-        return watch(a.out, a.seconds)
+        return watch(a.out, a.seconds, window=a.window)
     if a.cmd == "goto":
         from .config import Config
         from .keyboard import validate
@@ -103,6 +107,7 @@ def main(argv=None) -> int:
         validate(a.jump)
         cfg = Config()
         cfg.keys.jump, cfg.safety.hp_stop, cfg.perception.map_id = a.jump, a.hp_stop, a.map
+        cfg.window = a.window
         to = (int(a.to[0]), a.to[1] if len(a.to) > 1 else None) if a.to else None
         return goto(a.out, cfg, a.seconds, to, focus=not a.no_focus, frames_every=a.frames_every, seed=a.seed)
     if a.cmd == "assets":
@@ -119,6 +124,7 @@ def main(argv=None) -> int:
         cfg.keys.attack, cfg.keys.jump, cfg.keys.pickup, cfg.safety.hp_stop = a.attack, a.jump, a.pickup, a.hp_stop
         cfg.keys.basic_attack = a.basic_attack
         cfg.perception.map_id = a.map
+        cfg.window = a.window
         cfg.perception.loot = a.loot
         cfg.perception.loot_by_sight = a.loot and a.loot_sight
         cfg.perception.gpu = a.gpu or a.brain == "v2"
