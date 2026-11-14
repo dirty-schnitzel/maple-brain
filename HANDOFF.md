@@ -48,9 +48,9 @@ later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never 
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
 ## START HERE NEXT SESSION (P1, the user 2026-11-09): brain v3 up to Platform mode (= Area mode, `--mark-platform`)
-**2026-11-10: PAUSED for the VMware pivot (the user: perception + keys for a game running in a VMware VM instead of
-the local process; memory "VMware VM setup"). Steps 1-3 committed on `v3`, merged into `dev`; `main` NOT updated
-(no live run of v3 yet). Resume v3 with step 3's live test after the VM work.**
+**2026-11-15: back to the local game process (capture + SendInput as before). The VM experiment is parked on branch
+`vnc-keys` only (never on `dev` / `main`). `dev` = `v3` = steps 1-3; `main` NOT updated (no live run of v3 yet).
+NEXT = step 3's live test on the local client.**
 **2026-11-09 (branch `v3` off dev 02a639a): steps 1 + 2 DONE, gate identical; step 3 (Platform mode) BUILT +
 sim-tested, NEXT = its live test** (the user positions the character on a map they OK, F10 -> platform, F9 on 1-3
 platforms, F7). Decisions + how it works: PLAN-v3.md "Platform mode as built". New: runtime/marks.py, F9 / F10 in
