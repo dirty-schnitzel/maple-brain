@@ -403,9 +403,10 @@ def run(out: Path, seconds: float, cfg: Config, focus: bool = True, frames_every
     return 0 if status == "ok" else 2
 
 
-def _platform_here(rig: Rig, say):
-    """Between hunts (F9): (map id, platform id, its description) we stand on, from the minimap - the map recognised
-    first (as at F7).
+def _platform_here(rig: Rig, say, frame=None):
+    """Between hunts (F9): (map id, platform id, its description) we stood on in `frame` (grabbed at the press; the
+    first F9 on a map loads it, ~20 s live, and we may have walked on by then), from the minimap - the map
+    recognised first (as at F7).
     None (said why) when it can't tell: the minimap is covered / closed, we're on a rope or in the air."""
     from ..perception import hud
     loc = rig.locator
@@ -413,7 +414,8 @@ def _platform_here(rig: Rig, say):
         say("no map loaded: can't tell the platform")
         return None
     loc.origin, loc.lost = None, False                    # measure the minimap window afresh, as a hunt does
-    frame = rig.screen.grab()
+    if frame is None:
+        frame = rig.screen.grab()
     if frame is None or not loc.calibrate(frame):
         say("minimap not found (closed / covered?): can't tell the platform")
         return None
@@ -435,19 +437,24 @@ def _mark_here(rig: Rig, marks: Marks, say, out_root: Path):
     if not rig.kb.focused():
         say(f"{key} ignored: the game isn't the focused window")
         return
+    t = time.perf_counter()
     rig.screen.calibrate()
+    pressed_at = rig.screen.grab()                        # where we stand NOW, before the (slow) map load
     if not _init_map(rig, say, frames=1, save_to=out_root):
         chirp(False)
         return
-    here = _platform_here(rig, say)
+    here = _platform_here(rig, say, pressed_at)
     if here is None:
         chirp(False)
         return
     map_id, pid, label = here
     on = marks.toggle(map_id, pid)
     area = marks.area(map_id)
+    took = time.perf_counter() - t
     say(f"{'marked' if on else 'unmarked'} {label}; marked on {_map_name(map_id)}: "
-        + (", ".join(map(str, sorted(area))) or "none"))
+        + (", ".join(map(str, sorted(area))) or "none")
+        + (f" (took {took:.0f} s loading the map: an {key} pressed meanwhile was NOT seen - press it again)"
+           if took > 2 else ""))
     chirp(on)
 
 

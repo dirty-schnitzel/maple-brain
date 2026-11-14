@@ -3,7 +3,8 @@
 Written 2026-11-08 with the user. Direction agreed ("overall excellent design and plan"). **2026-11-09, the user: P1
 priority = get to Platform mode** (= Area mode, `--mark-platform`): migration steps 1-3 below, before the accuracy +
 speed plan (HANDOFF "P2"). **2026-11-09: steps 1 (objects) + 2 (planner) DONE on branch `v3`, gate identical
-(tools/v3/gate.py); step 3 (Platform mode) built + sim-tested, live test next.** Design page with the diagrams
+(tools/v3/gate.py); step 3 (Platform mode) built + sim-tested; 2026-11-15 live test PASSED on Ant Tunnel IV
+(`runs/v2/20261115_015246_2`: 3 marks, 21 kills / 3.2 min, every off-area exit back in 1-8 s).** Design page with the diagrams
 (private to the user):
 https://claude.ai/artifact/RVUYFFktHVpu3EbSBCR4Mh
 

@@ -1,10 +1,11 @@
-# maplebrain — session handoff (updated 2026-11-09)
-**Read this file top to bottom; it holds only the current state.** NEXT SESSION = "START HERE NEXT SESSION (P1)"
-below: brain v3 (**PLAN-v3.md**: world model + planner; Platform / Path / Auto modes) up to **Platform mode** (= Area
-mode, `--mark-platform`). P2 after it: accuracy + speed.
+# maplebrain — session handoff (updated 2026-11-15)
+**Read this file top to bottom; it holds only the current state.** NEXT SESSION = "START HERE NEXT SESSION" below:
+brain v3 (**PLAN-v3.md**) steps 1-3 are DONE and **Platform mode passed its live test** (2026-11-15, Ant Tunnel IV;
+the user: "perfect platform mode test"). NEXT = P2 (accuracy + speed); open offer: the humanness report (below).
 Sessions 6-23, the old brain (v1), and superseded plans moved verbatim to **HISTORY.md** on 2026-11-08: grep it for
 old runs, numbers and decisions.
-Latest: 2026-11-09 edge ghosts fixed + live-checked (`runs/v2/air1/fix3`), package renamed maplebot -> maplebrain;
+Latest: 2026-11-15 Platform mode live (runs below), F9 mark fix; the hybrid BT + imitation-learning proposal reviewed
+and declined (below); VM work parked on `vnc-keys`. 2026-11-09 edge ghosts fixed + live-checked (`runs/v2/air1/fix3`), package renamed maplebot -> maplebrain;
 `main` = `dev` = 5998a33, pushed. 2026-11-08 attack per press built + live (`runs/v2/press1`; the user: "the most significant change in bot
 behavior since start"), speed regression test, brain v3 planned; 2026-11-07 map recognition measures the minimap
 window; 2026-11-05 M2 combat live, brain v2 split into parts; M1 movement done.
@@ -47,10 +48,46 @@ find mobs, fight them like a player, pick up loot, use potions, and **navigate p
 later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never reads memory or packets.
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
-## START HERE NEXT SESSION (P1, the user 2026-11-09): brain v3 up to Platform mode (= Area mode, `--mark-platform`)
+## START HERE NEXT SESSION (2026-11-15): Platform mode is live-proven -> P2 accuracy + speed
+**First:** ask the user whether to merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges; v3 now has
+a good live run). Then P2 (section below). Offered, not yet answered: the humanness report (below) - ask.
+
+**Platform mode live test, 2026-11-15, Ant Tunnel IV, local client (`serve runs\v2 --brain v2 --mob-score 0.70
+--frames`) - PASSED ("perfect platform mode test"):**
+- `runs/v2/20261115_015200_1` (40 s): marks 364 (y 1560) + 399 (y 1712); moves between them both ways (jump up /
+  drop), off the area 2x (on 417, a route crossing) and back after 2-3 s.
+- `runs/v2/20261115_015246_2` (3.2 min): marks 168 + 364 + 399; 21 kills by last hit (6.6/min), 3.5 swings / kill,
+  962 EXP (18,080/hour); off the area 13x (417 / 373, between the marks), back after 1-8 s every time, the leash
+  (36-42 s) never ran out; tick p50 31 ms.
+- First try `runs/v2/20261115_013124_1`: only 168 got marked -> **bug, FIXED (uncommitted at writing):** the first
+  F9 on a map loads it (17-21 s live: recognition + sprites + GPU warm-up); hotkeys aren't polled meanwhile (a 2nd
+  F9 is lost) and the platform was read AFTER the load (where we stood then). Now `_mark_here` grabs the frame at
+  the press (`_platform_here(rig, say, frame)`), and a mark taking > 2 s says "an F9 pressed meanwhile was NOT seen
+  - press it again". Test: tests/test_runner.py `test_mark_reads_the_platform_from_the_frame_at_the_press...`.
+  Usage: on the first F9 per map, stand still until the chirp.
+
+**Direction review, 2026-11-15 (the user brought a proposal from another AI: utility behaviour tree at 15 Hz +
+imitation-learning micro policy at 60 Hz with action chunking + "biomechanical" key timing). Outcome: keep v3.**
+- Its macro half = what v3 already is: Blackboard = v3/model.py World; utility BT root = Planner + Goals (scored
+  terms); survival = Reflexes; anti-stuck = Travel; MemSequence = Task.can_cancel.
+- The learned micro layer: declined again (as in sessions 20-21; M5 stays optional, movement only): the tick is ~30-60
+  ms (no 60 Hz), one 18.5-min recording of the user (spear, Line 1) vs today's polearm / Ant Tunnel, and it would
+  replace per-press combat (the best thing built).
+- **The user challenged "the server never sees finger-level timing" - rightly:** movement packets carry per-segment
+  durations, attacks carry timing, the server knows reaction times to spawns; the client-side anti-cheat sees every
+  key event. Plus: LDs began on `serve --observe` start with no keys sent. So input realism plausibly matters.
+- Today only combat gaps use the user's measured deciles (`Humanizer.pick`); everything else is nominal +-25 %
+  (triangular) + tempo drift; key overlaps, holds while walking, reaction delays are not modelled or compared.
+- **Offered (not answered): humanness report** - tool comparing a bot run's keys.jsonl vs the user's keylog per
+  feature (press / hold length per key, attack gaps, reaction from in-reach to first press, overlaps: attack while
+  walking, turn while holding the other way, idle gaps, running jumps) with a 2-sample test -> a table of where the
+  bot differs; then replace the worst nominal timings with measured distributions (= M4 pulled earlier); record
+  1-2 more sessions of the user with the polearm on Ant Tunnel IV.
+- Small ideas from the proposal worth taking (logged, not built): softmax + noise on roam / zone choice (a score
+  term with a temperature); potion thresholds drifting over a session (Reflexes parameter; today HP 50 % / MP 10 %).
+
 **2026-11-15: back to the local game process (capture + SendInput as before). The VM experiment is parked on branch
-`vnc-keys` only (never on `dev` / `main`). `dev` = `v3` = steps 1-3; `main` NOT updated (no live run of v3 yet).
-NEXT = step 3's live test on the local client.**
+`vnc-keys` only (never on `dev` / `main`). `dev` = `v3` = steps 1-3; `main` NOT updated.**
 **2026-11-09 (branch `v3` off dev 02a639a): steps 1 + 2 DONE, gate identical; step 3 (Platform mode) BUILT +
 sim-tested, NEXT = its live test** (the user positions the character on a map they OK, F10 -> platform, F9 on 1-3
 platforms, F7). Decisions + how it works: PLAN-v3.md "Platform mode as built". New: runtime/marks.py, F9 / F10 in
@@ -381,7 +418,7 @@ History of how it got here: HISTORY.md "Session 23", "BRAIN-V2: THE PLAN", "M1 s
 - [ ] **M2 Hunt skill, IN PROGRESS:** combat per press is live; P2 = the accuracy + speed plan above. Then: the A/B
   vs the old brain (`tools/play/kills.py` needs a bot variant) -> v2 the default, v1 retired; loot (z bursts); buff
   `1`; skill rotation (the user: later; plain attack is the default, MP potions are too expensive).
-- [ ] **Brain v3 (PLAN-v3.md), P1 = NEXT up to Platform mode:** world model + planner over today's parts; modes Platform (= Area, `--mark-platform`) /
+- [ ] **Brain v3 (PLAN-v3.md): steps 1-3 DONE, Platform mode live-proven 2026-11-15; steps 4-6 later:** world model + planner over today's parts; modes Platform (= Area, `--mark-platform`) /
   Path / Auto. **M3 patrol = v3's Auto mode** (zones = spawns x EXP / respawn, cost = route seconds; the user's Line 1
   loop in the FARMING EXAMPLE is the reference).
 - [ ] M4 human timing: tap / hold / pause distributions from the user's recordings (combat gaps already use them);

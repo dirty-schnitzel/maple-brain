@@ -199,7 +199,8 @@ def test_serve_platform_mode_without_marks_starts_no_hunt(tmp_path, monkeypatch,
 
 def test_serve_marks_toggle_only_in_platform_mode_and_bind_the_hunt(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(runner, "_init_map", lambda rig, say, frames=3, save_to=None: True)
-    monkeypatch.setattr(runner, "_platform_here", lambda rig, say: (rig.cfg.perception.map_id, 273, "273 (y 198)"))
+    monkeypatch.setattr(runner, "_platform_here",
+                        lambda rig, say, frame=None: (rig.cfg.perception.map_id, 273, "273 (y 198)"))
     monkeypatch.setattr(runner, "_map_name", lambda map_id: "Line 1")
     # F9 in auto mode (refused), F10 -> platform, F9 marks, F9 unmarks, F9 marks again, F7: brain v1 -> refused
     script = _quit_at(60, {MARK: [3, 12, 16, 20], MODE: [8], START: [30]})
@@ -209,6 +210,29 @@ def test_serve_marks_toggle_only_in_platform_mode_and_bind_the_hunt(tmp_path, mo
     assert "platform marks are for platform mode" in said
     assert said.count("s marked 273") == 2 and said.count("s unmarked 273") == 1
     assert "platform mode needs brain v2" in said                                 # marks there, v1 can't use them
+
+
+def test_mark_reads_the_platform_from_the_frame_at_the_press_not_after_the_map_load(monkeypatch, capsys):
+    """Live 2026-11-15 (runs/v2/20261115_013124_1): the first F9 on Ant Tunnel IV loaded the map for 20.6 s; the
+    platform was read after it (the user had walked on, so the wrong one got marked) and the 2nd F9 meanwhile was
+    never polled. The press's frame decides; a slow mark says an F9 meanwhile was missed."""
+    from types import SimpleNamespace
+    from maplebrain.runtime.marks import Marks
+    grabs = iter(["at press", "after load"])
+    rig = SimpleNamespace(cfg=Config(), kb=SimpleNamespace(focused=lambda: True),
+                          screen=SimpleNamespace(calibrate=lambda: None, grab=lambda: next(grabs)))
+    clock = iter([0.0, 20.6])
+    monkeypatch.setattr(runner.time, "perf_counter", lambda: next(clock))
+    monkeypatch.setattr(runner, "_init_map", lambda rig, say, frames=3, save_to=None: rig.screen.grab() and True)
+    seen = []
+    monkeypatch.setattr(runner, "_platform_here", lambda rig, say, frame=None: seen.append(frame) or (1, 273, "273"))
+    monkeypatch.setattr(runner, "_map_name", lambda map_id: "Line 1")
+    monkeypatch.setattr(runner, "chirp", lambda up: None)
+    marks = Marks()
+    marks.next_mode()
+    runner._mark_here(rig, marks, print, Path("."))
+    assert seen == ["at press"] and marks.area(1) == {273}
+    assert "was NOT seen - press it again" in capsys.readouterr().out
 
 
 def test_marks_are_kept_per_map_and_modes_cycle():
