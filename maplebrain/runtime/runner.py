@@ -30,6 +30,7 @@ from ..capture import Screen, find_window
 from ..config import Config
 from ..humanize import Humanizer
 from ..keyboard import FocusLost, Keyboard, bring_to_front, foreground_title
+from ..vnc import VncKeys
 from ..perception.perceiver import Perceiver
 from .keys import KeyDriver, LegacyExecutor
 from .marks import Marks
@@ -189,10 +190,23 @@ def _setup(cfg: Config, say, focus: bool):
     if not hwnd:
         say(f"{WINDOW_NAME[cfg.window]} window not found")
         return None
-    if cfg.window != "maplestory":
+    out = None
+    if cfg.window == "vmware":
+        say(f"game window: {WINDOW_NAME[cfg.window]} (keys go into the guest whatever window is in front here; the "
+            "VMware window must stay visible on screen - the picture is read off it)")
+    elif cfg.window != "maplestory":
         say(f"game window: {WINDOW_NAME[cfg.window]} (keys only while it is the focused window)")
+    if cfg.window == "vmware":                  # host SendInput doesn't reach the guest: VMware's VNC server does
+        out = VncKeys(cfg.vnc)
+        try:
+            name = out.connect()
+        except OSError as e:
+            say(f"no VNC link to the VMware guest at {cfg.vnc}: {e} - enable VM > Settings > Options > "
+                "VNC Connections (password: env MAPLEBRAIN_VNC_PASSWORD)")
+            return None
+        say(f"keys: VNC {cfg.vnc} into the guest ({name or 'VMware'})")
     hz = Humanizer(cfg.humanize.jitter, cfg.humanize.seed, cfg.humanize.drift)
-    kb = Keyboard(hwnd, hz, cfg.humanize, cfg.keys)
+    kb = Keyboard(hwnd, hz, cfg.humanize, cfg.keys, out)
     if focus and not kb.focused():
         say("switching to the game in 3s - hands off the keyboard and mouse")
         time.sleep(3)
@@ -200,7 +214,14 @@ def _setup(cfg: Config, say, focus: bool):
     screen = Screen(hwnd)
     say(f"capture: {screen.kind}{' (' + screen.note + ')' if screen.note else ''}")
     from ..perception.liedetector import LieDetector
-    rig = Rig(cfg, hz, kb, screen, None, LieDetector.load(ASSETS), np.load(ASSETS / "self_tag_gray.npy"))
+    tag_file = ASSETS / "tags" / f"{cfg.char}.npy" if cfg.char else ASSETS / "self_tag_gray.npy"
+    if not tag_file.exists():
+        say(f"no name tag for {cfg.char}: {tag_file} - cut it with: python tools\\self_tag.py {cfg.char} "
+            f"--window {cfg.window}")
+        return None
+    if cfg.char:
+        say(f"character: {cfg.char} (name tag {tag_file.name})")
+    rig = Rig(cfg, hz, kb, screen, None, LieDetector.load(ASSETS), np.load(tag_file))
     if cfg.perception.map_id is not None:
         if not _load_map(rig, cfg.perception.map_id, say):
             return None
@@ -232,12 +253,26 @@ class _NoKeys:
         pass
 
 
+def _sticky(until):
+    """`until` that keeps its first reason: F8 is an edge (Hotkeys.pressed is True once per press), and the pause
+    loop (game not focused) asks first - before 2026-11-10 it ate the F8 and the hunt loop, asking again, got
+    None and paused again (serve --window vmware: F8 is pressed on the host = always while paused)."""
+    got = []
+
+    def f():
+        if not got and (r := until()) is not None:
+            got.append(r)
+        return got[0] if got else None
+    return f
+
+
 def _hunt(rig: Rig, rec: Recorder, t0: float, until, observe: bool = False, area=None) -> str:
     """Hunt until `until()` returns a reason (time limit, F8 ...) or the brain stops; returns the status.
     Every key is released at the end, whatever happened. `observe`: perceive and record only - no brain, no keys
     (the player plays; e.g. jump measurements). A Lie Detector still sounds the siren. `area`: platform mode's
     marked platforms (brain v2 only)."""
     cfg, hz, kb, screen = rig.cfg, rig.hz, rig.kb, rig.screen
+    until = _sticky(until)
     if cfg.brain == "v2" and not observe:
         from .hunt_v2 import hunt_v2
         return hunt_v2(rig, rec, t0, until, area=area)
@@ -475,6 +510,11 @@ def serve(out_root: Path, cfg: Config, frames: int = 0,
     what = "start recording (observe: the bot presses no keys, yours are recorded)" if observe else "start hunting"
     say(f"ready: {start_key.upper()} = {what}, {stop_key.upper()} = stop, Ctrl+C here = quit "
         "(the Lie Detector is watched between hunts too)")
+    # VMware (2026-11-10): keys pressed inside the VM never reach this PC, so the hotkeys are pressed on the host
+    # with the VMware window in the background - the bot keeps playing there (no focus guard over VNC).
+    if cfg.window == "vmware":
+        say(f"VMware: press the hotkeys on THIS PC, not in the VM; the hunt runs with the VMware window in the "
+            "background (keep it visible, not covered or minimized)")
     marks = Marks()
     if not observe:
         say(f"mode: {marks.mode} - {mode_key.upper()} = next mode (auto / platform), {mark_key.upper()} = mark / "
@@ -497,7 +537,8 @@ def serve(out_root: Path, cfg: Config, frames: int = 0,
                 chirp(marks.mode == "platform")
             if not observe and hk.pressed(mark_key):
                 _mark_here(rig, marks, say, out_root)
-            if not hk.pressed(start_key):
+            go = hk.pressed(start_key)
+            if not go:
                 # idle between hunts: still watch for the Lie Detector (session 9: one came up seconds after a
                 # hunt ended and nothing was looking). Only looks - no key is sent.
                 if time.perf_counter() >= next_look:

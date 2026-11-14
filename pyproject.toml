@@ -6,6 +6,7 @@ dependencies = ["numpy", "opencv-python-headless", "mss", "dxcam"]
 
 [project.optional-dependencies]
 dev = ["pytest"]
+vm = ["cryptography"]   # --window vmware with a VNC password (vnc.py: RFB's DES challenge)
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

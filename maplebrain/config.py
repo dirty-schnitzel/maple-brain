@@ -300,3 +300,7 @@ class Config:
     brain: str = "v1"               # v1 = brain/brain.py (default until v2 wins the A/B); v2 = brain/brain_v2.py
     window: str = "maplestory"      # --window: the game's own window, or "vmware" = the game in a VMware guest
                                     # (capture.find_window). VMware: keep Ctrl+Alt out of Keys (= its release key)
+    char: str | None = None         # --char NAME: our name tag = assets/tags/NAME.npy (tools/self_tag.py cuts it);
+                                    # None = assets/self_tag_gray.npy (JenkinsJob, what the recorded runs show)
+    vnc: str = "127.0.0.1:5900"     # --window vmware: keys go to VMware's VNC server here (vnc.VncKeys; enable it in
+                                    # VM > Settings > Options > VNC Connections; password: env MAPLEBRAIN_VNC_PASSWORD)

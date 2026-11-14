@@ -2,6 +2,8 @@
 
 The game runs elevated, so the process sending keys must be elevated too (Windows silently drops
 simulated input from a lower-integrity process and SendInput still reports success).
+`--window vmware`: SendInput doesn't reach a VMware guest, so the keys go out through VMware's VNC server instead
+(vnc.VncKeys, the `out` of Keyboard) - same keys, same humanized timing, the focus guard unchanged.
 """
 import ctypes
 import time
@@ -63,19 +65,28 @@ def foreground_title() -> str:
 class Keyboard:
     """Sends keys only while `hwnd` is the foreground window; tracks held keys so they can always be released.
     Timing is humanized: a short random reaction pause before each new key-down, and every press length and
-    after-tap pause is randomized (`hz` = Humanizer, `hcfg` = config.Humanize)."""
+    after-tap pause is randomized (`hz` = Humanizer, `hcfg` = config.Humanize).
+    `out`: where key events go - None = SendInput on this PC; a vnc.VncKeys = into the VMware guest. Then
+    "focused" = its link is up, whatever window is in front on this PC (2026-11-10: VNC keys always land in the
+    guest, and the game stays the guest's focused window; a lost link pauses the hunt like a lost focus)."""
 
-    def __init__(self, hwnd, hz=None, hcfg=None, keys=None):
+    def __init__(self, hwnd, hz=None, hcfg=None, keys=None, out=None):
         from .config import Humanize, Keys
         from .humanize import Humanizer
         self.hwnd = hwnd
+        self.out = out
         self.held: set[str] = set()
         self.hcfg = hcfg or Humanize()
         self.keys = keys or Keys()
         self.hz = hz or Humanizer(self.hcfg.jitter, self.hcfg.seed)
 
     def focused(self) -> bool:
+        if self.out is not None:
+            return self.out.ok()
         return user32.GetForegroundWindow() == self.hwnd
+
+    def _emit(self, key: str, up: bool) -> None:
+        (_send if self.out is None else self.out.send)(key, up)
 
     def _guard(self):
         if not self.focused():
@@ -87,16 +98,16 @@ class Keyboard:
         if key not in self.held:                    # a new press (not a hold's repeat): human reaction pause
             time.sleep(self.hz.between(self.hcfg.react_min_s, self.hcfg.react_max_s))
             self._guard()
-        _send(key, False)
+        self._emit(key, False)
         self.held.add(key)
 
     def up(self, key: str) -> None:
-        _send(key, True)
+        self._emit(key, True)
         self.held.discard(key)
 
     def send(self, key: str, up: bool) -> None:
         """One raw key event, no pause, no focus check (runtime.keys.KeyDriver does its own timing + focus)."""
-        _send(key, up)
+        self._emit(key, up)
         (self.held.discard if up else self.held.add)(key)
 
     def tap(self, key: str, down_s: float = 0.08, gap_s: float | None = None) -> None:
@@ -110,7 +121,7 @@ class Keyboard:
     def release_all(self) -> None:
         for k in list(self.held) + ["left", "right", "up", "down", "ctrl", "alt", self.keys.jump, self.keys.attack]:
             try:
-                _send(k, True)
+                self._emit(k, True)                 # VNC: only for keys it has down (vnc.VncKeys.send)
             except (OSError, KeyError):
                 pass
         self.held.clear()

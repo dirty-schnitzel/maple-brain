@@ -5,9 +5,10 @@ game. Then run this on the host; it waits up to --wait s for the VMware window t
 letters of --text (one SendInput key-down/up each, humanly spaced), and stops. It sends nothing unless the VMware
 frame window is the foreground window, and stops at once if focus moves away.
 
-    python tools\\vm\\keytest.py [--text vmtest] [--wait 60]
+    python tools\\vm\\keytest.py [--text vmtest] [--wait 60] [--vnc]
 
-Pass = the letters appear in the guest's Notepad.
+Pass = the letters appear in the guest's Notepad. Result 2026-11-10: SendInput FAILS (nothing arrives); `--vnc`
+sends the same letters through VMware's VNC server (maplebrain/vnc.py, what `--window vmware` uses now).
 """
 import argparse
 import random
@@ -20,16 +21,24 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import cv2  # noqa: E402
 
 from maplebrain.capture import Screen, find_window  # noqa: E402
+from maplebrain.config import Config  # noqa: E402
 from maplebrain.keyboard import SCAN, _send, user32  # noqa: E402
+from maplebrain.vnc import VncKeys  # noqa: E402
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--text", default="vmtest")
     ap.add_argument("--wait", type=float, default=60)
+    ap.add_argument("--vnc", action="store_true", help="send through VMware's VNC server, not SendInput")
     a = ap.parse_args()
     if any(c not in SCAN for c in a.text):
         ap.error("letters / digits only")
+    send = _send
+    if a.vnc:
+        out = VncKeys(Config().vnc)
+        print(f"VNC: connected ({out.connect() or 'no name'})")
+        send = out.send
     hwnd = find_window("vmware")
     if not hwnd:
         print("VMware Workstation window not found")
@@ -56,9 +65,9 @@ def main():
         if user32.GetForegroundWindow() != hwnd:
             print("focus left VMware: stopped")
             return 1
-        _send(c, False)
+        send(c, False)
         time.sleep(random.uniform(0.05, 0.11))
-        _send(c, True)
+        send(c, True)
         time.sleep(random.uniform(0.12, 0.25))
     print(f"sent {a.text!r}: does it show in the guest's Notepad?")
     return 0

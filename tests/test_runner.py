@@ -157,7 +157,7 @@ class ScriptedKeys:
 
 
 def _serve(tmp_path, monkeypatch, script, focus_script=None, max_hunts=2, observe=False, screen=None,
-           keys=(START, STOP)):
+           keys=(START, STOP), window="maplestory"):
     holder = {}
 
     def make_kb(hwnd, *_):
@@ -172,7 +172,11 @@ def _serve(tmp_path, monkeypatch, script, focus_script=None, max_hunts=2, observ
     monkeypatch.setattr(runner.time, "sleep", lambda s: None)
     monkeypatch.setattr(runner, "ASSETS", FX)
     hk = runner.Hotkeys(list(keys), key_down=ScriptedKeys(script))
-    code = runner.serve(tmp_path / "manual", Config(), hotkeys=hk, max_hunts=max_hunts, observe=observe)
+    cfg = Config()
+    cfg.window = window
+    if window == "vmware":
+        monkeypatch.setattr(runner, "VncKeys", lambda addr: type("V", (), {"connect": lambda s: "vm"})())
+    code = runner.serve(tmp_path / "manual", cfg, hotkeys=hk, max_hunts=max_hunts, observe=observe)
     return code, holder["kb"], tmp_path / "manual"
 
 
@@ -261,6 +265,55 @@ def test_serve_ignores_f7_when_the_game_is_not_focused(tmp_path, monkeypatch):
     _, kb, out = _serve(tmp_path, monkeypatch, script, focus_script=focus, max_hunts=1)
     hunts = list(out.iterdir())
     assert len(hunts) == 1
+
+
+def test_serve_vmware_f7_on_the_host_starts_and_f8_stops_the_hunt(tmp_path, monkeypatch, capsys):
+    """VMware: F-keys pressed in the VM never reach the host, so they are pressed on the host, VMware in the
+    background - over VNC that's fine (focused() = the VNC link is up, see test_vnc)."""
+    script = lambda name, n: (3 <= n <= 4) if name == START else 30 <= n <= 31  # noqa: E731
+    code, kb, out = _serve(tmp_path, monkeypatch, script, max_hunts=1, window="vmware")
+    said = capsys.readouterr().out
+    assert code == 0 and "background" in said and "ignored" not in said
+    (hunt,) = list(out.iterdir())
+    assert f"stopped by {STOP.upper()}" in (hunt / "log.txt").read_text(encoding="utf-8")
+
+
+def test_serve_native_game_ignores_f7_from_another_window(tmp_path, monkeypatch, capsys):
+    """With the game on this PC, F7 pressed in some other window must not start a hunt, then or later."""
+    script = _quit_at(80, {START: [3]})
+    _serve(tmp_path, monkeypatch, script, focus_script=lambda n: n > 1)
+    said = capsys.readouterr().out
+    assert "ignored" in said and "hunt #" not in said
+
+
+def test_serve_f8_while_paused_stops_the_hunt(tmp_path, monkeypatch):
+    """2026-11-10 (VMware): F8 pressed while the hunt was paused (game not focused) was eaten by the pause loop
+    and the hunt paused again, forever. Now the stop sticks."""
+    script = lambda name, n: (3 <= n <= 4) if name == START else 30 <= n <= 31  # noqa: E731
+    focus = lambda n: n < 20                     # the game loses focus mid-hunt and never gets it back  # noqa: E731
+    code, kb, out = _serve(tmp_path, monkeypatch, script, focus_script=focus, max_hunts=1)
+    (hunt,) = list(out.iterdir())
+    log = (hunt / "log.txt").read_text(encoding="utf-8")
+    assert code == 0 and "PAUSED" in log and f"stopped by {STOP.upper()}" in log
+    assert log.count("PAUSED") == 1
+
+
+def test_sticky_until_keeps_its_first_reason():
+    calls = iter([None, "stopped by F8", None, None])
+    u = runner._sticky(lambda: next(calls))
+    assert [u(), u(), u(), u()] == [None, "stopped by F8", "stopped by F8", "stopped by F8"]
+
+
+def test_char_without_a_saved_tag_says_how_to_make_one(monkeypatch):
+    monkeypatch.setattr(runner, "find_window", lambda window="maplestory": 1)
+    monkeypatch.setattr(runner, "Keyboard", lambda hwnd, *_: FakeKeyboard(hwnd))
+    monkeypatch.setattr(runner, "Screen", FakeScreen)
+    monkeypatch.setattr(runner, "ASSETS", FX)
+    cfg = Config()
+    cfg.char = "NoSuchChar"
+    said = []
+    assert runner._setup(cfg, said.append, focus=False) is None
+    assert "no name tag for NoSuchChar" in said[-1] and "self_tag.py NoSuchChar" in said[-1]
 
 
 def test_serve_measures_the_game_picture_at_every_start(tmp_path, monkeypatch):
@@ -432,6 +485,8 @@ def test_vmware_window_keys_and_picture_go_through_the_vmware_frame(monkeypatch)
     monkeypatch.setattr(runner, "Keyboard", lambda hwnd, *_: made.setdefault("kb", FakeKeyboard(hwnd)))
     monkeypatch.setattr(runner, "Screen", lambda hwnd: made.setdefault("screen_hwnd", hwnd) and FakeScreen(hwnd))
     monkeypatch.setattr(runner, "ASSETS", FX)
+    vnc = []
+    monkeypatch.setattr(runner, "VncKeys", lambda addr: vnc.append(addr) or type("V", (), {"connect": lambda s: "vm"})())
     cfg = Config()
     cfg.window, cfg.perception.map_id = "vmware", None
     import maplebrain.nav.identify as identify
@@ -440,6 +495,21 @@ def test_vmware_window_keys_and_picture_go_through_the_vmware_frame(monkeypatch)
     assert runner._setup(cfg, said.append, focus=False) is not None
     assert asked == ["vmware"] and made["screen_hwnd"] == 77
     assert any("VMware Workstation" in s for s in said)
+    assert vnc == ["127.0.0.1:5900"] and any(s.startswith("keys: VNC 127.0.0.1:5900") for s in said)
+
+
+def test_vmware_without_a_vnc_link_says_so_and_stops(monkeypatch):
+    """--window vmware sends keys only over VNC: no VNC server = no hunt (not a hunt whose keys go nowhere)."""
+    monkeypatch.setattr(runner, "find_window", lambda window="maplestory": 77)
+
+    def refuse(_):
+        raise ConnectionRefusedError("refused")
+    monkeypatch.setattr(runner, "VncKeys", lambda addr: type("V", (), {"connect": refuse})())
+    cfg = Config()
+    cfg.window = "vmware"
+    said = []
+    assert runner._setup(cfg, said.append, focus=False) is None
+    assert said[-1].startswith("no VNC link to the VMware guest at 127.0.0.1:5900: refused")
 
 
 def test_no_vmware_window_says_so_and_stops(monkeypatch):
