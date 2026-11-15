@@ -61,3 +61,17 @@ def test_minimap_dot_ignores_a_party_dots_yellowish_rim_in_a_raw_frame():
     frame = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
     dot = hud.minimap_dot(frame)
     assert dot is not None and abs(dot[0] - (60 - hud.MINIMAP_BOX[0])) < 1
+
+
+def test_exp_points_reads_the_native_1366x768_window():
+    """2026-11-16, the game windowed at native size (no resize): the text sits 1 px left of where the stretched
+    windows put it; 0 of 11,576 ticks were read. 14 numbers checked by eye, every digit (PNG frames)."""
+    import numpy as np
+    from pathlib import Path
+    from maplebrain.perception import hud
+    d = np.load(Path(__file__).parent / "fixtures" / "exp_points_native.npz")
+    x0, y0 = hud.EXP_TEXT
+    for strip, label in zip(d["strips"], d["labels"]):
+        frame = np.zeros((768, 1366, 3), np.uint8)
+        frame[y0 - 2:y0 + 9, x0 - 4:x0 + 64] = strip
+        assert hud.exp_points(frame) == int(label)

@@ -130,11 +130,21 @@ def _exp_width(digits: int) -> int:
 def exp_points(frame) -> int | None:
     """The EXP points number from the HUD text (exact; the bar moves 1 px per ~0.9 % = 3-5 Stumps at lv ~13,
     perion6: most of our kills never moved it). Digits end where the green '[' starts; each 6x7 cell is matched
-    against templates of 0-9 (assets/exp_digits.npy, from recorded frames). None if it can't be read."""
+    against templates of 0-9 (assets/exp_digits.npy, from recorded frames). None if it can't be read.
+    The text is tried at EXP_TEXT and 1 px to its left: in the native 1366x768 window it sits there (EXP_TEXT was
+    measured on stretched windows, 2026-11-16: 0 of 11,576 ticks read at EXP_TEXT, 193 of 193 frames 1 px left). A
+    wrong place reads None, not a wrong number (the cells' scores fall under 0.6)."""
     global _exp_digits
     if _exp_digits is None:
         _exp_digits = np.load(Path(__file__).resolve().parents[2] / "assets" / "exp_digits.npy")
-    x0, y0 = EXP_TEXT
+    for dx in (0, -1):
+        v = _exp_points_at(frame, EXP_TEXT[0] + dx, EXP_TEXT[1])
+        if v is not None:
+            return v
+    return None
+
+
+def _exp_points_at(frame, x0: int, y0: int) -> int | None:
     row = cv2.cvtColor(frame[y0:y0 + EXP_ROWS, x0:x0 + EXP_CELL * 7 + EXP_COMMA * 2 + 2], cv2.COLOR_BGR2HSV)
     green = (((row[..., 0] >= 30) & (row[..., 0] <= 75) & (row[..., 1] > 45) & (row[..., 2] > 60)).sum(axis=0) >= 2)
     # (the '[' is green-yellow: H 41-60, S 50-120 - paler on older frames; the bar's background is blue-grey)
