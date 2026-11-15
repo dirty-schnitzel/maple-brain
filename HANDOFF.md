@@ -62,7 +62,7 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
   32.6 [gpu 10.7, world 6.4, hud 6.0, self 2.7, locate 2.4, camshift 2.0, scene 1.2]. Was 59.6 ms (2026-11-08): the
   Windows power plan is *Ultimate Performance* since ~11-13, every CPU part runs ~2x faster (check
   `powercfg /getactivescheme` before judging speed), and the bench no longer resizes (`SCREEN` = 1366x768, -1.8 ms).
-  Repeats spread 32.7-37 ms. To re-baseline AGAIN on the native fixture once the recording exists (step 0).
+  Repeats spread 32.7-37 ms. Re-baselined again the same day on the NATIVE fixture: 30.0 ms (step 0 state below).
 - Every step: pytest green + the bot speed line + tracker replay (tools/perc/replay) same or better; the order of
   code changes is agreed with the user first; no live / scripted input without their OK.
 - **Step 0 state (2026-11-16):**
@@ -85,10 +85,40 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     59 %, 155 clear mobs.
   - The game window IS at native already (checked read-only 2026-11-16: client area 1366x768 at (8, 32), display
     scale 100 %, monitor 3440x1440).
-  - **NEXT (the user records, their call when):** 5 min on Ant Tunnel IV, `serve runs\play --observe --gpu --tracker
-    --frames-png`; the log must say `1366x768 native (no resize)`. Then: `native_check.py RUN --sheet 24` (gate
-    >= 95 % within +-4), same view of the map as FHD (exp_render.py check RUN: registration at scale 1; our tag /
-    minimap / HUD found), new perf fixture + baseline on purpose, ~300 frames picked for by-eye labels. Then step 1.
+  - **DONE: the native reference recording `runs/play/20261116_012059_1`** (the user playing, Ant Tunnel IV, 342 s,
+    11,576 ticks = 33.8 fps, tick p50 29 ms / p90 32, 3858 PNG frames, 3.1 GB, keys.jsonl). **The picture IS 1:1:**
+    - mobs (`native_check.py`, 300 frames, 445 clear mobs): per-mob median 100.0 % of sprite pixels within +-4,
+      325 mobs exact to 100 %, detector score median 1.000, never 1 px off, no colour shift. Pooled 90.2 % because
+      pixels are either exact or NOT the sprite (+-4 = 90.2 %, +-16 = 91.7 %): the 329 mobs with score >= 0.9995
+      pool 99.7 %; the rest are half-transparent (spawn fade-in / death fade: NCC still 0.99, 15 % of pixels exact)
+      or under a translucent effect. Gate >= 95 % on opaque uncovered mobs: PASS. Tolerances can be +-4.
+    - scenery (`exp_render.py check`): registers at scale 1 (score 0.92; FHD 0.88) = the same view of the map as
+      FHD; 91.8 % of the rendered tile / object pixels are within +-4 of the frame (within 30: 92.6 %: exact or
+      covered here too).
+    - today's tracker on it: sighted live scores p50 1.00 (FHD observe run 0.90), weak sightings < 0.7: 7 % (28 %);
+      replay: 471 real + 11 weak tracks (live: 26 weak).
+  - **Found at native (constants and templates measured on stretched windows):**
+    - FIXED: the HUD's EXP text sits 1 px left -> `exp_points` read 0 of 11,576 ticks; it now tries both places
+      (193 of 193 frames, 14 by-eye checked in tests/fixtures/exp_points_native.npz). HP / MP read 100 %.
+    - OPEN: `assets/self_tag_gray.npy` is a resampled-look template: tag score p50 0.864 at native (found 91.7 % of
+      ticks; a 1:1 template would be ~1.0) -> re-cut it from the PNG run (step 2 at the latest).
+    - **OPEN, safety: the Lie Detector templates are resampled-look too.** Estimate (HUD text through the old
+      stretch + shrink, matched on native pixels): -4..5 % score -> the announcement panel 0.89-0.90 would read
+      ~0.85 at native (bar 0.80; best false score on native frames 0.65). Not verifiable without an LD at native:
+      the user decides whether `LieDetector.min_score` goes 0.80 -> 0.75 until native templates exist (watch needs
+      a restart then: the user's).
+    - OPEN: the tracker's camera reads +6 px x / +3 px y (p50) off the scenery registration at native (FHD: 0 / +1):
+      probably the minimap's sub-pixel handling in `localize.py`. Step 1's registration replaces it; until then
+      platform edges are ~6 px off.
+  - DONE new perf fixture (tests/fixtures/perf_ant4 = 45 frames of the native run, a fight, t 51.1-54.9 s, JPEG q85,
+    SOURCE.txt) + baseline on purpose: **tick 30.0 ms (p90 31.4), 33.3 fps** [gpu 11.1, world 7.5, self 2.8, hud 2.6,
+    camshift 2.5, locate 1.5, scene 1.3] (serve --observe + watch were running idle; repeats 29.8-31.5).
+  - DONE picked for by-eye labels: `tools/perc/labels/20261116_012059_1_pick.json` (300 frames: 150 even + 150 hard:
+    swings near mobs, unseen near us, weak, dying, edge, tentative, rope; `labels/pick.py`). **NOT labelled yet**
+    (labels -> RUN/labels.json + a copy in tools/perc/labels/, label_eval.py).
+  - Replay noise on the long native run: same code twice differs on 2-5 of 18,170 real track-frames -> the gate is
+    "track-frames found >= 99.9 % both ways" (replay README).
+  - **NEXT: step 1 (scene model)**, then the labels (best done with the scene overlay to check by).
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")

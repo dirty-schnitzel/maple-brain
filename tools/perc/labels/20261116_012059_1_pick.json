@@ -1,0 +1,2824 @@
+{
+"run": "runs/play/20261116_012059_1",
+"frames": [
+{
+"n": 3,
+"frame": "000003.png",
+"t": 0.12,
+"why": [
+"even",
+"edge",
+"rope"
+]
+},
+{
+"n": 6,
+"frame": "000006.png",
+"t": 0.2,
+"why": [
+"edge",
+"rope"
+]
+},
+{
+"n": 18,
+"frame": "000018.png",
+"t": 0.51,
+"why": [
+"weak",
+"rope"
+]
+},
+{
+"n": 72,
+"frame": "000072.png",
+"t": 2.0,
+"why": [
+"swing",
+"weak",
+"edge"
+]
+},
+{
+"n": 78,
+"frame": "000078.png",
+"t": 2.18,
+"why": [
+"even",
+"swing",
+"weak"
+]
+},
+{
+"n": 96,
+"frame": "000096.png",
+"t": 2.68,
+"why": [
+"unseen_near",
+"weak",
+"dying"
+]
+},
+{
+"n": 156,
+"frame": "000156.png",
+"t": 4.47,
+"why": [
+"even",
+"weak",
+"edge"
+]
+},
+{
+"n": 186,
+"frame": "000186.png",
+"t": 5.37,
+"why": [
+"dying",
+"tentative",
+"rope"
+]
+},
+{
+"n": 222,
+"frame": "000222.png",
+"t": 6.4,
+"why": [
+"rope"
+]
+},
+{
+"n": 234,
+"frame": "000234.png",
+"t": 6.71,
+"why": [
+"even",
+"weak",
+"rope"
+]
+},
+{
+"n": 285,
+"frame": "000285.png",
+"t": 8.29,
+"why": [
+"weak",
+"dying",
+"edge",
+"rope"
+]
+},
+{
+"n": 300,
+"frame": "000300.png",
+"t": 8.8,
+"why": [
+"edge",
+"rope"
+]
+},
+{
+"n": 312,
+"frame": "000312.png",
+"t": 9.19,
+"why": [
+"even",
+"edge",
+"rope"
+]
+},
+{
+"n": 375,
+"frame": "000375.png",
+"t": 10.98,
+"why": [
+"edge",
+"rope"
+]
+},
+{
+"n": 390,
+"frame": "000390.png",
+"t": 11.43,
+"why": [
+"even",
+"dying",
+"rope"
+]
+},
+{
+"n": 450,
+"frame": "000450.png",
+"t": 13.22,
+"why": [
+"rope"
+]
+},
+{
+"n": 468,
+"frame": "000468.png",
+"t": 13.68,
+"why": [
+"even",
+"rope"
+]
+},
+{
+"n": 486,
+"frame": "000486.png",
+"t": 14.14,
+"why": [
+"unseen_near",
+"tentative",
+"rope"
+]
+},
+{
+"n": 546,
+"frame": "000546.png",
+"t": 15.8,
+"why": [
+"even",
+"unseen_near",
+"weak",
+"edge"
+]
+},
+{
+"n": 549,
+"frame": "000549.png",
+"t": 15.89,
+"why": [
+"unseen_near",
+"weak",
+"edge"
+]
+},
+{
+"n": 573,
+"frame": "000573.png",
+"t": 16.58,
+"why": [
+"unseen_near",
+"weak",
+"edge"
+]
+},
+{
+"n": 624,
+"frame": "000624.png",
+"t": 18.07,
+"why": [
+"even",
+"dying",
+"edge"
+]
+},
+{
+"n": 666,
+"frame": "000666.png",
+"t": 19.36,
+"why": [
+"edge"
+]
+},
+{
+"n": 699,
+"frame": "000699.png",
+"t": 20.23,
+"why": [
+"even",
+"edge"
+]
+},
+{
+"n": 777,
+"frame": "000777.png",
+"t": 22.36,
+"why": [
+"even",
+"swing",
+"weak"
+]
+},
+{
+"n": 795,
+"frame": "000795.png",
+"t": 22.86,
+"why": [
+"dying"
+]
+},
+{
+"n": 813,
+"frame": "000813.png",
+"t": 23.42,
+"why": [
+"weak",
+"dying",
+"tentative"
+]
+},
+{
+"n": 855,
+"frame": "000855.png",
+"t": 24.83,
+"why": [
+"even"
+]
+},
+{
+"n": 906,
+"frame": "000906.png",
+"t": 26.29,
+"why": [
+"unseen_near",
+"rope"
+]
+},
+{
+"n": 933,
+"frame": "000933.png",
+"t": 27.08,
+"why": [
+"even",
+"rope"
+]
+},
+{
+"n": 939,
+"frame": "000939.png",
+"t": 27.24,
+"why": [
+"unseen_near",
+"rope"
+]
+},
+{
+"n": 984,
+"frame": "000984.png",
+"t": 28.59,
+"why": [
+"dying"
+]
+},
+{
+"n": 1005,
+"frame": "001005.png",
+"t": 29.22,
+"why": [
+"weak",
+"dying",
+"rope"
+]
+},
+{
+"n": 1011,
+"frame": "001011.png",
+"t": 29.42,
+"why": [
+"even",
+"weak",
+"dying",
+"rope"
+]
+},
+{
+"n": 1080,
+"frame": "001080.png",
+"t": 31.69,
+"why": [
+"swing",
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 1089,
+"frame": "001089.png",
+"t": 31.98,
+"why": [
+"even",
+"swing",
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 1167,
+"frame": "001167.png",
+"t": 34.58,
+"why": [
+"even",
+"dying",
+"rope"
+]
+},
+{
+"n": 1200,
+"frame": "001200.png",
+"t": 35.51,
+"why": [
+"swing",
+"unseen_near"
+]
+},
+{
+"n": 1236,
+"frame": "001236.png",
+"t": 36.53,
+"why": [
+"swing",
+"weak",
+"dying"
+]
+},
+{
+"n": 1245,
+"frame": "001245.png",
+"t": 36.81,
+"why": [
+"even",
+"weak",
+"dying"
+]
+},
+{
+"n": 1257,
+"frame": "001257.png",
+"t": 37.2,
+"why": [
+"swing",
+"weak"
+]
+},
+{
+"n": 1323,
+"frame": "001323.png",
+"t": 39.26,
+"why": [
+"even",
+"swing",
+"weak",
+"dying",
+"edge"
+]
+},
+{
+"n": 1392,
+"frame": "001392.png",
+"t": 41.38,
+"why": [
+"weak",
+"rope"
+]
+},
+{
+"n": 1398,
+"frame": "001398.png",
+"t": 41.54,
+"why": [
+"even",
+"weak",
+"rope"
+]
+},
+{
+"n": 1440,
+"frame": "001440.png",
+"t": 42.72,
+"why": [
+"swing",
+"weak"
+]
+},
+{
+"n": 1476,
+"frame": "001476.png",
+"t": 43.86,
+"why": [
+"even",
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 1503,
+"frame": "001503.png",
+"t": 44.73,
+"why": [
+"weak",
+"dying",
+"rope"
+]
+},
+{
+"n": 1554,
+"frame": "001554.png",
+"t": 46.3,
+"why": [
+"even"
+]
+},
+{
+"n": 1626,
+"frame": "001626.png",
+"t": 48.35,
+"why": [
+"swing",
+"unseen_near"
+]
+},
+{
+"n": 1632,
+"frame": "001632.png",
+"t": 48.55,
+"why": [
+"even",
+"swing",
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 1710,
+"frame": "001710.png",
+"t": 50.89,
+"why": [
+"even",
+"weak"
+]
+},
+{
+"n": 1755,
+"frame": "001755.png",
+"t": 52.16,
+"why": [
+"swing",
+"unseen_near",
+"dying"
+]
+},
+{
+"n": 1788,
+"frame": "001788.png",
+"t": 53.12,
+"why": [
+"even",
+"swing",
+"weak",
+"dying",
+"edge"
+]
+},
+{
+"n": 1794,
+"frame": "001794.png",
+"t": 53.29,
+"why": [
+"swing",
+"unseen_near",
+"dying",
+"tentative"
+]
+},
+{
+"n": 1824,
+"frame": "001824.png",
+"t": 54.18,
+"why": [
+"swing",
+"weak",
+"dying"
+]
+},
+{
+"n": 1866,
+"frame": "001866.png",
+"t": 55.49,
+"why": [
+"even",
+"dying"
+]
+},
+{
+"n": 1938,
+"frame": "001938.png",
+"t": 57.63,
+"why": [
+"weak",
+"rope"
+]
+},
+{
+"n": 1944,
+"frame": "001944.png",
+"t": 57.79,
+"why": [
+"even",
+"weak",
+"rope"
+]
+},
+{
+"n": 1971,
+"frame": "001971.png",
+"t": 58.56,
+"why": [
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 1980,
+"frame": "001980.png",
+"t": 58.82,
+"why": [
+"weak",
+"edge",
+"tentative"
+]
+},
+{
+"n": 2022,
+"frame": "002022.png",
+"t": 60.13,
+"why": [
+"even",
+"unseen_near",
+"dying"
+]
+},
+{
+"n": 2028,
+"frame": "002028.png",
+"t": 60.33,
+"why": [
+"unseen_near",
+"dying"
+]
+},
+{
+"n": 2097,
+"frame": "002097.png",
+"t": 62.33,
+"why": [
+"even",
+"rope"
+]
+},
+{
+"n": 2175,
+"frame": "002175.png",
+"t": 64.38,
+"why": [
+"even",
+"unseen_near"
+]
+},
+{
+"n": 2196,
+"frame": "002196.png",
+"t": 64.96,
+"why": [
+"swing",
+"dying"
+]
+},
+{
+"n": 2214,
+"frame": "002214.png",
+"t": 65.5,
+"why": [
+"dying",
+"edge"
+]
+},
+{
+"n": 2253,
+"frame": "002253.png",
+"t": 66.66,
+"why": [
+"even",
+"unseen_near"
+]
+},
+{
+"n": 2331,
+"frame": "002331.png",
+"t": 69.02,
+"why": [
+"even",
+"unseen_near",
+"dying",
+"edge"
+]
+},
+{
+"n": 2337,
+"frame": "002337.png",
+"t": 69.2,
+"why": [
+"unseen_near",
+"dying"
+]
+},
+{
+"n": 2409,
+"frame": "002409.png",
+"t": 71.37,
+"why": [
+"even",
+"weak"
+]
+},
+{
+"n": 2472,
+"frame": "002472.png",
+"t": 73.3,
+"why": [
+"weak",
+"tentative",
+"rope"
+]
+},
+{
+"n": 2487,
+"frame": "002487.png",
+"t": 73.7,
+"why": [
+"even",
+"unseen_near",
+"weak",
+"dying"
+]
+},
+{
+"n": 2556,
+"frame": "002556.png",
+"t": 75.74,
+"why": [
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 2565,
+"frame": "002565.png",
+"t": 76.01,
+"why": [
+"even",
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 2643,
+"frame": "002643.png",
+"t": 78.25,
+"why": [
+"even",
+"weak",
+"edge"
+]
+},
+{
+"n": 2661,
+"frame": "002661.png",
+"t": 78.75,
+"why": [
+"unseen_near",
+"weak",
+"dying",
+"edge"
+]
+},
+{
+"n": 2700,
+"frame": "002700.png",
+"t": 79.9,
+"why": [
+"swing",
+"unseen_near",
+"weak",
+"dying"
+]
+},
+{
+"n": 2721,
+"frame": "002721.png",
+"t": 80.51,
+"why": [
+"even",
+"weak",
+"dying"
+]
+},
+{
+"n": 2778,
+"frame": "002778.png",
+"t": 82.1,
+"why": [
+"dying"
+]
+},
+{
+"n": 2796,
+"frame": "002796.png",
+"t": 82.57,
+"why": [
+"even",
+"weak",
+"dying",
+"edge"
+]
+},
+{
+"n": 2799,
+"frame": "002799.png",
+"t": 82.66,
+"why": [
+"weak",
+"dying",
+"edge"
+]
+},
+{
+"n": 2874,
+"frame": "002874.png",
+"t": 84.85,
+"why": [
+"even",
+"unseen_near",
+"edge"
+]
+},
+{
+"n": 2883,
+"frame": "002883.png",
+"t": 85.09,
+"why": [
+"weak",
+"tentative"
+]
+},
+{
+"n": 2928,
+"frame": "002928.png",
+"t": 86.33,
+"why": [
+"swing",
+"weak",
+"edge"
+]
+},
+{
+"n": 2952,
+"frame": "002952.png",
+"t": 87.1,
+"why": [
+"even",
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 2973,
+"frame": "002973.png",
+"t": 87.79,
+"why": [
+"swing",
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 2982,
+"frame": "002982.png",
+"t": 88.06,
+"why": [
+"swing",
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 3021,
+"frame": "003021.png",
+"t": 89.22,
+"why": [
+"unseen_near",
+"weak",
+"dying",
+"edge"
+]
+},
+{
+"n": 3030,
+"frame": "003030.png",
+"t": 89.48,
+"why": [
+"even",
+"swing",
+"dying",
+"edge"
+]
+},
+{
+"n": 3108,
+"frame": "003108.png",
+"t": 91.67,
+"why": [
+"even"
+]
+},
+{
+"n": 3186,
+"frame": "003186.png",
+"t": 93.77,
+"why": [
+"even",
+"dying"
+]
+},
+{
+"n": 3222,
+"frame": "003222.png",
+"t": 94.77,
+"why": [
+"weak",
+"dying"
+]
+},
+{
+"n": 3246,
+"frame": "003246.png",
+"t": 95.45,
+"why": [
+"swing",
+"weak"
+]
+},
+{
+"n": 3264,
+"frame": "003264.png",
+"t": 95.91,
+"why": [
+"even",
+"weak"
+]
+},
+{
+"n": 3342,
+"frame": "003342.png",
+"t": 98.13,
+"why": [
+"even",
+"unseen_near"
+]
+},
+{
+"n": 3417,
+"frame": "003417.png",
+"t": 100.2,
+"why": [
+"even",
+"swing"
+]
+},
+{
+"n": 3450,
+"frame": "003450.png",
+"t": 101.16,
+"why": [
+"weak",
+"dying"
+]
+},
+{
+"n": 3495,
+"frame": "003495.png",
+"t": 102.6,
+"why": [
+"even",
+"dying"
+]
+},
+{
+"n": 3546,
+"frame": "003546.png",
+"t": 104.11,
+"why": [
+"swing",
+"unseen_near"
+]
+},
+{
+"n": 3573,
+"frame": "003573.png",
+"t": 104.9,
+"why": [
+"even",
+"swing",
+"unseen_near"
+]
+},
+{
+"n": 3624,
+"frame": "003624.png",
+"t": 106.44,
+"why": [
+"weak",
+"tentative"
+]
+},
+{
+"n": 3642,
+"frame": "003642.png",
+"t": 106.98,
+"why": [
+"swing",
+"unseen_near",
+"weak",
+"edge"
+]
+},
+{
+"n": 3651,
+"frame": "003651.png",
+"t": 107.26,
+"why": [
+"even",
+"swing",
+"unseen_near"
+]
+},
+{
+"n": 3729,
+"frame": "003729.png",
+"t": 109.59,
+"why": [
+"even",
+"weak",
+"dying"
+]
+},
+{
+"n": 3750,
+"frame": "003750.png",
+"t": 110.26,
+"why": [
+"swing",
+"dying"
+]
+},
+{
+"n": 3777,
+"frame": "003777.png",
+"t": 111.13,
+"why": [
+"dying",
+"tentative"
+]
+},
+{
+"n": 3807,
+"frame": "003807.png",
+"t": 112.12,
+"why": [
+"even"
+]
+},
+{
+"n": 3885,
+"frame": "003885.png",
+"t": 114.56,
+"why": [
+"even",
+"weak",
+"dying"
+]
+},
+{
+"n": 3933,
+"frame": "003933.png",
+"t": 115.97,
+"why": [
+"weak",
+"dying",
+"rope"
+]
+},
+{
+"n": 3963,
+"frame": "003963.png",
+"t": 116.86,
+"why": [
+"even",
+"weak",
+"dying",
+"edge"
+]
+},
+{
+"n": 4035,
+"frame": "004035.png",
+"t": 119.08,
+"why": [
+"weak"
+]
+},
+{
+"n": 4041,
+"frame": "004041.png",
+"t": 119.25,
+"why": [
+"even",
+"weak"
+]
+},
+{
+"n": 4116,
+"frame": "004116.png",
+"t": 121.58,
+"why": [
+"even",
+"weak"
+]
+},
+{
+"n": 4161,
+"frame": "004161.png",
+"t": 123.01,
+"why": [
+"swing",
+"weak",
+"dying"
+]
+},
+{
+"n": 4194,
+"frame": "004194.png",
+"t": 124.04,
+"why": [
+"even",
+"unseen_near"
+]
+},
+{
+"n": 4257,
+"frame": "004257.png",
+"t": 125.95,
+"why": [
+"swing",
+"weak"
+]
+},
+{
+"n": 4272,
+"frame": "004272.png",
+"t": 126.36,
+"why": [
+"even",
+"swing",
+"weak"
+]
+},
+{
+"n": 4278,
+"frame": "004278.png",
+"t": 126.55,
+"why": [
+"weak"
+]
+},
+{
+"n": 4341,
+"frame": "004341.png",
+"t": 128.53,
+"why": [
+"weak",
+"tentative"
+]
+},
+{
+"n": 4350,
+"frame": "004350.png",
+"t": 128.8,
+"why": [
+"even",
+"weak"
+]
+},
+{
+"n": 4395,
+"frame": "004395.png",
+"t": 130.25,
+"why": [
+"unseen_near",
+"weak",
+"dying",
+"tentative"
+]
+},
+{
+"n": 4428,
+"frame": "004428.png",
+"t": 131.32,
+"why": [
+"even",
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 4437,
+"frame": "004437.png",
+"t": 131.61,
+"why": [
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 4506,
+"frame": "004506.png",
+"t": 133.9,
+"why": [
+"even",
+"weak"
+]
+},
+{
+"n": 4584,
+"frame": "004584.png",
+"t": 136.25,
+"why": [
+"even",
+"rope"
+]
+},
+{
+"n": 4662,
+"frame": "004662.png",
+"t": 138.41,
+"why": [
+"even",
+"edge"
+]
+},
+{
+"n": 4740,
+"frame": "004740.png",
+"t": 140.73,
+"why": [
+"even"
+]
+},
+{
+"n": 4749,
+"frame": "004749.png",
+"t": 141.02,
+"why": [
+"weak"
+]
+},
+{
+"n": 4815,
+"frame": "004815.png",
+"t": 143.07,
+"why": [
+"even"
+]
+},
+{
+"n": 4878,
+"frame": "004878.png",
+"t": 144.89,
+"why": [
+"rope"
+]
+},
+{
+"n": 4893,
+"frame": "004893.png",
+"t": 145.29,
+"why": [
+"even",
+"rope"
+]
+},
+{
+"n": 4950,
+"frame": "004950.png",
+"t": 146.97,
+"why": [
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 4971,
+"frame": "004971.png",
+"t": 147.63,
+"why": [
+"even",
+"unseen_near"
+]
+},
+{
+"n": 5049,
+"frame": "005049.png",
+"t": 149.86,
+"why": [
+"even",
+"dying"
+]
+},
+{
+"n": 5070,
+"frame": "005070.png",
+"t": 150.49,
+"why": [
+"edge"
+]
+},
+{
+"n": 5127,
+"frame": "005127.png",
+"t": 152.14,
+"why": [
+"even",
+"swing"
+]
+},
+{
+"n": 5172,
+"frame": "005172.png",
+"t": 153.36,
+"why": [
+"swing",
+"dying"
+]
+},
+{
+"n": 5193,
+"frame": "005193.png",
+"t": 153.96,
+"why": [
+"swing",
+"dying"
+]
+},
+{
+"n": 5205,
+"frame": "005205.png",
+"t": 154.36,
+"why": [
+"even",
+"weak"
+]
+},
+{
+"n": 5226,
+"frame": "005226.png",
+"t": 155.0,
+"why": [
+"weak"
+]
+},
+{
+"n": 5283,
+"frame": "005283.png",
+"t": 156.59,
+"why": [
+"even",
+"swing"
+]
+},
+{
+"n": 5361,
+"frame": "005361.png",
+"t": 158.9,
+"why": [
+"even",
+"weak"
+]
+},
+{
+"n": 5439,
+"frame": "005439.png",
+"t": 161.21,
+"why": [
+"even",
+"weak",
+"dying",
+"rope"
+]
+},
+{
+"n": 5448,
+"frame": "005448.png",
+"t": 161.48,
+"why": [
+"rope"
+]
+},
+{
+"n": 5514,
+"frame": "005514.png",
+"t": 163.35,
+"why": [
+"even",
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 5553,
+"frame": "005553.png",
+"t": 164.46,
+"why": [
+"unseen_near",
+"weak",
+"dying"
+]
+},
+{
+"n": 5592,
+"frame": "005592.png",
+"t": 165.6,
+"why": [
+"even"
+]
+},
+{
+"n": 5670,
+"frame": "005670.png",
+"t": 167.63,
+"why": [
+"even",
+"weak",
+"rope"
+]
+},
+{
+"n": 5748,
+"frame": "005748.png",
+"t": 169.82,
+"why": [
+"even",
+"dying"
+]
+},
+{
+"n": 5763,
+"frame": "005763.png",
+"t": 170.29,
+"why": [
+"unseen_near"
+]
+},
+{
+"n": 5826,
+"frame": "005826.png",
+"t": 172.15,
+"why": [
+"even",
+"unseen_near",
+"weak",
+"dying"
+]
+},
+{
+"n": 5847,
+"frame": "005847.png",
+"t": 172.81,
+"why": [
+"unseen_near",
+"weak",
+"dying"
+]
+},
+{
+"n": 5904,
+"frame": "005904.png",
+"t": 174.5,
+"why": [
+"even"
+]
+},
+{
+"n": 5931,
+"frame": "005931.png",
+"t": 175.26,
+"why": [
+"weak",
+"rope"
+]
+},
+{
+"n": 5973,
+"frame": "005973.png",
+"t": 176.44,
+"why": [
+"swing"
+]
+},
+{
+"n": 5982,
+"frame": "005982.png",
+"t": 176.69,
+"why": [
+"even",
+"swing"
+]
+},
+{
+"n": 5991,
+"frame": "005991.png",
+"t": 176.94,
+"why": [
+"swing",
+"unseen_near"
+]
+},
+{
+"n": 6060,
+"frame": "006060.png",
+"t": 178.94,
+"why": [
+"even",
+"dying"
+]
+},
+{
+"n": 6135,
+"frame": "006135.png",
+"t": 181.12,
+"why": [
+"even"
+]
+},
+{
+"n": 6162,
+"frame": "006162.png",
+"t": 181.87,
+"why": [
+"weak"
+]
+},
+{
+"n": 6213,
+"frame": "006213.png",
+"t": 183.33,
+"why": [
+"even",
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 6291,
+"frame": "006291.png",
+"t": 185.61,
+"why": [
+"even"
+]
+},
+{
+"n": 6336,
+"frame": "006336.png",
+"t": 186.84,
+"why": [
+"swing",
+"unseen_near",
+"dying"
+]
+},
+{
+"n": 6369,
+"frame": "006369.png",
+"t": 187.78,
+"why": [
+"even",
+"swing",
+"weak",
+"dying"
+]
+},
+{
+"n": 6372,
+"frame": "006372.png",
+"t": 187.86,
+"why": [
+"swing",
+"dying"
+]
+},
+{
+"n": 6396,
+"frame": "006396.png",
+"t": 188.57,
+"why": [
+"weak",
+"dying"
+]
+},
+{
+"n": 6447,
+"frame": "006447.png",
+"t": 190.04,
+"why": [
+"even"
+]
+},
+{
+"n": 6495,
+"frame": "006495.png",
+"t": 191.43,
+"why": [
+"weak",
+"tentative"
+]
+},
+{
+"n": 6525,
+"frame": "006525.png",
+"t": 192.27,
+"why": [
+"even",
+"weak"
+]
+},
+{
+"n": 6603,
+"frame": "006603.png",
+"t": 194.67,
+"why": [
+"even",
+"dying"
+]
+},
+{
+"n": 6636,
+"frame": "006636.png",
+"t": 195.67,
+"why": [
+"rope"
+]
+},
+{
+"n": 6681,
+"frame": "006681.png",
+"t": 197.05,
+"why": [
+"even",
+"unseen_near",
+"dying"
+]
+},
+{
+"n": 6741,
+"frame": "006741.png",
+"t": 198.89,
+"why": [
+"unseen_near",
+"dying"
+]
+},
+{
+"n": 6759,
+"frame": "006759.png",
+"t": 199.5,
+"why": [
+"even"
+]
+},
+{
+"n": 6780,
+"frame": "006780.png",
+"t": 200.15,
+"why": [
+"weak",
+"edge"
+]
+},
+{
+"n": 6798,
+"frame": "006798.png",
+"t": 200.69,
+"why": [
+"weak",
+"dying",
+"edge",
+"rope"
+]
+},
+{
+"n": 6834,
+"frame": "006834.png",
+"t": 201.81,
+"why": [
+"even",
+"dying",
+"edge"
+]
+},
+{
+"n": 6876,
+"frame": "006876.png",
+"t": 203.11,
+"why": [
+"swing"
+]
+},
+{
+"n": 6912,
+"frame": "006912.png",
+"t": 204.19,
+"why": [
+"even",
+"dying"
+]
+},
+{
+"n": 6915,
+"frame": "006915.png",
+"t": 204.29,
+"why": [
+"dying"
+]
+},
+{
+"n": 6990,
+"frame": "006990.png",
+"t": 206.61,
+"why": [
+"even",
+"weak",
+"rope"
+]
+},
+{
+"n": 6996,
+"frame": "006996.png",
+"t": 206.77,
+"why": [
+"weak",
+"rope"
+]
+},
+{
+"n": 7068,
+"frame": "007068.png",
+"t": 208.73,
+"why": [
+"even",
+"weak",
+"dying"
+]
+},
+{
+"n": 7146,
+"frame": "007146.png",
+"t": 211.1,
+"why": [
+"even",
+"weak",
+"rope"
+]
+},
+{
+"n": 7200,
+"frame": "007200.png",
+"t": 212.64,
+"why": [
+"weak",
+"tentative"
+]
+},
+{
+"n": 7224,
+"frame": "007224.png",
+"t": 213.33,
+"why": [
+"even",
+"unseen_near",
+"weak",
+"edge",
+"rope"
+]
+},
+{
+"n": 7254,
+"frame": "007254.png",
+"t": 214.26,
+"why": [
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 7302,
+"frame": "007302.png",
+"t": 215.77,
+"why": [
+"even",
+"weak",
+"dying"
+]
+},
+{
+"n": 7311,
+"frame": "007311.png",
+"t": 216.02,
+"why": [
+"weak",
+"dying",
+"edge"
+]
+},
+{
+"n": 7341,
+"frame": "007341.png",
+"t": 217.0,
+"why": [
+"unseen_near",
+"dying"
+]
+},
+{
+"n": 7380,
+"frame": "007380.png",
+"t": 218.33,
+"why": [
+"even",
+"unseen_near",
+"weak",
+"dying"
+]
+},
+{
+"n": 7458,
+"frame": "007458.png",
+"t": 220.64,
+"why": [
+"even",
+"weak"
+]
+},
+{
+"n": 7470,
+"frame": "007470.png",
+"t": 221.01,
+"why": [
+"edge"
+]
+},
+{
+"n": 7521,
+"frame": "007521.png",
+"t": 222.54,
+"why": [
+"unseen_near",
+"weak",
+"dying",
+"edge"
+]
+},
+{
+"n": 7533,
+"frame": "007533.png",
+"t": 222.92,
+"why": [
+"even",
+"dying",
+"edge"
+]
+},
+{
+"n": 7542,
+"frame": "007542.png",
+"t": 223.22,
+"why": [
+"weak",
+"dying",
+"edge"
+]
+},
+{
+"n": 7608,
+"frame": "007608.png",
+"t": 225.31,
+"why": [
+"unseen_near",
+"weak",
+"dying",
+"edge"
+]
+},
+{
+"n": 7611,
+"frame": "007611.png",
+"t": 225.41,
+"why": [
+"even",
+"unseen_near",
+"edge",
+"tentative"
+]
+},
+{
+"n": 7638,
+"frame": "007638.png",
+"t": 226.28,
+"why": [
+"unseen_near",
+"dying",
+"edge"
+]
+},
+{
+"n": 7656,
+"frame": "007656.png",
+"t": 226.85,
+"why": [
+"edge",
+"tentative"
+]
+},
+{
+"n": 7683,
+"frame": "007683.png",
+"t": 227.66,
+"why": [
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 7689,
+"frame": "007689.png",
+"t": 227.83,
+"why": [
+"even",
+"rope"
+]
+},
+{
+"n": 7767,
+"frame": "007767.png",
+"t": 230.15,
+"why": [
+"even",
+"dying"
+]
+},
+{
+"n": 7800,
+"frame": "007800.png",
+"t": 231.16,
+"why": [
+"swing",
+"unseen_near",
+"dying",
+"tentative"
+]
+},
+{
+"n": 7845,
+"frame": "007845.png",
+"t": 232.57,
+"why": [
+"even",
+"dying"
+]
+},
+{
+"n": 7923,
+"frame": "007923.png",
+"t": 234.82,
+"why": [
+"even",
+"swing",
+"dying",
+"edge"
+]
+},
+{
+"n": 7929,
+"frame": "007929.png",
+"t": 235.01,
+"why": [
+"unseen_near",
+"dying",
+"edge"
+]
+},
+{
+"n": 8001,
+"frame": "008001.png",
+"t": 237.33,
+"why": [
+"even",
+"unseen_near",
+"dying",
+"edge"
+]
+},
+{
+"n": 8010,
+"frame": "008010.png",
+"t": 237.65,
+"why": [
+"swing",
+"dying",
+"edge"
+]
+},
+{
+"n": 8037,
+"frame": "008037.png",
+"t": 238.47,
+"why": [
+"weak",
+"dying",
+"edge"
+]
+},
+{
+"n": 8079,
+"frame": "008079.png",
+"t": 239.75,
+"why": [
+"even",
+"swing",
+"unseen_near",
+"dying"
+]
+},
+{
+"n": 8157,
+"frame": "008157.png",
+"t": 242.1,
+"why": [
+"even",
+"weak",
+"dying"
+]
+},
+{
+"n": 8163,
+"frame": "008163.png",
+"t": 242.29,
+"why": [
+"weak",
+"dying"
+]
+},
+{
+"n": 8226,
+"frame": "008226.png",
+"t": 244.22,
+"why": [
+"swing",
+"weak",
+"edge"
+]
+},
+{
+"n": 8232,
+"frame": "008232.png",
+"t": 244.41,
+"why": [
+"even",
+"swing",
+"weak",
+"edge"
+]
+},
+{
+"n": 8310,
+"frame": "008310.png",
+"t": 246.83,
+"why": [
+"even",
+"unseen_near",
+"dying",
+"edge"
+]
+},
+{
+"n": 8331,
+"frame": "008331.png",
+"t": 247.5,
+"why": [
+"dying",
+"edge"
+]
+},
+{
+"n": 8388,
+"frame": "008388.png",
+"t": 249.23,
+"why": [
+"even",
+"weak",
+"dying"
+]
+},
+{
+"n": 8424,
+"frame": "008424.png",
+"t": 250.26,
+"why": [
+"swing",
+"weak"
+]
+},
+{
+"n": 8445,
+"frame": "008445.png",
+"t": 250.9,
+"why": [
+"unseen_near",
+"dying"
+]
+},
+{
+"n": 8466,
+"frame": "008466.png",
+"t": 251.56,
+"why": [
+"even",
+"dying"
+]
+},
+{
+"n": 8532,
+"frame": "008532.png",
+"t": 253.49,
+"why": [
+"dying",
+"edge"
+]
+},
+{
+"n": 8544,
+"frame": "008544.png",
+"t": 253.85,
+"why": [
+"even",
+"swing",
+"dying",
+"edge"
+]
+},
+{
+"n": 8622,
+"frame": "008622.png",
+"t": 256.01,
+"why": [
+"even",
+"dying"
+]
+},
+{
+"n": 8700,
+"frame": "008700.png",
+"t": 258.29,
+"why": [
+"even",
+"dying",
+"rope"
+]
+},
+{
+"n": 8778,
+"frame": "008778.png",
+"t": 260.58,
+"why": [
+"even",
+"unseen_near"
+]
+},
+{
+"n": 8844,
+"frame": "008844.png",
+"t": 262.45,
+"why": [
+"weak",
+"dying",
+"tentative"
+]
+},
+{
+"n": 8853,
+"frame": "008853.png",
+"t": 262.7,
+"why": [
+"even",
+"dying",
+"edge"
+]
+},
+{
+"n": 8886,
+"frame": "008886.png",
+"t": 263.78,
+"why": [
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 8913,
+"frame": "008913.png",
+"t": 264.63,
+"why": [
+"dying",
+"edge"
+]
+},
+{
+"n": 8931,
+"frame": "008931.png",
+"t": 265.2,
+"why": [
+"even",
+"dying"
+]
+},
+{
+"n": 8997,
+"frame": "008997.png",
+"t": 267.2,
+"why": [
+"swing"
+]
+},
+{
+"n": 9009,
+"frame": "009009.png",
+"t": 267.53,
+"why": [
+"even",
+"unseen_near"
+]
+},
+{
+"n": 9081,
+"frame": "009081.png",
+"t": 269.58,
+"why": [
+"weak",
+"edge",
+"rope"
+]
+},
+{
+"n": 9087,
+"frame": "009087.png",
+"t": 269.74,
+"why": [
+"even",
+"edge",
+"rope"
+]
+},
+{
+"n": 9135,
+"frame": "009135.png",
+"t": 271.16,
+"why": [
+"dying",
+"edge"
+]
+},
+{
+"n": 9165,
+"frame": "009165.png",
+"t": 272.05,
+"why": [
+"even",
+"weak",
+"dying"
+]
+},
+{
+"n": 9243,
+"frame": "009243.png",
+"t": 274.22,
+"why": [
+"even",
+"dying",
+"rope"
+]
+},
+{
+"n": 9246,
+"frame": "009246.png",
+"t": 274.34,
+"why": [
+"dying",
+"rope"
+]
+},
+{
+"n": 9288,
+"frame": "009288.png",
+"t": 275.6,
+"why": [
+"dying",
+"rope"
+]
+},
+{
+"n": 9321,
+"frame": "009321.png",
+"t": 276.65,
+"why": [
+"even",
+"weak",
+"edge"
+]
+},
+{
+"n": 9387,
+"frame": "009387.png",
+"t": 278.74,
+"why": [
+"swing",
+"dying",
+"edge"
+]
+},
+{
+"n": 9399,
+"frame": "009399.png",
+"t": 279.11,
+"why": [
+"even",
+"dying"
+]
+},
+{
+"n": 9411,
+"frame": "009411.png",
+"t": 279.47,
+"why": [
+"dying"
+]
+},
+{
+"n": 9468,
+"frame": "009468.png",
+"t": 281.13,
+"why": [
+"weak",
+"edge"
+]
+},
+{
+"n": 9477,
+"frame": "009477.png",
+"t": 281.42,
+"why": [
+"even",
+"edge"
+]
+},
+{
+"n": 9552,
+"frame": "009552.png",
+"t": 283.64,
+"why": [
+"even",
+"weak",
+"dying",
+"edge"
+]
+},
+{
+"n": 9630,
+"frame": "009630.png",
+"t": 285.88,
+"why": [
+"even",
+"swing",
+"weak",
+"dying"
+]
+},
+{
+"n": 9633,
+"frame": "009633.png",
+"t": 285.97,
+"why": [
+"swing",
+"dying"
+]
+},
+{
+"n": 9696,
+"frame": "009696.png",
+"t": 287.92,
+"why": [
+"swing",
+"unseen_near",
+"edge"
+]
+},
+{
+"n": 9708,
+"frame": "009708.png",
+"t": 288.27,
+"why": [
+"even",
+"unseen_near"
+]
+},
+{
+"n": 9735,
+"frame": "009735.png",
+"t": 289.11,
+"why": [
+"unseen_near"
+]
+},
+{
+"n": 9786,
+"frame": "009786.png",
+"t": 290.7,
+"why": [
+"even",
+"weak"
+]
+},
+{
+"n": 9831,
+"frame": "009831.png",
+"t": 292.03,
+"why": [
+"weak",
+"dying"
+]
+},
+{
+"n": 9852,
+"frame": "009852.png",
+"t": 292.66,
+"why": [
+"swing",
+"weak",
+"dying"
+]
+},
+{
+"n": 9864,
+"frame": "009864.png",
+"t": 293.03,
+"why": [
+"even",
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 9885,
+"frame": "009885.png",
+"t": 293.65,
+"why": [
+"weak",
+"dying",
+"edge"
+]
+},
+{
+"n": 9933,
+"frame": "009933.png",
+"t": 295.22,
+"why": [
+"tentative"
+]
+},
+{
+"n": 9942,
+"frame": "009942.png",
+"t": 295.49,
+"why": [
+"even",
+"weak"
+]
+},
+{
+"n": 10020,
+"frame": "010020.png",
+"t": 297.76,
+"why": [
+"even",
+"weak"
+]
+},
+{
+"n": 10098,
+"frame": "010098.png",
+"t": 300.1,
+"why": [
+"even",
+"weak",
+"dying"
+]
+},
+{
+"n": 10125,
+"frame": "010125.png",
+"t": 300.89,
+"why": [
+"weak",
+"rope"
+]
+},
+{
+"n": 10176,
+"frame": "010176.png",
+"t": 302.34,
+"why": [
+"even",
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 10197,
+"frame": "010197.png",
+"t": 302.99,
+"why": [
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 10251,
+"frame": "010251.png",
+"t": 304.52,
+"why": [
+"even",
+"unseen_near"
+]
+},
+{
+"n": 10278,
+"frame": "010278.png",
+"t": 305.34,
+"why": [
+"weak",
+"dying"
+]
+},
+{
+"n": 10329,
+"frame": "010329.png",
+"t": 306.87,
+"why": [
+"even"
+]
+},
+{
+"n": 10407,
+"frame": "010407.png",
+"t": 309.05,
+"why": [
+"even",
+"unseen_near",
+"weak"
+]
+},
+{
+"n": 10470,
+"frame": "010470.png",
+"t": 310.91,
+"why": [
+"dying"
+]
+},
+{
+"n": 10485,
+"frame": "010485.png",
+"t": 311.4,
+"why": [
+"even",
+"dying"
+]
+},
+{
+"n": 10521,
+"frame": "010521.png",
+"t": 312.47,
+"why": [
+"swing",
+"weak",
+"rope"
+]
+},
+{
+"n": 10563,
+"frame": "010563.png",
+"t": 313.62,
+"why": [
+"even",
+"dying"
+]
+},
+{
+"n": 10569,
+"frame": "010569.png",
+"t": 313.79,
+"why": [
+"dying"
+]
+},
+{
+"n": 10638,
+"frame": "010638.png",
+"t": 315.78,
+"why": [
+"unseen_near"
+]
+},
+{
+"n": 10641,
+"frame": "010641.png",
+"t": 315.86,
+"why": [
+"even",
+"weak"
+]
+},
+{
+"n": 10719,
+"frame": "010719.png",
+"t": 317.94,
+"why": [
+"even",
+"unseen_near"
+]
+},
+{
+"n": 10752,
+"frame": "010752.png",
+"t": 318.91,
+"why": [
+"weak",
+"dying",
+"tentative"
+]
+},
+{
+"n": 10797,
+"frame": "010797.png",
+"t": 320.13,
+"why": [
+"even",
+"weak",
+"edge"
+]
+},
+{
+"n": 10839,
+"frame": "010839.png",
+"t": 321.29,
+"why": [
+"swing"
+]
+},
+{
+"n": 10875,
+"frame": "010875.png",
+"t": 322.28,
+"why": [
+"even",
+"swing",
+"unseen_near",
+"weak",
+"dying"
+]
+},
+{
+"n": 10941,
+"frame": "010941.png",
+"t": 324.17,
+"why": [
+"unseen_near"
+]
+},
+{
+"n": 10950,
+"frame": "010950.png",
+"t": 324.42,
+"why": [
+"even",
+"dying"
+]
+},
+{
+"n": 11010,
+"frame": "011010.png",
+"t": 326.09,
+"why": [
+"weak",
+"tentative"
+]
+},
+{
+"n": 11028,
+"frame": "011028.png",
+"t": 326.61,
+"why": [
+"even",
+"weak"
+]
+},
+{
+"n": 11031,
+"frame": "011031.png",
+"t": 326.69,
+"why": [
+"weak"
+]
+},
+{
+"n": 11085,
+"frame": "011085.png",
+"t": 328.24,
+"why": [
+"swing",
+"dying"
+]
+},
+{
+"n": 11106,
+"frame": "011106.png",
+"t": 328.83,
+"why": [
+"even",
+"swing",
+"dying"
+]
+},
+{
+"n": 11109,
+"frame": "011109.png",
+"t": 328.93,
+"why": [
+"dying"
+]
+},
+{
+"n": 11157,
+"frame": "011157.png",
+"t": 330.31,
+"why": [
+"edge"
+]
+},
+{
+"n": 11184,
+"frame": "011184.png",
+"t": 331.03,
+"why": [
+"even",
+"dying"
+]
+},
+{
+"n": 11250,
+"frame": "011250.png",
+"t": 332.94,
+"why": [
+"rope"
+]
+},
+{
+"n": 11262,
+"frame": "011262.png",
+"t": 333.29,
+"why": [
+"even"
+]
+},
+{
+"n": 11340,
+"frame": "011340.png",
+"t": 335.54,
+"why": [
+"even",
+"weak"
+]
+},
+{
+"n": 11400,
+"frame": "011400.png",
+"t": 337.32,
+"why": [
+"dying",
+"tentative"
+]
+},
+{
+"n": 11418,
+"frame": "011418.png",
+"t": 337.88,
+"why": [
+"even"
+]
+},
+{
+"n": 11433,
+"frame": "011433.png",
+"t": 338.32,
+"why": [
+"weak",
+"dying"
+]
+},
+{
+"n": 11496,
+"frame": "011496.png",
+"t": 340.14,
+"why": [
+"even",
+"weak",
+"rope"
+]
+},
+{
+"n": 11514,
+"frame": "011514.png",
+"t": 340.63,
+"why": [
+"rope"
+]
+},
+{
+"n": 11565,
+"frame": "011565.png",
+"t": 342.07,
+"why": [
+"weak",
+"rope"
+]
+},
+{
+"n": 11574,
+"frame": "011574.png",
+"t": 342.32,
+"why": [
+"even",
+"weak",
+"rope"
+]
+}
+]
+}

@@ -150,7 +150,8 @@ def check(run, n=40):
         diff = np.abs(rr[..., :3].astype(np.int16) - f[:600].astype(np.int16)).max(2)
         ok = (diff <= 30) & op
         offs.append((dx, dy, sc))
-        expl.append((float(op.mean()), float(ok.sum() / max(1, op.sum()))))
+        expl.append((float(op.mean()), float(ok.sum() / max(1, op.sum())),
+                     float(((diff <= 4) & op).sum() / max(1, op.sum()))))
         if len(offs) == 5:
             vis = f[:600].copy()
             vis[ok] = (0, 0, 0)                                    # explained pixels blacked out: what's left?
@@ -160,7 +161,8 @@ def check(run, n=40):
     print("  offset frame vs logged camera, px: dx p5/p50/p95", np.percentile(offs[:, 0], [5, 50, 95]),
           "dy", np.percentile(offs[:, 1], [5, 50, 95]), "score p5/p50", np.percentile(offs[:, 2], [5, 50]).round(3))
     print("  scenery (opaque render) share of the play area p50", np.median(expl[:, 0]).round(3),
-          "; of it, within 30 grey levels of the frame p5/p50/p95", np.percentile(expl[:, 1], [5, 50, 95]).round(3))
+          "; of it, within 30 grey levels of the frame p5/p50/p95", np.percentile(expl[:, 1], [5, 50, 95]).round(3),
+          "; within 4 (1:1 picture, PNG frames only)", np.percentile(expl[:, 2], [5, 50, 95]).round(3))
 
 
 if __name__ == "__main__":
