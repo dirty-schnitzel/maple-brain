@@ -1,7 +1,8 @@
-# maplebrain — session handoff (updated 2026-11-15)
+# maplebrain — session handoff (updated 2026-11-16)
 **Read this file top to bottom; it holds only the current state.** NEXT SESSION = "START HERE NEXT SESSION" below:
 brain v3 (**PLAN-v3.md**) steps 1-3 are DONE and **Platform mode passed its live test** (2026-11-15, Ant Tunnel IV;
-the user: "perfect platform mode test"). NEXT = P2 (accuracy + speed); open offer: the humanness report (below).
+the user: "perfect platform mode test"). NEXT = the perception redesign (**PLAN-perception.md**, agreed 2026-11-16,
+branch `perception`); open offer: the humanness report (below).
 Sessions 6-23, the old brain (v1), and superseded plans moved verbatim to **HISTORY.md** on 2026-11-08: grep it for
 old runs, numbers and decisions.
 Latest: 2026-11-15 Platform mode live (runs below), F9 mark fix; the hybrid BT + imitation-learning proposal reviewed
@@ -48,16 +49,29 @@ find mobs, fight them like a player, pick up loot, use potions, and **navigate p
 later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never reads memory or packets.
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
-## START HERE NEXT SESSION (2026-11-15): Platform mode is live-proven -> P2 accuracy + speed
-**First:** ask the user whether to merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges; v3 now has
-a good live run). Then ROADMAP phase 1a (below): the perception SPEED review. Later TODO: game window at native
-1366x768 (below; belongs to phase 1).
+## START HERE NEXT SESSION (2026-11-16): the perception redesign, PLAN-perception.md step 0
+**Read PLAN-perception.md top to bottom** (the scene model: explain the frame with the client's own assets; the
+experiments E0-E6 behind it are in tools/perc/redesign/, README there). The user agreed the direction on 2026-11-16:
+target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, windowed, no resize**. Branch
+`perception` (off dev a8b9487; 1709ddf = the proposal + experiments).
+- **PLAN-perception.md REPLACES ROADMAP phase 1a and 1b below**: S1-S3 (threads, GPU self-tag / camshift / resize,
+  slow HUD) = its step 2 (pipeline), S4 = steps 4 / 6; A1 / A3 / A5 / A6 = step 5, A2 / A4 = steps 3-4 (the fit +
+  3-valued evidence). "TODO: game window at native 1366x768" below = its step 0. Phases 2-5 of the ROADMAP stand
+  (FrameFacts = phase 2's perception record).
+- **Bench: ~37 ms now, the baseline 59.6 ms (tests/perf_baseline.json, 2026-11-08) is STALE**: the Windows power
+  plan is *Ultimate Performance* since ~11-13 and every CPU part runs ~2x faster (check `powercfg /getactivescheme`
+  before judging speed). The regression test only fails when SLOWER than the baseline, so until the re-baseline it
+  can't catch a loss below ~76 ms: compare the bot speed line with ~37 ms by eye.
+- Every step: pytest green + the bot speed line + tracker replay (tools/perc/replay) same or better; the order of
+  code changes is agreed with the user first; no live / scripted input without their OK.
+- Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")
 Main line = the scripted v3 brain, made human by analysis of the user's recordings; a human-vs-bot CLASSIFIER is the
 referee that decides whether learned parts are needed. Why: "UPDATE later the same day" + the discussion summary at
 the end of this list.
 - **Phase 0:** merge `dev` -> `main` (the user). Optional: the 1366x768 window A/B (TODO below).
+- **Phases 1a + 1b below are SUPERSEDED by PLAN-perception.md (2026-11-16)**; kept for the reasoning.
 - **Phase 1a speed, 16 -> >= 30 fps:** profiling review first (offline on tests/fixtures/perf_ant4 + recorded runs:
   where the ~58 ms tick goes, per part and per line, ranked fixes with expected savings; GPU ~15 ms of it, the rest
   CPU in series) -> S1 CPU parts in threads beside the GPU -> S2 self-tag / camshift / resize on the GPU (GpuNCC
