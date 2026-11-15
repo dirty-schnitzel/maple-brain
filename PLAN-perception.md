@@ -1,4 +1,4 @@
-# maplebrain perception redesign: the scene model (PROPOSAL 2026-11-16 - not agreed yet)
+# maplebrain perception redesign: the scene model (AGREED by the user 2026-11-16; step 0 DONE, see HANDOFF)
 
 Written after the phase 1a speed review (HANDOFF "ROADMAP"). The user's target (2026-11-16): **capped at 60 fps, 100 %
 (or close) accuracy for platforms, monsters, the player - everything**; the game window goes to **native 1366x768,
@@ -92,12 +92,26 @@ sprites.py, motion.py.
 |---|---|---|
 | 0 Ground | Native window check with the user (5 min `serve --observe --frames` on Ant Tunnel IV at 1366x768): is the picture 1:1 with the sprites? New fixture + bench at (1366, 768), re-baseline on purpose. `tools/perc/replay` (old vs new tracker on recorded frames). Label ~300 frames | sprite pixels within +-4 levels >= 95 % on clear mobs (else: stays "resampled", wider tolerances); replay reproduces today's runs |
 | 1 Scene model | export.ps1: + Map/Back (+ Npc, Item/Pet, Effect/BasicEff for later); `assets build`: per-map render (tiles, objects, backs with parallax), animated parts flagged unknown; GPU registration -> C | camera within 1 px of hand-checked frames; >= 98 % of non-dynamic pixels explained on Ant Tunnel IV, Line 1, Perion (fog!); platform overlay pictures for the user |
-| 2 Pipeline | FrameFacts contract; one upload; GPU launched async, CPU readers in threads; today's detector inside it (FFT search), HUD cache, tag fallback off the main path | replay identical; bench tick p50 <= 20 ms, p90 <= 25 |
+| 2 Pipeline | FrameFacts contract; one upload; GPU launched async, CPU readers in threads; today's detector inside it (FFT search), HUD cache, tag fallback off the main path; watch at 1 look / s + the Lie Detector match on the GPU (section below) | replay identical; bench tick p50 <= 20 ms, p90 <= 25 |
 | 3 Mob matcher | residual D; sprite-over-scenery fit (opacity, per-pixel labels) in windows; SEEN / COVERED / ABSENT in FrameFacts; coarse / refine / near removed | synthetic recall >= 99 %, 0 scenery ghosts; labels >= today on every class; the documented ghost tracks (HANDOFF table) gone in replay |
 | 4 Tracker | 3-valued evidence replaces fight_s / lose_s / covered_s; knockback + walk model; spawn-point watch; opacity states | replay: lost-alive moments (E4 set) held >= 95 %; time a dead mob stays "live" p90 <= 0.1 s; live 3 min: solid presses >= 85 % |
 | 5 Other classes | players + pet as occluders from tags / client sprites (= A1), bubbles = unexplained (= A6), HP bars + mob tags + damage numbers (= A3), hit time per weapon (A5) | labels; live: solid presses >= 95 % |
 | 6 60 Hz | frame pacing (one tick per rendered frame), p99 work, thresholds re-measured at 60 fps | live tick p50 <= 12 ms, p99 <= 16.6; gap after a swing vs the user's 0.09 s |
 Then ROADMAP phase 2 (recording data model): FrameFacts IS its perception record.
+
+**Step 0 result (2026-11-16, `runs/play/20261116_012059_1`, PNG):** the native picture is 1:1 - opaque uncovered mobs
+99.7 % of sprite pixels within +-4 (per-mob median 100.0 %, detector score 1.000), scenery pixels 91.8 % within +-4
+(the rest is covered): pixels are exact or something else. Tolerance +-4. JPEG frames are useless for this (22 % of
+exact sprite pixels within +-4): reference recordings are PNG (`--frames-png`). Details: HANDOFF "Step 0 state".
+
+### Lie Detector watch (added by the user, 2026-11-16) - part of step 2
+- **`maplebrain watch` looks once per second** (today every 0.3 s; the Lie Detector gives 10+ s). Each look = 4
+  full-frame template matches on the CPU (~13 ms each) in a second process, beside the hunt.
+- **Investigate: the Lie Detector match on the GPU** - does it cut the frame time? In the hunt: on the frame that
+  is already uploaded (step 2: one upload), instead of the CPU thread that competes with the HUD / tag readers; in
+  watch: its own small GPU job. Measure the hunt's tick p50 / p90 with watch off, watch as today, watch at 1 s, and
+  watch on the GPU (bench + a live observe run); keep what is faster and never slower to notice an LD.
+- Same work: native 1:1 Lie Detector templates (today's are cut from stretched windows: HANDOFF, the 0.80 bar).
 
 ## Risks and unknowns
 - Native 1366x768: "renders 1:1" is assumed, not proven (HANDOFF TODO) - step 0 decides the tolerances. The 72,857
