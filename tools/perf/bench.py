@@ -26,7 +26,8 @@ sys.path.insert(0, str(ROOT))
 FIXTURE = ROOT / "tests" / "fixtures" / "perf_ant4"
 BASELINE = ROOT / "tests" / "perf_baseline.json"
 ANT4 = 10005063                       # Dungeon / Ant Tunnel IV (the fixture's map)
-SCREEN = (2560, 1440)                 # the user's capture size: `resize` times capture.normalize from it
+SCREEN = (1366, 768)                  # the capture size: `resize` times capture.normalize from it. Native window
+                                      # since 2026-11-16 (PLAN-perception.md): no resize (was 2560x1440, ~1.8 ms)
 WARMUP = 5                            # frames not counted (first CUDA calls, tracker start)
 
 
@@ -39,8 +40,9 @@ def machine() -> str:
     return f"{platform.node()} | {gpu}"
 
 
-def build(map_id: int):
-    """The live rig for `map_id` (runner._load_map with --gpu --tracker), a Perceiver, SelfTracker and BrainV2."""
+def build(map_id: int, mob_score: float = 0.70):
+    """The live rig for `map_id` (runner._load_map with --gpu --tracker), a Perceiver, SelfTracker and BrainV2.
+    `mob_score` = the run's --mob-score (tools/perc/replay passes the recorded run's)."""
     from maplebrain.brain.brain_v2 import BrainV2
     from maplebrain.config import Config
     from maplebrain.humanize import Humanizer
@@ -50,7 +52,7 @@ def build(map_id: int):
     from maplebrain.runtime.runner import ASSETS, Rig, _load_map
     cfg = Config()
     cfg.perception.gpu = cfg.perception.tracker = True
-    cfg.perception.sprite_score = 0.70
+    cfg.perception.sprite_score = mob_score
     cfg.brain = "v2"
     hz = Humanizer(cfg.humanize.jitter, 1)
     rig = Rig(cfg, hz, None, None, None, LieDetector.load(ASSETS), np.load(ASSETS / "self_tag_gray.npy"))

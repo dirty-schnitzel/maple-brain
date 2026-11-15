@@ -11,8 +11,11 @@ import cv2
 
 
 class Recorder:
-    def __init__(self, out: Path, every: int = 3, backlog: int = 48):
-        """`every`: save every Nth frame (plus every Track/Stop/Forget); 0 = no frames (log + ticks only)."""
+    def __init__(self, out: Path, every: int = 3, backlog: int = 48, png: bool = False):
+        """`every`: save every Nth frame (plus every Track/Stop/Forget); 0 = no frames (log + ticks only).
+        `png`: lossless frames (--frames-png; ~1.1 MB and ~40 ms of the writer thread each) instead of JPEG 92,
+        which moves 4 of 5 sprite pixels by more than 4 levels (measured 2026-11-16): for reference recordings."""
+        self.ext = "png" if png else "jpg"
         self.out = Path(out)
         (self.out / "frames").mkdir(parents=True, exist_ok=True) if every else self.out.mkdir(parents=True, exist_ok=True)
         self.ticks = open(self.out / "ticks.jsonl", "w", buffering=1, encoding="utf-8")
@@ -31,7 +34,8 @@ class Recorder:
             if item is None:
                 return
             path, frame = item
-            cv2.imwrite(str(path), frame, [cv2.IMWRITE_JPEG_QUALITY, 92])
+            cv2.imwrite(str(path), frame, [cv2.IMWRITE_PNG_COMPRESSION, 1] if path.suffix == ".png"
+                        else [cv2.IMWRITE_JPEG_QUALITY, 92])
 
     def say(self, line: str) -> None:
         print(line.encode("ascii", "replace").decode())
@@ -41,7 +45,7 @@ class Recorder:
         self.n += 1
         frame_file = None
         if self.every and (self.n % self.every == 0 or any(type(a).__name__ in ("Track", "Stop", "Forget") for a in actions)):
-            name = f"{self.n:06d}.jpg"
+            name = f"{self.n:06d}.{self.ext}"
             try:
                 self._q.put_nowait((self.out / "frames" / name, frame.copy()))
                 frame_file = name

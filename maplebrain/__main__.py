@@ -35,6 +35,8 @@ def main(argv=None) -> int:
                    f"{Perception.sprite_score}); mobs already tracked are followed at any score")
     r.add_argument("--no-focus", action="store_true", help="don't bring the game to front; wait for you to")
     r.add_argument("--frames-every", type=int, default=3, help="save every Nth frame (1 = all, for tracker tests)")
+    r.add_argument("--frames-png", action="store_true", help="save the frames lossless (PNG, ~1.1 MB each) instead "
+                   "of JPEG: reference recordings")
     v = sub.add_parser("serve", help=f"stay loaded; {Keys.start.upper()} starts hunting, {Keys.stop.upper()} stops (elevated, game focused); "
                                      f"between hunts {Keys.mode.upper()} = mode (auto / platform), {Keys.mark.upper()} = mark the platform you stand on")
     v.add_argument("out", type=Path, nargs="?", default=Path("runs/manual"), help="one folder per hunt in here")
@@ -58,6 +60,8 @@ def main(argv=None) -> int:
     v.add_argument("--stop-key", default=Keys.stop)
     v.add_argument("--frames", action="store_true", help="also save every 3rd frame (~50 MB per 10 min)")
     v.add_argument("--frames-every", type=int, default=None, help="save every Nth frame (implies --frames; 1 = all)")
+    v.add_argument("--frames-png", action="store_true", help="save the frames lossless (PNG, ~1.1 MB each, ~3.3 GB "
+                   "per 5 min; implies --frames) instead of JPEG: reference recordings")
     v.add_argument("--observe", action="store_true", help="record only: you play, the bot presses no keys")
     g = sub.add_parser("goto", help="brain-v2 movement test: travel to a platform, or a tour of random goals "
                        "(elevated; implies --gpu)")
@@ -135,13 +139,14 @@ def main(argv=None) -> int:
             ap.error("--tracker needs --gpu")
         cfg.perception.tracker = a.tracker
         if a.cmd == "run":
-            return run(a.out, a.seconds, cfg, focus=not a.no_focus, frames_every=a.frames_every)
+            return run(a.out, a.seconds, cfg, focus=not a.no_focus, frames_every=a.frames_every,
+                       frames_png=a.frames_png)
         for k in (a.start_key, a.stop_key):
             if k not in VK:
                 ap.error(f"hotkeys must be F1-F12, got {k!r}")
         cfg.keys.start, cfg.keys.stop = a.start_key, a.stop_key
-        every = a.frames_every if a.frames_every is not None else (3 if a.frames else 0)
-        return serve(a.out, cfg, frames=every, observe=a.observe)
+        every = a.frames_every if a.frames_every is not None else (3 if a.frames or a.frames_png else 0)
+        return serve(a.out, cfg, frames=every, observe=a.observe, frames_png=a.frames_png)
     return 2
 
 

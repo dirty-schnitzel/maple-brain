@@ -19,7 +19,7 @@ from ..nav.selfstate import SelfTracker
 from ..perception.perceiver import Perceiver
 from .keys import KeyDriver
 from .recorder import Recorder
-from .runner import _init_map, _setup, alarm, lie_alarm
+from .runner import _init_map, _picture, _setup, alarm, lie_alarm
 
 
 def goto(out: Path, cfg, seconds: float = 180.0, to=None, focus: bool = True, frames_every: int = 3,
@@ -44,7 +44,7 @@ def goto(out: Path, cfg, seconds: float = 180.0, to=None, focus: bool = True, fr
                 return 1
             time.sleep(rig.hz.vary(0.2))
         time.sleep(rig.hz.vary(1.0))
-        say(f"game picture at x {rig.screen.calibrate()} ({rig.screen.kind})")
+        say(_picture(rig.screen, rig.screen.calibrate()))
         if not _init_map(rig, say):
             return 1
         status = _tour(rig, rec, t0, say, seconds, to, seed)

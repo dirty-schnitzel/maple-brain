@@ -2,6 +2,8 @@
 
 Classic World renders 1366x768 and scales it to fill the screen (pillarboxed on wide monitors), so every frame
 is cropped to the game picture and scaled back to 1366x768: one set of coordinates on any monitor.
+The standard setup (PLAN-perception.md, 2026-11-16) is the game WINDOWED with a client area of exactly 1366x768:
+then the picture is the game's own pixels and nothing is resized (`Screen.describe()` says which it is).
 """
 import ctypes
 import time
@@ -45,7 +47,20 @@ def game_columns(raw: np.ndarray) -> tuple[int, int]:
 
 
 def normalize(raw: np.ndarray) -> np.ndarray:
+    """The game picture as 1366x768. Already that size (the native window): the same pixels, untouched - only made
+    contiguous (dxcam's frame is: no copy; an mss crop is a view into the grab: copied)."""
+    if raw.shape[:2] == (H, W):
+        return np.ascontiguousarray(raw)
     return cv2.resize(raw, (W, H), interpolation=cv2.INTER_AREA)
+
+
+def picture(cols: tuple, height: int | None, kind: str) -> str:
+    """The run log's line about the captured picture: where it is, its size, and whether it gets resized."""
+    if height is None:
+        return f"game picture at x {cols} ({kind})"
+    w = cols[1] - cols[0]
+    how = "native (no resize)" if (w, height) == (W, H) else f"-> resized to {W}x{H}"
+    return f"game picture at x {cols}, {w}x{height} {how} ({kind})"
 
 
 class Screen:
@@ -87,6 +102,9 @@ class Screen:
             return normalize(self.cam.get_latest_frame())
         raw = np.asarray(self._mss.grab(self.box))[:, :, :3]
         return normalize(raw[:, self.cols[0]:self.cols[1]])
+
+    def describe(self) -> str:
+        return picture(self.cols, self.box["height"], self.kind)
 
     def cursor(self):
         """Mouse position in frame coordinates, or None when outside the game picture."""
