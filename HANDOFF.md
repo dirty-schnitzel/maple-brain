@@ -50,7 +50,47 @@ The user supervises every run at the PC. Botting is against Nexon's ToS (ban ris
 
 ## START HERE NEXT SESSION (2026-11-15): Platform mode is live-proven -> P2 accuracy + speed
 **First:** ask the user whether to merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges; v3 now has
-a good live run). Then P2 (section below). Offered, not yet answered: the humanness report (below) - ask.
+a good live run). Then ROADMAP phase 1a (below): the perception SPEED review. Later TODO: game window at native
+1366x768 (below; belongs to phase 1).
+
+### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")
+Main line = the scripted v3 brain, made human by analysis of the user's recordings; a human-vs-bot CLASSIFIER is the
+referee that decides whether learned parts are needed. Why: "UPDATE later the same day" + the discussion summary at
+the end of this list.
+- **Phase 0:** merge `dev` -> `main` (the user). Optional: the 1366x768 window A/B (TODO below).
+- **Phase 1a speed, 16 -> >= 30 fps:** profiling review first (offline on tests/fixtures/perf_ant4 + recorded runs:
+  where the ~58 ms tick goes, per part and per line, ranked fixes with expected savings; GPU ~15 ms of it, the rest
+  CPU in series) -> S1 CPU parts in threads beside the GPU -> S2 self-tag / camshift / resize on the GPU (GpuNCC
+  exists), frame uploaded once -> S3 HUD / LD / minimap at ~4-5 Hz -> S4 tracker re-check at the new fps. Gate:
+  bench tick p50 < 33 ms (re-baseline on purpose), tracker replay same or better (rebuild the old-vs-new replay as
+  tools/perc/ - it was never committed).
+- **Phase 1b accuracy:** A1 mask our body + pet, A2 dying-mob association on the whole-screen path, A6 speech bubbles,
+  A3 HP bars, A4 effect-robust scores, A5 hit time per weapon (details in P2 below). Gate: label_eval.py, bot_presses
+  solid share 69 % -> >= 85 %, 3-min live check with marked frames.
+- **Phase 2 recording data model:** versioned per-tick schema from the v3 World (us: pos, ground/rope/air, facing,
+  HP/MP, platform + edge distances, nearest rope dx/dy; N nearest mobs relative + state; goal + task; perception
+  quality; frame index) + RAW key events (down/up timestamps, injected flag) + run metadata (map, weapon, attack
+  speed, resolution, party, code version). One recorder for bot runs and `serve --observe`; Parquet per run, loader,
+  validator; convert the old 27 min where fields allow. Must allow labelling the user's play AFTERWARDS with tasks
+  (next mob hit = target, platform arrived on = destination, link used = move). Design together with v3 step 4
+  (memory). Gate: round-trip tests, old runs converted, a per-recording sanity report.
+- **Phase 3 recordings (the user):** polearm, Ant Tunnel IV, 15-30 min sessions, varied (crowded / quiet, solo /
+  party), later 1-2 maps; bot runs of the same setup; ~1-2 h for phase 4; quality check after each session.
+- **Phase 4 humanness report + classifier:** per-feature user vs bot with 2-sample tests, ranked (press / hold per
+  key, presses per swing, gap rhythm / autocorrelation, reaction in-reach -> press, turns, overlaps, idle gaps,
+  breaks). Classifier human vs bot on 1-2 s windows of key events + context: gradient boosting on features, then a
+  small GRU on raw events; split BY SESSION; same map / setup on both sides; control = user session A vs B (~50 %
+  = the floor). Output: held-out accuracy, features used, most-certain windows drawn as key timelines.
+- **Phase 5 loop:** top difference -> rule / sampled distribution / correlated timing process -> sim gate (kills,
+  clean kills, stuck unchanged) -> bot run -> classifier again. Plateau above the floor -> learned parts there,
+  narrowest first: conditional timing models, then movement BC conditioned on the v3 task (planner + targeting +
+  Travel still decide WHAT and WHERE; the model only replaces moves.py's key output), scripted shield + scripted
+  brain as DAgger expert. Exit: near the floor, kills / clean kills not worse.
+- Alongside: v3 steps 4-6 (memory, Auto, Path), M2 loot / buff.
+Discussion summary (2026-11-15): a smart state machine can plausibly fool players, server statistics and simple
+timing checks; a dedicated sequence classifier probably still beats it above chance (small per-window gaps add up
+over hours - true for BC too); the strongest signals are not behaviour (SendInput's injected flag, the process /
+hook / capture: LDs started at `serve --observe` with no keys) and neither approach touches them - no evasion.
 
 **Platform mode live test, 2026-11-15, Ant Tunnel IV, local client (`serve runs\v2 --brain v2 --mob-score 0.70
 --frames`) - PASSED ("perfect platform mode test"):**
@@ -85,6 +125,37 @@ imitation-learning micro policy at 60 Hz with action chunking + "biomechanical" 
   1-2 more sessions of the user with the polearm on Ant Tunnel IV.
 - Small ideas from the proposal worth taking (logged, not built): softmax + noise on roam / zone choice (a score
   term with a temperature); potion thresholds drifting over a session (Reflexes parameter; today HP 50 % / MP 10 %).
+- **UPDATE later the same day (a 2nd proposal: utility AI + GRU behaviour cloning at 30 Hz, relative-geometry state,
+  recovery dataset):** the user: "the goal is the knowledge and the software, not the game itself"; mistakes and
+  reports are no factor; they will record the data once perception is good and a proper data model stores it. So the
+  learned motor layer is now a REAL milestone (not "M5 optional"). Order: perception (speed review first, then
+  accuracy) -> recording data model (versioned schema from the v3 World snapshot + goal / task; RAW key events with
+  timestamps, not only a 30 Hz held grid; the same schema for bot runs) -> the user records -> humanness report as
+  the eval harness -> learned layer conditioned on the v3 task (movement first). Testing a learned policy: seeded
+  replayable runs, statistical gates (offline per-key / timing tests vs the user; sim kills, clean kills, stuck,
+  falls vs the scripted baseline), a scripted SHIELD that vetoes (no press after a death, progress watchdog ->
+  scripted moves) and logs each veto, model probabilities in ticks.jsonl next to the scripted choice, and the
+  scripted brain as the DAgger expert in the sim (it labels any state: "what"; the user's data: "how"). Not built:
+  no virtual-HID / injected-flag hiding (stays SendInput).
+
+### TODO (later): game window at native 1366x768 (the user, 2026-11-15)
+The user plays at FHD now (1920x1080; earlier 2560x1440). The game lays the world out on a 1366x768 logical screen
+(client sprites match our normalized frame at file size, minimap canvas 1:1, a fixed 16:9 picture pillarboxed on
+3440) and stretches it to the window; `capture.normalize` shrinks it back -> every frame resampled TWICE (blurred
+sprite edges vs the 1:1 client templates; ghosts 0.57-0.68 vs real 0.80-0.98 is a narrow gap; the minimap sub-pixel
+jitter `localize.py` works around). Speed is NOT the reason: resize 2560x1440 -> 1366 = 1.7 ms, FHD 1.3 ms; live
+grab + resize p50 4 ms of a ~58 ms tick (`runs/v2/20261115_015246_2`).
+- Setup: WINDOWED, client area exactly 1366x768 (not borderless = stretched; not exclusive fullscreen = mode switch,
+  dxcam trouble). Windows display scale 100 % (125 % may DPI-stretch the window). Never below 1366x768.
+- Checks: the run log's `game picture at x (a, b)` spans exactly 1366, height 768; the view shows exactly the same
+  part of the map as FHD (if not, the "renders 1366x768 and scales" assumption is wrong - stop and look). Not settled:
+  whether the game renders a 1366 image and stretches it or draws sprites stretched into the window (its own
+  screenshots `C:\Nexon\Library\maplestorycw\appdata\Maple_A_*.jpg` are saved at window size; a blur test on them was
+  inconclusive, JPEG).
+- A/B: 1-2 min `serve runs\play --observe --gpu --tracker --frames` on Ant Tunnel IV at 1366x768 (no keys) -> detector
+  scores of real mobs vs weak hits / ghosts against FHD + 2560x1440 frames of the same map. Better -> the standard setup.
+- If adopted: `tools/perf/bench.py` assumes `SCREEN = (2560, 1440)` -> set (1366, 768) and re-baseline on purpose;
+  `normalize` could skip the no-op resize.
 
 **2026-11-15: back to the local game process (capture + SendInput as before). The VM experiment is parked on branch
 `vnc-keys` only (never on `dev` / `main`). `dev` = `v3` = steps 1-3; `main` NOT updated.**
