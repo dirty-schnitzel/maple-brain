@@ -58,12 +58,37 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
   slow HUD) = its step 2 (pipeline), S4 = steps 4 / 6; A1 / A3 / A5 / A6 = step 5, A2 / A4 = steps 3-4 (the fit +
   3-valued evidence). "TODO: game window at native 1366x768" below = its step 0. Phases 2-5 of the ROADMAP stand
   (FrameFacts = phase 2's perception record).
-- **Bench: ~37 ms now, the baseline 59.6 ms (tests/perf_baseline.json, 2026-11-08) is STALE**: the Windows power
-  plan is *Ultimate Performance* since ~11-13 and every CPU part runs ~2x faster (check `powercfg /getactivescheme`
-  before judging speed). The regression test only fails when SLOWER than the baseline, so until the re-baseline it
-  can't catch a loss below ~76 ms: compare the bot speed line with ~37 ms by eye.
+- **Bench baseline re-written on purpose 2026-11-16: tick 32.7 ms (p90 51.5), 30.6 fps** = resize 0.0 + perceive
+  32.6 [gpu 10.7, world 6.4, hud 6.0, self 2.7, locate 2.4, camshift 2.0, scene 1.2]. Was 59.6 ms (2026-11-08): the
+  Windows power plan is *Ultimate Performance* since ~11-13, every CPU part runs ~2x faster (check
+  `powercfg /getactivescheme` before judging speed), and the bench no longer resizes (`SCREEN` = 1366x768, -1.8 ms).
+  Repeats spread 32.7-37 ms. To re-baseline AGAIN on the native fixture once the recording exists (step 0).
 - Every step: pytest green + the bot speed line + tracker replay (tools/perc/replay) same or better; the order of
   code changes is agreed with the user first; no live / scripted input without their OK.
+- **Step 0 state (2026-11-16):**
+  - DONE `tools/perc/replay/` (README there): `run.py RUN [--old REF [--only files]]` = the live Perceiver
+    (`bench.build`) over a run's saved frames, the old code served from git by an import hook (nothing checked out);
+    `compare.py RUN A B | --live B`. Proven on press1 + air1/fix3: same code twice and working tree vs `--old HEAD`
+    = the same tracks on 100 % of the frames, but NOT to the digit (GPU run-to-run noise: scores <= 0.005, a
+    position 1 px about once in 5000 track-frames) -> every "replay identical" gate means compare.py's "the same
+    tracks"; press1 at 0.65 gives 163 real tracks = the 2026-11-09 replay's number; vs the live tracks on the same
+    frames 89-90 % of real track-frames either way (the replay sees every 3rd tick). ~55 s per run.
+  - DONE native-window readiness: `capture.normalize` returns a 1366x768 picture untouched; the run log says
+    `game picture at x (0, 1366), 1366x768 native (no resize)` or `... WxH -> resized to 1366x768`; bench SCREEN.
+    Nothing else assumed a larger window (world / hud / cover / camshift work in normalized coordinates;
+    `localize.py`'s sub-pixel canvas offset should read ~0 at native: check on the recording).
+  - DONE `--frames-png` (serve / run): lossless frames. **JPEG 92 leaves only 22 % of exactly drawn sprite pixels
+    within +-4 levels** (q100: 40 %; +-16: 87 %), so the 1:1 gate and every colour-exact experiment need PNG
+    (~1.1 MB, ~40 ms writer thread per frame; 5 min ~3.3 GB). E1's "61-66 % within +-16" was partly JPEG.
+  - DONE `tools/perc/native_check.py RUN [--sheet N]`: clear mobs vs their client sprite, share of opaque pixels
+    within +-4 / 8 / 16, colour shift, per mob; prints the gate. Before-number (press1, FHD + JPEG): 12 % / 33 % /
+    59 %, 155 clear mobs.
+  - The game window IS at native already (checked read-only 2026-11-16: client area 1366x768 at (8, 32), display
+    scale 100 %, monitor 3440x1440).
+  - **NEXT (the user records, their call when):** 5 min on Ant Tunnel IV, `serve runs\play --observe --gpu --tracker
+    --frames-png`; the log must say `1366x768 native (no resize)`. Then: `native_check.py RUN --sheet 24` (gate
+    >= 95 % within +-4), same view of the map as FHD (exp_render.py check RUN: registration at scale 1; our tag /
+    minimap / HUD found), new perf fixture + baseline on purpose, ~300 frames picked for by-eye labels. Then step 1.
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")
@@ -573,8 +598,9 @@ ticks + keys.jsonl + every 3rd frame; in a party). Tools: `tools/play/analyze.py
 - Python venv `C:\Users\Yoav\dev\auto-maple\.venv` (Py 3.12: opencv, numpy, mss, dxcam, torch + CUDA, pytest).
 - **The game runs elevated, so the bot must too** (Windows drops SendInput from a lower-integrity process). Check:
   `whoami /groups | Select-String Mandatory` -> "High Mandatory Level".
-- The game: windowed 2560x1440 client on the left of the 3440x1440 monitor -> the log's `game picture at x (0, 2560)`
-  is right (anything else = a bad crop); nothing may cover the game window. Keys don't reach the game while it is
+- The game: WINDOWED, client area exactly 1366x768 (native, since 2026-11-16; before: FHD / 2560x1440 stretched) on
+  the 3440x1440 monitor, display scale 100 % -> the log says `game picture at x (0, 1366), 1366x768 native (no
+  resize)` (anything else = resampled or a bad crop); nothing may cover the game window. Keys don't reach the game while it is
   unfocused (tested), so no background play.
 
 ## Commands (from `C:\Users\Yoav\dev\maple-work`)
@@ -589,7 +615,11 @@ Get-Process python | ? Path -like '*auto-maple*'                 # running bot p
 ..\auto-maple\.venv\Scripts\python -m maplebrain livemap [runs\v2]                         # console map of the hunt
 ..\auto-maple\.venv\Scripts\python -m maplebrain assets build                              # client export -> assets/mcw
 ..\auto-maple\.venv\Scripts\python tools\perf\bench.py [--baseline]                     # tick speed vs the baseline
+..\auto-maple\.venv\Scripts\python tools\perc\replay\run.py RUN [--old HEAD]              # tracker replay -> RUN\replay\
+..\auto-maple\.venv\Scripts\python tools\perc\replay\compare.py RUN HEAD work             # old vs new tracks (the gate)
+..\auto-maple\.venv\Scripts\python tools\perc\native_check.py RUN --sheet 24             # picture 1:1 with the sprites?
 ```
+`--frames-png` (serve / run) saves the frames lossless: reference recordings (JPEG is useless for colour-exact work).
 `serve`: loads once, F7 starts a hunt (the map is recognised then; ignored unless the game is focused), F8 stops it
 (all keys released, rising / falling chirp), Ctrl+C quits; it still watches for the Lie Detector between hunts. Each
 hunt -> `<out>\<date_time>_<n>\` (log.txt, ticks.jsonl, frames/ with --frames). `run`: 3 s countdown, brings the game
