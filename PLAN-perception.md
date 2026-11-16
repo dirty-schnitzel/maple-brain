@@ -120,6 +120,15 @@ for later in HANDOFF; until then the plan works on the clean maps. Done: the bot
 performance cores (`procperf.py`; in the background they ran on the efficiency cores, 44 ms vs 29 ms). Open: the
 capture does not follow a moved game window. Details: HANDOFF "Step 1 on 7 maps".
 
+**Step 2 (in progress, order agreed 2026-11-16; details HANDOFF "Step 2 state"):** 2.1 one upload + one grey, 2.2
+FrameFacts (perception/facts.py, in ticks.jsonl), 2.3 the minimap window measured per map (the UI mask; its
+picture is see-through, mobs behind it stay tracked), 2.4 background layers pre-composed per parallax (Line 1 /
+Transfer Area 16-22 -> ~2 ms) - DONE, replay unchanged, bench with the game up 29.3 -> 27.3 ms. 2.5 the scene camera
+in shadow (0.7 ms p50 on the bench) - built. Next: 2.6 it replaces camshift / phase correlation / the per-tick
+minimap on clean maps, 2.7 own tag 1:1, 2.8 Lie Detector, 2.9 async + FFT. Found: the whole-screen NCC is 10.75 of
+the detector's 13.6 ms (the FFT search is the big cut); the bench needs the game running (GPU P-state: 40-43 ms
+idle vs 27-30 with the game).
+
 ### Lie Detector watch (added by the user, 2026-11-16) - part of step 2
 - **`maplebrain watch` looks once per second** (today every 0.3 s; the Lie Detector gives 10+ s). Each look = 4
   full-frame template matches on the CPU (~13 ms each) in a second process, beside the hunt.

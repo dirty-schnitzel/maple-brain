@@ -111,6 +111,23 @@ def _map_name(map_id: int) -> str:
     return f"{e.get('street') or '?'} / {e.get('name') or '?'}"
 
 
+def _load_scene(map_id: int, say):
+    """The scene model for the scene camera (PLAN-perception.md step 2), or None: no `assets scene` for the map, or
+    moving / animated backgrounds (not covered yet: Perion's clouds) - the camera is then today's (platform shift +
+    minimap) alone. Step 2.5: the scene camera runs beside it and is logged (obs.scene_cam), nothing uses it yet."""
+    from ..scene import Scene
+    if not Scene.have(map_id):
+        say(f"scene camera: no scene model for map {map_id} (python -m maplebrain assets scene {map_id}): today's camera")
+        return None
+    scene = Scene.load(map_id)
+    if not scene.clean:
+        say(f"scene camera: map {map_id} has moving / animated backgrounds (not covered yet): today's camera")
+        return None
+    say(f"scene camera: on ({sum(it[0] == 'group' for g in scene.groups.values() for it in g)} pre-composed background "
+        f"groups of {len(scene.backs)} layers), logged beside today's camera")
+    return scene
+
+
 def _load_map(rig: "Rig", map_id: int, say) -> bool:
     """Make `map_id` the hunt's map: sprites + locator (cached), cfg.perception.map_id. False if assets/mcw doesn't
     have it (every map of the client is there; a new one after a patch needs `assets build`)."""
@@ -145,6 +162,7 @@ def _load_map(rig: "Rig", map_id: int, say) -> bool:
                 i: json.loads((ASSETS / "mcw" / "mobs" / str(i) / "mob.json").read_text(encoding="utf-8"))
                 for i in g.mob_ids}, TrackCfg.for_mob_score(cfg.perception.sprite_score),
                 Cover.for_map(map_id, ASSETS / "mcw"))
+            sprites.scene = _load_scene(map_id, say)
         locator = MinimapLocator.for_map(map_id, ASSETS / "mcw", cfg.nav, navmap)
         rig.maps[map_id] = (sprites, locator)
         say(f"map {map_id} {_map_name(map_id)}: sprites for "

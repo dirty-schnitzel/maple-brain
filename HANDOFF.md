@@ -1,8 +1,9 @@
 # maplebrain — session handoff (updated 2026-11-16)
 **Read this file top to bottom; it holds only the current state.** NEXT SESSION = "START HERE NEXT SESSION" below:
 brain v3 (**PLAN-v3.md**) steps 1-3 are DONE and **Platform mode passed its live test** (2026-11-15, Ant Tunnel IV;
-the user: "perfect platform mode test"). NEXT = the perception redesign (**PLAN-perception.md**, agreed 2026-11-16,
-branch `perception`); open offer: the humanness report (below).
+the user: "perfect platform mode test"). NOW = the perception redesign (**PLAN-perception.md**, agreed 2026-11-16,
+branch `perception`): steps 0-1 DONE, **step 2 (pipeline) in progress - see "Step 2 state" below** (sub-steps
+2.1-2.4 committed, 2.5 the scene camera in shadow gated next); open offer: the humanness report (below).
 Sessions 6-23, the old brain (v1), and superseded plans moved verbatim to **HISTORY.md** on 2026-11-08: grep it for
 old runs, numbers and decisions.
 Latest: 2026-11-15 Platform mode live (runs below), F9 mark fix; the hybrid BT + imitation-learning proposal reviewed
@@ -223,6 +224,72 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     background: 30.2 ms (was 42-46). A running `watch` gets it at its next start. Live tick not measured yet.
   - pytest green pinned (speed 28.8 ms); replay press1 HEAD vs work: 166 real + 11 weak both, 100 % found.
   - **NEXT:** step 2 on the clean maps (order to agree). Labels still open.
+- **Step 2 state (2026-11-16, later): the order AGREED with the user** (each sub-step: pytest + bot speed line +
+  replay HEAD vs work on the 5 clean native maps + press1 + fix3, track-frames >= 99.9 % both ways):
+  0 live "before" number (the user records `serve runs\play --observe --gpu --tracker --frames-png`, Ant Tunnel IV,
+  ~2 min, watch OFF) | 2.1 one upload + one grey | 2.2 FrameFacts | 2.3 minimap window per map | 2.4 pre-composed
+  backgrounds | 2.5 scene camera in shadow (logged, unused) | 2.6 scene camera takes over (camshift, phase
+  correlation, per-tick minimap -> fallback only; maps without a clean scene keep today's path whole) | 2.7 own
+  tag 1:1 (re-cut from PNG, then GPU, wide look off the main path) | 2.8 Lie Detector: watch 1 look / s, the match
+  on the GPU, measured watch off / 0.3 s / 1 s / GPU; native templates (client UI files first, else the next real
+  LD's PNG from watch; bar back to 0.80 only on the user's word) | 2.9 async GPU + CPU threads + HUD cache + FFT
+  search (the plan's gate p50 <= 20 ms, p90 <= 25).
+  The user's answers: the bench stays on the JPEG fixture with the scene camera at +-30 (exactness gated by
+  scene_check on PNG runs); press1 / fix3 (FHD JPEG) test only the fallback path; the explained gate is the p50
+  per map (Transfer Area p5 99.44 % is fine); `watch` was STOPPED by the user for the measurements ("run whatever")
+  - remind them to restart it; the capture guard for a moved window is done (f639199).
+  - **DONE 2.1 + 2.2 (284ef51):** the frame goes to the GPU once per tick (`GpuSpriteDetector.upload` ->
+    `frame_u8`); the half-size picture of the whole-screen search is made there (`_half`: floor((sum + 2) / 4) =
+    cv2 INTER_AREA bit for bit, tested) instead of a CPU resize + 2nd upload. Grey once per frame (tag, Lie
+    Detector thread - no frame copy any more -, phase correlation, camshift); HSV once in find_tags; the tag's near
+    search crops before converting. `perception/facts.py` FrameFacts v1 (own tag, HUD readings, slots, minimap dot /
+    position, both shifts, detector hits, players' tags, Lie Detector look; + scene_cam / scene_share with 2.5):
+    `Perceiver.facts`, written per tick to ticks.jsonl as "facts" (Recorder.tick(facts=)), FrameFacts.from_dict
+    round-trips (tests/test_facts.py, strict JSON). Replay: press1 + fix3 identical, native Ant Tunnel 18165 of
+    18170 real track-frames both ways.
+  - **Profile (bench fixture, game up): the `gpu` part is 13.6 ms of which the whole-screen NCC convolutions are
+    10.75**; resize 0.14, play upload 0.31, full grey 0.24, full HSV 0.55. So 2.1 saves ~1.5 ms; the big cut is the
+    FFT search (2.9, E6: 8.5 -> 4.7 ms).
+  - **Speed finding: without the game running the GPU idles at P3 / ~1000 MHz and the bench reads 40-43 ms (HEAD
+    too); with the game up 2745 MHz and the baseline holds** (code before this session 29.1-29.5 ms). Bench only
+    with the game open (or A/B in the same state).
+  - **DONE 2.3 (f5b07cb):** the minimap window's real rectangle: `hud.minimap_rect(window)` = (0, 0, x+w+5, y+h+14)
+    from the locator's measured inside (`MinimapLocator.window`, set at calibrate); measured on all 7 native runs
+    by the border pixels and checked by eye: Line 1 277x152, Ant Tunnel IV 230x198, Dangerous Steam 219x198,
+    Transfer Area 175x201, Perion SC 254x171, Wild Boar 181x178 (UI_RECTS' 215x195 was wrong both ways).
+    `hud.ui_mask(shape, minimap)` for our tag + players' tags (+ the scene camera's landmarks).
+    **The minimap picture is SEE-THROUGH where its canvas is transparent:** a Horny Mushroom walking behind it was
+    tracked at 0.90 (Ant Tunnel #448, 012059_1 t 319-321) - mob tracks are NOT masked there. Replay: same tracks
+    everywhere (fix3 99.94 %). Bench with the game up: 29.1-29.5 -> 27.3 ms (self 2.7 -> 1.2).
+  - **DONE 2.4 (720564d):** `Scene._compose`: consecutive known background layers with the same (rx, ry) are drawn
+    once at load into one fp16 plane covering every camera of the rendered area (Line 1: 29 layers -> 4 groups,
+    Transfer Area 36 -> 3; 41-126 MB of GPU memory per map); `expected()` crops it (per-layer fallback outside the
+    plane, `pre=False` = the reference). Max difference < 0.5 levels, known mask the same (tests). scene_check
+    --follow, 5 clean maps: register + expected + compare Line 1 16-22 -> 2.1 ms p50, Transfer Area 1.8, Dangerous
+    Steam 2.9, Dark Cave 2.2, Ant Tunnel IV 3.5; explained outside blobs unchanged (99.44-99.86 / 99.80-99.95 %),
+    camera on every saved frame.
+  - **DONE 2.5 (scene camera in shadow):** `scene.SceneCamera` (locate around the last camera + its last step - a scroll moves
+    up to ~26 px a live tick, the near look reaches 12 -; `last_share`; the tracker's camera as the seed; not found
+    -> None, the last camera kept as the next guess, nothing guessed). `runner._load_scene` attaches the scene to the
+    detector (`sprites.scene`) only when `assets/scene/<map>` exists AND the map has no moving / animated backs
+    (`Scene.clean`); the log says which camera the map gets. The Perceiver runs it on `frame_u8` after the detector,
+    part `scenecam`, -> obs.scene_cam / facts.scene_cam + scene_share; nothing reads it yet. Config
+    `perception.scene_tol` (4; the bench 30 on its JPEG fixture, now unshifted by tests/fixtures/perf_ant4/xshift.txt
+    via tools/perc/frames.py). Bench: scenecam 0.7 ms p50 / 1.4 p90 (found on 44 of 45 fixture frames: the first has
+    no seed yet), tick 28.2-28.7 ms. The replay (tools/perc/replay/run.py) now reads frames through frames.read (the
+    1 px shift of 012059_1 / 084844_2 undone) and writes scene_cam + per-part ms.
+    Gate: tracks the same on all 7 runs (>= 99.98 % of track-frames both ways; Ant Tunnel's totals are 18160 now on
+    both sides: the unshifted frames). Scene camera on the 5 clean maps: found on every saved frame but each run's
+    first (no seed yet - 2.6 seeds it from this frame's minimap), scenecam p50 0.7-0.9 ms, p99 1.6-3.1, max ~20
+    (the first wide looks); scene - tracker camera p50 dx -0.5..-4.8, dy -1.2..-3.8 px, p5..p95 up to -20..+14.
+    On FHD JPEG (press1 / fix3) at +-4: found on 0 frames - never a wrong camera - but 1.4 ms a tick spent
+    looking: 2.6 backs off to ~1 look / s while it keeps failing.
+    Lie Detector (for 2.8): the client HAS the windows (UI_000.wz LieDetector.img / AntiMacro.img, pictures in
+    UI/_Canvas, BMS key). The small gold "LIE DETECTOR" title (today's panel + game templates) is drawn into
+    AntiMacro lieDetectorStandBy/back, lieDetector/back1, soundLieDetector/stanby/backgrnd, on a see-through bar
+    (alpha 170): today's panel template scores 0.77-0.81 there (bar 0.75!), the game template 0.91-0.93 on the
+    same title - any template counts, so a native one is still caught. The blue title and "Question in" are font
+    text (staticText in the img): no picture, those need a real LD.
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")

@@ -190,6 +190,8 @@ class Perception:
     platform_shift: bool = True     # the tracker's camera moves by the platforms' shift (camshift.py), not the whole
                                     # frame's (parallax backgrounds made it lag: fine x -23..+27 px off -> -3..+6)
     track_coast_s: float = 0.4      # ... a confirmed track unseen this long still counts (hidden ones: as long as hidden)
+    scene_tol: int = 4              # scene camera (scene.SceneCamera, clean maps with `assets scene`): a landmark matches
+                                    # within this many levels - native PNG frames are exact (+-4); the bench's JPEG 30
     gpu: bool = False               # --gpu: mobs found by perception/gpu_sprites.py (whole screen, CUDA) instead of
                                     # the CPU colour-blob detector; the brain still gets our band (GpuBand)
     die_score: float = 0.72         # death frames where the target was (its own mob type): pkg_human5m dying

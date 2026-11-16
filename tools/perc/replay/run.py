@@ -101,12 +101,16 @@ def saved_frames(run: Path, t0: float = 0.0, t1: float = 1e9, every: int = 1) ->
 def replay(run: Path, map_id: int, mob_score: float, frames: list, out: Path) -> dict:
     import cv2
     per = bench_module().build(map_id, mob_score)[0]
+    sys.path.insert(0, str(ROOT / "tools" / "perc"))
+    import frames as rec                              # the 1 px capture error of two native recordings undone
     t_start = time.perf_counter()
     with open(out, "w", encoding="utf-8") as f:
         for n, name, t in frames:
-            obs = per.observe(cv2.imread(str(run / "frames" / name)), t)
+            obs = per.observe(rec.read(run, name), t)
             f.write(json.dumps({"n": n, "frame": name, "t": round(t, 3), "cam": obs.cam, "cam_src": obs.cam_src,
-                                "me": obs.me, "me_map": obs.me_map, "map_pos": obs.map_pos, "mobs": obs.mobs}) + "\n")
+                                "me": obs.me, "me_map": obs.me_map, "map_pos": obs.map_pos, "mobs": obs.mobs,
+                                "scene_cam": getattr(obs, "scene_cam", None),
+                                "ms": dict(getattr(per, "parts", None) or {})}) + "\n")
     return {"frames": len(frames), "seconds": round(time.perf_counter() - t_start, 1),
             "stats": dict(getattr(per.world, "stats", {}) or {})}
 

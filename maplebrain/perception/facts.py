@@ -34,6 +34,8 @@ class FrameFacts:
     rope: float | None = None
     scene_shift: tuple | None = None      # (dx, dy) the whole frame moved since the frame before (phase correlation)
     plat_shift: tuple | None = None       # (dx, dy) the platforms moved since the frame before (camshift.py)
+    scene_cam: tuple | None = None        # the camera registered on the scene model (scene.SceneCamera), exact px
+    scene_share: float | None = None      # ... the share of its landmarks that matched (a wrong camera: ~2 %)
     hits: list = field(default_factory=list)       # [Hit] the whole-screen mob detector (gpu_sprites)
     tags: list = field(default_factory=list)       # [(x, y, w, h)] other characters' name tags (tags.find_tags)
     lie: tuple | None = None              # (on screen, score, top-left) of the newest finished Lie Detector look
@@ -50,7 +52,7 @@ class FrameFacts:
             return None if v is None else tuple(tup(x) if isinstance(x, list) else x for x in v)
 
         kw = {f.name: d[f.name] for f in fields(cls) if f.name in d}
-        for k in ("tag", "hp", "mp", "dot", "map_pos", "scene_shift", "plat_shift", "lie"):
+        for k in ("tag", "hp", "mp", "dot", "map_pos", "scene_shift", "plat_shift", "scene_cam", "lie"):
             kw[k] = tup(kw.get(k))
         kw["tags"] = [tuple(x) for x in kw.get("tags") or []]
         kw["hits"] = [Hit(h["mob_id"], tuple(h["box"]), tuple(h["feet"]), Pose(**h["pose"]), h["score"])

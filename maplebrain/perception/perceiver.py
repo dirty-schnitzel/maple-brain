@@ -54,6 +54,7 @@ class Observation:
     cam: tuple | None = None                # the tracker's camera: map = screen + cam
     cam_src: str | None = None              # what moved the camera this frame: platforms / scene (fallback)
     me_map: tuple | None = None             # our feet on the map from our tag + cam: exact px (minimap: 16 px steps)
+    scene_cam: tuple | None = None          # the camera from the scene model (exact px; None: not found / no scene)
 
 
 def reachable_level(box, feet, tol, step_down, dx=None, climb_slope=0.0, climb_max=0.0) -> bool:
@@ -102,6 +103,10 @@ class Perceiver:
             if self.world.nav is not None and cfg.perception.platform_shift:
                 from .camshift import PlatformShift
                 self.plat_shift = PlatformShift(self.world.nav)
+        self.scene_cam = None                           # the camera from the scene model (clean maps; runner._load_scene)
+        if self.world is not None and getattr(sprites, "scene", None) is not None:
+            from ..scene import SceneCamera
+            self.scene_cam = SceneCamera(sprites.scene, tol=cfg.perception.scene_tol)
         self.use_tracks = bool(cfg.perception.tracker and self.world is not None)
         self.target_id = None                           # --tracker: the target is this track
 
@@ -332,6 +337,12 @@ class Perceiver:
         tags = self.tag_pool.submit(find_tags, frame, None, self.minimap)   # players' bodies hide mobs (drawn over)
         hits = f.hits = band._all(frame)
         self._mark("gpu")
+        if self.scene_cam is not None:                  # step 2.5, in shadow: logged, not used yet
+            sc = self.scene_cam                         # (on the frame the detector uploaded; seed: today's camera)
+            if sc.update(band.gpu.frame_u8, seed=self.world.cam.C, mask=hud.ui_mask(frame.shape, self.minimap)):
+                f.scene_cam, f.scene_share = sc.C, round(sc.share, 3)
+                obs.scene_cam = sc.C
+            self._mark("scenecam")
         me_s = (me[0] + me[2] / 2, me[1]) if me is not None else None
         shift = None
         if self.plat_shift is not None:                 # platforms move 1:1 with the camera; the whole frame doesn't

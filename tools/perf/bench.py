@@ -40,9 +40,10 @@ def machine() -> str:
     return f"{platform.node()} | {gpu}"
 
 
-def build(map_id: int, mob_score: float = 0.70):
+def build(map_id: int, mob_score: float = 0.70, scene_tol: int = 4):
     """The live rig for `map_id` (runner._load_map with --gpu --tracker), a Perceiver, SelfTracker and BrainV2.
-    `mob_score` = the run's --mob-score (tools/perc/replay passes the recorded run's)."""
+    `mob_score` = the run's --mob-score (tools/perc/replay passes the recorded run's). `scene_tol`: the scene
+    camera's tolerance (native PNG frames: 4; the JPEG fixture: 30)."""
     from maplebrain.brain.brain_v2 import BrainV2
     from maplebrain.config import Config
     from maplebrain.humanize import Humanizer
@@ -53,6 +54,7 @@ def build(map_id: int, mob_score: float = 0.70):
     cfg = Config()
     cfg.perception.gpu = cfg.perception.tracker = True
     cfg.perception.sprite_score = mob_score
+    cfg.perception.scene_tol = scene_tol
     cfg.brain = "v2"
     hz = Humanizer(cfg.humanize.jitter, 1)
     rig = Rig(cfg, hz, None, None, None, LieDetector.load(ASSETS), np.load(ASSETS / "self_tag_gray.npy"))
@@ -67,9 +69,12 @@ def bench(frames: list, map_id: int = ANT4) -> dict:
     """Median / p90 ms per part over `frames` (paths, in order), and the tick total -> fps."""
     from maplebrain.capture import normalize
     from maplebrain.nav.sim import SimDriver
-    per, me, brain, rig = build(map_id)
+    sys.path.insert(0, str(ROOT / "tools" / "perc"))
+    import frames as rec                                           # a recording's 1 px capture error undone
+    per, me, brain, rig = build(map_id, scene_tol=30)              # JPEG: the scene camera at +-30 (exact: PNG runs)
     drv = SimDriver()
-    imgs = [cv2.imread(str(p)) for p in frames]
+    shift = rec.xshift(Path(frames[0]).parent) if frames else 0    # the fixture: xshift.txt beside the frames
+    imgs = [rec.unshift(cv2.imread(str(p)), shift) for p in frames]
     big = cv2.resize(imgs[0], SCREEN)                              # what dxcam hands over on the user's screen
     rows = []
     t = 0.0
