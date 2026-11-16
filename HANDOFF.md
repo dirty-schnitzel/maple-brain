@@ -57,7 +57,7 @@ The user supervises every run at the PC. Botting is against Nexon's ToS (ban ris
 Step 2 is done and live-checked (below). Step 3's order is in PLAN-perception.md ("Step 3") and "Step 3 state"
 (after "Step 2 state"): 3.0a labels -> 3.0b synthetic frames -> 3.1 D in shadow -> 3.2 the fit -> 3.3 FrameFacts v2
 in shadow -> 3.4 the switch on clean maps. **3.0a + 3.0b DONE (labels, synthetic frames, "before" numbers on both in
-"Step 3 state"); 3.1 (D in shadow) DONE too; NEXT = 3.2 (the fit): proposed, WAITING for the user's OK (the "3.2
+"Step 3 state"); 3.1 (D in shadow) DONE too; NEXT = 3.2 (the fit), OK'd by the user 2026-11-16 (plan: the "3.2
 proposal" bullet in "Step 3 state").** `watch` is RUNNING again (restarted
 by the user): never stop it.
 
@@ -565,7 +565,7 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
       that clip again with D off and D on: 3805 / 3805 both ways, identical -> GPU noise of that replay.**
     Tests: tests/test_scene_diff.py (2; skipped without assets/scene/10005063): GPU blobs = the label tool's rule
     on all 40 fixture frames; every fixture mob in a patch, mob-free frames only at dontcare / distractors.
-  - **3.2 proposal (the fit) - WAITING for the user's OK:**
+  - **3.2 proposal (the fit) - OK'd by the user 2026-11-16:**
     (1) Planes (scene.py, at load): per foothold layer L used by the map, BEHIND_L = backs + tiles / objects of
     layers <= L, FRONT_L = tiles / objects of layers > L + front backs, as premultiplied colour + alpha (fp16, like
     _compose); front over behind = today's expected() (test). Ant Tunnel IV: 1 layer -> 2 planes.
