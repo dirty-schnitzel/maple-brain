@@ -120,6 +120,10 @@ def main():
     ap.add_argument("--baseline", action="store_true", help="write the result as this machine's baseline")
     ap.add_argument("--json", action="store_true", help="print only the result as JSON (tests/test_perf.py)")
     a = ap.parse_args()
+    from maplebrain.procperf import prefer_performance
+    note = prefer_performance()                      # as the bot does (__main__): the bench measures what it gets
+    if not a.json:
+        print(note)
     frames = sorted(a.frames.glob("*.jpg"))[:a.n] if a.frames else fixture_frames()
     r = bench(frames, a.map)
     if a.json:

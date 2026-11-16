@@ -178,7 +178,10 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
         Land of Wild Boar    99.54 / 99.85 %   52.1 %  34.8 %
     Register + expected + compare 4-10 ms (Line 1 / Transfer Area 16-22 ms: 29-36 background layers drawn one by
     one -> pre-compose the layers of one parallax in step 2).
-  - **OPEN, step 1: Perion's moving clouds (type 4 backs, rx 5 .. 35 = a speed, not a parallax).** They drift over
+  - **DEFERRED (the user, 2026-11-16: "ignore the clouds and focus on clean maps for now") - TASK FOR LATER:
+    Perion's moving clouds (type 4 backs, rx 5 .. 35 = a speed, not a parallax).** Until then the two Perion maps
+    (and any map with moving backs: 95 of 206) are NOT covered by the scene model; work and gates use the clean
+    maps (Ant Tunnel IV, Dark Cave, Dangerous Steam, Line 1, Transfer Area). They drift over
     the background rocks (never over tiles / mobs). Today their place is taken from the fixed formula: the area
     marked unknown is not where they are, and where they are the rocks behind read as "something drawn over the
     scene" (blobs 43-50 % of the play area). To do: measure where / how they move (y, speed), then either mark
@@ -194,10 +197,14 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     Perion Street Corner 31 weak / 96 real. **Tick 61-68 ms on the two Perion maps** (gpu 18-40 ms, world 15-32 ms).
   - **Speed finding: the bench read 42-46 ms today with and without these changes (A/B by stash), 28.8-29.2 ms
     pinned to the performance cores** (affinity 0xFFFF + AboveNormal; baseline 30.0). Windows runs a background
-    console process on the efficiency cores while the game is in front - the live bot is such a process. To test in
-    step 2: the bot sets its own priority / affinity / no power throttling.
+    console process on the efficiency cores while the game is in front - the live bot is such a process.
+    **DONE (the user: "pin everything to performance"): `maplebrain/procperf.py`** - run / serve / goto / watch and
+    the bench pin their own process to the performance cores (highest efficiency class: 16 of 20 here), priority
+    Above Normal, power throttling off; the first console line says what was set. Bench launched unpinned from the
+    background: 30.2 ms (was 42-46). A running `watch` gets it at its next start. Live tick not measured yet.
   - pytest green pinned (speed 28.8 ms); replay press1 HEAD vs work: 166 real + 11 weak both, 100 % found.
-  - **NEXT (order to agree):** Perion's moving clouds (closes step 1); then step 2. Labels still open.
+  - **NEXT:** step 2 on the clean maps (order to agree). Labels still open. Proposed, not decided: the capture
+    re-checks the window's place (the check costs ~1 microsecond; re-aiming ~0.3 s only when it moved).
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")

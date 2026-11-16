@@ -114,9 +114,10 @@ frames. Open: native recordings of Line 1 and Perion for their gates. Details: H
 capture error on the Ant Tunnel IV recording, fixed in `capture.game_columns`): one arithmetic reproduces 736 of
 736 (x) and 587 of 587 (y) measured layer positions. Camera exact on 120 of 120 checked frames of every map and
 followed through every saved frame; outside moving things the scene explains 99.71-99.95 % (p50 per map).
-**Open in step 1: Perion's moving cloud layers** (drawn over the background rocks, today neither explained nor
-marked unknown where they really are: 43-50 % of the play area is left over there). Also for step 2: the bot's
-process runs on the efficiency cores while the game is in front (tick 44 ms vs 29 ms pinned to the P-cores); the
+**Deferred by the user (2026-11-16): Perion's moving cloud layers** (drawn over the background rocks, today
+neither explained nor marked unknown where they really are: 43-50 % of the play area is left over there) - a task
+for later in HANDOFF; until then the plan works on the clean maps. Done: the bot's processes pin themselves to the
+performance cores (`procperf.py`; in the background they ran on the efficiency cores, 44 ms vs 29 ms). Open: the
 capture does not follow a moved game window. Details: HANDOFF "Step 1 on 7 maps".
 
 ### Lie Detector watch (added by the user, 2026-11-16) - part of step 2

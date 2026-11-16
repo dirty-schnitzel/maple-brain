@@ -94,6 +94,9 @@ def main(argv=None) -> int:
     s.add_argument("maps", type=int, nargs="*", help="scene: these map ids (default: every map with mob spawns)")
     s.add_argument("--export", type=Path, default=None, help="the export folder (default: export.ps1's)")
     a = ap.parse_args(argv)
+    if a.cmd in ("run", "serve", "goto", "watch"):     # beside the game: a background process, else on the slow cores
+        from .procperf import prefer_performance
+        print(prefer_performance())
     if a.cmd == "livemap":
         from .livemap import follow, replay
         if a.replay:
