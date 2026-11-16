@@ -63,6 +63,56 @@ def find_self(frame, template, near=None, radius=220, min_score=0.66, edges=True
     return (loc[0] + ox, loc[1] + oy, template.shape[1], template.shape[0], float(score))
 
 
+class GpuTagLook:
+    """The whole-frame look for our tag on the GPU (PLAN-perception.md step 2.7): the same high-pass (grey - gaussian
+    sigma 2, reflect border) and normalized correlation as `find_self`, as convolutions on the frame already uploaded
+    for the mob detector -> the best place. The caller confirms it with `find_self(near=...)` on the CPU, so a found
+    tag's place and score are exactly the CPU's. Measured on 306 native frames of 4 maps: the same answer as the CPU
+    whole-frame look on every one (score within 0.0006), ~5 ms vs 28-45 ms."""
+
+    def __init__(self, template: np.ndarray, device):
+        import torch
+        self.torch, self.F, self.dev = torch, torch.nn.functional, device
+        k = int(round(SIGMA * 4 * 2 + 1)) | 1                    # cv2's kernel size for float images
+        x = np.arange(k) - k // 2
+        g = np.exp(-x ** 2 / (2 * SIGMA ** 2))
+        self.gk, self.k = torch.tensor(g / g.sum(), dtype=torch.float32, device=device), k
+        t = _hp(template.astype(np.float32))
+        t = t - t.mean()
+        self.t = torch.tensor(t, device=device)[None, None]
+        self.tnorm, self.n = float((t ** 2).sum()), t.size
+        self.box = torch.ones((1, 1) + t.shape, device=device)
+        self.wts = torch.tensor([0.114, 0.587, 0.299], device=device)          # BGR -> grey (cv2's weights)
+        self._ui = (None, None)
+        # cudnn.benchmark times every new convolution shape once (3.5 s here, measured on the replays): at load, not
+        # at the first tag loss mid-hunt
+        self.look(torch.zeros((768, 1366, 3), dtype=torch.uint8, device=device), np.ones((768, 1366), np.uint8))
+
+    def _hp(self, g):
+        F, p = self.F, self.k // 2
+        x = F.conv2d(F.pad(g[None, None], (p, p, 0, 0), mode="reflect"), self.gk.view(1, 1, 1, -1))
+        x = F.conv2d(F.pad(x, (0, 0, p, p), mode="reflect"), self.gk.view(1, 1, -1, 1))
+        return g - x[0, 0]
+
+    def look(self, frame_u8, ui) -> tuple:
+        """`frame_u8`: the frame on the device (h, w, 3) uint8; `ui`: hud.ui_mask (1 = world). -> (score, x, y) of
+        the best place (top-left of the tag)."""
+        torch, F = self.torch, self.F
+        if self._ui[0] is not ui:
+            self._ui = (ui, torch.from_numpy(np.ascontiguousarray(ui, dtype=np.float32)).to(self.dev))
+        g = torch.round((frame_u8.float() * self.wts).sum(dim=2)) * self._ui[1]   # cv2's grey: rounded to uint8
+        h = self._hp(g)[None, None]
+        cross = F.conv2d(h, self.t)[0, 0]
+        s1 = F.conv2d(h, self.box)[0, 0]
+        s2 = F.conv2d(h * h, self.box)[0, 0]
+        var = (s2 - s1 * s1 / self.n).clamp_min(1e-6)
+        r = cross / torch.sqrt(var * self.tnorm)
+        r = torch.where(var / self.n < MIN_STD ** 2, torch.full_like(r, -1.0), r)
+        i = int(r.argmax())
+        y, x = divmod(i, r.shape[1])
+        return float(r[y, x]), x, y
+
+
 def _at_edges(h, t, ox, oy, frame_w, min_score, min_visible=44, step=1):
     """The tag partly off the screen (at a map's end the camera stops and we walk on to the edge,
     pkg_sprites3 69-76 s): match the visible part of the template against the frame's edge columns.

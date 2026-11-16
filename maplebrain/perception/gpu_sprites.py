@@ -144,6 +144,12 @@ class GpuSpriteDetector:
         ids = sorted({int(x["id"]) for x in m.get("mobs") or []})
         return cls([root / "mobs" / str(i) for i in ids if (root / "mobs" / str(i) / "mob.json").exists()], **kw)
 
+    def prepare(self, frame):
+        """Upload this tick's frame now (the Perceiver, before the tag's GPU look); the next `find` uses it instead
+        of uploading again. One-shot: a `find` without a `prepare` before it uploads its own frame."""
+        self.frame_u8 = self._prepared = self.upload(frame)
+        return self.frame_u8
+
     def upload(self, frame):
         """The whole frame on the device, uint8 (h, w, 3): the tick's one copy to the GPU (PLAN-perception.md step 2).
         `find` makes it; the detector's other steps (and later the scene camera) read `frame_u8`."""
@@ -197,7 +203,8 @@ class GpuSpriteDetector:
         torch, F = self.torch, self.torch.nn.functional
         sc = self.scale
         play = frame[:PLAY_H]
-        self.frame_u8 = self.upload(frame)                      # a new frame's work starts here: upload it once
+        prep, self._prepared = getattr(self, "_prepared", None), None
+        self.frame_u8 = prep if prep is not None else self.upload(frame)   # a new frame's work: uploaded once
         u8 = self.frame_u8[:PLAY_H]
         self._dev_frame(play, fresh=True, u8=u8)
         if sc == 0.5 and play.shape[0] % 2 == 0 and play.shape[1] % 2 == 0:

@@ -353,3 +353,24 @@ def test_the_ui_mask_takes_the_minimap_window_as_measured():
         p.name for p in (Path(__file__).parent / "fixtures" / "perf_ant4").glob("*.jpg"))[0]))
     w = find_window(f)                                                # Ant Tunnel IV (recorded 1 px left)
     assert w is not None and hud.minimap_rect(w)[2:] in ((229, 198), (230, 198))
+
+
+def test_the_gpu_tag_look_finds_what_the_cpu_look_finds():
+    """Step 2.7b: selfpos.GpuTagLook (whole frame, on the GPU) + the CPU's near search at its best place = the CPU's
+    whole-frame look: same place, score within 0.002 (perf fixture: 45 native frames, our tag on most)."""
+    torch = pytest.importorskip("torch")
+    from maplebrain.perception.selfpos import GpuTagLook
+    dev = "cuda" if torch.cuda.is_available() else "cpu"
+    look = GpuTagLook(TAG, dev)
+    fx = Path(__file__).parent / "fixtures" / "perf_ant4"
+    n = found = 0
+    for p in sorted(fx.glob("*.jpg"))[::3]:
+        f = cv2.imread(str(p))
+        cpu = find_self(f, TAG, min_score=0.66, edges=False)
+        _, x, y = look.look(torch.from_numpy(f).to(dev), hud.ui_mask(f.shape))
+        gpu = find_self(f, TAG, near=(x + TAG.shape[1] / 2, y), radius=40, min_score=0.66, edges=False)
+        assert (cpu is None) == (gpu is None), (p.name, cpu, gpu)
+        assert cpu is None or (cpu[:4] == gpu[:4] and abs(cpu[4] - gpu[4]) < 0.002), (p.name, cpu, gpu)   # (the near
+        # search high-passes a crop: its blur reflects at the crop's edges - 1e-4 off, as today's near search)
+        n, found = n + 1, found + (cpu is not None)
+    assert found >= n // 2

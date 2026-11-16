@@ -103,6 +103,10 @@ class Perceiver:
             if self.world.nav is not None and cfg.perception.platform_shift:
                 from .camshift import PlatformShift
                 self.plat_shift = PlatformShift(self.world.nav)
+        self.tag_gpu = None                             # our tag's whole-frame look on the GPU (step 2.7)
+        if self.world is not None and getattr(sprites, "gpu", None) is not None:
+            from .selfpos import GpuTagLook
+            self.tag_gpu = GpuTagLook(self_template, sprites.gpu.dev)
         self.scene_cam = None                           # the camera from the scene model (clean maps; runner._load_scene)
         if self.world is not None and getattr(sprites, "scene", None) is not None:
             from ..scene import SceneCamera
@@ -118,6 +122,19 @@ class Perceiver:
         or None = hud.UI_RECTS' default: what the UI mask leaves out for our tag and players' tags."""
         w = getattr(getattr(self, "locator", None), "window", None)
         return hud.minimap_rect(w) if w is not None else None
+
+    def _wide_tag(self, frame, gray, min_score, edges):
+        """Our tag anywhere on the screen. With the GPU: its look finds the best place, the CPU's near search confirms
+        it (the same place and score as the CPU's whole-frame look); nothing there and the tag was last near a
+        screen side -> the CPU's look with its edge search (a tag cut by the screen's side), as before."""
+        if self.tag_gpu is None:
+            return find_self(frame, self.tpl, min_score=min_score, edges=edges, gray=gray, minimap=self.minimap)
+        _, x, y = self.tag_gpu.look(self.sprites.gpu.frame_u8, hud.ui_mask(frame.shape, self.minimap))
+        me = find_self(frame, self.tpl, near=(x + self.tpl.shape[1] / 2, y), radius=40, min_score=min_score,
+                       edges=False, gray=gray, minimap=self.minimap)
+        if me is None and edges:
+            me = find_self(frame, self.tpl, min_score=min_score, edges=True, gray=gray, minimap=self.minimap)
+        return me
 
     def _exact(self) -> bool:
         """The scene camera had the camera on the last tick (step 2.6, the brain-v2/v3 path): the whole-frame shift,
@@ -209,6 +226,8 @@ class Perceiver:
         # the frame's grey, once (PLAN-perception.md step 2): our tag, the Lie Detector, the scene shift, camshift.
         # Read-only from here on (the Lie Detector's thread reads it while this tick goes on).
         gray = self._gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        if self.tag_gpu is not None:                    # the frame to the GPU now (the tag's look may need it)
+            self.sprites.gpu.prepare(frame)
         self._mark("gray")
         if self.lie_detector is not None:
             f.lie = self.lie_detector.check(frame, t, gray=gray)
@@ -232,8 +251,7 @@ class Perceiver:
             f.tag_look = "near"
         if me is None and not 0 < self.wide_next_t - t <= 1.0:   # lost: the whole screen ~4x a second (25-150 ms;
             near_edge = self.me_near is None or not 150 < self.me_near[0] < frame.shape[1] - 150   # the minimap
-            me = find_self(frame, self.tpl, min_score=p.self_min_score, edges=near_edge, gray=gray,  # meanwhile)
-                           minimap=self.minimap)
+            me = self._wide_tag(frame, gray, p.self_min_score, near_edge)                          # meanwhile)
             f.tag_look = "wide"
             self.wide_next_t = t + (0 if me is not None else p.self_wide_every_s)
             self._mark("self_wide")

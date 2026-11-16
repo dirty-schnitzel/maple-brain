@@ -3,7 +3,8 @@
 brain v3 (**PLAN-v3.md**) steps 1-3 are DONE and **Platform mode passed its live test** (2026-11-15, Ant Tunnel IV;
 the user: "perfect platform mode test"). NOW = the perception redesign (**PLAN-perception.md**, agreed 2026-11-16,
 branch `perception`): steps 0-1 DONE, **step 2 (pipeline) in progress - see "Step 2 state" below** (sub-steps
-2.1-2.6 committed: the scene camera is the camera on clean maps; NEXT 2.7 own tag 1:1); open offer: the humanness report (below).
+2.1-2.7 committed: the scene camera is the camera on clean maps, own tag 1:1 + its whole-screen look on the GPU;
+NEXT = 2.8 Lie Detector, see "START HERE NEXT SESSION"); open offer: the humanness report (below).
 Sessions 6-23, the old brain (v1), and superseded plans moved verbatim to **HISTORY.md** on 2026-11-08: grep it for
 old runs, numbers and decisions.
 Latest: 2026-11-15 Platform mode live (runs below), F9 mark fix; the hybrid BT + imitation-learning proposal reviewed
@@ -50,7 +51,28 @@ find mobs, fight them like a player, pick up loot, use potions, and **navigate p
 later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never reads memory or packets.
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
-## START HERE NEXT SESSION (2026-11-16): the perception redesign, PLAN-perception.md step 0
+## START HERE NEXT SESSION (after 2026-11-16): PLAN-perception.md step 2.8 (Lie Detector), then 2.9
+Read PLAN-perception.md (step 2 block + "Lie Detector watch") and below "Step 2 state" (2.1-2.7 DONE, the numbers,
+the new gate). Branch `perception`, all pushed. Rules unchanged: agree changes with the user, pytest + the speed line
+(baseline 24.3 ms, re-baselined 2026-11-16 at 2.6; BENCH ONLY WITH THE GAME RUNNING - the GPU idles at P3/P5 without
+it and everything reads 40 % slow) + `python tools/perc/replay/gate.py --quick` per sub-step, the full gate before a
+commit that changes tracking; no live / scripted input without the user's OK; never stop `maplebrain watch`
+(**it is OFF since 2026-11-16 for the 2.8 measurements - the user stopped it: restart it or ask**).
+- **2.8 Lie Detector** (the plan's section): (1) `watch` at 1 look / s (runner.watch every_s 0.3 -> 1.0) and the
+  hunt's own check; (2) the 4 title templates matched on the GPU on the already uploaded frame (`frame_u8`, like
+  selfpos.GpuTagLook) instead of the CPU thread (4 x ~13 ms); (3) measure tick p50 / p90 with watch off, at 0.3 s, at
+  1 s, LD on the GPU (bench + a live observe run by the user); keep the faster, never slower to notice;
+  (4) native templates: the client has the pictures (UI_000.wz BMS key: LieDetector.img / AntiMacro.img, linked into
+  UI/_Canvas/_Canvas_000.wz; export with tools/cwdata/load.ps1 as in "Step 2 state" 2.5) - the gold "LIE DETECTOR"
+  title of the panel + game templates is in lieDetectorStandBy/back, lieDetector/back1, soundLieDetector/stanby/
+  backgrnd on a see-through bar (alpha 170): cut 1:1 there, check scores over dark / light / real scenery and the
+  false max on all native frames (today 0.668). The blue title + "Question in" are font text: they need a real LD.
+  The bar goes back to 0.80 only on the user's word.
+- **2.9** async GPU + CPU readers in threads + HUD cache + the FFT whole-screen search (10.75 of the detector's
+  13.6 ms are its NCC convolutions); the plan's gate: bench p50 <= 20 ms, p90 <= 25.
+- Then step 3 (the mob matcher). The 300 picked frames for by-eye labels are still unlabelled.
+
+## Earlier START HERE (2026-11-16): the perception redesign, PLAN-perception.md step 0
 **Read PLAN-perception.md top to bottom** (the scene model: explain the frame with the client's own assets; the
 experiments E0-E6 behind it are in tools/perc/redesign/, README there). The user agreed the direction on 2026-11-16:
 target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, windowed, no resize**. Branch
@@ -329,6 +351,13 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     0.94-0.95 (Perion 0.91), anything else <= 0.53. A stable-pixel mask was tried: 105 ms and false peaks 0.99, no.
     Gate (full, 7 clips): tracks the same (real / weak counts equal everywhere, sighted 100 %), tag found +0.2..+2.5
     points on every native clip (Dangerous Steam 78.2 -> 80.7 %, Transfer 80.8 -> 82.6 %), FHD clip 90.1 -> 89.6 %.
+  - **DONE 2.7b: our tag's whole-screen look on the GPU** (`selfpos.GpuTagLook`: the same high-pass + NCC as
+    convolutions on the frame uploaded at the tick's start - `GpuSpriteDetector.prepare`, one-shot, find() reuses it;
+    the CPU near search confirms at its best place, so place and score are the CPU's; nothing there + the tag last
+    near a screen side -> the old CPU look with its edge search). Wide look 42-44 -> 8-12 ms p50 on the clips; first
+    call warmed at load (cudnn timing: 3.5 s, would have stalled the first tag loss). Gate (full): the same tag on
+    every clip, tracks the same. Bench 24.0 ms (the fixture rarely loses the tag: the gain is the live p99, 54 ms).
+    tests/test_perception.py: GPU look + confirm = CPU look on the perf fixture.
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")
