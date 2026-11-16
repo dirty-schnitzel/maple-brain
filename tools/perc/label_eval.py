@@ -31,8 +31,11 @@ def load_labels(path: Path) -> dict:
                      "unsure": [], "false": []} for n, L in lab.items()}
 
 
-def near(t, p, r=25):
-    return abs(t["sx"] - p[0]) <= r and abs(t["sy"] - p[1]) <= r
+R = [25, 25]                     # match radius x / y (--r X Y)
+
+
+def near(t, p):
+    return abs(t["sx"] - p[0]) <= R[0] and abs(t["sy"] - p[1]) <= R[1]
 
 
 def main():
@@ -42,7 +45,10 @@ def main():
     ap.add_argument("--labels", default="labels.json")
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--synth", action="store_true")
+    ap.add_argument("--r", nargs=2, type=int, help="match radius x y (default 25 25)")
     a = ap.parse_args()
+    if a.r:
+        R[:] = a.r
     run = Path(a.run)
     lab = load_labels(run / a.labels)
     tr = {}

@@ -7,7 +7,8 @@
                                     the cameras from FILE's scene_cam) -> fit at D + a window at each weak track's spot
                                     (its type: as a track prediction)
 
-Windows = D's patches (Scene.diff + patches, the live code) at the frame's camera; --tracks FILE adds a window
+Windows = D's patches (Scene.diff + patches, the live code; its UI mask without the chat rect, which shows world at
+native) at the frame's camera; --tracks FILE adds a window
 around every confirmed track of a replay on that frame (its type) - the "track prediction" windows.
 Out rows = label_eval's track format ({"n", "mobs": [{"sx", "sy", "mob", "state", "src", "anim", "score",
 "unseen"}]}) + per mob the fit's numbers ("fit") + "ms". --loose: permissive thresholds (seen 0.05, absent 1.0,
@@ -37,6 +38,7 @@ def setup(map_id, cfg):
     from maplebrain.scene import Scene
     scene = Scene.load(map_id)
     ui = hud.ui_mask((768, SW)) > 0
+    ui[630:PLAY_H, 285:850] = True        # the chat rect: world at native unless a chat line is drawn (D shows it)
     ui_t = torch.from_numpy(np.ascontiguousarray(ui[:PLAY_H])).to(scene.dev)
     return scene, ui_t, Fitter(scene, map_id, ROOT / "assets" / "mcw", cfg)
 
@@ -57,7 +59,7 @@ def run_frame(scene, ui_t, fitter, frame, C, extra=()):
     t1 = time.perf_counter()
     wins = windows_from_patches(ps) + [Window(*body_box(fitter, tid, x, y), types=(tid,), src="track")
                                        for tid, x, y in extra if tid in fitter.banks]
-    mobs = fitter.fit(f, C, wins, ui_t)
+    mobs = fitter.fit(f, C, wins, ui_t)                        # minimap / keycaps masked; the chat rect is world
     rows = [{"sx": m.feet[0], "sy": m.feet[1], "mob": m.type, "state": "live", "src": "fit", "anim": m.pose,
              "score": m.seen, "unseen": 0, "fit": m.to_dict()} for m in mobs]
     return rows, {"d": (t1 - t0) * 1000, **fitter.ms, "windows": len(wins), "patches": len(ps)}
@@ -145,7 +147,9 @@ def main():
             fo.write(json.dumps({"n": n, "mobs": rows, "ms": m, "spots": [list(s) for s in spots]}) + "\n")
     f = np.array([m["fit"] for m in ms[3:] or ms])
     d = np.array([m["d"] for m in ms[3:] or ms])
-    print(f"{len(ms)} frames -> {out}; fit ms p50 {np.median(f):.1f} p90 {np.percentile(f, 90):.1f} max {f.max():.1f}; "
+    parts = {k: round(float(np.median([m[k] for m in ms])), 1) for k in ("pos", "s1", "s2", "pick", "positions", "kept")}
+    print(f"{len(ms)} frames -> {out}; fit ms p50 {np.median(f):.1f} p90 {np.percentile(f, 90):.1f} max {f.max():.1f} "
+          f"{parts}; "
           f"D ms p50 {np.median(d):.1f}; windows p50 {np.median([m['windows'] for m in ms]):.0f}, "
           f"cands p50 {np.median([m['cands'] for m in ms]):.0f}")
 

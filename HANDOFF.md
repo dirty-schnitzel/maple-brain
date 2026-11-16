@@ -584,31 +584,40 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     (5) Deliverables: the planes + test; perception/fit.py (not wired: 3.3 runs it in shadow); tools/perc/fit/
     (offline: thresholds on synth, report on labels). Gate: synth recall >= 99 % per case, 0 false mobs on the 50
     mob-free frames and on Dangerous Steam's ghost spots, every label class >= today's (3.0a's "before"), ms.
-  - **3.2 IN PROGRESS (2026-11-16, session cut by the usage limit):**
+  - **3.2 IN PROGRESS (2026-11-16): accuracy gate met on synth + steam, SPEED NOT - stopped for the user's call.**
     - DONE planes: `assets scene` writes `layers/behind_L.png` + `front_L.png` per foothold layer (rebuilt the 5
       clean maps; scene.png bit-identical); `Scene.split(C, L)` -> B, known_B, F, A; expected() refactored onto
       `_backs` / `_anim` (same output). tests/test_scene_layers.py: F + (1 - A) B = expected() within 1.5 levels
       (two rounded uint8 canvases; kept uint8, fp16 of them = the same numbers). Line 1 / Transfer: 8-10 planes, ~250 MB.
-    - v1 `perception/fit.py` (not wired) + tools/perc/fit/run.py (synth | labels | ghosts --live) + sweep.py.
-      Stage 2 opacity = MODE of per-pixel ratios (median failed under > 50 % cover); jump poses = "air" group
-      (synth lifts them 10-45 px; real: a falling Zombie at 012059_1 n1710 had no foothold within 40 px -> next: free y).
-    - Loose run, synth ant4_500: **99.1 % (779 / 786), 0 wrong type, 2 false (a faint die1_2 at y 712 on 2 free
-      frames, gone at min_seen 200)**; per case clear / fade / dying / hit / scenery / edge 100 %, player 98.2, effect
-      97.8, ui 94.9. ui misses = hud.ui_mask's chat rect (630-700) hides world that is visible at native -> fit must
-      treat the UI as per-pixel cover (no mask) and D windows unmask the chat rect. player / effect misses = vis
-      0.16-0.40: stage 1's least-squares rank puts them 27th-6576th in their window.
-    - Labels (012059_1, 0.03 / 100 / 0.3): 86.4 %, clear 90.3, false 148: looked at 12 -> mostly LABEL offsets of
-      25-60 px (jumping / overlapping mobs: labels sit at the recording's track) or unlabelled mobs (behind players,
-      behind the see-through minimap) - the fit's pixels match 100 %. Needs a fair match rule for both sides
-      (e.g. label feet inside the body box) before the "every class >= before" gate means anything. One real stage-1
-      miss: n549, a fully visible Zombie (2547 / 2547 px exact) not in the top-K of a 2-mob window.
-    - **SPEED IS THE BLOCKER: v1 ~220 ms / frame.** cudnn conv with 75x72 kernels runs at ~3 TMAC/s (air strips
-      0.1). NEXT (planned, not built): `_positions` vectorized (100 ms of Python today); D-pruned positions (box share
-      of D-bad over valid pixels via integral images) then exact Srq / Sqq by gather + fp16 matmul at the survivors;
-      stage 2 + the greedy pick batched (pick on the CPU). Then: ghosts run (Dangerous Steam live weak tracks: 85, 266
-      sightings, cameras from replay/HEAD.jsonl scene_cam), thresholds, report, pytest fit test. If 5 ms p90 is out of
-      reach exactly: tell the user with numbers (options: coarse stride, grey stage 1, FFT) - no change of course
-      without their word.
+    - `perception/fit.py` (not wired; docstring = the method): positions (ground on footholds +-2; jump poses /
+      flyers free y but only where a D blob's lower or upper edge meets the pose's lowest / highest row), D-pruned
+      (core-box share of D among valid pixels >= 0.3, integral images), stage 1 = the plan's exact Srq / Sqq (+ Srr)
+      by gather + fp16 matmul (cudnn's 75x72-kernel conv: ~3 TMAC/s, 220 ms -> dropped), candidates per window and
+      type = best 24 (+4 / 4000 px) by gain + best 12 by explained fraction (faint / covered mobs), <= 6 per 6 px;
+      stage 2 per pixel, o = mode of per-pixel ratios; greedy pick. UI: minimap + keycaps masked (unmasked keycaps
+      broke stage 1's ranking), the chat rect (630-700) is world at native: unmasked in V and in the tool's D.
+    - tools/perc/fit/run.py (synth | labels [--tracks] | ghosts RUN --replay HEAD.jsonl --live), sweep.py (grid /
+      score / ghosts; --r X Y match radius; label_eval.py got --r too). Loose runs in RUN/fit/*.jsonl.
+    - **synth ant4_500 (rule seen >= 0.03, >= 60 px, absent <= 0.1): 99.5 % (782 / 786), 0 false (0 on the 50
+      mob-free frames), wrong type 1**; per case clear / fade / dying / hit / scenery / ui / edge 100 %, player 98.2,
+      effect 97.8 (misses: 4 mobs 31-40 % visible, ranked 16th-49th in their window, or seen 82 px under
+      semi-transparent digits). sweep: any rule from 0.03-0.08 / 10-200 px / 0.1-0.3 gives 0 false. (sweep's
+      dontcare now reaches 80 px below a box: the base frames' unerased real mobs under the chat / HUD.)
+    - **Dangerous Steam ghost spots (live run's 85 weak tracks, 266 sightings on saved frames): a fit mob at 2 =
+      two REAL Zombie Mushrooms behind a steam geyser (looked at: 1548 px exact); 0 at the 264 scenery spots.**
+    - labels 012059_1 (per frame, no memory; before = the tracker WITH memory), r 25 | r 40/30: found 92.0 | 93.3 %
+      (before 86.2 | 86.9); clear 96.3 (94.0), fade 91.7 (51.1), ui 80.6 (66.7), edge 93.3 (71.7), scenery 96.1
+      (90.2), hit 84.8 (81.8), dying 90.2 (90.2), player 77.5 (75.8), **effect 76.3 (86.4: below - the tracker
+      coasts through effects; track windows (3.3) not tried yet: `run.py labels --tracks replay/before.jsonl`)**.
+      false 236 (die 54): sampled ones are mostly label offsets of 25-60 px / unlabelled real mobs - unjudged.
+    - **SPEED (the blocker): fit ms p50 / p90 - synth 62 / 85, labels frames 116 / 154 (16 windows, 34 k kept
+      positions), Dangerous Steam 200 / 279 (Stirge flyers: 867 k positions)** vs the target 5 p90. Profile
+      (labels frames): stage 1 gathers 49, Python glue ~45, stage 2 11, positions 11, images 5. s1_step=2 (stage-1
+      sums on every 2nd row / column; an approximation, stage 2 stays exact): stage 1 49 -> 21 ms, synth 99.5 %.
+      No cupy / triton / nvcc in the venv (a custom kernel = an install: the user's call).
+      Options put to the user: (a) s1_step 2; (b) GPU-side selection (kill the Python glue); (c) skip thin
+      windows (chat line strips, tags); (d) a custom CUDA kernel (install); (e) track windows first, D windows only
+      where no track explains the blob (3.3 design); (f) a looser ms target for the fit.
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")

@@ -21,8 +21,11 @@ CLS = {"": "clear", "e": "effect", "p": "player", "s": "scenery", "u": "ui", "f"
        "h": "hit"}
 
 
-def near(a, b, r=25):
-    return abs(a[0] - b[0]) <= r and abs(a[1] - b[1]) <= r
+R = [25, 25]                     # match radius x / y (--r X Y)
+
+
+def near(a, b):
+    return abs(a[0] - b[0]) <= R[0] and abs(a[1] - b[1]) <= R[1]
 
 
 def load(path):
@@ -65,7 +68,10 @@ def score(truth, fits, rule, synth, listing=False):
             p = (t["sx"], t["sy"])
             if any(near(p, u) for u in L.get("unsure") or []):
                 continue
-            if synth and any(b[0] <= p[0] <= b[2] and b[1] <= p[1] <= b[3] for b in L.get("dontcare") or []):
+            # dontcare = what the synthetic base could not erase (our blob, the UI rects): a mob there, or with
+            # its body there (feet up to 80 px below), may be a real one of the base frame (e.g. a Zombie's cap
+            # above the chat bar, its feet under the HUD)
+            if synth and any(b[0] <= p[0] <= b[2] and b[1] <= p[1] <= b[3] + 80 for b in L.get("dontcare") or []):
                 continue
             kind = "die" if t["anim"].startswith("die") else "live"
             fp[kind] += 1
@@ -114,7 +120,10 @@ def main():
     ap.add_argument("--labels")
     ap.add_argument("--rule", nargs=3, type=float, help="seen_min min_seen absent_max (score mode: filter)")
     ap.add_argument("--list", action="store_true")
+    ap.add_argument("--r", nargs=2, type=int, help="match radius x y (default 25 25 = label_eval's)")
     a = ap.parse_args()
+    if a.r:
+        R[:] = a.r
     path = Path(a.path)
     if a.mode == "ghosts":
         fits = load(path / (a.fit or "fit/ghosts.jsonl"))
