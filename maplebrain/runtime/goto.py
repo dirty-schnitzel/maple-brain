@@ -14,9 +14,10 @@ from pathlib import Path
 
 from ..brain.moves import node_of
 from ..brain.travel import Travel
-from ..keyboard import FocusLost
+from ..keyboard import FocusLost, foreground_title
 from ..nav.selfstate import SelfTracker
 from ..perception.perceiver import Perceiver
+from . import window
 from .keys import KeyDriver
 from .recorder import Recorder
 from .runner import _init_map, _picture, _setup, alarm, lie_alarm
@@ -88,7 +89,9 @@ def _tour(rig, rec, t0, say, seconds, to, seed) -> str:
                 tick0 = time.perf_counter()
                 if not kb.focused():
                     raise FocusLost()
+                window.guard(screen)
                 frame = screen.grab()
+                window.guard(screen)                 # aimed before and after: the frame is the whole game picture
                 tg = time.perf_counter()
                 t = tg - t0
                 obs = perceiver.observe(frame, t, screen.cursor())
@@ -151,11 +154,11 @@ def _tour(rig, rec, t0, say, seconds, to, seed) -> str:
                 if getattr(perceiver, "parts", None):
                     timings["parts"] = perceiver.parts
                 rec.tick(frame, obs, [], "TRAVEL" if tr is not None else "IDLE", timings)
-            except FocusLost:
+            except FocusLost as e:
                 driver.release_all()
-                say("PAUSED: game not focused; keys released")
-                while not kb.focused() and time.perf_counter() < end:
-                    time.sleep(hz.vary(0.2))
+                say(window.pause_line(e, foreground_title))
+                if not window.wait_back(screen, kb.focused, hz, say, lambda: time.perf_counter() < end, e):
+                    break
                 say("resumed")
                 tr = None
                 time.sleep(hz.vary(1.0))

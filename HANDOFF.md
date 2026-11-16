@@ -189,7 +189,26 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     explain it.
   - Dark Cave 084719_1: **the game window was moved ~33 px left / 22 px up at 16.4 s** (a mouse drag; no key) and
     the capture kept its old place: from then on the picture is cut (the desktop shows at the right edge). Only
-    0-16.3 s is a clean picture. The capture never re-checks the window's place: a guard is proposed (step 2).
+    0-16.3 s is a clean picture. Measured later (HUD strip per saved frame): a DRAG of 1.15 s, 16.37 -> 17.53 s,
+    over -46 / -38 to its rest at -30 / -22 px; the focus guard never fired (a title-bar drag keeps focus).
+  - **DONE (2026-11-16): the capture re-checks the window - `Screen.check()` + `maplebrain/runtime/window.py`.**
+    The user chose the check on EVERY tick (not ~1 / s): before and after each grab, like the two focus checks, so
+    a frame is used only if the client box was the aimed one on both sides (1.51 microseconds per check on the
+    real window). Not aimed -> `WindowLost` (a `FocusLost`): the pause path, keys released, log `PAUSED: game
+    window moved: capture aimed at (x, y) WxH, window now at ...`. `wait_back` ends the pause when the game is
+    focused, the client area is 1366x768 and the box read the same on two looks (varied ~0.2 s apart: a window
+    still dragged is not aimed at) -> `calibrate()` + `capture re-aimed: game window moved OLD -> NEW`, then
+    "resumed" as after a focus loss (brain reset, ~1 s varied settle). **Not 1366x768 (resized, minimized = 0x0,
+    window gone): said once, paused, NEVER re-aimed / resized silently** (the user: native windowed always), and
+    "game window back" when it is. Covered: `_hunt` (v1 + observe), `hunt_v2`, goto's `_tour`, serve between
+    hunts and `watch` (`window.Aim.ok()` per look: a look is skipped while not aimed; watch's Screen is now
+    `Screen(hwnd, dxcam=False)`). A running `watch` gets it at its next start (the user's).
+    Dark Cave replayed through the guard (tests/test_window.py, the measured drag): paused at 16.41 s (the first
+    shifted tick; 0 shifted frames used instead of 60 s of them), re-aimed once at 17.8-17.9 s on the final place,
+    back at 18.1-18.2 s (+ the settle). Tests: tests/test_window.py (17). pytest green, bot speed 31.0 ms
+    (baseline 30.0; the bench has no window), replay press1 HEAD vs work: 166 real + 11 weak both, 100 % found.
+    Left open: the compositor may show a move 1-2 frames before / after the box reports it (not measurable on
+    the recording: no box was logged); NOT live-tested yet (drag the window during a `serve --observe`).
   - Sprites 1:1 on the new maps (`native_check.py`, per-mob median 100 % everywhere): Stirge / Horny / Zombie
     Mushroom 95-99 % pooled. Bubbling (Line 1) 50 %: a half-transparent mob (score 0.995) - needs sprite-over-
     scene, not sprite alone (step 3). Wild Boar 74 %, Snail 78 %: some are pale (fading in, to check).
@@ -203,8 +222,7 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     Above Normal, power throttling off; the first console line says what was set. Bench launched unpinned from the
     background: 30.2 ms (was 42-46). A running `watch` gets it at its next start. Live tick not measured yet.
   - pytest green pinned (speed 28.8 ms); replay press1 HEAD vs work: 166 real + 11 weak both, 100 % found.
-  - **NEXT:** step 2 on the clean maps (order to agree). Labels still open. Proposed, not decided: the capture
-    re-checks the window's place (the check costs ~1 microsecond; re-aiming ~0.3 s only when it moved).
+  - **NEXT:** step 2 on the clean maps (order to agree). Labels still open.
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")

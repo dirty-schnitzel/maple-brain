@@ -1,7 +1,7 @@
 """The live loop for brain-v2 (`run` / `serve` with `--brain v2`, implies --gpu): capture -> perceive (tracks + our
 exact position) -> BrainV2 -> KeyDriver. Same safety as every hunt: Lie Detector -> keys up + siren + stop, HP stop,
-game not focused -> keys up, pause. ticks.jsonl as usual, with timings.self (our state), timings.v2 (mode, target,
-travel) and timings.held.
+game not focused / game window moved or not 1366x768 (runtime/window.py) -> keys up, pause. ticks.jsonl as usual,
+with timings.self (our state), timings.v2 (mode, target, travel) and timings.held.
 """
 import json
 import time
@@ -9,6 +9,7 @@ import traceback
 
 from ..brain.brain_v2 import BrainV2
 from ..keyboard import FocusLost, foreground_title
+from . import window
 from ..nav.selfstate import SelfTracker
 from ..perception.perceiver import Perceiver
 from .exp_meter import ExpMeter
@@ -52,9 +53,11 @@ def hunt_v2(rig, rec, t0: float, until, area=None) -> str:
                 tick0 = time.perf_counter()
                 if not kb.focused():
                     raise FocusLost()
+                window.guard(screen)
                 frame = screen.grab()
                 if not kb.focused():
                     raise FocusLost()
+                window.guard(screen)                 # aimed before and after: the frame is the whole game picture
                 frames_n += 1
                 tg = time.perf_counter()
                 t = tg - t0
@@ -87,14 +90,13 @@ def hunt_v2(rig, rec, t0: float, until, area=None) -> str:
                     status = f"STOPPED: {stop}"
                     alarm()
                     break
-            except FocusLost:
+            except FocusLost as e:
                 driver.release_all()
-                say(f"PAUSED: game not focused (foreground: '{foreground_title()}'); keys released")
+                say(window.pause_line(e, foreground_title))
                 paused = time.perf_counter()
-                while not kb.focused() and until() is None:
-                    time.sleep(hz.vary(0.2))
+                back = window.wait_back(screen, kb.focused, hz, say, lambda: until() is None, e)
                 exp.pause(time.perf_counter() - paused)
-                if kb.focused():
+                if back:
                     say("resumed")
                     brain.reset(driver)
                     time.sleep(hz.vary(1.0))

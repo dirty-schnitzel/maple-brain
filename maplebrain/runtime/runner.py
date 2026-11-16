@@ -9,6 +9,8 @@ Two ways to drive it:
 Safety that does not depend on the brain:
   * keys are only sent while the game has focus; a frame grabbed while focus was leaving is discarded
   * focus lost -> every key released, paused until the game is back
+  * the game window moved -> paused the same way until it rests, then the capture is re-aimed; not 1366x768 any
+    more (resized, minimized, gone) -> paused until it is (runtime/window.py)
   * Stop (HP) -> release, alarm beep, end the hunt
   * Stop (Lie Detector) -> release, keep sounding a siren until its window is gone (the user answers it), end
   * every key released when a hunt ends, whatever happened
@@ -31,6 +33,7 @@ from ..config import Config
 from ..humanize import Humanizer
 from ..keyboard import FocusLost, Keyboard, bring_to_front, foreground_title
 from ..perception.perceiver import Perceiver
+from . import window
 from .keys import KeyDriver, LegacyExecutor
 from .marks import Marks
 from .recorder import Recorder
@@ -272,9 +275,11 @@ def _hunt(rig: Rig, rec: Recorder, t0: float, until, observe: bool = False, area
                 tick0 = time.perf_counter()
                 if not kb.focused():
                     raise FocusLost()
+                window.guard(screen)
                 frame = screen.grab()
                 if not kb.focused():
                     raise FocusLost()
+                window.guard(screen)                 # aimed before and after: the frame is the whole game picture
                 frames_n += 1
                 tg = time.perf_counter()
                 obs = perceiver.observe(frame, time.perf_counter() - t0, screen.cursor())
@@ -296,6 +301,7 @@ def _hunt(rig: Rig, rec: Recorder, t0: float, until, observe: bool = False, area
                         look.append(screen.grab())
                     if not kb.focused():
                         raise FocusLost()
+                    window.guard(screen)
                     obs = perceiver.look(look, obs, screen.cursor())
                     obs.t = time.perf_counter() - t0
                     frame = look[-1]
@@ -335,12 +341,10 @@ def _hunt(rig: Rig, rec: Recorder, t0: float, until, observe: bool = False, area
                     else:
                         alarm()
                     break
-            except FocusLost:
+            except FocusLost as e:
                 ex.release_all()
-                say(f"PAUSED: game not focused (foreground: '{foreground_title()}'); keys released")
-                while not kb.focused() and until() is None:
-                    time.sleep(hz.vary(0.2))
-                if kb.focused():
+                say(window.pause_line(e, foreground_title))
+                if window.wait_back(screen, kb.focused, hz, say, lambda: until() is None, e):
                     say("resumed")
                     brain.mode, brain.target, brain.held = "SEEK", None, None
                     perceiver.untrack()
@@ -493,6 +497,7 @@ def serve(out_root: Path, cfg: Config, frames: int = 0,
         say(f"mode: {marks.mode} - {mode_key.upper()} = next mode (auto / platform), {mark_key.upper()} = mark / "
             "unmark the platform you stand on (platform mode, between hunts)")
     hunts, next_look, n_lie = 0, 0.0, 0
+    aim = window.Aim(rig.screen, say)                    # between hunts: is the capture still on the window?
 
     def until():
         if hk.pressed(stop_key):
@@ -515,8 +520,8 @@ def serve(out_root: Path, cfg: Config, frames: int = 0,
                 # hunt ended and nothing was looking). Only looks - no key is sent.
                 if time.perf_counter() >= next_look:
                     next_look = time.perf_counter() + rig.lie.every_s
-                    frame = rig.screen.grab()
-                    if frame is not None and rig.lie.seen(frame):
+                    frame = rig.screen.grab() if aim.ok() else None      # window moved: re-aimed once it rests
+                    if frame is not None and aim.ok() and rig.lie.seen(frame):
                         n_lie += 1
                         import cv2
                         cv2.imwrite(str(out_root / f"lie_idle_{datetime.now():%H%M%S}_{n_lie}.png"), frame)
@@ -585,15 +590,17 @@ def watch(out: Path, seconds: float, every_s: float = 0.3) -> int:
     if not hwnd:
         say("MapleStory window not found")
         return 1
-    screen = Screen(hwnd)
-    screen.close()
-    screen.cam = None                                  # mss only
+    screen = Screen(hwnd, dxcam=False)                 # mss only
+    aim = window.Aim(screen, say)                      # the window moved -> re-aimed; not 1366x768 / gone -> said
     lie = LieDetector.load(ASSETS)
     say(f"watching for the Lie Detector (game picture x {screen.cols}), {seconds:.0f}s")
     t_end, n = time.perf_counter() + seconds, 0
     try:
         while time.perf_counter() < t_end:
-            frame = screen.grab()
+            frame = screen.grab() if aim.ok() else None
+            if frame is None or not aim.ok():          # not aimed (before or after the grab): no look this time
+                time.sleep(every_s)
+                continue
             score, loc = lie.score(frame)
             if score >= lie.min_score:
                 n += 1

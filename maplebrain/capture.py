@@ -72,11 +72,27 @@ def picture(cols: tuple, height: int | None, kind: str) -> str:
 class Screen:
     """Latest game frame as BGR 1366x768. Uses DXGI desktop duplication (dxcam) when available, else mss."""
 
-    def __init__(self, hwnd):
+    def __init__(self, hwnd, dxcam: bool = True):
+        """`dxcam` False: mss only (`watch`: a hunt's dxcam in another process stays untouched)."""
         self.hwnd = hwnd
+        self.use_dxcam = dxcam
         self._mss = mss.MSS()
         self.cam, self.kind, self.note = None, "mss", ""
         self.calibrate()
+
+    def check(self) -> tuple[str, dict | None]:
+        """Is the capture still aimed at the game? -> (state, the client box now):
+        'ok' the box is the one calibrate() aimed at; 'moved' same size, another place (calibrate() re-aims);
+        'size' the client area is not 1366x768 (resized, minimized = 0x0); 'gone' no such window any more.
+        ~1 microsecond: the loops ask around every grab (runtime/window.py). 2026-11-16, Dark Cave recording
+        084719_1: the window was dragged 30 px left / 22 px up over 1.15 s and the capture kept the old place for
+        the remaining 60 s - nothing looked."""
+        if not user32.IsWindow(self.hwnd):
+            return "gone", None
+        box = client_box(self.hwnd)
+        if (box["width"], box["height"]) != (W, H):
+            return "size", box
+        return ("ok" if box == self.box else "moved"), box
 
     def calibrate(self):
         """Find the game picture (inside the pillarbox bars) and capture just that. Must run while the game is in
@@ -87,6 +103,8 @@ class Screen:
         self.cols = game_columns(raw)
         self.close()
         self.cam = None
+        if not self.use_dxcam:
+            return self.cols
         try:
             import dxcam
             region = (self.box["left"] + self.cols[0], self.box["top"],
