@@ -45,7 +45,22 @@ def setup(map_id, cfg):
     return scene, ui_t, Fitter(scene, map_id, ROOT / "assets" / "mcw", cfg)
 
 
-def run_frame(scene, ui_t, fitter, frame, C):
+def me_box(me):
+    """Our body box from obs.me (the feet; synth.py's box of our blob): kept out of the fade search."""
+    return None if not me else (me[0] - 40, me[1] - 85, me[0] + 40, me[1] + 30)
+
+
+def me_of(run: Path, want=None) -> dict:
+    """{tick n: obs.me} from RUN/ticks.jsonl (n = the saved frame's number), only `want` if given."""
+    out = {}
+    for line in open(run / "ticks.jsonl", encoding="utf-8"):
+        k = json.loads(line)
+        if want is None or k["n"] in want:
+            out[k["n"]] = (k.get("obs") or {}).get("me")
+    return out
+
+
+def run_frame(scene, ui_t, fitter, frame, C, me=None):
     import torch
     t0 = time.perf_counter()
     f = torch.from_numpy(np.ascontiguousarray(frame[:PLAY_H])).to(scene.dev)
@@ -53,7 +68,7 @@ def run_frame(scene, ui_t, fitter, frame, C):
     exp, known = scene.expected(C)
     torch.cuda.synchronize()
     t1 = time.perf_counter()
-    mobs = fitter.fit(f, C, exp, known, ui_t)
+    mobs = fitter.fit(f, C, exp, known, ui_t, me_box(me))
     rows = [{"sx": m.feet[0], "sy": m.feet[1], "mob": m.type, "state": "live", "src": "fit", "anim": m.pose,
              "score": m.seen, "unseen": 0, "fit": m.to_dict()} for m in mobs]
     return rows, {"exp": (t1 - t0) * 1000, **fitter.ms}
@@ -87,40 +102,44 @@ def main():
     print(procperf.prefer_performance())
     cfg = cfg_of(a)
     path = Path(a.path)
-    jobs = []                                                    # (n, frame loader, C, spots)
+    jobs = []                                                    # (n, frame loader, C, spots, obs.me)
     if a.mode == "synth":
         meta = json.loads((path / "synth.json").read_text())
         map_id = meta["map"]
+        me = me_of(ROOT / meta["run"], {fr["base"] for fr in meta["frames"].values()})   # the base frame's own us
         for n, fr in meta["frames"].items():
-            jobs.append((int(n), lambda fr=fr: cv2.imread(str(path / "frames" / fr["frame"])), fr["C"], ()))
+            jobs.append((int(n), lambda fr=fr: cv2.imread(str(path / "frames" / fr["frame"])), fr["C"], (),
+                         me.get(fr["base"])))
     elif a.mode == "labels":
         map_id = rec.map_of(path)
         lab = json.loads((path / "labels.json").read_text())
         cams = json.loads((path / "labels" / "cams.json").read_text())
+        me = me_of(path, {int(n) for n in lab["frames"]})
         for n in lab["frames"]:
             name = f"{int(n):06d}.png"
             if cams.get(name) is not None:
-                jobs.append((int(n), lambda name=name: rec.read(path, name), cams[name], ()))
+                jobs.append((int(n), lambda name=name: rec.read(path, name), cams[name], (), me.get(int(n))))
     elif a.mode == "clip":
         map_id = rec.map_of(path)
         rows = [json.loads(line) for line in open(a.replay, encoding="utf-8")]
         for r in [r for r in rows if r.get("scene_cam")][::a.every]:
             name = r.get("frame") or f"{r['n']:06d}.png"
-            jobs.append((r["n"], lambda nm=name: rec.read(path, nm), r["scene_cam"], ()))
+            jobs.append((r["n"], lambda nm=name: rec.read(path, nm), r["scene_cam"], (), r.get("me")))
     else:
         sys.path.insert(0, str(ROOT / "tools" / "perc" / "replay"))
         from compare import live_rows, tracks
         map_id = rec.map_of(path)
-        cams = {json.loads(line)["n"]: json.loads(line).get("scene_cam") for line in open(a.replay, encoding="utf-8")}
-        rows = live_rows(path) if a.live else [json.loads(line) for line in open(a.replay, encoding="utf-8")]
+        rep = {json.loads(line)["n"]: json.loads(line) for line in open(a.replay, encoding="utf-8")}
+        rows = live_rows(path) if a.live else list(rep.values())
         cls = tracks(rows)
         for r in rows:                                           # a weak track's sightings (not its coasting)
             weak = [(m["mob"], m["sx"], m["sy"]) for m in r.get("mobs") or []
                     if m.get("state") not in ("tentative", "offscreen") and m.get("src", "none") != "none"
                     and not cls[m["id"]]["real"]]
-            if weak and cams.get(r["n"]):
+            rr = rep.get(r["n"]) or {}
+            if weak and rr.get("scene_cam"):
                 name = r.get("frame") or f"{r['n']:06d}.png"
-                jobs.append((r["n"], lambda nm=name: rec.read(path, nm), cams[r["n"]], weak))
+                jobs.append((r["n"], lambda nm=name: rec.read(path, nm), rr["scene_cam"], weak, rr.get("me")))
     if a.n:
         jobs = jobs[:a.n]
     scene, ui_t, fitter = setup(map_id, cfg)
@@ -129,11 +148,11 @@ def main():
     out.parent.mkdir(parents=True, exist_ok=True)
     ms = []
     with open(out, "w", encoding="utf-8") as fo:
-        for n, load, C, spots in jobs:
+        for n, load, C, spots, me in jobs:
             frame = load()
             if frame is None:
                 continue
-            rows, m = run_frame(scene, ui_t, fitter, frame, C)
+            rows, m = run_frame(scene, ui_t, fitter, frame, C, me)
             ms.append(m)
             fo.write(json.dumps({"n": n, "mobs": rows, "ms": m, "spots": [list(s) for s in spots]}) + "\n")
     ms = ms[3:] or ms                                            # the first calls warm up
@@ -141,8 +160,9 @@ def main():
                     round(float(np.percentile([m[k] for m in ms], 90)), 2))
     f = np.array([m["fit"] for m in ms])
     print(f"{len(ms)} frames -> {out}; fit ms p50 {np.median(f):.2f} p90 {np.percentile(f, 90):.2f} max {f.max():.2f}; "
-          f"parts p50 / p90: vote {pc('vote')} stage 2 {pc('s2')} pick {pc('pick')} (expected() {pc('exp')}, D's); "
-          f"cands {pc('cands')}, features {pc('feat')}")
+          f"parts p50 / p90: vote {pc('vote')} fade {pc('fade')} stage 2 {pc('s2')} pick {pc('pick')} (expected() "
+          f"{pc('exp')}, D's); cands {pc('cands')}, features {pc('feat')}, fade pairs {pc('pairs')}; frames with a "
+          f"fade alpha {sum(1 for m in ms if m['alphas'])}")
 
 
 if __name__ == "__main__":

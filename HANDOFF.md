@@ -63,8 +63,10 @@ voting replaces the least-squares stage 1; prototype tools/perc/redesign/exp_vot
 opaque cases 100 %, labels 94.3 %). OK'd by the user 2026-11-17. Session 1 (S1-S3) DONE 2026-11-17: vote + fit on
 votes in maplebrain/ (fit 2.6 / 3.2 ms p50 / p90 on the labels frames, was 119 / 160); every gate met but the labels
 one AS WRITTEN (its classes hold fading mobs, S4's); the user ACCEPTED it on the not-fading subset 2026-11-17 (full
-classes = S4 / S5's gate). NEXT = Session 2 (S4-S6). See "3.2 Session 1" in "Step 3 state".** `watch` is RUNNING again
-(restarted by the user): never stop it.
+classes = S4 / S5's gate). Session 2 S4 (fades) built 2026-11-17 and STOPPED for the user's call: per-cell alphas
+replace "at most 2 a frame" (wrong on synth), accuracy gates met, fade pass 1.65 ms p50 vs 1 - see "3.2 Session 2"
+in "Step 3 state"; then S5 (tints), S6.** `watch` was NOT running on 2026-11-17 (no python process): the user's to
+restart; never stop it.
 
 ### TASK (the user, 2026-11-16): improve the gate test by taking NEW footage
 The tests on pre-native footage were deleted (d87e5b4; the Lie Detector ones kept); for now the gate = today's
@@ -687,6 +689,36 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     - ACCEPTED by the user 2026-11-17 ("yes"): the labels gate on the not-fading subset for Session 1; was asked: accept it on the not-fading subset for Session 1 (the full classes are S4 /
       S5's gate), or another call. The comparison: `tools/perc/fit/subset.py` (E9 fade cells cached in
       RUN/fit/fading_e9.json; the LS rows from 7744b1d's fit.py + run.py via git show).
+  - **3.2 Session 2, S4 fades (2026-11-17): built; STOPPED for the user's call - one design point failed on the
+    data, the fade-pass ms gate missed.** All ms pinned, game up, expected() not counted (D's).
+    - **Design point (c) "at most 2 alphas a frame" is wrong on synth:** 34 of the 50 synth fade frames hold 2-3
+      fading mobs at different opacities; 18 of the 105 fading mobs are beyond their frame's top 2 alphas -> ceiling
+      82.9 % (measured 77.1 % with (c)). Built instead (PROPOSED): ONE alpha per 48 px cell (its own refined o; a
+      cell without one takes its 3x3 neighbourhood's best), no cap a frame; the residue un-blended at its cell's
+      alpha goes into the SAME id picture as the opaque ids -> one vote (`Voter.fade`, fit.py `me` = our body box
+      from obs.me, kept out). Constant cost however many fades are on screen.
+    - **The +-2-level un-blend misses faint fades** (o ~0.1-0.27, |I - B| max 32-67: rounding x 1 / o, and step 3
+      is coarse at low alpha): labels fade 87.2 / dying 89.0 / edge 95.0 with it; the 9 mobs the LS fit has and the
+      vote didn't were all such (E9 misses them too). Fix (tuning of the plan's "+-2"): LUTs at +-2 / 3 / 4 / 6
+      levels, picked by o (need 1.5 + 0.5 / o; `Voter.FADE_TOLS`), indexed b + 258 g + 258^2 r with channels clamped
+      to -1..256 (the range check is the table's border); 4 x 34 MB GPU.
+    - **Gates now:** synth ant4_500 **786 / 786 = 100 %, fade 105 / 105 (o < 0.3: 16 / 16, o >= 0.3: 89 / 89), 0
+      false, 0 on the mob-free frames**, wrong type 0; labels at 40 / 30, FULL classes, vote vs LS: all **95.2** /
+      93.8, clear 97.6 / 96.8, player 90.3 / 85.0, effect 86.4 / 81.4, ui 87.5 / 84.7, edge **96.7** / 96.7,
+      scenery 98.0 / 96.1, **dying 93.9 / 93.9, fade 93.2 / 93.2** (gates met), hit 78.8 / 84.8 (frozen = S5); false
+      (unjudged labels) 156 / 436. Dangerous Steam ghost spots: 0 at the 264 scenery spots (2 = the real Zombies
+      behind the geyser, as before).
+    - **ms: fade pass 1.65 / 1.86 p50 / p90 (synced, labels frames; gate <= 1 / <= 3: p50 MISSED)** = residue 0.15
+      + pairs 0.25 + alpha search 0.86 + un-blend 0.38. Launch-bound (~60 small ops at ~15 us; the fused
+      un-blend / integer key / cached grids moved it 1.95 -> 1.65 only). Residue on these frames p50 53 k px,
+      strong pairs (quarter) p50 4.1 k / p90 12 k. Whole fit incl. fades: labels 4.12 / 4.63, synth 3.99 / 4.87,
+      Dangerous Steam clip (930 frames) 4.06 / 4.81 (S6's 5 ms p90: met so far). Plan lever 1 (restrict to dying
+      tracks / spawn points) cuts pairs, not launches, and synth draws fades anywhere (its gate would need new synth).
+      Options put to the user: (A) CUDA graphs for the alpha search + un-blend (bucketed by pairs / residue, as
+      stage 2; est. ~1.0-1.2 ms), (B) accept ~1.7 ms (the fit stays <= 5 ms p90), (C) lever 1 anyway.
+    - Tools: run.py passes `me` (ticks.jsonl obs.me; synth: the base frame's), prints fade ms / pairs; `--set
+      fade_report=1` lists the cells' alphas; `Voter.prof` = synced per-part ms (fade_ms).
+    - pytest green; bot speed 21.1 ms (p90 24.0; Session 1 read 21.8; nothing live imports vote.py / fit.py).
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")

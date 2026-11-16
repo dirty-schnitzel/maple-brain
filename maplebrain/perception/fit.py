@@ -3,7 +3,8 @@ shows, pixel by pixel. NOT on the live path: 3.3 runs it in shadow.
 
 1. Candidates = the vote (perception/vote.py): cells (pose, feet) with >= `cand_votes` exclusive votes of the frame's
    2x2 sprite-colour features, taken where the expected scene does not explain the pixel. No windows, no footholds,
-   no positions x poses search: ~1 candidate per mob.
+   no positions x poses search: ~1 candidate per mob. Fading mobs join the same vote: the residue un-blended at
+   each screen cell's fade alpha (Voter.fade; our body box `me` kept out).
 2. Stage 2, per pixel of each candidate's sprite (sprite colour s, alpha a, opacity o), the client's model
        I = B + o a (s - B),   r = I - B,   q = a (s - B)
    with B = the expected scene (Scene.expected: tiles / objects of every layer + backs) and the pixel VALID when the
@@ -44,6 +45,18 @@ class FitConfig:
     front_max: float = 0.5      # front scenery at alpha >= this over the mob: not valid
     o_bins: int = 128           # the opacity: the mode of the per-pixel ratios, this many bins over 0..1
     max_entries: int = 64       # vote table: keys in more places are dropped
+    fade: bool = True           # the fade search (Voter.fade): the residue un-blended at the frame's fade alphas
+    fade_strong: float = 24.0   # a residue pair's pixels differ from the scene by >= this
+    fade_n_min: int = 20        # strong pairs (of the quarter sampled) on the frame, else no search
+    fade_cell: int = 48         # one alpha per screen cell of this size
+    fade_cell_min: int = 12     # hitting pairs for a cell's own alpha
+    fade_lo: int = 38           # alphas searched lo..hi in steps
+    fade_hi: int = 252
+    fade_step: int = 3
+    fade_ratio: float = 0.0     # > 1: a geometric alpha grid (this ratio) instead of the step
+    fade_scale: bool = True     # the un-blend tolerance grows with 1 / o (Voter.FADE_TOLS), else +-2 (misses the
+                                # faint fades o ~0.1-0.27: rounding x 1 / o; labels fade 87.2 -> 93.2 %)
+    fade_report: bool = False   # list the cells' alphas in ms["alphas"] (one more sync; tools only)
 
 
 @dataclass
@@ -261,23 +274,33 @@ class Fitter:
                                ni, ns, int(ex[i]), self.layer_ids[int(li[i])]))
         return mobs
 
-    def fit(self, frame, C, exp, known, ui=None, keep_cands: bool = False):
+    def fit(self, frame, C, exp, known, ui=None, me=None, keep_cands: bool = False):
         """`frame`: uint8 BGR (GPU tensor or array, >= PLAY_H rows); `C`: the scene camera; `exp`, `known`:
         Scene.expected(C) (D's - one per tick); `ui`: optional bool (PLAY_H, SW) tensor, True = may show a mob (the
-        minimap / keycaps False; the chat rect is world). -> [FitMob] (+ every candidate's counts when keep_cands)."""
+        minimap / keycaps False; the chat rect is world); `me`: our body box (x0, y0, x1, y1) on screen, kept out of
+        the fade search. -> [FitMob] (+ every candidate's counts when keep_cands)."""
         torch, c = self.torch, self.cfg
         if not torch.is_tensor(frame):
             frame = torch.from_numpy(np.ascontiguousarray(frame[:PLAY_H])).to(self.dev)
         frame = frame[:PLAY_H]
         t0 = time.perf_counter()
-        ids = self.voter.ids(frame, exp, known, c.tol)
+        valid = known if ui is None else known & ui
+        ids, r, mag = self.voter.ids(frame, exp, known, c.tol, resid=True)
+        tf = time.perf_counter()
+        alphas, fc = None, {}
+        if c.fade:
+            ids, alphas, fc = self.voter.fade(ids, r, mag, exp, valid, me, c.tol, c.fade_strong, c.fade_n_min,
+                                              c.fade_cell, c.fade_cell_min, c.fade_lo, c.fade_hi, c.fade_step,
+                                              c.fade_ratio, c.fade_scale, c.fade_report)
+            if self.dev != "cpu":
+                torch.cuda.synchronize()            # the vote's first step syncs anyway: the part's ms are honest
+        tf = time.perf_counter() - tf
         g, fx, fy, nv, ex, vc = self.voter.cells(ids, c.cand_votes)
         t1 = time.perf_counter()
         mobs, cands = [], []
         if len(g):
             C = (int(C[0]), int(C[1]))
             li = self._layers(g, fx, fy, C)
-            valid = known if ui is None else known & ui
             if self.front_backs:
                 z1 = torch.zeros(valid.shape, device=self.dev)
                 _, cov, _ = self.scene._backs(C, SW, PLAY_H, 1, torch.zeros((*valid.shape, 3), device=self.dev), z1,
@@ -298,6 +321,7 @@ class Fitter:
         else:
             t2 = t1
         t3 = time.perf_counter()
-        self.ms = {"fit": (t3 - t0) * 1000, "vote": (t1 - t0) * 1000, "s2": (t2 - t1) * 1000, "pick": (t3 - t2) * 1000,
-                   "cands": len(g), "feat": vc["feat"], "votes": vc["votes"]}
+        self.ms = {"fit": (t3 - t0) * 1000, "vote": (t1 - t0 - tf) * 1000, "fade": tf * 1000, "s2": (t2 - t1) * 1000,
+                   "pick": (t3 - t2) * 1000, "cands": len(g), "feat": vc["feat"], "votes": vc["votes"],
+                   "pairs": fc.get("pairs", 0), "alphas": alphas}
         return (mobs, cands) if keep_cands else mobs

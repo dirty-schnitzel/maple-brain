@@ -18,7 +18,8 @@ mask, |I - expected| > tol, or unknown scenery - so scenery that shares the pale
 Exact by construction: the cells are the prototype's (tests/test_vote.py). GPU, 3 sync points (the feature count,
 the vote count, the result), int32 keys (mixed radix: (colours + 1)^4 < 2^31, i.e. <= 214 colours) and cells
 where the map allows, else int64.
-Fades (un-blended residue, PLAN S4) and tints (more LUT colours, S5) are not here yet.
+Fading mobs (`fade`, PLAN S4): the residue (unexplained, no palette colour) un-blended at each 48 px cell's own
+alpha -> palette ids into the same picture, so opaque and fading mobs go through ONE vote. Tints (S5): not yet.
 """
 import json
 import logging
@@ -96,6 +97,8 @@ def _key24(bgr):
 
 
 class Voter:
+    FADE_TOLS = (2, 3, 4, 6)    # un-blend tolerance levels (one LUT each); opacity o needs >= 1.5 + 0.5 / o
+
     def __init__(self, poses: list, max_entries: int = 64, device=None, max_cells: int = 512):
         """`poses`: load_poses(...) (the cell's g = the index in it). `max_cells`: the most cells `cells` returns
         (the best by exclusive votes)."""
@@ -111,6 +114,29 @@ class Voter:
         lut = np.zeros(1 << 24, np.int16)
         lut[cols] = np.arange(1, len(cols) + 1)
         self.lut = torch.from_numpy(lut).to(self.dev)
+        # fades: LUTs with +-t levels around every palette colour (an un-blended pixel is off by ~(0.5 + the scene's
+        # error) / opacity, and by the alpha grid's step), the nearest colour claiming a shared cell first; one LUT
+        # per level of FADE_TOLS (the opacity picks it). Indexed by (b + 1) + 258 (g + 1) + 258^2 (r + 1) with each
+        # channel clamped to -1..256: a value out of 0..255 lands on the zero border, so the range check is the
+        # table's (one gather, no compares). + the palette (id -> BGR) and the sprites' adjacent colour pairs.
+        cb, cg, cr = cols & 255, (cols >> 8) & 255, cols >> 16
+        idn = np.arange(1, len(cols) + 1, dtype=np.int16)
+        luts = []
+        for t in self.FADE_TOLS:
+            lt = np.zeros((258, 258, 258), np.int16)
+            d = np.arange(-t, t + 1)
+            offs = np.stack(np.meshgrid(d, d, d, indexing="ij"), -1).reshape(-1, 3)
+            for dr, dg, db in offs[np.argsort((offs ** 2).sum(1), kind="stable")]:
+                rr, gg, bb = np.clip(cr + dr, 0, 255) + 1, np.clip(cg + dg, 0, 255) + 1, np.clip(cb + db, 0, 255) + 1
+                free = lt[rr, gg, bb] == 0
+                lt[rr[free], gg[free], bb[free]] = idn[free]
+            luts.append(lt.reshape(-1))
+        self.lut_tol = torch.from_numpy(np.concatenate(luts)).to(self.dev)
+        self.k258 = torch.tensor([1, 258, 258 * 258], dtype=torch.int32, device=self.dev)   # integers: the key
+                                                                       # passes 2^24 (fp32 would round it)
+        pal = np.zeros((len(cols) + 1, 3), np.float32)
+        pal[1:] = np.stack([cb, cg, cr], 1)
+        self.pal = torch.from_numpy(pal).to(self.dev)
         self.radix = r = self.n_colors + 1                            # key = ((a r + b) r + c) r + d
         kdt = np.int32 if r ** 4 < 2 ** 31 else np.int64
         self.kdt = torch.int32 if kdt is np.int32 else torch.int64
@@ -121,8 +147,12 @@ class Voter:
         cdt = np.int32 if self.G * self.CW < 2 ** 31 - 1 else np.int64
         # features: 2x2 blocks of ids, all opaque, not one flat colour
         ks, offs, gs, self.n_feat = [], [], [], []
+        pair = np.zeros((r, r), bool)
         for g, p in enumerate(poses):
             ids = np.where(p.pic[..., 3] == 255, lut[_key24(p.pic[..., :3])], 0).astype(np.int64)
+            lp, rp = ids[:, :-1], ids[:, 1:]
+            mm = (lp > 0) & (rp > 0) & (lp != rp)
+            pair[lp[mm], rp[mm]] = True
             a, bb, c, d = ids[:-1, :-1], ids[:-1, 1:], ids[1:, :-1], ids[1:, 1:]
             ok = (a > 0) & (bb > 0) & (c > 0) & (d > 0) & ~((a == bb) & (a == c) & (a == d))
             yy, xx = np.nonzero(ok)
@@ -132,6 +162,7 @@ class Voter:
             offs.append(g * self.CW + (self.pad - (yy - p.oy)) * self.WW + (self.pad - (xx - p.ox)))
             gs.append(np.full(len(yy), g))
             self.n_feat.append(int(ok.sum()))
+        self.pair_ok = torch.from_numpy(pair.reshape(-1)).to(self.dev)    # [left id * radix + right id]
         k, off, gg = np.concatenate(ks), np.concatenate(offs), np.concatenate(gs)
         order = np.argsort(k, kind="stable")
         k, off, gg = k[order], off[order], gg[order]
@@ -158,19 +189,138 @@ class Voter:
                 f"{self.entries} entries, {len(self.uk)} keys; places per key p50 {np.median(c):.0f} max {c.max()}")
 
     # ---- per frame
-    def ids(self, frame, exp=None, known=None, tol: float = 4.0):
+    def ids(self, frame, exp=None, known=None, tol: float = 4.0, resid: bool = False):
         """Palette id per pixel of the play area: (PLAY_H, SW) int16, 0 = no sprite colour. `frame`: uint8 BGR
         tensor (>= PLAY_H rows). With `exp` (float (PLAY_H, SW, 3), the expected scene) and `known` (bool): only
-        where the scene does not explain the pixel (|I - exp| > tol in some channel, or unknown)."""
+        where the scene does not explain the pixel (|I - exp| > tol in some channel, or unknown). `resid`: also
+        return r = I - exp and its max over the channels (the fade search's inputs)."""
         torch = self.torch
-        f = frame[:PLAY_H].int()
-        ids = self.lut[f[..., 0] | (f[..., 1] << 8) | (f[..., 2] << 16)]
-        if exp is not None:
-            d = (frame[:PLAY_H].float() - exp).abs().amax(dim=2) > tol
-            if known is not None:
-                d |= ~known
-            ids = torch.where(d, ids, torch.zeros_like(ids))
-        return ids
+        f = frame[:PLAY_H]
+        fi = f.int()
+        ids = self.lut[fi[..., 0] | (fi[..., 1] << 8) | (fi[..., 2] << 16)]
+        if exp is None:
+            return ids
+        r = f.float() - exp
+        mag = r.abs().amax(dim=2)
+        d = mag > tol
+        if known is not None:
+            d |= ~known
+        ids = torch.where(d, ids, torch.zeros_like(ids))
+        return (ids, r, mag) if resid else ids
+
+    prof = False                # tools: per-part ms of the fade search in fade_ms (synchronized)
+
+    def _mark(self, name):
+        if not self.prof:
+            return
+        import time
+        self.torch.cuda.synchronize()
+        now = time.perf_counter()
+        if name is None:
+            self.fade_ms = {}
+        else:
+            self.fade_ms[name] = (now - self._t0) * 1000
+        self._t0 = now
+
+    @staticmethod
+    def _key(sp):
+        """Clamped (-1..256) BGR (..., 3) float -> b + 258 g + 258^2 r (the LUT index before its offset): the low
+        part in float (exact below 2^24), the high part as an integer (the whole key passes 2^24)."""
+        return sp[..., 2].long() * (258 * 258) + (sp[..., 0] + 258 * sp[..., 1]).long()
+
+    def _level(self, o, scale: bool):
+        """The LUT offset for opacity o (tensor): the first FADE_TOLS level >= 1.5 + 0.5 / o (+ the key's -1 shift);
+        scale False: always the first (+-2)."""
+        base = 1 + 258 + 258 * 258
+        if not scale:
+            return self.torch.full_like(o, base, dtype=self.torch.long)
+        need = 1.5 + 0.5 / o.clamp(min=1e-3)
+        if getattr(self, "_tols", None) is None:
+            self._tols = self.torch.tensor(self.FADE_TOLS, dtype=o.dtype, device=o.device)
+        li = (need[..., None] > self._tols).sum(dim=-1).clamp_(max=len(self.FADE_TOLS) - 1)
+        return li * 258 ** 3 + base
+
+    def fade(self, ids, r, mag, exp, valid, me=None, tol: float = 4.0, strong: float = 24.0, n_min: int = 20,
+             cell: int = 48, cell_min: int = 12, lo: int = 38, hi: int = 252, step: int = 3, ratio: float = 0.0,
+             scale: bool = True, report: bool = False):
+        """Fading mobs (I = B + o (s - B), one o per mob, exact to the level on native frames) INTO `ids` (in place).
+        The RESIDUE = valid pixels the scene does not explain (|I - B| > tol) that are no palette colour (ids == 0),
+        outside `me` (our body box x0, y0, x1, y1). Un-blended at alpha, s' = B + (I - B) 255 / alpha, a fading mob's
+        pixels become its sprite colours, so horizontally adjacent pairs become colour pairs that occur in a sprite.
+        1. the strong pairs (both |I - B| >= strong) on a quarter of the positions (even rows, even pair columns);
+           none if fewer than n_min;
+        2. per 48 px screen cell the alpha lo..hi (step) with the most hitting pairs; a cell with >= cell_min has a
+           fade, its o REFINED by least squares over the pairs that hit (o = sum r.q / sum q.q, q = the matched
+           palette colour - B); a cell without one takes its 3x3 neighbourhood's best (a mob's edge in the next cell).
+           One alpha PER CELL, no cap a frame (each fading mob has its own o; dying mobs fade out one by one);
+        3. every residue pixel of a cell with an alpha un-blended at it -> palette id with +-2 levels, written into
+           `ids` (the residue's ids are 0): the opaque and the fading mobs go through ONE vote.
+        Sparse after one nonzero (the residue list). -> (ids, [(alpha 0..255, pairs)] per fade cell if `report` (one
+        more sync: tools) else None, counters). Syncs: 2 (1 without pairs)."""
+        torch = self.torch
+        self._mark(None)
+        res = (mag > tol) & valid & (ids == 0)
+        if me is not None:
+            x0, y0, x1, y1 = (max(int(v), 0) for v in me)
+            res[y0:y1, x0:x1] = False
+        yx = res.nonzero()                                            # sync 1: the residue
+        info = {"residue": len(yx), "pairs": 0}
+        self._mark("residue")
+        if len(yx) < 2 * n_min:
+            return ids, None, info
+        y, x = yx[:, 0], yx[:, 1]
+        m = mag[y, x]
+        xr = (x + 1).clamp_(max=SW - 1)
+        pq = ((y & 1) == 0) & ((x & 1) == 0) & (x < SW - 1) & (m >= strong) & res[y, xr] & (mag[y, xr] >= strong)
+        pi = pq.nonzero()[:, 0]                                       # sync 2: the pairs
+        info["pairs"] = len(pi)
+        self._mark("pairs")
+        if len(pi) < n_min:
+            return ids, None, info
+        py, px = y[pi], x[pi]
+        gk = (lo, hi, step, ratio, scale)
+        if getattr(self, "_grid", (None,))[0] != gk:                  # the alpha grid, made once
+            if ratio > 1:                                             # geometric: the same relative step everywhere
+                al = torch.tensor(lo * ratio ** np.arange(int(np.log(hi / lo) / np.log(ratio)) + 1),
+                                  dtype=torch.float32, device=self.dev)
+            else:
+                al = torch.arange(lo, hi + 1, step, device=self.dev, dtype=torch.float32)
+            self._grid = (gk, al, (255.0 / al)[None, None, :, None], self._level(al / 255, scale)[None, None, :])
+        _, al, k, lv = self._grid
+        B = torch.stack([exp[py, px], exp[py, px + 1]], 1)            # (pairs, 2, 3): the pair's two pixels
+        R = torch.stack([r[py, px], r[py, px + 1]], 1)
+        sp = torch.addcmul(B[:, :, None], R[:, :, None], k).round_().clamp_(-1, 256)   # (pairs, 2, alphas, 3)
+        two = self.lut_tol[self._key(sp) + lv]                        # (pairs, 2, alphas) ids, 0 = none
+        hit = self.pair_ok[two[:, 0].int() * self.radix + two[:, 1]]  # (pairs, alphas)
+        wc, hc = -(-SW // cell), -(-PLAY_H // cell)
+        ci = (py // cell) * wc + px // cell
+        hist = torch.zeros((hc * wc, len(al)), device=self.dev).index_add_(0, ci, hit.float())
+        best, at = hist.max(dim=1)
+        # refine every cell at its best alpha: least squares over its hitting pairs' pixels
+        a_p = at[ci]
+        i_p = torch.arange(len(py), device=self.dev)
+        h_p = hit[i_p, a_p].float()
+        q = self.pal[two[i_p, :, a_p].int()] - B                      # (pairs, 2, 3)
+        rq = torch.zeros(hc * wc, device=self.dev).index_add_(0, ci, (R * q).sum(dim=(1, 2)) * h_p)
+        qq = torch.zeros(hc * wc, device=self.dev).index_add_(0, ci, (q * q).sum(dim=(1, 2)) * h_p)
+        ok = (best >= cell_min) & (qq > 0)
+        o_c = torch.where(ok, rq / qq.clamp(min=1e-6), torch.zeros_like(rq)).clamp_(0, 1)
+        cnt = torch.where(ok, best, torch.full_like(best, -1.0)).view(1, 1, hc, wc)
+        mp, nb = torch.nn.functional.max_pool2d(cnt, 3, 1, 1, return_indices=True)
+        o_c = torch.where(ok, o_c, torch.where(mp.view(-1) > 0, o_c[nb.view(-1)], torch.zeros_like(o_c)))
+        self._mark("alpha")
+        # the residue un-blended at its cell's alpha (a cell without one: alpha 1e-6 - a residue pixel differs from
+        # the scene by > tol in some channel, so that channel leaves -1..256 and the LUT says 0)
+        c_r = (y // cell) * wc + x // cell
+        lvc = self._level(o_c, scale)
+        sp = torch.addcdiv(exp[y, x], r[y, x], torch.where(o_c > 0, o_c, torch.full_like(o_c, 1e-6))[c_r][:, None])
+        ids[y, x] = self.lut_tol[self._key(sp.round_().clamp_(-1, 256)) + lvc[c_r]]
+        self._mark("unblend")
+        alphas = None
+        if report:
+            c = ok.nonzero()[:, 0]
+            alphas = [(round(255 * float(o), 1), int(n)) for o, n in zip(o_c[c].cpu().numpy(), best[c].cpu().numpy())]
+        return ids, alphas, info
 
     def cells(self, ids, tmin: int = 24):
         """Palette-id picture -> the cells with >= tmin EXCLUSIVE votes, best first (at most max_cells):
