@@ -192,6 +192,8 @@ class Perception:
     track_coast_s: float = 0.4      # ... a confirmed track unseen this long still counts (hidden ones: as long as hidden)
     scene_tol: int = 4              # scene camera (scene.SceneCamera, clean maps with `assets scene`): a landmark matches
                                     # within this many levels - native PNG frames are exact (+-4); the bench's JPEG 30
+    minimap_every_s: float = 1.0    # the scene camera holding and our tag seen: the minimap is read this often (the
+                                    # camera's seed); every tick otherwise (step 2.6)
     gpu: bool = False               # --gpu: mobs found by perception/gpu_sprites.py (whole screen, CUDA) instead of
                                     # the CPU colour-blob detector; the brain still gets our band (GpuBand)
     die_score: float = 0.72         # death frames where the target was (its own mob type): pkg_human5m dying

@@ -118,9 +118,13 @@ class Camera:
         self.vr, self.pull, self.w, self.h, self.leash = vr or None, pull, w, h, leash
         self.C = None             # (cx, cy): map = screen + C
 
-    def update(self, shift, me_screen, me_map):
+    def update(self, shift, me_screen, me_map, exact=None):
         """`shift`: (dx, dy) the scenery moved on screen since the last frame, or None. `me_screen`: our feet on
-        screen (x, y) or None; `me_map`: our feet on the map (the minimap) or None."""
+        screen (x, y) or None; `me_map`: our feet on the map (the minimap) or None. `exact`: the camera registered on
+        the scene model (scene.SceneCamera, PLAN-perception.md step 2.6): taken as it is - no shift, pull or clamp."""
+        if exact is not None:
+            self.C = (float(exact[0]), float(exact[1]))
+            return self.C
         C = self.C
         if C is not None and shift is not None:
             C = (C[0] - shift[0], C[1] - shift[1])
@@ -357,16 +361,17 @@ class World:
         return float(vmap[y0:y1, x0:x1].mean()) if x1 > x0 and y1 > y0 else 1.0
 
     def update(self, t: float, hits: list, me_screen=None, me_map=None, shift=None, near=None,  # noqa: C901
-               tags=None) -> list:
+               tags=None, cam=None) -> list:
         """One frame. `hits`: [Hit] from the whole-screen pass (screen px). `me_screen`: our feet on screen;
         `me_map`: our feet from the minimap; `shift`: the scenery's (dx, dy) since the last frame; `near(spots, pad, vis)`:
         [(mob ids, sx, sy)], +-pad px each, per spot the screen visibility of its layer (cover) -> [Hit | None]
         (search around tracks; None = no search). `tags`: other characters' name tags (screen boxes) -> their
-        bodies don't count against a mob behind them. -> the tracks."""
+        bodies don't count against a mob behind them. `cam`: the exact camera from the scene model (then `shift` and
+        `me_map` don't move it). -> the tracks."""
         c = self.cfg
         dt = 0.0 if self.t is None else max(0.0, t - self.t)
         self.t = t
-        C = self.cam.update(shift, me_screen, me_map)
+        C = self.cam.update(shift, me_screen, me_map, exact=cam)
         if C is None:
             return self.tracks                                 # no map position yet: nothing to place
         for tr in self.tracks:

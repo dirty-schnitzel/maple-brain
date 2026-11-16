@@ -493,6 +493,7 @@ class SceneCamera:
         self.step = (0, 0)             # its last move
         self.share = None              # landmarks matching at the last camera (None: lost)
         self.found = False             # found on the last frame
+        self.misses = 0                # frames in a row it wasn't found
         self.n_marks = 0
         self._mask = (None, None)
 
@@ -510,6 +511,7 @@ class SceneCamera:
         reg = self.scene.locate(frame, C_guess=guess, seed=seed, tol=self.tol, h=self.h, mask=self._mask_t(mask),
                                 min_share=self.min_share, last_share=self.share)
         self.found = reg is not None
+        self.misses = 0 if self.found else self.misses + 1
         if reg is None:
             self.share, self.step = None, (0, 0)
             return None

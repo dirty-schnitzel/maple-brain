@@ -3,7 +3,7 @@
 brain v3 (**PLAN-v3.md**) steps 1-3 are DONE and **Platform mode passed its live test** (2026-11-15, Ant Tunnel IV;
 the user: "perfect platform mode test"). NOW = the perception redesign (**PLAN-perception.md**, agreed 2026-11-16,
 branch `perception`): steps 0-1 DONE, **step 2 (pipeline) in progress - see "Step 2 state" below** (sub-steps
-2.1-2.4 committed, 2.5 the scene camera in shadow gated next); open offer: the humanness report (below).
+2.1-2.6 committed: the scene camera is the camera on clean maps; NEXT 2.7 own tag 1:1); open offer: the humanness report (below).
 Sessions 6-23, the old brain (v1), and superseded plans moved verbatim to **HISTORY.md** on 2026-11-08: grep it for
 old runs, numbers and decisions.
 Latest: 2026-11-15 Platform mode live (runs below), F9 mark fix; the hybrid BT + imitation-learning proposal reviewed
@@ -290,6 +290,33 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     (alpha 170): today's panel template scores 0.77-0.81 there (bar 0.75!), the game template 0.91-0.93 on the
     same title - any template counts, so a native one is still caught. The blue title and "Question in" are font
     text (staticText in the img): no picture, those need a real LD.
+  - **Live recording with 2.1-2.5 (the user, `runs/play/20261116_154819_1`, Ant Tunnel IV, 102 s, 3522 ticks, PNG,
+    serve --observe, watch off): tick p50 28 ms, p90 31, p99 54 (012059_1 before: 29 / 32), 34.5 fps.** Parts p50:
+    gpu 11.7, world 5.4, hud 2.6, locate 2.0, camshift 2.0, self 1.3, scene 1.1, scenecam 0.7. The p99 = the
+    whole-screen tag look (`self_wide` 28 ms when it runs: 2.7). Scene camera live: found on 3521 of 3522 ticks
+    (the first: no seed), share 0.9, 0.7 ms p50 / 1.9 p99; today's camera > 8 px off it on 31 % of ticks; the
+    camera moves p50 2 px / p99 13 / max 38 per live tick. facts on every tick (v1).
+  - **DONE 2.6: the scene camera takes over** (brain v2 / v3 = `--tracker`; v1 keeps today's camera, the scene camera
+    only logged): `Camera.update(exact=)` takes it as it is (no shift, pull, leash or clamp); obs.cam_src "exact".
+    While it holds (found on the last tick): no phase correlation, no camshift matching (its reference frame is kept
+    for the fallback), the minimap read only every `perception.minimap_every_s` (1 s) and whenever our tag is lost
+    (SelfTracker's fallback) - a scrolled minimap window (Ant Tunnel IV) is found anew then (`_locate(fresh=)`).
+    First frame: seeded from this frame's minimap (map_pos - our screen feet). Lost: today's path for that tick
+    (camshift from the kept reference); 10 misses in a row (no such scenery, FHD frames) -> one look a second.
+    obs.scene_dx / dy = the scene camera's step (the v1 target tracker reads them).
+    **Evidence (replay HEAD = 2.5 vs work, 8 runs):** mob feet vs their platform's surface, within 2 px: Ant Tunnel
+    IV 23-27 % -> 97.5-97.9 % (p5..p95 -3.8..+11.4 -> -0.9..+1.2 px), Line 1 57 % -> 97 %; Dark Cave / Dangerous
+    Steam / Transfer Area stay wide either way (flying Stirges: the measure doesn't apply). Sighted track-frames the
+    same in both 97.8-99.7 %; the rest = mob TYPE flips (1.6-1.8 % on Ant Tunnel: the two checked by eye - t 7.8
+    and 90.4 of 154819_1, Horny Mushrooms - the NEW camera has the right type, the old one said Zombie Mushroom)
+    and coasting tracks (predicted in map px: they move with the camera). Real tracks 183/183, 471 -> 478, 63 -> 64,
+    125 -> 126, 47 -> 46; weak 2 -> 1, 3 -> 1, 1 -> 3, 13 -> 15: the 2 new weak ones looked at = a 2nd track beside a
+    dying Bubbling at the screen edge (Line 1 17.8 s) and a coasting one over a Zombie Mushroom under a hit effect
+    (Ant Tunnel 63.6 s, HEAD has its own there) - the A2 / A4 ghost classes, step 3's job. press1 / fix3 (FHD JPEG:
+    the scene camera fails, today's path) 99.8-100 % both ways. Tools (tools/perc/replay/): surface_check.py,
+    diff_kinds.py, weak_new.py, show_track.py - the camera / type evidence for later gates.
+    **Bench (game up): 28.2 -> 24.3 ms (p90 25.9), 41 fps - RE-BASELINED on purpose** (camshift 2.2, scene 1.1,
+    locate 1.4 gone; scenecam 0.7).
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")

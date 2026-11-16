@@ -107,6 +107,8 @@ class Perceiver:
         if self.world is not None and getattr(sprites, "scene", None) is not None:
             from ..scene import SceneCamera
             self.scene_cam = SceneCamera(sprites.scene, tol=cfg.perception.scene_tol)
+        self.scene_next_t = -1e9                        # the scene camera failing again and again: next look then
+        self.minimap_t = -1e9                           # last minimap read (only ~1 / s while the scene camera holds)
         self.use_tracks = bool(cfg.perception.tracker and self.world is not None)
         self.target_id = None                           # --tracker: the target is this track
 
@@ -117,11 +119,19 @@ class Perceiver:
         w = getattr(getattr(self, "locator", None), "window", None)
         return hud.minimap_rect(w) if w is not None else None
 
-    def _locate(self, frame, obs):
+    def _exact(self) -> bool:
+        """The scene camera had the camera on the last tick (step 2.6, the brain-v2/v3 path): the whole-frame shift,
+        camshift and the per-tick minimap aren't needed then."""
+        return self.use_tracks and self.scene_cam is not None and self.scene_cam.found
+
+    def _locate(self, frame, obs, fresh: bool = False):
         """Minimap dot -> obs.dot; with a locator also our map position, platform and rope. The minimap canvas is
         searched (3.6 ms) until found, at most about once a second (window closed / covered). A window showing only
-        part of the canvas scrolls with us: followed every tick, before the dot is read against it."""
+        part of the canvas scrolls with us: followed every tick, before the dot is read against it. `fresh`: not read
+        for a while (the scene camera held): a scrolled window may have moved past `follow`'s reach - found anew."""
         loc = self.locator
+        if fresh and loc is not None and loc.view is not None and loc.origin is not None:
+            loc.lost, self.canvas_try = True, -1e9
         if loc is not None and (loc.origin is None or loc.lost) and obs.t - self.canvas_try >= 1.0:
             self.canvas_try = obs.t
             loc.calibrate(frame)
@@ -204,13 +214,16 @@ class Perceiver:
             f.lie = self.lie_detector.check(frame, t, gray=gray)
             obs.lie_detector = f.lie[0]
         self._mark("lie")
-        small = cv2.resize(gray[:620], (341, 155), interpolation=cv2.INTER_AREA).astype(np.float32)
-        if self.prev_small is not None:
-            (dx, dy), resp = cv2.phaseCorrelate(self.prev_small, small)
-            if resp > 0.2:
-                f.scene_shift = (float(dx * 4), float(dy * 4))
-                obs.scene_dx, obs.scene_dy = f.scene_shift
-        self.prev_small = small
+        if self._exact():                               # the scene camera holds (last tick): no whole-frame shift
+            self.prev_small = None                      # (the fallback restarts from the next frame it's needed)
+        else:
+            small = cv2.resize(gray[:620], (341, 155), interpolation=cv2.INTER_AREA).astype(np.float32)
+            if self.prev_small is not None:
+                (dx, dy), resp = cv2.phaseCorrelate(self.prev_small, small)
+                if resp > 0.2:
+                    f.scene_shift = (float(dx * 4), float(dy * 4))
+                    obs.scene_dx, obs.scene_dy = f.scene_shift
+            self.prev_small = small
         self._mark("scene")
         me = None
         if self.me_near is not None:
@@ -243,7 +256,9 @@ class Perceiver:
         if len(self.points_hist) == 3:                  # 2 of 3 agree: one misread never makes a kill
             obs.exp_points = int(np.median(self.points_hist))
         self._mark("hud")
-        self._locate(frame, obs)
+        if not (self._exact() and me is not None and t - self.minimap_t < p.minimap_every_s):
+            self._locate(frame, obs, fresh=t - self.minimap_t > 0.5)   # the minimap: the camera's seed, and our map
+            self.minimap_t = t                                         # position without a tag (SelfTracker)
         self._mark("locate")
         if self.world is not None:
             self._track(frame, obs, me)
@@ -337,24 +352,42 @@ class Perceiver:
         tags = self.tag_pool.submit(find_tags, frame, None, self.minimap)   # players' bodies hide mobs (drawn over)
         hits = f.hits = band._all(frame)
         self._mark("gpu")
-        if self.scene_cam is not None:                  # step 2.5, in shadow: logged, not used yet
-            sc = self.scene_cam                         # (on the frame the detector uploaded; seed: today's camera)
-            if sc.update(band.gpu.frame_u8, seed=self.world.cam.C, mask=hud.ui_mask(frame.shape, self.minimap)):
-                f.scene_cam, f.scene_share = sc.C, round(sc.share, 3)
-                obs.scene_cam = sc.C
-            self._mark("scenecam")
         me_s = (me[0] + me[2] / 2, me[1]) if me is not None else None
+        exact = None
+        sc = self.scene_cam
+        if sc is not None and (sc.found or sc.misses < 10 or obs.t >= self.scene_next_t):
+            # the camera registered on the scene model (step 2.6), on the frame the detector uploaded. Seed: the last
+            # camera; at the start (or lost long) the minimap's (our map position - our screen position)
+            seed = self.world.cam.C
+            if seed is None and obs.map_pos is not None and me_s is not None:
+                seed = (obs.map_pos[0] - me_s[0], obs.map_pos[1] - me_s[1])
+            prev = sc.C
+            exact = sc.update(band.gpu.frame_u8, seed=seed, mask=hud.ui_mask(frame.shape, self.minimap))
+            if exact is not None:
+                f.scene_cam, f.scene_share = exact, round(sc.share, 3)
+                obs.scene_cam = exact
+                if prev is not None:                    # (the v1 target tracker reads the scenery's shift)
+                    obs.scene_dx, obs.scene_dy = float(prev[0] - exact[0]), float(prev[1] - exact[1])
+            elif sc.misses >= 10:                       # failing again and again (no such scenery, other frames):
+                self.scene_next_t = obs.t + 1.0         # one look a second, today's camera meanwhile
+            self._mark("scenecam")
+        if not self.use_tracks:
+            exact = None                                # brain v1: today's camera (the scene camera only logged)
         shift = None
-        if self.plat_shift is not None:                 # platforms move 1:1 with the camera; the whole frame doesn't
+        if exact is not None:
+            obs.cam_src = "exact"
+            if self.plat_shift is not None:             # the fallback's reference: this frame (no matching)
+                self.plat_shift.prev, self.plat_shift.t_prev, self.plat_shift.last = self._gray, obs.t, None
+        elif self.plat_shift is not None:               # platforms move 1:1 with the camera; the whole frame doesn't
             shift = f.plat_shift = self.plat_shift.update(self._gray, self.world.cam.C, me_s, obs.t)
             obs.cam_src = "platforms" if shift is not None else "scene"
             self._mark("camshift")
-        if shift is None and obs.scene_dx is not None:
+        if exact is None and shift is None and obs.scene_dx is not None:
             shift = (obs.scene_dx, obs.scene_dy)
         f.tags = tags.result()
         trs = self.world.update(obs.t, hits, me_s, obs.map_pos, shift,
                                 near=lambda spots, pad=24, vis=None: band.gpu.find_near(frame, spots, pad=pad, vis=vis),
-                                tags=f.tags)
+                                tags=f.tags, cam=exact)
         self._mark("world")
         obs.mobs = [tr.as_dict(obs.t) for tr in trs]
         obs.cam = tuple(round(v, 1) for v in self.world.cam.C) if self.world.cam.C else None

@@ -198,3 +198,12 @@ def test_a_tracked_mob_is_not_handed_over_to_a_weak_match_past_the_edge():
             t += 0.05
         followed = [tr for tr in trs if tr.state in ("live", "hit", "hidden") and t - tr.seen < 1.5]
         assert bool(followed) == kept, score                                 # what brain v2 can target
+
+
+def test_an_exact_camera_is_taken_as_it_is():
+    """Step 2.6: the camera registered on the scene model replaces shift + minimap pull + clamp."""
+    from maplebrain.perception.world import Camera
+    cam = Camera({"left": 0, "right": 3000, "top": 0, "bottom": 2000}, pull=0.05, leash=24)
+    cam.update(None, (683, 500), (1000, 900))
+    assert cam.update((5, 0), (683, 500), (1300, 900), exact=(-40, 12)) == (-40.0, 12.0)    # even outside vrBounds
+    assert cam.update((5, 0), (683, 500), (1300, 900)) != (-40.0, 12.0)                      # back to the old way
