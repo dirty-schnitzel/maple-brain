@@ -60,7 +60,10 @@ in shadow -> 3.4 the switch on clean maps. **3.0a + 3.0b DONE (labels, synthetic
 "Step 3 state"); 3.1 (D in shadow) DONE too; 3.2 (the fit) IN PROGRESS: accurate but 12-40x too slow (62 / 116 /
 200 ms). 2026-11-17: the speed problem was reviewed and a new search PROPOSED - PLAN-fit-speed.md (exact-colour
 voting replaces the least-squares stage 1; prototype tools/perc/redesign/exp_vote.py: candidates in ~2 ms, synth
-opaque cases 100 %, labels 94.3 %). OK'd by the user 2026-11-17: NEXT = its Session 1 (prompt inside). See the "3.2 speed review" bullet in "Step 3 state".** `watch` is RUNNING again
+opaque cases 100 %, labels 94.3 %). OK'd by the user 2026-11-17. Session 1 (S1-S3) DONE 2026-11-17: vote + fit on
+votes in maplebrain/ (fit 2.6 / 3.2 ms p50 / p90 on the labels frames, was 119 / 160); every gate met but the labels
+one AS WRITTEN (its classes hold fading mobs, S4's) - WAITING for the user's call: see "3.2 Session 1" in "Step 3
+state".** `watch` is RUNNING again
 (restarted by the user): never stop it.
 
 ### TASK (the user, 2026-11-16): improve the gate test by taking NEW footage
@@ -643,6 +646,47 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
       (max 27) instead of ~380-720. Other maps vs today's well-sighted tracks: Bubbling 91.9 %, Stirge 94.7-98.0 %.
     - The plan: 2 Opus sessions (S1-S3 the vote + fit on votes + tools; S4-S6 fades, tints, other maps, close 3.2),
       gates and prompts inside. Not built: anything in maplebrain/ (fit.py is still the LS fit of 7744b1d).
+  - **3.2 Session 1 (2026-11-17, PLAN-fit-speed.md S1-S3): DONE; the labels gate as written FAILS - the user's call.**
+    All ms pinned to the performance cores (procperf; run.py does it now: unpinned from the background the vote read
+    ~3 ms instead of 1.5), game up, expected() not counted (D's; 1.8 / 2.3 ms).
+    - S1 `perception/vote.py` (`load_poses` follows `_inlink` / mob `link` placeholders; `Voter.ids` / `cells`):
+      cells IDENTICAL to E9 on 300 / 300 labels frames. Ant Tunnel IV: 46 poses, 198 colours, int32 mixed-radix keys,
+      75.5 k entries / 19.9 k keys; features with D's raw mask (|I - exp| > 4 or unknown) p50 16.7 k (all pixels 71.7
+      k); 3 syncs; run lengths by sort + index_add (cummax / cummin were 0.6 ms). **Vote 1.53 / 2.12 ms p50 / p90 on
+      the labels frames (gate 2.5 p90: met).** tests/test_vote.py: every opaque fixture mob's cell (or its identical-
+      picture alias) >= 24 exclusive votes, no scene.
+    - S2 `perception/fit.py` rewritten: candidates = cells >= cand_votes -> stage 2 (B = expected, valid = known & ui &
+      the mob layer's front alpha < 0.5 (+ front backs' cover); layer = nearest foothold at / below the feet, flyers
+      the lowest spawn layer) -> pick. LS stage 1, positions, windows, s1_step / prune / top / near / margin / fh_dy
+      deleted. Stage 2's ~60 GPU ops run as CUDA graphs (buckets 8 / 16 / 32 / 64 candidates, padded): 1.5 -> 0.56 ms
+      p50, mobs identical to eager on 300 / 300 frames.
+    - S3 tools/perc/fit/run.py (no windows, `clip` mode for timing, --loose seen 0.02 / cand_votes 8) + sweep.py
+      (cand_votes in the rule / grid). **Re-fit: seen >= 0.03 / >= 60 px / absent <= 0.1 (as before) + cand_votes 16
+      (the plan said 24: on synth 24 loses n446, a Horny Mushroom 39.5 % visible under an effect - D's mask drops its
+      pixels equal to the scene, 25 -> 16 votes; 12-48 all 0 false).**
+    - **synth ant4_500: every opaque case 100 %** (clear / dying / hit / scenery / ui / edge / player / effect; LS:
+      player 98.2, effect 97.8), **0 false, 0 on the mob-free frames**, wrong type 0; fade 0 of 105 (no fade path
+      until S4) -> all 86.6 %.
+    - **Dangerous Steam ghost spots: 0 at the 264 scenery spots**; 2 = the two real Zombie Mushrooms behind the geyser
+      (1548 px exact), as the LS fit.
+    - **fit ms p50 / p90: labels frames 2.60 / 3.21 (gate 4: met)** [vote 1.66 / 2.19, stage 2 0.56 / 0.80, pick 0.25 /
+      0.43; candidates 6 / 14], synth 2.43 / 3.10, Dangerous Steam whole clip (930 frames, flyers) 2.64 / 3.41, its
+      ghost frames 2.63 / 3.15. LS fit re-run on the labels frames: 119 / 160.
+    - **labels at 40 / 30 px, vote vs LS (7744b1d re-run with the same rule; RUN/fit/labels_ls.jsonl):** all 82.0 vs
+      93.8; clear 92.6 / 96.8, player 80.2 / 85.0, effect 84.2 / 81.4, ui 75.0 / 84.7, edge 85.0 / 96.7, scenery 90.2 /
+      96.1, hit 72.7 / 84.8, dying 56.1 / 93.9, fade 1.5 / 93.2 -> **"non-fade classes >= the LS column" FAILS.**
+      Why: **191 of the 1547 labelled mobs are FADING** (E9 finds them only by a fade cell: respawn waves at alpha
+      156-246, labelled clear / player / ui / edge - by eye a 0.98 mob is clear); the LS fit's opacity search takes
+      them, the opaque vote by design not (S4). Misses of the non-fade classes: fade cell 93, no cell on either path
+      62, D's mask 0, stage 2 rejected 2. **On the 1356 NOT fading: all 93.5 vs 93.3; clear 97.4 / 96.7, player 89.7 /
+      84.2, effect 86.1 / 80.9, ui 85.7 / 85.7, edge 96.2 / 96.2, scenery 97.9 / 97.9, hit 77.4 / 83.9 (= 2 FROZEN
+      mobs the LS fit takes by the outline at seen 0.16 / 0.17: S5), dying 85.2 / 92.6 (die frames fade: S4).**
+      False (unjudged labels): vote 121, LS 436.
+    - pytest green (+ tests/test_vote.py); bot speed 21.8 ms (p90 25.2; baseline 18.4 - the D-on state of 3.1, which
+      read 22.3; no live code changed: nothing live imports vote.py / fit.py).
+    - Asked of the user: accept the labels gate on the not-fading subset for Session 1 (the full classes are S4 /
+      S5's gate), or another call. The comparison: `tools/perc/fit/subset.py` (E9 fade cells cached in
+      RUN/fit/fading_e9.json; the LS rows from 7744b1d's fit.py + run.py via git show).
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")

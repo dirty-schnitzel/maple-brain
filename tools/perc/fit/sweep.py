@@ -1,5 +1,5 @@
-"""Fit the fit's acceptance rule (seen_min, min_seen, absent_max) on a --loose run (tools/perc/fit/run.py), and score
-any run against its truth.
+"""Fit the fit's acceptance rule (seen_min, min_seen, absent_max) and the vote's cand_votes on a --loose run
+(tools/perc/fit/run.py), and score any run against its truth.
 
     python tools/perc/fit/sweep.py synth OUT [--fit fit/synth_loose.jsonl]      grid on the synthetic set
     python tools/perc/fit/sweep.py labels RUN [--fit fit/labels_loose.jsonl]    the same rule on the labels
@@ -33,8 +33,10 @@ def load(path):
 
 
 def keep(m, rule):
+    """rule = (seen_min, min_seen, absent_max[, cand_votes]): a loose run filtered by a stricter rule."""
     f = m["fit"]
-    return f["seen"] >= rule[0] and f["n_seen"] >= rule[1] and f["absent"] <= rule[2]
+    return (f["seen"] >= rule[0] and f["n_seen"] >= rule[1] and f["absent"] <= rule[2]
+            and (len(rule) < 4 or f.get("votes", 1 << 30) >= rule[3]))
 
 
 def score(truth, fits, rule, synth, listing=False):
@@ -95,10 +97,14 @@ def grid(truth, fits, synth):
     for s in (0.03, 0.05, 0.08, 0.1, 0.15, 0.2, 0.25, 0.3):
         for px in (10, 30, 60, 100, 150, 200, 300):
             for ab in (0.02, 0.05, 0.1, 0.15, 0.2, 0.3):
-                per, fp, _, wrong = score(truth, fits, (s, px, ab), synth)
-                cases = {k: v[1] / v[0] for k, v in per.items() if k.startswith("case:") or not synth}
-                worst = min(cases.values()) if cases else 0
-                rows.append(((s, px, ab), per["all"][1] / max(per["all"][0], 1), worst, sum(fp.values()), fp, wrong))
+                for v in (8, 12, 16, 24, 32, 48):
+                    per, fp, _, wrong = score(truth, fits, (s, px, ab, v), synth)
+                    # the worst case among the opaque ones (fades: PLAN-fit-speed S4)
+                    cases = {k: v_[1] / v_[0] for k, v_ in per.items()
+                             if (k.startswith("case:") and k != "case:fade") or not synth}
+                    worst = min(cases.values()) if cases else 0
+                    rows.append(((s, px, ab, v), per["all"][1] / max(per["all"][0], 1), worst, sum(fp.values()), fp,
+                                 wrong))
     return rows
 
 
@@ -118,7 +124,7 @@ def main():
     ap.add_argument("path")
     ap.add_argument("--fit")
     ap.add_argument("--labels")
-    ap.add_argument("--rule", nargs=3, type=float, help="seen_min min_seen absent_max (score mode: filter)")
+    ap.add_argument("--rule", nargs="+", type=float, help="seen_min min_seen absent_max [cand_votes] (a filter)")
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--r", nargs=2, type=int, help="match radius x y (default 25 25 = label_eval's)")
     a = ap.parse_args()
@@ -152,7 +158,7 @@ def main():
         show(per, fp, wrong, synth)
         return
     rows = grid(truth, fits, synth)
-    print("rule (seen_min, min_seen, absent_max): recall all, worst case, false")
+    print("rule (seen_min, min_seen, absent_max, cand_votes): recall all, worst case (synth: opaque cases), false")
     zero = [r for r in rows if r[3] == 0]
     for r in sorted(zero, key=lambda r: (-r[2], -r[1]))[:12]:
         print(f"  {r[0]}  {100 * r[1]:.2f} %  worst {100 * r[2]:.2f} %  false 0")
