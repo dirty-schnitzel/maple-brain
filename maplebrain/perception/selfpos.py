@@ -8,6 +8,12 @@ is low-frequency, the letters are not -> 0.76-0.86 under that cloud. Validated o
 +448 frames found, 2 lost (0.61), 0 at a different spot; own tag median 0.91 (5th pct 0.75), anything else
 (other players' tags, scenery) <= 0.59. Flat windows (blanked UI, black screens) score a fake 1.0 after the
 high-pass -> windows with almost no texture are excluded. HUD/chat are blanked so chat text can never match.
+
+2026-11-16 (PLAN-perception.md step 2.7): assets/self_tag_gray.npy re-cut 1:1 from the native PNG recording
+runs/play/20261116_154819_1 - the per-pixel median of 488 aligned tags (the tag's box is see-through: the median drops
+the scenery behind it), same 17x74 frame and alignment as before. On 8 native recordings (whole-frame look): own tag
+p50 0.86-0.88 -> 0.94-0.95 (Perion fog 0.91), found >= 0.66 on 1-3 points more frames, anything else <= 0.53
+(was <= 0.53). A mask of the stable pixels was tried: 105 ms per look and false peaks up to 0.99 - not used.
 """
 import cv2
 import numpy as np

@@ -317,6 +317,18 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     diff_kinds.py, weak_new.py, show_track.py - the camera / type evidence for later gates.
     **Bench (game up): 28.2 -> 24.3 ms (p90 25.9), 41 fps - RE-BASELINED on purpose** (camshift 2.2, scene 1.1,
     locate 1.4 gone; scenecam 0.7).
+  - **THE GATE CHANGED (the user, 2026-11-16): `tools/perc/replay/gate.py`** (README there): ~1 min clips of every
+    clean native map + 1 FHD clip instead of whole runs ("more ~1m footages of various maps is better than 1 long
+    footage"); replays cached by a fingerprint of code + tracked assets + replay tools (the after of one sub-step =
+    the before of the next: no double replays); `--quick` (3 clips, ~3 min) per sub-step, the full 7 (~7 min) before
+    a commit that changes tracking; nothing to replay when the fingerprint didn't change. Found while building it:
+    `run.py --old` serves code from git but assets from disk - the first 2.7 template gate compared the new template
+    with itself (void, redone with the cache). The user may record more ~1 min clips on other clean maps.
+  - **DONE 2.7a: own tag template 1:1** (`assets/self_tag_gray.npy` = per-pixel median of 488 aligned tags of
+    154819_1; same 17x74 frame, thresholds unchanged): whole-frame look on 8 native recordings own p50 0.86-0.88 ->
+    0.94-0.95 (Perion 0.91), anything else <= 0.53. A stable-pixel mask was tried: 105 ms and false peaks 0.99, no.
+    Gate (full, 7 clips): tracks the same (real / weak counts equal everywhere, sighted 100 %), tag found +0.2..+2.5
+    points on every native clip (Dangerous Steam 78.2 -> 80.7 %, Transfer 80.8 -> 82.6 %), FHD clip 90.1 -> 89.6 %.
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")
