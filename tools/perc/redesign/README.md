@@ -6,3 +6,5 @@ the repo root; they write their outputs next to themselves (ant4_render.png is 4
     exp_render.py  build | check RUN  E2: render tiles + objects from the client export, register on frames
     exp_bg.py                         E3 + E4: "explained by scenery", opacity; lost mobs: covered or misplaced
     exp_absent.py                     E5: scenery visible in a track's body box = absent
+    exp_back.py RUN [N]               E7: parallax backs under the render: the client's constants (WOFF 682, HOFF 468,
+                                      integer division toward zero), share of the picture explained (PNG run)

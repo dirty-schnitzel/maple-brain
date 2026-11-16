@@ -38,13 +38,35 @@ function Get-OutlinkTarget([string]$link) {
   $img.GetFromPath(($parts[($k + 1)..($parts.Count - 1)] -join '/'))
 }
 
+# Pixel format 1537 (MapleLib 11.1 gives no bitmap): RGB565, one stored pixel per 16x16 block - flat colour tiles
+# (back_dryRock/back/0 = Perion's sky, back_midForest/back/0). zlib stream -> (w/16) x (h/16) pixels, 2 bytes each.
+function Get-BlockBitmap($c) {
+  $png = $c.PngProperty
+  if ([int]$png.Format -ne 1537) { throw "no bitmap, pixel format $($png.Format)" }
+  $raw = $png.GetCompressedBytes($false)
+  $z = [IO.Compression.DeflateStream]::new([IO.MemoryStream]::new($raw, 2, $raw.Length - 2), [IO.Compression.CompressionMode]::Decompress)
+  $o = [IO.MemoryStream]::new(); $z.CopyTo($o); $b = $o.ToArray()
+  $bw = [int][Math]::Ceiling($png.Width / 16); $bh = [int][Math]::Ceiling($png.Height / 16)
+  if ($b.Length -lt 2 * $bw * $bh) { throw "format 1537: $($b.Length) bytes for $($png.Width)x$($png.Height)" }
+  $bmp = [Drawing.Bitmap]::new([int]$png.Width, [int]$png.Height, [Drawing.Imaging.PixelFormat]::Format32bppArgb)
+  $g = [Drawing.Graphics]::FromImage($bmp)
+  for ($y = 0; $y -lt $bh; $y++) { for ($x = 0; $x -lt $bw; $x++) {
+    $v = $b[2 * ($y * $bw + $x)] -bor ($b[2 * ($y * $bw + $x) + 1] -shl 8)
+    $r5 = ($v -shr 11) -band 31; $g6 = ($v -shr 5) -band 63; $b5 = $v -band 31
+    $col = [Drawing.Color]::FromArgb(255, ($r5 -shl 3) -bor ($r5 -shr 2), ($g6 -shl 2) -bor ($g6 -shr 4), ($b5 -shl 3) -bor ($b5 -shr 2))
+    $br = [Drawing.SolidBrush]::new($col); $g.FillRectangle($br, 16 * $x, 16 * $y, 16, 16); $br.Dispose()
+  } }
+  $g.Dispose()
+  $bmp
+}
+
 # A canvas' own pixels, following _inlink (same image) and _outlink (a _Canvas file) links
 function Get-Bitmap($c, $img) {
   for ($hop = 0; $hop -lt 8; $hop++) {
     $in = $c.GetProperty('_inlink'); $out = $c.GetProperty('_outlink')
     if ($in) { $c = $img.GetFromPath($in.Value) }
     elseif ($out) { $c = Get-OutlinkTarget $out.Value }
-    else { return $c.GetBitmap() }
+    else { $b = $c.GetBitmap(); if (-not $b) { $b = Get-BlockBitmap $c }; return $b }
     if (-not $c) { throw "broken link in $($img.Name)" }
   }
   throw "link loop in $($img.Name)"
@@ -101,15 +123,29 @@ function Export-Canvases($prop, $img, [string]$base) {
     }
   }
 }
-foreach ($kind in 'Obj', 'Tile') {
+# every image of the .wz files matching $glob: its xml + every canvas in it, links resolved. $only: image names.
+function Export-Sets([string]$glob, [string]$dest, [string[]]$only = $null) {
   $script:nPart = 0; $nSet = 0
-  foreach ($img in (Open-Bms "$D\Map\$kind\$($kind)_000.wz").WzDirectory.WzImages) {
-    Save-Xml $img "$Out\Map\$kind\$($img.Name).xml"; $nSet++
-    Export-Canvases $img $img "$Out\Map\$kind\png\$($img.Name -replace '\.img$', '')"
-    $img.UnparseImage()
+  foreach ($w in Get-ChildItem (Split-Path $glob) -Filter (Split-Path $glob -Leaf)) {
+    foreach ($img in (Open-Bms $w.FullName).WzDirectory.WzImages) {
+      if ($only -and $img.Name -notin $only) { continue }
+      Save-Xml $img "$dest\$($img.Name).xml"; $nSet++
+      Export-Canvases $img $img "$dest\png\$($img.Name -replace '\.img$', '')"
+      $img.UnparseImage()
+    }
   }
-  "$($kind): $nSet sets ($script:nPart pictures)"
+  "$(Split-Path $dest -Leaf): $nSet sets ($script:nPart pictures)"
 }
+#   Map\Back\<set>.img.xml + Map\Back\png\<set>\back\<no>.png, ani\<no>\<n>.png: the backgrounds (the scene model,
+#   PLAN-perception.md step 1: tiles + objects + backs = what the frame shows where nothing moves)
+foreach ($kind in 'Obj', 'Tile', 'Back') { Export-Sets "$D\Map\$kind\$($kind)_*.wz" "$Out\Map\$kind" }
+
+# for the scene model's later steps (PLAN-perception.md step 5: occluders, effects):
+#   Npc\<id>.img.xml + Npc\png\<id>\<anim>\<n>.png, Pet\<id>.img.xml + Pet\png\..., Effect\BasicEff.img.xml + png
+foreach ($sub in 'Npc', 'Pet', 'Effect') { if (Test-Path "$Out\$sub") { Remove-Item -Recurse -Force "$Out\$sub" } }
+Export-Sets "$D\Npc\Npc_*.wz" "$Out\Npc"
+Export-Sets "$D\Item\Pet\Pet_*.wz" "$Out\Pet"
+Export-Sets "$D\Effect\Effect_*.wz" "$Out\Effect" @('BasicEff.img')
 
 # every mob + every frame
 $nMob = 0; $nPng = 0
