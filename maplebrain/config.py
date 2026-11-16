@@ -192,7 +192,9 @@ class Perception:
     track_coast_s: float = 0.4      # ... a confirmed track unseen this long still counts (hidden ones: as long as hidden)
     scene_tol: int = 4              # scene camera (scene.SceneCamera, clean maps with `assets scene`): a landmark matches
                                     # within this many levels - native PNG frames are exact (+-4); the bench's JPEG 30
-    minimap_every_s: float = 1.0    # the scene camera holding and our tag seen: the minimap is read this often (the
+    scene_diff: bool = True         # scene camera found: D = frame - expected scene -> FrameFacts.patches (step 3.1,
+                                    # in shadow: nothing reads them yet); tolerance = scene_tol
+    minimap_every_s: float = 1.0   # the scene camera holding and our tag seen: the minimap is read this often (the
                                     # camera's seed); every tick otherwise (step 2.6)
     lie_gpu: bool = True            # with the GPU detector: the Lie Detector look on the uploaded frame (liedetector.
                                     # GpuLieLook, ~3.5 ms each `every_s`) instead of the CPU thread (step 2.8)

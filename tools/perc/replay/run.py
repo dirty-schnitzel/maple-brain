@@ -110,6 +110,7 @@ def replay(run: Path, map_id: int, mob_score: float, frames: list, out: Path) ->
             f.write(json.dumps({"n": n, "frame": name, "t": round(t, 3), "cam": obs.cam, "cam_src": obs.cam_src,
                                 "me": obs.me, "me_map": obs.me_map, "map_pos": obs.map_pos, "mobs": obs.mobs,
                                 "scene_cam": getattr(obs, "scene_cam", None),
+                                "patches": getattr(getattr(per, "facts", None), "patches", None),
                                 "ms": dict(getattr(per, "parts", None) or {})}) + "\n")
     return {"frames": len(frames), "seconds": round(time.perf_counter() - t_start, 1),
             "stats": dict(getattr(per.world, "stats", {}) or {})}

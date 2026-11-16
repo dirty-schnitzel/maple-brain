@@ -9,13 +9,14 @@ Versioned (`v`) and recordable: `as_dict` -> JSON (ticks.jsonl "facts") -> `from
 
 v1 (2026-11-16): today's readings, unchanged - own tag, HUD numbers, quickslots, minimap dot / position, the two
 camera shifts, the whole-screen detector's hits, players' name tags, the Lie Detector look.
+v2 (2026-11-16, step 3.1): + `patches` = D's blobs (scene.Scene.diff / patches). v1 records read with patches None.
 """
 from dataclasses import asdict, dataclass, field, fields
 
 from .gpu_sprites import Hit
 from .sprites import Pose
 
-VERSION = 1
+VERSION = 2
 
 
 @dataclass
@@ -39,13 +40,15 @@ class FrameFacts:
     hits: list = field(default_factory=list)       # [Hit] the whole-screen mob detector (gpu_sprites)
     tags: list = field(default_factory=list)       # [(x, y, w, h)] other characters' name tags (tags.find_tags)
     lie: tuple | None = None              # (on screen, score, top-left) of the newest finished Lie Detector look
+    patches: list | None = None           # [(x, y, w, h, area)] what the scene doesn't explain (D, scene.patches);
+                                          # None: no D on this frame (no clean scene / camera not found)
 
     def as_dict(self) -> dict:
         return asdict(self)
 
     @classmethod
     def from_dict(cls, d: dict) -> "FrameFacts":
-        if d.get("v") != VERSION:
+        if d.get("v") not in (1, VERSION):
             raise ValueError(f"FrameFacts v{d.get('v')} (this code reads v{VERSION})")
 
         def tup(v):
@@ -55,6 +58,8 @@ class FrameFacts:
         for k in ("tag", "hp", "mp", "dot", "map_pos", "scene_shift", "plat_shift", "scene_cam", "lie"):
             kw[k] = tup(kw.get(k))
         kw["tags"] = [tuple(x) for x in kw.get("tags") or []]
+        if kw.get("patches") is not None:
+            kw["patches"] = [tuple(x) for x in kw["patches"]]
         kw["hits"] = [Hit(h["mob_id"], tuple(h["box"]), tuple(h["feet"]), Pose(**h["pose"]), h["score"])
                       for h in kw.get("hits") or []]
         return cls(**kw)

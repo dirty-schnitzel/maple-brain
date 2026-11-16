@@ -167,6 +167,7 @@ def make_frame(syn, base, case, rng) -> tuple:
     for x0, y0, x1, y1 in S.UI_RECTS:
         ui_rect[y0:y1, x0:x1] = True
     occupied = cv2.dilate(base.keep.astype(np.uint8), np.ones((9, 9), np.uint8)) > 0
+    extras = []                                              # pasted distractors on a mob-free frame: [x, y, w, h, kind]
     for x0, y0, x1, y1 in base.dontcare:
         occupied[max(0, y0):max(0, y1), max(0, x0):max(0, x1)] |= ~ui_rect[max(0, y0):max(0, y1), max(0, x0):max(0, x1)]
     mobs = []
@@ -194,7 +195,7 @@ def make_frame(syn, base, case, rng) -> tuple:
                 m.add_cover("u", base.ui_alpha)
     elif base.unsure:                                        # a real mob kept in our blob: not mob-free
         return None
-    elif rng.random() < 0.5:                                 # distractors over bare scenery
+    elif rng.random() < 0.5:                                 # distractors over bare scenery (boxes: "distractors")
         for _ in range(int(rng.integers(1, 4))):
             pt = syn.foothold_point(base.C, rng, (60, S.SW - 60), (120, S.PLAY_H))
             if pt is None:
@@ -202,12 +203,14 @@ def make_frame(syn, base, case, rng) -> tuple:
             sx, sy = pt[0] - int(base.C[0]), pt[1] - int(base.C[1])
             if rng.random() < 0.6:
                 num = S.damage_number(syn, int(rng.integers(10, 1000)))
-                S.paste(img, num, sx - num.shape[1] // 2, sy - int(rng.integers(30, 90)) - num.shape[0],
-                        float(rng.uniform(0.5, 1)))
+                x0, y0 = sx - num.shape[1] // 2, sy - int(rng.integers(30, 90)) - num.shape[0]
+                S.paste(img, num, x0, y0, float(rng.uniform(0.5, 1)))
+                extras.append([int(x0), int(y0), int(num.shape[1]), int(num.shape[0]), "digits"])
             elif syn.players():
                 im, (ax, ay) = syn.players()[rng.integers(len(syn.players()))]
                 if not occupied[max(0, sy - ay):sy, max(0, sx - ax):sx + im.shape[1] - ax].any():
                     S.paste(img, im, sx - ax, sy - ay)
+                    extras.append([int(sx - ax), int(sy - ay), int(im.shape[1]), int(im.shape[0]), "player"])
     prime = None
     if case in ("dying", "hit"):                             # the same mobs alive a moment before (a tracker
         prime = base.frame.copy()                           # turns a track dying / hit; it never starts one so)
@@ -216,7 +219,7 @@ def make_frame(syn, base, case, rng) -> tuple:
             S.draw_mob(prime, base, syn, S.Mob(st, m.facing, m.feet, 1.0, m.layer))
     truth = [m.truth(m.type) for m in mobs]
     return img, prime, {"mobs": truth, "unsure": base.unsure, "false": [], "dontcare": base.dontcare, "case": case,
-                 "base": base.n, "C": list(base.C)}
+                 "base": base.n, "C": list(base.C), "distractors": extras}
 
 
 def generate(run: Path, n: int, seed: int, out: Path, webp: bool = False, crop: bool = False, log=print):

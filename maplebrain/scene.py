@@ -479,6 +479,32 @@ class Scene:
                 break
         return best if best is not None and best[1] >= min_share else None
 
+    # ---- D: what the scene does not explain (PLAN-perception.md step 3.1)
+    def diff(self, frame, C, tol: int = 4, mask=None, h: int = PLAY_H) -> np.ndarray:
+        """D = the frame's known-scenery pixels more than `tol` levels off the expected scene for camera C (any
+        channel), outside `mask` (bool tensor, 1 = world: hud.ui_mask), as blobs: 3x3 cores grown 13x13 - the rule
+        of tools/perc/labels/patches.py (cv2 erode / dilate, its borders) - on the GPU. `frame`: uint8 BGR, GPU
+        tensor or array, >= h rows. -> (h, w) uint8 array, 1 = blob (`patches` lists them)."""
+        torch = self.torch
+        F = torch.nn.functional
+        f = frame[:h] if torch.is_tensor(frame) else torch.from_numpy(np.ascontiguousarray(frame[:h])).to(self.dev)
+        exp, known = self.expected(C, w=f.shape[1], h=h)
+        bad = ((f.float() - exp).abs().amax(dim=2) > tol) & known
+        if mask is not None:
+            bad &= mask
+        b = bad[None, None].half()
+        core = 1 - F.max_pool2d(1 - b, 3, 1, 1)                     # erode 3x3 (outside the frame counts as set)
+        blob = F.max_pool2d(core, 13, 1, 6)[0, 0] > 0               # dilate 13x13 (outside: not set)
+        return blob.to(torch.uint8).cpu().numpy()
+
+
+def patches(blob: np.ndarray, min_area: int = 60) -> list:
+    """[(x, y, w, h, area)] of D's blobs (Scene.diff), 8-connected, >= min_area px, biggest first. On the CPU: exact
+    connected components on the GPU measured 12 ms p50 (label propagation in torch), cv2 here ~1.3 ms."""
+    n, _, st, _ = cv2.connectedComponentsWithStats(blob, connectivity=8)
+    out = [tuple(int(v) for v in st[i]) for i in range(1, n) if st[i][4] >= min_area]
+    return sorted(out, key=lambda b: -b[4])
+
 
 class SceneCamera:
     """The camera from the scene, frame after frame (PLAN-perception.md step 2): `Scene.locate` around where the

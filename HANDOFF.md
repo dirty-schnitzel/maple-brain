@@ -57,7 +57,8 @@ The user supervises every run at the PC. Botting is against Nexon's ToS (ban ris
 Step 2 is done and live-checked (below). Step 3's order is in PLAN-perception.md ("Step 3") and "Step 3 state"
 (after "Step 2 state"): 3.0a labels -> 3.0b synthetic frames -> 3.1 D in shadow -> 3.2 the fit -> 3.3 FrameFacts v2
 in shadow -> 3.4 the switch on clean maps. **3.0a + 3.0b DONE (labels, synthetic frames, "before" numbers on both in
-"Step 3 state"); NEXT = 3.1 (D in shadow), OK'd by the user 2026-11-16 (plan: the "3.1" bullet in "Step 3 state").** `watch` is RUNNING again (restarted
+"Step 3 state"); 3.1 (D in shadow) DONE too; NEXT = 3.2 (the fit): proposed, WAITING for the user's OK (the "3.2
+proposal" bullet in "Step 3 state").** `watch` is RUNNING again (restarted
 by the user): never stop it.
 
 ### TASK (the user, 2026-11-16): improve the gate test by taking NEW footage
@@ -526,13 +527,63 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     track through cover), the synthetic ones are first sightings - the honest number for "can the frame show it";
     synthetic covers are also heavier (visible share p50: effect 0.62, player 0.61, ui 0.60, edge 0.50). Takeaway for 3.2: the misses are all "part of the body is
     something else" (cover, opacity, edge) - exactly the per-pixel fit's job; no ghost to fix on this map.
-  - **3.1 (D in shadow), OK'd by the user 2026-11-16:** on ticks with the scene camera found, D = |frame -
-    expected(C)| > 4 on the GPU (known scenery, outside hud.ui_mask), the label tool's blob rule (3x3 core, grown
-    13x13, >= 60 px) -> patches [x, y, w, h, area] in FrameFacts (version bump); nothing reads them (tracking
-    unchanged). Measure: synthetic = share of pasted mobs inside a patch per visible share (target 100 %), patches
-    on mob-free frames only at our blob + the pasted distractors; labels = labelled mobs inside a patch; gate clips
-    = patches per frame + area p50 / p90 (the fit's cost) and D's ms (bench, game running). Gate: replay the same
-    tracks, bench <= baseline + D's measured cost.
+  - **3.1 DONE (2026-11-16): D in shadow** (nothing reads it; tracking unchanged). `Scene.diff(frame, C, tol, mask)`
+    (scene.py) on the frame already uploaded: |frame - expected(C)| > tol (any channel) on known scenery outside
+    hud.ui_mask (the minimap's measured rectangle), erode 3x3 + dilate 13x13 as max pools on the GPU (cv2's borders)
+    -> the blob mask back (1 MB, 0.15 ms); `scene.patches` = cv2 connected components, >= 60 px -> [x, y, w, h, area]
+    biggest first, on a reader thread while the tracker runs. Exact connected components ON the GPU (torch label
+    propagation + pointer jumping) were measured: 12 ms p50 / 31 p90 -> no. Perceiver: only on ticks where the scene
+    camera was found (config `perception.scene_diff`, tolerance = scene_tol); parts `diff` (main thread) + `patches`
+    (the thread's own ms). FrameFacts v2 `patches` (None = no D this tick; v1 records still read), in ticks.jsonl
+    and in the replay's jsonl. Exactness: GPU blobs = tools/perc/labels/patches.py's rule on 80 / 80 labelled frames
+    and on all 40 fixture frames (test).
+    Measured (`tools/perc/dcheck.py synth OUT | labels RUN | clips`; IN = one patch box holds >= 90 % of the mob's
+    body box (on screen, outside the UI), TOUCHED = any patch box overlaps it):
+    - **synthetic (runs/synth/ant4_500, 783 mobs): touched 100 % in every case / visible-share / opacity bin; in
+      99.2 %** (clear / dying / effect / fade / hit / player / scenery 100 %, ui 98.2, edge 91.2: the 6 not "in" =
+      5 edge + 1 ui mobs whose box is mostly transparent sprite margin beyond the patch, all touched). Opacity
+      0.0-0.3: 16 of 16 in. **Mob-free frames (50): 0 patches away from our blob / the UI / the pasted distractors.**
+      Patches per frame p50 4, max 7. (make.py now records the distractors' boxes: synth.json "distractors"; frames
+      and every other field regenerated bit-identical, ant4_500 + the fixture.)
+    - **labels (012059_1, 300 frames, 1453 judged mobs): touched 99.5 %, in 93.7 %**; per class in / touched: clear
+      96.7 / 99.8, player 92.8 / 99.6, effect 94.6 / 100, fade 80.8 / 97.6, dying 78.4 / 100, ui 86.6 / 100, edge 77.4
+      / 98.1, scenery 95.9 / 98.0, hit 93.9 / 97.0. The body box here = the type's stand frame at the labelled feet
+      (pose / feet approximate: most "not in" are that). The 6 untouched, looked at (frame | D picture): 2 under the
+      UI strip (feet y 690 / 728: no world pixel), 3 fade-ins with D max 1 on their spot (nothing drawn yet: n1440 x2,
+      n9081), 1 clear Zombie at n6060 (400, 385) with nothing there and a mob ~70 px above (a label to re-check).
+    - **gate clips (working-tree replays): patches per frame p50 7-14, p90 11-18, max 27; a patch's box area p50
+      1.9-4.2 k px, p90 8.7-15.8 k; all boxes of a frame p50 31-91 k px, p90 50-127 k (3-13 % of the play area)** =
+      the fit's work in 3.2. D on every frame of the 6 native clips, never on the FHD clip (no scene camera).
+    - **cost, bench A/B in the same state (game up, Ultimate Performance, 3 rounds): D off tick p50 19.8-20.1 / p90
+      22.5-23.4, D on 22.7-23.0 / 25.3-25.8 -> D = +2.8 ms p50** (diff 1.75 on the main thread = expected() +
+      compare + pools + the mask back; connected components 1.3 on the thread; world +0.8 beside it). The machine
+      read 1.6 ms above the 18.4 baseline with D off today; pytest's line: 22.3 ms (D on). Gate "bench <= 18.4 + D's
+      cost": met on the A/B. In the replays (no game timing) diff 2.8-4.3 ms, components 2.4-2.5. expected() is most
+      of `diff` and 3.2 replaces it with the per-layer planes: not optimized (rule).
+    - **full gate: the same real / weak counts, sighted, surface, tag and camera on all 7 clips; verdict CHANGED
+      only from ant4 3804 / 3808 = 99.89 % (the working tree's replay had 3-4 more real track-frames). Replayed
+      that clip again with D off and D on: 3805 / 3805 both ways, identical -> GPU noise of that replay.**
+    Tests: tests/test_scene_diff.py (2; skipped without assets/scene/10005063): GPU blobs = the label tool's rule
+    on all 40 fixture frames; every fixture mob in a patch, mob-free frames only at dontcare / distractors.
+  - **3.2 proposal (the fit) - WAITING for the user's OK:**
+    (1) Planes (scene.py, at load): per foothold layer L used by the map, BEHIND_L = backs + tiles / objects of
+    layers <= L, FRONT_L = tiles / objects of layers > L + front backs, as premultiplied colour + alpha (fp16, like
+    _compose); front over behind = today's expected() (test). Ant Tunnel IV: 1 layer -> 2 planes.
+    (2) Model per pixel for a pose (sprite colour s, alpha a) at feet p with opacity o:
+    I = F + (1 - A) * (B + o * a * (s - B)). Where A < ~0.98: I' = (I - F) / (1 - A), so I' - B = o * a * (s - B):
+    o* in closed form (least squares over the sprite's pixels, clamped 0..1) + the residual. All sums expand into
+    correlations of the sprite (a, a*s, a*s^2) with fixed images of the window (I', B, I'*B, B^2): exact, no FFT.
+    (3) Per-pixel labels at the best few (pose, p): SEEN (residual <= t), COVERED (front plane opaque, UI, or
+    neither sprite nor B: something drawn over it - effects, players), ABSENT (the pixel is B where the sprite is
+    opaque and differs from B). A mob = SEEN share >= x and ABSENT share <= y; x, y, t fitted on synth, checked on
+    labels.
+    (4) Windows: D patches (every type x pose x facing of the map; feet y only on footholds crossing the window,
+    +-2 px - flyers: free y) + track predictions (voted type + die poses). Cost: positions ~ window widths x ~3 rows,
+    not area: clips' p90 ~127 k px of boxes -> ~2 k x positions x 3 y x 46 poses x ~3 k px ~ 0.8 G MAC as batched
+    matmuls (target <= 5 ms p90; flyer maps are the risk).
+    (5) Deliverables: the planes + test; perception/fit.py (not wired: 3.3 runs it in shadow); tools/perc/fit/
+    (offline: thresholds on synth, report on labels). Gate: synth recall >= 99 % per case, 0 false mobs on the 50
+    mob-free frames and on Dangerous Steam's ghost spots, every label class >= today's (3.0a's "before"), ms.
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")

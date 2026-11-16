@@ -68,6 +68,14 @@ def reachable_level(box, feet, tol, step_down, dx=None, climb_slope=0.0, climb_m
     return dx is not None and -climb_max <= d < -tol and -d <= climb_slope * abs(dx)
 
 
+def _patches(blob):
+    """D's blob mask -> (its patches, ms) on a reader thread (cv2 releases the GIL)."""
+    from ..scene import patches
+    t0 = time.perf_counter()
+    out = patches(blob)
+    return out, round(1000 * (time.perf_counter() - t0), 1)
+
+
 class Perceiver:
     def __init__(self, cfg: Config, self_template: np.ndarray, sprites=None, lie_detector=None, drops=None,
                  locator=None):
@@ -420,6 +428,7 @@ class Perceiver:
         me_s = (me[0] + me[2] / 2, me[1]) if me is not None else None
         exact = None
         sc = self.scene_cam
+        d_list = None
         if sc is not None and (sc.found or sc.misses < 10 or obs.t >= self.scene_next_t):
             # the camera registered on the scene model (step 2.6), on the frame the detector uploaded. Seed: the last
             # camera; at the start (or lost long) the minimap's (our map position - our screen position)
@@ -427,7 +436,8 @@ class Perceiver:
             if seed is None and obs.map_pos is not None and me_s is not None:
                 seed = (obs.map_pos[0] - me_s[0], obs.map_pos[1] - me_s[1])
             prev = sc.C
-            exact = sc.update(band.gpu.frame_u8, seed=seed, mask=hud.ui_mask(frame.shape, self.minimap))
+            ui = hud.ui_mask(frame.shape, self.minimap)
+            exact = sc.update(band.gpu.frame_u8, seed=seed, mask=ui)
             if exact is not None:
                 f.scene_cam, f.scene_share = exact, round(sc.share, 3)
                 obs.scene_cam = exact
@@ -436,6 +446,12 @@ class Perceiver:
             elif sc.misses >= 10:                       # failing again and again (no such scenery, other frames):
                 self.scene_next_t = obs.t + 1.0         # one look a second, today's camera meanwhile
             self._mark("scenecam")
+            if exact is not None and self.cfg.perception.scene_diff:
+                # D (step 3.1, in shadow: nothing reads it yet): the unexplained pixels' blobs on the GPU, their
+                # list from a reader thread while the tracker runs
+                blob = sc.scene.diff(band.gpu.frame_u8, exact, tol=sc.tol, mask=sc._mask_t(ui))
+                d_list = self.readers.submit(_patches, blob)
+                self._mark("diff")
         if not self.use_tracks:
             exact = None                                # brain v1: today's camera (the scene camera only logged)
         shift = None
@@ -454,6 +470,8 @@ class Perceiver:
                                 near=lambda spots, pad=24, vis=None: band.gpu.find_near(frame, spots, pad=pad, vis=vis),
                                 tags=f.tags, cam=exact)
         self._mark("world")
+        if d_list is not None:
+            f.patches, self.parts["patches"] = d_list.result()
         obs.mobs = [tr.as_dict(obs.t) for tr in trs]
         obs.cam = tuple(round(v, 1) for v in self.world.cam.C) if self.world.cam.C else None
         if me_s is not None and obs.cam is not None:   # our feet on the map, exact px (the tag's screen x + camera)

@@ -147,6 +147,7 @@ bench needs the game running (GPU P-state: 40-43 ms idle vs 27-30 with the game)
   32 %, ui 41 %, edge 14 %; 0 false tracks, 0 ghosts on 50 mob-free frames.
 - 3.1 D in shadow: D + its patches in FrameFacts; measured on the clips: labelled mobs inside a patch, patch area
   p50 / p90 (the fit's cost), ms.
+  **DONE 2026-11-16** (HANDOFF "Step 3 state"): every synthetic mob touched by a patch (99.2 % with >= 90 % of its box in one), 0 stray patches on mob-free frames, labels touched 99.5 %; clips 7-14 patches a frame (box area p50 2-4 k px); +2.8 ms p50 (A/B); tracks unchanged.
 - 3.2 the fit: the scene split per mob layer (behind / front planes; together = today's expected()), per window
   every candidate pose x position: opacity in closed form + residual, per-pixel labels at the best -> SEEN /
   COVERED / ABSENT; thresholds fitted on synth + labels. Windows: D patches (all the map's types; replaces the
