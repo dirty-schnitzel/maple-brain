@@ -338,3 +338,18 @@ def test_a_new_max_needs_two_reads_and_a_covered_hud_keeps_the_last():
         last = p._pair(r, "hp", last)
         seen.append(last)
     assert seen == [(700, 783), (700, 783), (700, 783), (700, 783), (700, 783), (650, 800)]
+
+
+def test_the_ui_mask_takes_the_minimap_window_as_measured():
+    """The minimap window's size differs per map (Line 1 <Area 1> 277x152, Transfer Area 175x201; UI_RECTS assumed
+    215x195): measured by the locator (find_window = its inside), the frame adds 5 px right and 14 px below."""
+    from maplebrain.nav.localize import Window, find_window
+    assert hud.minimap_rect(Window(6, 72, 266, 66)) == (0, 0, 277, 152)
+    m = hud.ui_mask((768, 1366, 3), (0, 0, 277, 152))
+    assert m[151, 276] == 0 and m[152, 276] == 1 and m[100, 277] == 1 and m[740, 1000] == 0
+    d = hud.ui_mask((768, 1366, 3))
+    assert d[100, 220] == 1 and d[190, 100] == 0                     # the default: UI_RECTS' 215x195
+    f = cv2.imread(str(Path(__file__).parent / "fixtures" / "perf_ant4" / sorted(
+        p.name for p in (Path(__file__).parent / "fixtures" / "perf_ant4").glob("*.jpg"))[0]))
+    w = find_window(f)                                                # Ant Tunnel IV (recorded 1 px left)
+    assert w is not None and hud.minimap_rect(w)[2:] in ((229, 198), (230, 198))

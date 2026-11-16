@@ -16,13 +16,26 @@ MINIMAP_BOX = (4, 66, 210, 186)
 _ui_cache: dict = {}
 
 
-def ui_mask(shape) -> np.ndarray:
-    """1 where the pixel is game world, 0 where it's UI."""
-    key = shape[:2]
+def minimap_rect(window) -> tuple:
+    """The minimap window's whole rectangle (x0, y0, x1, y1) from its measured inside (nav.localize.find_window:
+    x, y, w, h): the frame runs 5 px past the inside on the right and 14 px below it, the title panels fill the rest
+    up to the screen's top-left corner. Measured on all 7 native recordings (2026-11-16): Line 1 <Area 1> 277x152,
+    Ant Tunnel IV 230x198, Transfer Area 175x201 - UI_RECTS' fixed 215x195 was wrong both ways."""
+    return (0, 0, window.x + window.w + 5, window.y + window.h + 14)
+
+
+def ui_mask(shape, minimap: tuple | None = None) -> np.ndarray:
+    """1 where the pixel is game world, 0 where it's UI. `minimap`: the minimap window's measured rectangle
+    (minimap_rect) in place of UI_RECTS' default one."""
+    key = (shape[:2], minimap)
     if key not in _ui_cache:
-        m = np.ones(key, np.uint8)
-        for x0, y0, x1, y1 in UI_RECTS:
+        m = np.ones(shape[:2], np.uint8)
+        for i, (x0, y0, x1, y1) in enumerate(UI_RECTS):
+            if i == 0 and minimap is not None:
+                x0, y0, x1, y1 = minimap
             m[y0:y1, x0:x1] = 0
+        if len(_ui_cache) > 32:
+            _ui_cache.clear()
         _ui_cache[key] = m
     return _ui_cache[key]
 

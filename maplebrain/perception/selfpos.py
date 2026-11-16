@@ -33,13 +33,14 @@ def _match(h, t):
     return r
 
 
-def find_self(frame, template, near=None, radius=220, min_score=0.66, edges=True, gray=None):
+def find_self(frame, template, near=None, radius=220, min_score=0.66, edges=True, gray=None, minimap=None):
     """Returns (x, y, w, h, score) of the tag, or None. `near` = (x, y) of the last tag centre-top. `edges`: also
     look for a tag cut by the screen's side (costs ~50 ms when there's nothing to find). `gray`: the frame's grey
-    (cv2 BGR2GRAY) when the caller has it already (the Perceiver converts once per frame)."""
+    (cv2 BGR2GRAY) when the caller has it already (the Perceiver converts once per frame). `minimap`: the minimap
+    window's measured rectangle (hud.ui_mask)."""
     if gray is None:
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    ui = ui_mask(frame.shape)
+    ui = ui_mask(frame.shape, minimap)
     ox = oy = 0
     if near is not None:                             # crop first: the same pixels as masking the whole frame
         ry = min(radius, 90)                         # we can't move far vertically between frames

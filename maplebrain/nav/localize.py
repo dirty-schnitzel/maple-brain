@@ -112,6 +112,7 @@ class MinimapLocator:
         self.gray = cv2.cvtColor(canvas, cv2.COLOR_BGR2GRAY).astype(np.float32)
         self.opaque = np.ones(canvas.shape[:2], bool)    # the canvas' opaque pixels
         self.view = None                                 # Window, when it shows only part of the canvas (else None)
+        self.window = None                               # Window: the inside of the minimap window, as last measured
         self.row = 0                                     # scrolled: the canvas row at the window's top
         self.lost = False                                # scrolled: the picture stopped matching, position unknown
 
@@ -139,6 +140,7 @@ class MinimapLocator:
         win = find_window(frame)
         if win is not None:
             self.view = win if win.h < h else None
+            self.window = win                            # its real size: the UI mask (hud.minimap_rect)
         if self.view is not None:
             return self._find_scrolled(frame)
         if region.shape[0] < h or region.shape[1] < w:

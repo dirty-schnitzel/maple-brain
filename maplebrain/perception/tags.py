@@ -10,13 +10,15 @@ def text_mask(frame, hsv=None) -> np.ndarray:
     return ((hsv[:, :, 2] > 180) & (hsv[:, :, 1] < 50)).astype(np.uint8)
 
 
-def find_tags(frame, rows=None) -> list:
+def find_tags(frame, rows=None, minimap=None) -> list:
     """(x, y, w, h) of name tags. Needs >= 4 separate glyphs (a pale mob body is one solid shape).
-    `rows` (y0, y1): only look in that band (cheaper; boxes are still in frame coordinates)."""
+    `rows` (y0, y1): only look in that band (cheaper; boxes are still in frame coordinates). `minimap`: the minimap
+    window's measured rectangle (hud.ui_mask)."""
+    ui = ui_mask(frame.shape, minimap)
     if rows is not None:
         y0, y1 = max(0, int(rows[0])), min(frame.shape[0], int(rows[1]))
-        return [(x, y + y0, w, h) for x, y, w, h in _find_tags(frame[y0:y1], ui_mask(frame.shape)[y0:y1])]
-    return _find_tags(frame, ui_mask(frame.shape))
+        return [(x, y + y0, w, h) for x, y, w, h in _find_tags(frame[y0:y1], ui[y0:y1])]
+    return _find_tags(frame, ui)
 
 
 def _find_tags(frame, world) -> list:

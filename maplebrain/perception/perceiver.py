@@ -105,6 +105,13 @@ class Perceiver:
         self.use_tracks = bool(cfg.perception.tracker and self.world is not None)
         self.target_id = None                           # --tracker: the target is this track
 
+    @property
+    def minimap(self) -> tuple | None:
+        """The minimap window's rectangle as the locator last measured it (it differs per map: Line 1 277 px wide),
+        or None = hud.UI_RECTS' default: what the UI mask leaves out for our tag and players' tags."""
+        w = getattr(getattr(self, "locator", None), "window", None)
+        return hud.minimap_rect(w) if w is not None else None
+
     def _locate(self, frame, obs):
         """Minimap dot -> obs.dot; with a locator also our map position, platform and rope. The minimap canvas is
         searched (3.6 ms) until found, at most about once a second (window closed / covered). A window showing only
@@ -202,11 +209,13 @@ class Perceiver:
         self._mark("scene")
         me = None
         if self.me_near is not None:
-            me = find_self(frame, self.tpl, near=self.me_near, min_score=p.self_near_score, gray=gray)
+            me = find_self(frame, self.tpl, near=self.me_near, min_score=p.self_near_score, gray=gray,
+                           minimap=self.minimap)
             f.tag_look = "near"
         if me is None and not 0 < self.wide_next_t - t <= 1.0:   # lost: the whole screen ~4x a second (25-150 ms;
             near_edge = self.me_near is None or not 150 < self.me_near[0] < frame.shape[1] - 150   # the minimap
-            me = find_self(frame, self.tpl, min_score=p.self_min_score, edges=near_edge, gray=gray)   # meanwhile)
+            me = find_self(frame, self.tpl, min_score=p.self_min_score, edges=near_edge, gray=gray,  # meanwhile)
+                           minimap=self.minimap)
             f.tag_look = "wide"
             self.wide_next_t = t + (0 if me is not None else p.self_wide_every_s)
             self._mark("self_wide")
@@ -320,7 +329,7 @@ class Perceiver:
     def _track(self, frame, obs, me):
         band = self.sprites
         f = self.facts
-        tags = self.tag_pool.submit(find_tags, frame)  # players' bodies hide mobs (they're drawn over them)
+        tags = self.tag_pool.submit(find_tags, frame, None, self.minimap)   # players' bodies hide mobs (drawn over)
         hits = f.hits = band._all(frame)
         self._mark("gpu")
         me_s = (me[0] + me[2] / 2, me[1]) if me is not None else None
