@@ -3,8 +3,9 @@
 brain v3 (**PLAN-v3.md**) steps 1-3 are DONE and **Platform mode passed its live test** (2026-11-15, Ant Tunnel IV;
 the user: "perfect platform mode test"). NOW = the perception redesign (**PLAN-perception.md**, agreed 2026-11-16,
 branch `perception`): steps 0-1 DONE, **step 2 (pipeline) in progress - see "Step 2 state" below** (sub-steps
-2.1-2.7 committed: the scene camera is the camera on clean maps, own tag 1:1 + its whole-screen look on the GPU;
-NEXT = 2.8 Lie Detector, see "START HERE NEXT SESSION"); open offer: the humanness report (below).
+2.1-2.8 committed: the scene camera is the camera on clean maps, own tag 1:1 + its whole-screen look on the GPU,
+Lie Detector native templates + GPU look + watch 1 / s; NEXT = finish 2.8 (live check) then 2.9, see "START HERE
+NEXT SESSION"); open offer: the humanness report (below).
 Sessions 6-23, the old brain (v1), and superseded plans moved verbatim to **HISTORY.md** on 2026-11-08: grep it for
 old runs, numbers and decisions.
 Latest: 2026-11-15 Platform mode live (runs below), F9 mark fix; the hybrid BT + imitation-learning proposal reviewed
@@ -51,25 +52,29 @@ find mobs, fight them like a player, pick up loot, use potions, and **navigate p
 later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never reads memory or packets.
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
-## START HERE NEXT SESSION (after 2026-11-16): PLAN-perception.md step 2.8 (Lie Detector), then 2.9
-Read PLAN-perception.md (step 2 block + "Lie Detector watch") and below "Step 2 state" (2.1-2.7 DONE, the numbers,
-the new gate). Branch `perception`, all pushed. Rules unchanged: agree changes with the user, pytest + the speed line
+## START HERE NEXT SESSION (after 2026-11-16 evening): finish 2.8 (below), then 2.9
+**2.8 state (Lie Detector; code committed, see "DONE 2.8" in "Step 2 state"):** native 1:1 title templates from the
+client, the hunt's look on the GPU, `watch` once a second. **Still open for 2.8:**
+- **Remind the user: `watch` is OFF - restart it** (`... -m maplebrain watch runs\watch --seconds 14400`: now 1 look
+  / s on the CPU by default; `--gpu` exists, but the bench showed no gain from it - see the numbers).
+- The live check by the user: `serve runs\play --observe --gpu --tracker` ~2 min with watch running -> tick p50 / p90
+  vs 154819_1 (28 / 31) and the `lie` part (~3 ms on 1 tick in ~10). The bench (tools/perc/ld/ld_speed.py) showed
+  no difference between any of the settings (see "DONE 2.8").
+- The bar back to 0.80? The user's word only. Facts for it: the gold title's best false score on 8641 native frames
+  0.496, the sound title 0.434, blue title 0.565, "Question in" 0.522 -> the set's 0.565; the client's own windows
+  pasted at native >= 0.970. Old stretched JPEG fixture panel: 0.79 (a non-native window would sit near 0.80).
+- Any real Lie Detector at native: its PNG from watch -> check the gold title's score (expected ~0.97+) and cut the
+  blue title / "Question in" (font text, no client picture) 1:1 from it.
+
+Then **2.9** (below). Read PLAN-perception.md (step 2 block) and "Step 2 state". Branch `perception`, all pushed.
+Rules unchanged: agree changes with the user, pytest + the speed line
 (baseline 24.3 ms, re-baselined 2026-11-16 at 2.6; BENCH ONLY WITH THE GAME RUNNING - the GPU idles at P3/P5 without
 it and everything reads 40 % slow) + `python tools/perc/replay/gate.py --quick` per sub-step, the full gate before a
 commit that changes tracking; no live / scripted input without the user's OK; never stop `maplebrain watch`
 (**it is OFF since 2026-11-16 for the 2.8 measurements - the user stopped it: restart it or ask**).
-- **2.8 Lie Detector** (the plan's section): (1) `watch` at 1 look / s (runner.watch every_s 0.3 -> 1.0) and the
-  hunt's own check; (2) the 4 title templates matched on the GPU on the already uploaded frame (`frame_u8`, like
-  selfpos.GpuTagLook) instead of the CPU thread (4 x ~13 ms); (3) measure tick p50 / p90 with watch off, at 0.3 s, at
-  1 s, LD on the GPU (bench + a live observe run by the user); keep the faster, never slower to notice;
-  (4) native templates: the client has the pictures (UI_000.wz BMS key: LieDetector.img / AntiMacro.img, linked into
-  UI/_Canvas/_Canvas_000.wz; export with tools/cwdata/load.ps1 as in "Step 2 state" 2.5) - the gold "LIE DETECTOR"
-  title of the panel + game templates is in lieDetectorStandBy/back, lieDetector/back1, soundLieDetector/stanby/
-  backgrnd on a see-through bar (alpha 170): cut 1:1 there, check scores over dark / light / real scenery and the
-  false max on all native frames (today 0.668). The blue title + "Question in" are font text: they need a real LD.
-  The bar goes back to 0.80 only on the user's word.
 - **2.9** async GPU + CPU readers in threads + HUD cache + the FFT whole-screen search (10.75 of the detector's
-  13.6 ms are its NCC convolutions); the plan's gate: bench p50 <= 20 ms, p90 <= 25.
+  13.6 ms are its NCC convolutions; 2.8's `GpuLieLook` is a working FFT NCC matcher, exact to cv2 - reuse it);
+  the plan's gate: bench p50 <= 20 ms, p90 <= 25.
 - Then step 3 (the mob matcher). The 300 picked frames for by-eye labels are still unlabelled.
 
 ## Earlier START HERE (2026-11-16): the perception redesign, PLAN-perception.md step 0
@@ -358,6 +363,33 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     call warmed at load (cudnn timing: 3.5 s, would have stalled the first tag loss). Gate (full): the same tag on
     every clip, tracks the same. Bench 24.0 ms (the fixture rarely loses the tag: the gain is the live p99, 54 ms).
     tests/test_perception.py: GPU look + confirm = CPU look on the perf fixture.
+  - **DONE 2.8 (code; the user's live check open - START HERE):**
+    - **Native templates** (`tools/perc/ld/cut_native.py`; the client export now has `UI\AntiMacro` +
+      `UI\LieDetector`: tools/cwdata/export.ps1's new section). The gold title is the same letters in the panel
+      (lieDetectorStandBy/back) and the mini-game (lieDetector/back1), on a see-through bar (alpha 170-187 around
+      the letters, letters 204-255), so candidates (crop x backing grey) were graded over real native scenery: each
+      client window alpha-blended onto 150 native frames at random places + the false max over all 8641 native PNG
+      frames of the 2026-11-16 recordings + the 90 saved real ones (runs/*/lie*.png, all stretched captures).
+      **Found: today's templates were weaker at native than estimated** - the old panel template on the client's
+      panel min 0.677 / p5 0.762 (would miss at the 0.75 bar), the old game template 0.780 / 0.882 (it alone caught
+      it). Chosen `lie_detector_title.npy` (letters + 1-2 px, over grey 96, 8x65): min 0.970 / p5 0.981 (panel),
+      0.978 / 0.988 (game), false max 0.496 (old 0.671); `lie_detector_sound.npy` (the sound kind's larger yellow-
+      green title, never seen live): 0.995 / false 0.434. They replace panel + game (removed); blue title + "Question
+      in" stay (font text: a real one at native needed). Every real frame the old set caught is still caught
+      (title 0.83-0.94 on the stretched captures; the stretched JPEG fixture panel 0.79). Tests: the client's
+      windows (tests/fixtures/lie_client_*.png) pasted on native frames >= 0.95 anywhere.
+    - **The hunt's look on the GPU** (`liedetector.GpuLieLook`, `LieDetector.use_gpu`, config
+      `perception.lie_gpu` True; the Perceiver passes the uploaded `frame_u8`): one rfft2 of the frame x the
+      templates' spectra (one batched irfft2), window sums from int64 integral images, cv2's rule for flat windows,
+      cv2's 15-bit grey bit for bit. Exact: max |cpu - gpu| 1.7e-05, same places (`tools/perc/ld/ld_check.py`, 90
+      real + 346 native frames); 3.5 ms vs ~90 ms CPU; warmed at load. On the frame itself: no thread, never late.
+      (A plain conv2d version: 1 s and wrong on flat windows - the FFT one is the reusable piece for 2.9.)
+    - **watch**: a look every 1 s by default (`--every`), `--gpu` optional (no gain measured, keep CPU).
+    - **Speed** (`tools/perc/ld/ld_speed.py`, the bench's tick on the fixture x3 forth and back, a real watch
+      process beside it, game up; cycle 1 of 2 - stopped for the session's end): tick p50 / p90 / p99: hunt CPU
+      thread + watch off 21.6 / 23.9 / 37.9; + watch 0.3 s 21.8 / 24.0 / 37.0; hunt GPU + watch off 21.6 / 24.0 /
+      37.1; + watch 0.3 s 21.6 / 24.7 / 36.9; + watch 1 s CPU 21.5 / 24.0 / 37.0; + watch 1 s GPU 21.8 / 24.9 /
+      37.9 -> all in the noise; kept: hunt GPU (never late) + watch 1 s CPU. The `lie` part: <= 3.1 ms on a look tick.
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")

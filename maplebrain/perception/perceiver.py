@@ -107,6 +107,8 @@ class Perceiver:
         if self.world is not None and getattr(sprites, "gpu", None) is not None:
             from .selfpos import GpuTagLook
             self.tag_gpu = GpuTagLook(self_template, sprites.gpu.dev)
+            if lie_detector is not None and cfg.perception.lie_gpu:     # its look on the uploaded frame (step 2.8)
+                lie_detector.use_gpu(sprites.gpu.dev)
         self.scene_cam = None                           # the camera from the scene model (clean maps; runner._load_scene)
         if self.world is not None and getattr(sprites, "scene", None) is not None:
             from ..scene import SceneCamera
@@ -230,7 +232,8 @@ class Perceiver:
             self.sprites.gpu.prepare(frame)
         self._mark("gray")
         if self.lie_detector is not None:
-            f.lie = self.lie_detector.check(frame, t, gray=gray)
+            u8 = self.sprites.gpu.frame_u8 if self.tag_gpu is not None else None    # uploaded above
+            f.lie = self.lie_detector.check(frame, t, gray=gray, frame_u8=u8)
             obs.lie_detector = f.lie[0]
         self._mark("lie")
         if self._exact():                               # the scene camera holds (last tick): no whole-frame shift

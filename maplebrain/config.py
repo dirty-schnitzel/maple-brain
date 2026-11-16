@@ -194,7 +194,9 @@ class Perception:
                                     # within this many levels - native PNG frames are exact (+-4); the bench's JPEG 30
     minimap_every_s: float = 1.0    # the scene camera holding and our tag seen: the minimap is read this often (the
                                     # camera's seed); every tick otherwise (step 2.6)
-    gpu: bool = False               # --gpu: mobs found by perception/gpu_sprites.py (whole screen, CUDA) instead of
+    lie_gpu: bool = True            # with the GPU detector: the Lie Detector look on the uploaded frame (liedetector.
+                                    # GpuLieLook, ~3.5 ms each `every_s`) instead of the CPU thread (step 2.8)
+    gpu: bool = False              # --gpu: mobs found by perception/gpu_sprites.py (whole screen, CUDA) instead of
                                     # the CPU colour-blob detector; the brain still gets our band (GpuBand)
     die_score: float = 0.72         # death frames where the target was (its own mob type): pkg_human5m dying
                                     # Shroom 0.74-0.91; 491 live targets max 0.673

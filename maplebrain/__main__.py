@@ -87,6 +87,8 @@ def main(argv=None) -> int:
     w = sub.add_parser("watch", help="no hunt: siren if the Lie Detector shows up (keep running between runs)")
     w.add_argument("out", type=Path, nargs="?", default=Path("runs/watch"))
     w.add_argument("--seconds", type=float, default=4 * 3600)
+    w.add_argument("--every", type=float, default=1.0, help="seconds between looks (the Lie Detector gives 10+ s)")
+    w.add_argument("--gpu", action="store_true", help="match on the GPU (CUDA) instead of the CPU")
     s = sub.add_parser("assets", help="rebuild assets/mcw from the client export (tools/cwdata/export.ps1; "
                        "see assets/README.md)")
     s.add_argument("action", choices=["build", "scene"], help="build: assets/mcw (maps, mobs; in git). scene: the "
@@ -104,7 +106,7 @@ def main(argv=None) -> int:
         return follow(a.dir, a.every, a.width, a.map)
     if a.cmd == "watch":
         from .runtime.runner import watch
-        return watch(a.out, a.seconds)
+        return watch(a.out, a.seconds, a.every, a.gpu)
     if a.cmd == "goto":
         from .config import Config
         from .keyboard import validate

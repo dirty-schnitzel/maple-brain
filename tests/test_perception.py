@@ -227,14 +227,33 @@ def _lie(background=False):
 
 
 def test_lie_detector_announcement_panel_is_seen():
-    """pkg_potions1 52.4 s: '5 sec until the Lie Detector mini-game starts' panel, bottom right."""
+    """pkg_potions1 52.4 s: '5 sec until the Lie Detector mini-game starts' panel, bottom right. A stretched FHD
+    capture saved as JPEG: the native 1:1 title (2026-11-16) scores 0.79 here (the old template cut from this very
+    frame: 0.89); at native the client's panel scores >= 0.97 (the test below)."""
     s, loc = _lie().score(cv2.imread(str(FX / "lie_detector_panel.jpg")))
-    assert s >= 0.85 and loc[0] > 1000
+    assert s >= 0.78 and loc[0] > 1000
 
 
 def test_lie_detector_mini_game_window_is_seen():
-    s, loc = _lie().score(cv2.imread(str(FX / "lie_detector_game.jpg")))
-    assert s >= 0.95 and 500 < loc[0] < 800
+    s, loc = _lie().score(cv2.imread(str(FX / "lie_detector_game.jpg")))     # stretched JPEG too
+    assert s >= 0.93 and 500 < loc[0] < 800
+
+
+@pytest.mark.parametrize("name", ["lie_client_standby.png", "lie_client_game.png", "lie_client_sound.png"])
+def test_the_clients_own_lie_detector_windows_are_seen_at_native(name):
+    """The client's windows (AntiMacro.img, tools/perc/ld/cut_native.py) alpha-blended 1:1 onto native frames,
+    as the game draws them at 1366x768: the title templates are cut from these pictures (graded over 8641 native
+    frames: >= 0.970), at any place on the screen; the plain frames stay far below the bar."""
+    win = cv2.imread(str(FX / name), cv2.IMREAD_UNCHANGED)
+    a = win[..., 3:4].astype(np.float32) / 255
+    for frame_name, (x, y) in (("000.jpg", (1080, 480)), ("022.jpg", (400, 200)), ("044.jpg", (0, 0))):
+        frame = cv2.imread(str(FX / "perf_ant4" / frame_name))
+        assert _lie().score(frame)[0] < 0.6
+        h, w = win.shape[:2]
+        x, y = min(x, frame.shape[1] - w), min(y, frame.shape[0] - h)          # the whole window on the screen
+        frame[y:y + h, x:x + w] = np.round(win[..., :3] * a + frame[y:y + h, x:x + w] * (1 - a)).astype(np.uint8)
+        s, loc = _lie().score(frame)
+        assert s >= 0.95 and x <= loc[0] < x + w and y <= loc[1] < y + h
 
 
 @pytest.mark.parametrize("name", ["lie_detector_blue_panel.jpg", "lie_detector_blue_game.jpg"])

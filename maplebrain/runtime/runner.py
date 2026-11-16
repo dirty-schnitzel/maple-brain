@@ -588,11 +588,13 @@ def serve(out_root: Path, cfg: Config, frames: int = 0,
     return 0
 
 
-def watch(out: Path, seconds: float, every_s: float = 0.3) -> int:
+def watch(out: Path, seconds: float, every_s: float = 1.0, gpu: bool = False) -> int:
     """Lie Detector watch with no hunt (session 9: one came up seconds after acc3's time limit, while the bot was
-    gone and Claude analysed between runs - nothing looked at the screen). Grabs the game picture every ~0.3 s
+    gone and Claude analysed between runs - nothing looked at the screen). Grabs the game picture every ~`every_s`
     (mss, so a hunt's dxcam in another process is untouched), siren while the window is up, saves the frame.
-    The game must be visible on the monitor (a window on top of it hides the panel)."""
+    The game must be visible on the monitor (a window on top of it hides the panel). Once a second since 2026-11-16
+    (was 0.3 s; PLAN-perception.md step 2.8: the Lie Detector gives 10+ s). `gpu`: the match on CUDA
+    (liedetector.GpuLieLook, the same scores) instead of the CPU."""
     import cv2
     from ..perception.liedetector import LieDetector
     out.mkdir(parents=True, exist_ok=True)
@@ -611,7 +613,13 @@ def watch(out: Path, seconds: float, every_s: float = 0.3) -> int:
     screen = Screen(hwnd, dxcam=False)                 # mss only
     aim = window.Aim(screen, say)                      # the window moved -> re-aimed; not 1366x768 / gone -> said
     lie = LieDetector.load(ASSETS)
-    say(f"watching for the Lie Detector (game picture x {screen.cols}), {seconds:.0f}s")
+    score = lie.score
+    if gpu:
+        import torch
+        lie.use_gpu(torch.device("cuda"))
+        score = lambda f: lie.gpu.look(torch.from_numpy(np.ascontiguousarray(f)).to(lie.gpu.dev))   # noqa: E731
+    say(f"watching for the Lie Detector (game picture x {screen.cols}), {seconds:.0f}s, a look every {every_s:g} s "
+        f"on the {'GPU' if gpu else 'CPU'}")
     t_end, n = time.perf_counter() + seconds, 0
     try:
         while time.perf_counter() < t_end:
@@ -619,11 +627,11 @@ def watch(out: Path, seconds: float, every_s: float = 0.3) -> int:
             if frame is None or not aim.ok():          # not aimed (before or after the grab): no look this time
                 time.sleep(every_s)
                 continue
-            score, loc = lie.score(frame)
-            if score >= lie.min_score:
+            s, loc = score(frame)
+            if s >= lie.min_score:
                 n += 1
                 cv2.imwrite(str(out / f"lie_{datetime.now():%H%M%S}_{n}.png"), frame)
-                say(f"LIE DETECTOR on screen (score {score:.2f} at {loc}) -> siren until it's gone")
+                say(f"LIE DETECTOR on screen (score {s:.2f} at {loc}) -> siren until it's gone")
                 lie_alarm(lambda: lie.seen(screen.grab()))
                 say("Lie Detector window gone")
             time.sleep(every_s)

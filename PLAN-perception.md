@@ -125,8 +125,10 @@ FrameFacts (perception/facts.py, in ticks.jsonl), 2.3 the minimap window measure
 picture is see-through, mobs behind it stay tracked), 2.4 background layers pre-composed per parallax (Line 1 /
 Transfer Area 16-22 -> ~2 ms) - DONE, replay unchanged, bench with the game up 29.3 -> 27.3 ms. 2.5 the scene camera
 in shadow, 2.6 it IS the camera on clean maps (mob feet within 2 px of their platform 23-27 -> 97-98 % on Ant
-Tunnel IV; bench 24.3 ms), 2.7 own tag 1:1 + its whole-screen look on the GPU (42 -> 8-12 ms) - DONE. Next: 2.8
-Lie Detector, 2.9 async + FFT. The gate is now tools/perc/replay/gate.py (~1 min clips of every clean map, cached). Found: the whole-screen NCC is 10.75 of
+Tunnel IV; bench 24.3 ms), 2.7 own tag 1:1 + its whole-screen look on the GPU (42 -> 8-12 ms) - DONE. 2.8 Lie
+Detector: native 1:1 title templates from the client's own windows (pasted at native >= 0.970, was down to 0.677 /
+0.780; false max 0.671 -> 0.496), the hunt's look on the GPU (FFT NCC exact to cv2, ~3.5 ms vs ~90 on the CPU),
+watch 1 look / s - code DONE, the user's live check open. Next: 2.9 async + FFT. The gate is now tools/perc/replay/gate.py (~1 min clips of every clean map, cached). Found: the whole-screen NCC is 10.75 of
 the detector's 13.6 ms (the FFT search is the big cut); the bench needs the game running (GPU P-state: 40-43 ms
 idle vs 27-30 with the game).
 

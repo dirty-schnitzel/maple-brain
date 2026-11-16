@@ -147,6 +147,11 @@ Export-Sets "$D\Npc\Npc_*.wz" "$Out\Npc"
 Export-Sets "$D\Item\Pet\Pet_*.wz" "$Out\Pet"
 Export-Sets "$D\Effect\Effect_*.wz" "$Out\Effect" @('BasicEff.img')
 
+# the Lie Detector's windows (PLAN-perception.md step 2.8: native title templates, perception/liedetector.py)
+#   UI\AntiMacro.img.xml + UI\png\AntiMacro\..., UI\LieDetector.img.xml + UI\png\LieDetector\...
+if (Test-Path "$Out\UI") { Remove-Item -Recurse -Force "$Out\UI" }
+Export-Sets "$D\UI\UI_*.wz" "$Out\UI" @('AntiMacro.img', 'LieDetector.img')
+
 # every mob + every frame
 $nMob = 0; $nPng = 0
 $ms = Open-Ms "$D\Packs\Mob_00000.ms"
