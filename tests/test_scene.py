@@ -81,6 +81,8 @@ def test_register_finds_the_camera_to_the_pixel_under_clutter():
         assert got == C and share > 0.6 and n > 200
     got, share, _ = s.locate(_frame(s, (150, 150)), (115, 180), h=420)       # 35 px off: the wide look
     assert got == (150, 150)
+    assert s.locate(_frame(s, (150, 150)), (20, 20), h=420) is None          # lost: no camera, not a wrong one
+    assert s.locate(_frame(s, (150, 150)), (20, 20), seed=(170, 120), h=420)[0] == (150, 150)   # the minimap's rough one
 
 
 def test_register_says_how_little_matches_on_another_picture():

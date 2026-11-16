@@ -380,12 +380,16 @@ class Scene:
         iy, ix = divmod(best, len(d))
         return (gx + int(d[ix]), gy + int(d[iy])), float(ok[iy, ix]), int(len(sx))
 
-    def locate(self, frame, C_guess, tol: int = 4, h: int = PLAY_H, mask=None, wide: int = 48, min_share: float = 0.5):
-        """`register` with a fallback: when the best match within 12 px is poor, look `wide` px around."""
-        r = self.register(frame, C_guess, 12, tol, h, mask)
-        if r is not None and r[1] >= min_share:
-            return r
-        r2 = self.register(frame, C_guess, wide, tol, h, mask)
-        if r2 is not None and (r is None or r2[1] > r[1]):
-            return r2
-        return r
+    def locate(self, frame, C_guess=None, seed=None, tol: int = 4, h: int = PLAY_H, mask=None, wide: int = 48,
+               min_share: float = 0.2):
+        """The camera, from the last one (`C_guess`: looked for within 12 px, then `wide`) and / or a rough one
+        (`seed`: the minimap's, within `wide`). A wrong offset matches ~2 % of the landmarks, the right one 40-95 %
+        (40 %: a game window open over the scene), so `min_share` 0.2 tells them apart: None = not found (a camera
+        that only resembles the last one is worse than none)."""
+        for guess, radius in ((C_guess, 12), (C_guess, wide), (seed, wide)):
+            if guess is None:
+                continue
+            r = self.register(frame, guess, radius, tol, h, mask)
+            if r is not None and r[1] >= min_share:
+                return r
+        return None

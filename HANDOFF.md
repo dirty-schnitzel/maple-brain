@@ -118,7 +118,33 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     (labels -> RUN/labels.json + a copy in tools/perc/labels/, label_eval.py).
   - Replay noise on the long native run: same code twice differs on 2-5 of 18,170 real track-frames -> the gate is
     "track-frames found >= 99.9 % both ways" (replay README).
-  - **NEXT: step 1 (scene model)**, then the labels (best done with the scene overlay to check by).
+- **Step 1 state (2026-11-16): the scene model works on Ant Tunnel IV; Line 1 + Perion need native recordings.**
+  - `tools/cwdata/export.ps1` now also exports Map/Back (36 sets, 789 pictures), Npc (233), Pet (35), Effect/BasicEff
+    (510 pictures); pixel format 1537 (flat 16x16 colour blocks, e.g. Perion's sky) is decoded in the script.
+  - **The backgrounds are exact** (E7, tools/perc/redesign/exp_back.py): the picture's origin is drawn at
+    `b + off + trunc(r * (C + off) / 100)`, off = 682 (x) / 468 (y), integer division toward zero, tiled every
+    cx / cy; all 65 layer positions fitted on 13 frames match. Backs are 4-bit dithered pictures: 1 px off = half
+    the pixels wrong, so nothing but the exact arithmetic works.
+  - `maplebrain/scene.py`: `python -m maplebrain assets scene [MAP ...]` -> `assets/scene/<map>/` (NOT in git; all
+    206 maps with mobs: 95 s, 310 MB; 95 have moving / animated backs = unknown pixels, 76 animated objects);
+    `Scene.load(map)`, `expected(C)` = the picture where nothing moves + which pixels are known,
+    `locate(frame, last_C, seed=minimap camera)` = the camera from ~800 tile / object edge landmarks on the GPU
+    (a wrong offset matches ~2 % of them, the right one 44-95 %; under 20 % = not found, never a guess).
+  - **Measured on the native recording** (`tools/perc/scene_check.py RUN`, 120 frames; pictures with the platforms
+    drawn + what is left after subtraction in RUN/scene_check/):
+    - camera found on 120 / 120 and it is the best of the 25 cameras within 2 px by whole-picture count on all 120;
+      followed through all 3858 saved frames (every 3rd tick) without a loss, 1.7 ms p50 (wide look 32 ms on 8 %:
+      camera steps up to 35 / 77 px between SAVED frames; live ticks are 3x closer).
+    - explained within +-4: whole play area p50 95.1 %; what is left = mobs, players, pets, tags, damage numbers,
+      drops, effects, the cursor, chat, game windows. Outside those blobs the scene explains 99.82 % (p5 99.55 %):
+      gate >= 98 % PASS. Register + expected + compare 3.0 ms on the GPU.
+    - **today's tracker camera is off by +5 px x / +3.5 px y at the median, > 8 px on 39 % of frames, max 41 px.**
+  - Line 1 (old FHD JPEG run, tolerance 30): registers 60 / 60, the 29 background layers sit right (picture in
+    runs/play/20261105_000802_1/scene_check/), exact numbers need a native PNG recording; Perion: no frames at all.
+  - **NEXT:** the user records 1-2 min native PNG on Line 1 <Area 1> and on Perion (the fog) -> scene_check there
+    (step 1's remaining gates); then step 2 (pipeline: FrameFacts, one upload, the scene camera replaces camshift /
+    phase correlation / the per-tick minimap; watch at 1 look / s + Lie Detector on the GPU). The 300 picked frames
+    are still to label (now with the subtraction picture to check by).
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")

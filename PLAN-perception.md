@@ -104,6 +104,12 @@ Then ROADMAP phase 2 (recording data model): FrameFacts IS its perception record
 (the rest is covered): pixels are exact or something else. Tolerance +-4. JPEG frames are useless for this (22 % of
 exact sprite pixels within +-4): reference recordings are PNG (`--frames-png`). Details: HANDOFF "Step 0 state".
 
+**Step 1 result (2026-11-16, Ant Tunnel IV):** `maplebrain/scene.py`. Backgrounds: origin at
+`b + off + trunc(r * (C + off) / 100)`, off 682 / 468, integer division (exact on 65 of 65 fitted positions). Camera
+by landmark registration: found on 3858 of 3858 frames, the best of its 25 neighbours on 120 of 120; the scene
+explains 99.82 % of the pixels outside moving things; 3.0 ms on the GPU. Today's camera is > 8 px off on 39 % of
+frames. Open: native recordings of Line 1 and Perion for their gates. Details: HANDOFF "Step 1 state".
+
 ### Lie Detector watch (added by the user, 2026-11-16) - part of step 2
 - **`maplebrain watch` looks once per second** (today every 0.3 s; the Lie Detector gives 10+ s). Each look = 4
   full-frame template matches on the CPU (~13 ms each) in a second process, beside the hunt.

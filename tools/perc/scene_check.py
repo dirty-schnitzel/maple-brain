@@ -93,7 +93,7 @@ def main():
         if scene.dev == "cuda":
             torch.cuda.synchronize()
         t0 = time.perf_counter()
-        reg = scene.locate(ft, obs["cam"], tol=a.tol, mask=ui_t)
+        reg = scene.locate(ft, seed=obs["cam"], tol=a.tol, mask=ui_t, min_share=0.2 if a.tol <= 8 else 0.35)
         if reg is None:
             rows.append({"frame": k["frame"], "reg": None})
             continue
