@@ -156,3 +156,69 @@ def test_build_composites_layers_in_draw_order_flags_animated_objects_and_lists_
     assert tuple(canvas[35 - y0, 50 - x0]) == (50, 0, 0, 128)                     # the tile alone: premultiplied
     assert anim[15 - y0, 310 - x0] == 255 and anim[15 - y0, 20 - x0] == 0
     assert [(b["rx"], b["ry"], b["known"], b["front"]) for b in meta["backs"]] == [(-10, -20, 1, 0), (0, 0, 0, 1)]
+
+
+def test_pre_composed_parallax_groups_draw_what_the_layers_draw_one_by_one():
+    """Layers of one parallax (same rx / ry) are drawn once at load into one plane (PLAN-perception.md step 2):
+    the expected picture must not change - tiled and untiled layers, half-transparent ones, a flipped one, a
+    group in front, an unknown layer between two groups, cameras inside and outside the rendered area."""
+    rng = np.random.default_rng(3)
+    backs = [_back(rx=-30, ry=-100, type=2, cy=90, origin=[10, 20]),
+             _back(rx=-30, ry=-100, type=0, x=120, y=-40, a=160),
+             _back(rx=-30, ry=-100, type=1, cx=150, x=-60, flip=1),
+             _back(rx=-50, ry=-50, type=4, known=0),
+             _back(rx=-80, ry=-100, type=3, cx=0, cy=0),
+             _back(rx=-80, ry=-100, type=0, x=300, y=80, a=90),
+             _back(rx=-20, ry=-20, type=0, x=40, y=10, front=1, a=200),
+             _back(rx=-20, ry=-20, type=1, x=-30, y=300, front=1, cx=200)]
+    s, _, _ = _world(5, backs)
+    for i in range(len(backs)):                                       # every layer its own picture, some see-through
+        pic = np.zeros((60, 80, 4), np.uint8)
+        pic[..., :3] = rng.integers(0, 255, (60, 80, 3))
+        pic[..., 3] = np.where(rng.random((60, 80)) < 0.3, 0, rng.integers(60, 256, (60, 80)))
+        t = torch.from_numpy(pic).float()
+        t[..., 3] *= backs[i]["a"] / 255.0
+        t[..., :3] *= t[..., 3:4] / 255.0
+        s.backs[i] = (backs[i], t)
+    s.groups = {f: s._compose(f) for f in (0, 1)}
+    assert [it[0] for it in s.groups[0]] == ["group", "one", "group"] and [it[0] for it in s.groups[1]] == ["group"]
+    for C in [(-100, -50), (-90, -40), (200, 150), (-466, -68), (400, -50), (-2000, 3000), (5000, -900)]:
+        e0, k0 = s.expected(C, pre=False)
+        e1, k1 = s.expected(C)
+        assert (e0 - e1).abs().max() < 0.5 and (k0 != k1).float().mean() < 1e-4, C
+
+
+def test_pre_composed_backgrounds_on_line1_are_the_same_and_fast():
+    """Line 1 <Area 1> (29 layers, rx -30 / -50 / -80 / -100): the real scene, pre-composed vs layer by layer."""
+    import time
+    if not sc.Scene.have(10003061):
+        pytest.skip("needs python -m maplebrain assets scene 10003061")
+    s = sc.Scene.load(10003061)
+    assert sum(it[0] == "group" for it in s.groups[0]) >= 3
+    sync = torch.cuda.synchronize if s.dev == "cuda" else (lambda: None)
+    t_one, t_pre = [], []
+    for C in [(-585 + 170 * i, -817 + 40 * i) for i in range(16)]:
+        sync(); t0 = time.perf_counter()
+        e0, k0 = s.expected(C, pre=False)
+        sync(); t1 = time.perf_counter()
+        e1, k1 = s.expected(C)
+        sync(); t2 = time.perf_counter()
+        t_one.append(t1 - t0); t_pre.append(t2 - t1)
+        assert (e0 - e1).abs().max() < 0.5 and (k0 != k1).float().mean() < 1e-4, C
+    if s.dev == "cuda":
+        assert np.median(t_pre) < 0.5 * np.median(t_one), (np.median(t_pre), np.median(t_one))
+
+
+def test_scene_camera_follows_a_scrolling_camera_says_when_lost_and_recovers_from_the_seed():
+    """SceneCamera (the bot's camera from step 2 on): a camera scrolling 20 px a frame is followed by the near look
+    (the last step predicts it); a frame of another map is 'not found' and the camera is kept, not guessed; the
+    minimap's rough camera brings it back."""
+    s, _, _ = _world()
+    other, _, _ = _world(seed=5)
+    cam = sc.SceneCamera(s, h=420)
+    assert cam.update(_frame(s, (20, 40)), seed=(30, 30)) == (20, 40)
+    for i in range(1, 8):
+        C = (20 + 20 * i, 40 + 7 * i)
+        assert cam.update(_frame(s, C, seed=i)) == C and cam.found and cam.share > 0.6
+    assert cam.update(_frame(other, (60, 60))) is None and not cam.found and cam.C == (160, 89)
+    assert cam.update(_frame(s, (230, 150)), seed=(240, 140)) == (230, 150) and cam.found

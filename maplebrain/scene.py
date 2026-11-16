@@ -231,6 +231,50 @@ class Scene:
             t[..., :3] *= t[..., 3:4] / 255.0                                                   # premultiplied
             self.backs.append((b, t))
         self._marks = {}
+        self.groups = {front: self._compose(front) for front in (0, 1)}
+
+    # ---- background layers pre-composed per parallax (PLAN-perception.md step 2)
+    def _shift(self, rx: int, ry: int, C) -> tuple:
+        """Where a background layer group with parallax (rx, ry) sits on screen for camera C: back_pos without the
+        picture's own place (the same for every layer of the group)."""
+        return (self.woff + int(rx * (int(C[0]) + self.woff) / 100), self.hoff + int(ry * (int(C[1]) + self.hoff) / 100))
+
+    def _compose(self, front: int) -> list:
+        """The known background layers (front or not), in draw order, with runs of the same parallax (rx, ry) drawn
+        ONCE at load into one picture over every camera the map allows (the rendered area's: vrBounds are inside it)
+        -> [("group", (rx, ry), plane (H', W', 4) premultiplied colour + alpha 0..1, fp16, (U0, V0), layers) |
+        ("one", b, t)]. A group moves as one: its layers keep their places relative to each other, so a camera's
+        picture of it is a crop of the plane at -shift - (U0, V0). Unknown layers stay one by one (only their mask
+        is used). Line 1 <Area 1>: 29 layers -> 4 groups, Transfer Area 36 -> 3 (16-22 ms -> one crop each)."""
+        torch = self.torch
+        runs = []
+        for b, t in self.backs:
+            if bool(b["front"]) != bool(front):
+                continue
+            key = (b["rx"], b["ry"]) if b["known"] else None
+            if key is not None and runs and runs[-1][0] == key:
+                runs[-1][1].append((b, t))
+            else:
+                runs.append((key, [(b, t)]))
+        cams = [(self.x0 + i * (self.meta["w"] - W), self.y0 + j * (self.meta["h"] - H)) for i in (0, 1) for j in (0, 1)]
+        out = []
+        for key, layers in runs:
+            if key is None or len(layers) == 1:
+                out += [("one", b, t) for b, t in layers]
+                continue
+            sh = [self._shift(*key, c) for c in cams]                 # monotonic in C: the corners bound it
+            U0, V0 = -max(s[0] for s in sh), -max(s[1] for s in sh)
+            pw, ph = W - min(s[0] for s in sh) - U0, H - min(s[1] for s in sh) - V0
+            g = torch.zeros((ph, pw, 4), device=self.dev)
+            for b, t in layers:
+                bx, by = back_pos(b, (0, 0), self.woff, self.hoff)
+                s0 = self._shift(*key, (0, 0))
+                plane = self._layer_plane(b, t, bx - s0[0] - U0, by - s0[1] - V0, pw, ph)
+                a = plane[..., 3:4] / 255.0
+                g[..., :3] = g[..., :3] * (1 - a) + plane[..., :3]
+                g[..., 3:4] = g[..., 3:4] * (1 - a) + a
+            out.append(("group", key, g.half(), (U0, V0), layers))
+        return out
 
     @classmethod
     def load(cls, map_id: int, root: Path = ROOT, device=None) -> "Scene":
@@ -245,12 +289,25 @@ class Scene:
     def have(map_id: int, root: Path = ROOT) -> bool:
         return (Path(root) / str(map_id) / "scene.json").exists()
 
+    @staticmethod
+    def clean_meta(meta: dict) -> bool:
+        """No moving or animated backgrounds (95 of 206 maps have some: Perion's clouds, deferred by the user
+        2026-11-16): only such maps get the scene camera; the others keep today's camera (camshift + minimap)."""
+        return all(b["known"] for b in meta["backs"])
+
+    @property
+    def clean(self) -> bool:
+        return self.clean_meta(self.meta)
+
     # ---- the expected picture
     def _back_plane(self, b: dict, t, C, w: int, h: int):
         """(premultiplied BGRA float (h, w, 4)) of one background layer for camera C."""
+        return self._layer_plane(b, t, *back_pos(b, C, self.woff, self.hoff), w, h)
+
+    def _layer_plane(self, b: dict, t, sx: int, sy: int, w: int, h: int):
+        """One background layer with its picture's top-left at (sx, sy) of a (h, w) plane, tiled as its type says."""
         torch = self.torch
         ph, pw = t.shape[:2]
-        sx, sy = back_pos(b, C, self.woff, self.hoff)
         xs = torch.arange(w, device=self.dev) - sx
         ys = torch.arange(h, device=self.dev) - sy
         if b["type"] in H_TILED:
@@ -272,10 +329,12 @@ class Scene:
             out[y0 - ay:y1 - ay, x0 - ax:x1 - ax] = self.canvas[y0:y1, x0:x1]
         return out
 
-    def expected(self, C, w: int = W, h: int = PLAY_H) -> tuple:
+    def expected(self, C, w: int = W, h: int = PLAY_H, pre: bool = True) -> tuple:
         """What the frame's top `h` rows show for camera C where nothing moves: (bgr float tensor (h, w, 3), known
         bool tensor (h, w)). Known = covered by fixed scenery (opaque tiles / objects, or fixed backgrounds) and
-        not by an animated object, a moving / animated background or a `front` background that isn't fixed."""
+        not by an animated object, a moving / animated background or a `front` background that isn't fixed.
+        `pre`: background layers from the pre-composed groups (`_compose`); False = layer by layer (the reference,
+        tests/test_scene.py)."""
         torch = self.torch
         out = torch.zeros((h, w, 3), device=self.dev)
         cover = torch.zeros((h, w), device=self.dev)                 # how much fixed scenery covers the pixel
@@ -291,9 +350,25 @@ class Scene:
             out = out * (1 - a) + plane[..., :3]
             cover = cover * (1 - a[..., 0]) + a[..., 0]
 
-        for b, t in self.backs:
-            if not b["front"]:
-                draw(b, t)
+        def draw_all(front):
+            nonlocal out, cover
+            for item in self.groups[front] if pre else [("one", b, t) for b, t in self.backs if bool(b["front"]) == bool(front)]:
+                if item[0] == "one":
+                    draw(item[1], item[2])
+                    continue
+                _, key, g, (U0, V0), layers = item
+                sx, sy = self._shift(*key, C)
+                u, v = -sx - U0, -sy - V0                             # the plane's column / row at screen (0, 0)
+                if u < 0 or v < 0 or u + w > g.shape[1] or v + h > g.shape[0]:
+                    for b, t in layers:                               # a camera outside the rendered area
+                        draw(b, t)
+                    continue
+                crop = g[v:v + h, u:u + w].float()
+                a = crop[..., 3:4]
+                out = out * (1 - a) + crop[..., :3]
+                cover = cover * (1 - a[..., 0]) + a[..., 0]
+
+        draw_all(0)
         sc = self._crop(C, w, h).float()
         a = sc[..., 3:4] / 255.0
         out = out * (1 - a) + sc[..., :3]
@@ -307,9 +382,7 @@ class Scene:
             if x1 > x0 and y1 > y0:
                 an[y0 - ay:y1 - ay, x0 - ax:x1 - ax] = self.anim[y0:y1, x0:x1]
             unknown |= an
-        for b, t in self.backs:
-            if b["front"]:
-                draw(b, t)
+        draw_all(1)
         return out, (cover > 0.98) & ~unknown
 
     # ---- the camera
@@ -405,3 +478,42 @@ class Scene:
             if last_share is not None and r[1] >= max(min_share, 0.85 * last_share):
                 break
         return best if best is not None and best[1] >= min_share else None
+
+
+class SceneCamera:
+    """The camera from the scene, frame after frame (PLAN-perception.md step 2): `Scene.locate` around where the
+    camera should be now (the last camera + its last step: a scrolling camera moves up to ~26 px per live tick, the
+    first look reaches 12), the last match share as `last_share` (repeating scenery, see locate), the minimap's
+    camera as the seed that recovers a lost one. Not found -> `C` stays the last camera (the next look starts there)
+    and `found` is False: nothing is guessed."""
+
+    def __init__(self, scene: Scene, tol: int = 4, min_share: float = 0.2, h: int = PLAY_H):
+        self.scene, self.tol, self.min_share, self.h = scene, tol, min_share, h
+        self.C = None                  # the last camera found (map = screen + C)
+        self.step = (0, 0)             # its last move
+        self.share = None              # landmarks matching at the last camera (None: lost)
+        self.found = False             # found on the last frame
+        self.n_marks = 0
+        self._mask = (None, None)
+
+    def _mask_t(self, mask):
+        if mask is None:
+            return None
+        if self._mask[0] is not mask:
+            self._mask = (mask, self.scene.torch.from_numpy(np.ascontiguousarray(mask[:self.h] > 0)).to(self.scene.dev))
+        return self._mask[1]
+
+    def update(self, frame, seed=None, mask=None):
+        """`frame`: the frame (uint8 BGR, GPU tensor or array, >= PLAY_H rows); `seed`: a rough camera (the minimap's)
+        or None; `mask`: the UI mask (hud.ui_mask, 1 = world). -> (Cx, Cy) or None."""
+        guess = None if self.C is None else (self.C[0] + self.step[0], self.C[1] + self.step[1])
+        reg = self.scene.locate(frame, C_guess=guess, seed=seed, tol=self.tol, h=self.h, mask=self._mask_t(mask),
+                                min_share=self.min_share, last_share=self.share)
+        self.found = reg is not None
+        if reg is None:
+            self.share, self.step = None, (0, 0)
+            return None
+        C, self.share, self.n_marks = reg
+        self.step = (0, 0) if self.C is None else (C[0] - self.C[0], C[1] - self.C[1])
+        self.C = C
+        return C
