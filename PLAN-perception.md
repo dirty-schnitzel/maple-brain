@@ -143,6 +143,8 @@ bench needs the game running (GPU P-state: 40-43 ms idle vs 27-30 with the game)
   empty), client sprites drawn as the game draws them (sprite alpha x opacity, on the foothold's layer, front layers
   over them), BasicEff sparks / damage digits and real player / pet / bubble patches over them, mob-free frames;
   truth by construction; a fixed-seed ~40-frame set in pytest. "Before" = today's detector + tracker on both.
+  **DONE 2026-11-16** (HANDOFF "Step 3 state"): synthetic before = clear 100 %, fade 71 %, effect 32 %, player
+  32 %, ui 41 %, edge 14 %; 0 false tracks, 0 ghosts on 50 mob-free frames.
 - 3.1 D in shadow: D + its patches in FrameFacts; measured on the clips: labelled mobs inside a patch, patch area
   p50 / p90 (the fit's cost), ms.
 - 3.2 the fit: the scene split per mob layer (behind / front planes; together = today's expected()), per window

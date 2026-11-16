@@ -56,8 +56,9 @@ The user supervises every run at the PC. Botting is against Nexon's ToS (ban ris
 ## START HERE NEXT SESSION: step 3 (the mob matcher), order AGREED 2026-11-16 - see "Step 3 state" below
 Step 2 is done and live-checked (below). Step 3's order is in PLAN-perception.md ("Step 3") and "Step 3 state"
 (after "Step 2 state"): 3.0a labels -> 3.0b synthetic frames -> 3.1 D in shadow -> 3.2 the fit -> 3.3 FrameFacts v2
-in shadow -> 3.4 the switch on clean maps. **3.0a DONE (labels + "before" numbers in "Step 3 state"); NEXT = 3.0b
-synthetic frames, proposed, waiting for the user's OK.** `watch` is RUNNING again (restarted by the user): never stop it.
+in shadow -> 3.4 the switch on clean maps. **3.0a + 3.0b DONE (labels, synthetic frames, "before" numbers on both in
+"Step 3 state"); NEXT = 3.1 (D in shadow), proposed, waiting for the user's OK.** `watch` is RUNNING again (restarted
+by the user): never stop it.
 
 ### TASK (the user, 2026-11-16): improve the gate test by taking NEW footage
 The tests on pre-native footage were deleted (d87e5b4; the Lie Detector ones kept); for now the gate = today's
@@ -490,6 +491,41 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     `label.py RUN JUDGED` -> RUN/labels.json v2. Seen while labelling: many weak / unseen tracks are real
     mobs under the cursor tooltip / quickslots / chat (u), behind players (p), or fading in (f); "n" = tracks on
     nothing (dying tracks after the corpse went, a few ghosts).
+  - **3.0b DONE (2026-11-16): synthetic frames with exact truth** (tools/perc/synth/, README = make.py / synth.py
+    docstrings; nothing on the live path). Base = the 300 labelled frames of 012059_1 at their followed camera
+    (cams.json) with their real mobs ERASED (every D blob that isn't our character's blob or under the UI ->
+    the expected scene); what can't be erased (our blob, often with a mob merged into it; the UI) = "dontcare"
+    boxes + the labelled mobs there as "unsure". Mobs drawn as the client does: sprite alpha x opacity, feet on a
+    foothold, the tiles / objects of the layers above the foothold's re-drawn over it (rendered from the export
+    by scene.build_scene on those layers, cached runs/synth/cache/<map>/front_L.png; Ant Tunnel IV: all 497
+    footholds on layer 1, no front backs), both facings, every pose (19 Horny: stand 3 / move 4 / hit / die 4;
+    21 Zombie: stand 2 / move 4 / jump / hit / die 3). Over them: **Effect/BasicEff WAS exported** (export.ps1,
+    2026-11-16) -> the client's red damage digits (NoRed1 first + NoRed0, HeavenClient's advances); our character
+    cut from 24 other frames (D blob at obs.me, <= 140x120: body, tag, the pet snail, drops beside it); the UI
+    (chat / quickslots: the base's own UI pixels re-drawn, opaque where they differ from the scene; only rects with
+    no real mob near: a mob under the UI passes for UI). Not available: weapon hit sparks / skill effects (not in
+    BasicEff), speech bubbles (none cut). Dying / hit frames carry a "prime" frame (the mob alive, same feet) shown
+    to the tracker first (it turns tracks dying, never starts one so).
+    Truth (synth.json = labels.json v2 + per frame case / base / C / dontcare, per mob pose / facing / opacity /
+    onscreen / vis / cover {s, e, p, u} / layer / box). `make.py RUN --n 500 --seed 1 --out runs/synth/ant4_500`
+    (~2 min, 0.6 GB, + sheet.png = one frame per case), `before.py OUT` (today's Perceiver per frame: fresh
+    tracker, scene camera started at C, 2 ticks 0.05 s apart; 61 s), `label_eval.py OUT --labels synth.json
+    --tracks before.jsonl --synth` (+ recall per case / opacity / on-screen / visible share, "seen" = sighted on
+    that frame, the ghost test). pytest set: tests/fixtures/synth_ant4 (seed 7, 40 frames, stored as the window
+    around the mobs, 4.7 MB; tests/test_synth.py: clear mobs 1:1 with the sprite, the fade opacity from the
+    regression slope within 0.12, label_eval scores the truth 100 % / 0 false).
+    **"Before" on synthetic (HEAD detector + tracker, mob score 0.70, runs/synth/ant4_500, 500 frames, 786 mobs):**
+    found 67.4 % (not dying 62.5 %), wrong type 0, **false tracks 0, ghost test 0 on 50 mob-free frames** (half
+    with damage digits / our character over bare scenery; not counted: unsure 254 = real mobs kept in our blob,
+    dontcare 4). Recall per case (synthetic | labels): clear 100 | 94.0, scenery 93.8 | 90.2, dying 100 (seen, as
+    die poses by the near search) | 90.2, hit 100 | 81.8, fade 71.4 | 51.1, ui 40.7 | 66.7, player 31.8 | 75.8,
+    effect 31.5 | 86.4, edge 14.0 | 71.7. Fade by opacity: 0.20-0.35 8.7 %, 0.35-0.50 71.9 %, >= 0.5 100 %. Edge
+    by on-screen share: 0.3-0.5 0 %, 0.5-0.6 12.5 %, 0.6-0.7 42.9 % (the new-track rule: 60 % on screen, < 60 %
+    needs 0.70). By visible share: < 0.5 0 of 111, 0.5-0.7 18 %, 0.7-0.9 85 %, >= 0.9 92.6 %. Why lower than the
+    labels on effect / player / edge: the labelled ones are mostly mobs the tracker already followed (it holds a
+    track through cover), the synthetic ones are first sightings - the honest number for "can the frame show it";
+    synthetic covers are also heavier (visible share p50: effect 0.62, player 0.61, ui 0.60, edge 0.50). Takeaway for 3.2: the misses are all "part of the body is
+    something else" (cover, opacity, edge) - exactly the per-pixel fit's job; no ghost to fix on this map.
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")
