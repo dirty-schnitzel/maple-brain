@@ -56,7 +56,8 @@ The user supervises every run at the PC. Botting is against Nexon's ToS (ban ris
 ## START HERE NEXT SESSION: step 3 (the mob matcher), order AGREED 2026-11-16 - see "Step 3 state" below
 Step 2 is done and live-checked (below). Step 3's order is in PLAN-perception.md ("Step 3") and "Step 3 state"
 (after "Step 2 state"): 3.0a labels -> 3.0b synthetic frames -> 3.1 D in shadow -> 3.2 the fit -> 3.3 FrameFacts v2
-in shadow -> 3.4 the switch on clean maps. `watch` is RUNNING again (restarted by the user): never stop it.
+in shadow -> 3.4 the switch on clean maps. **3.0a DONE (labels + "before" numbers in "Step 3 state"); NEXT = 3.0b
+synthetic frames, proposed, waiting for the user's OK.** `watch` is RUNNING again (restarted by the user): never stop it.
 
 ### TASK (the user, 2026-11-16): improve the gate test by taking NEW footage
 The tests on pre-native footage were deleted (d87e5b4; the Lie Detector ones kept); for now the gate = today's
@@ -467,13 +468,26 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     clean scene keep today's path whole, per tick; labels = the 300 picked frames of 012059_1 (no extra maps until
     the new footage); tests on pre-native footage deleted (d87e5b4: 1200 -> 1074 tests; kept: every Lie Detector
     test + test_runner / test_window, which run the loop on look_snails + tests/fixtures/self_tag_gray.npy).
-  - **3.0a IN PROGRESS: by-eye labels (253 of 300 judged, in pick order; NEXT sheet = n9831, the pick after n9786; the rest: 9831..11574, 45 sheets). The user finds this costly: judge 2 sheets per Read pair, terse tokens, commit every ~20.** `tools/perc/labels/patches.py RUN PICK` = the camera followed over every saved
+  - **3.0a DONE (2026-11-16): all 300 picked frames of 012059_1 judged** -> RUN/labels.json v2: 1547 mobs, 102
+    recording tracks judged empty, 93 unsure spots; classes (a mob may carry several) clear 917, player 227, effect
+    177, fade 133, dying 82, ui 72, edge 60, scenery 51, hit 33. `tools/perc/label_eval.py RUN [--tracks
+    replay/X.jsonl] [--list]` reads v2 (v1 too): recall + type per class, false tracks by source (unmatched tracks
+    at an unsure spot / dying / hidden not counted). **"Before" = HEAD (926c467) replayed over every saved frame**
+    (`replay/run.py RUN --out before`, mob score 0.70, 169 s; RUN/replay/before.jsonl):
+    found 1334 / 1547 = 86.2 % (not dying 86.0 % of 1465), wrong type 74; false tracks 145 = 9.8 % (coast 134,
+    near 6, acq 5; not counted: unsure 45, dying 58, hidden 5). Recall per class: clear 94.0 %, scenery 90.2,
+    dying 90.2, effect 86.4, hit 81.8, player 75.8, edge 71.7, ui 66.7, fade 51.1 (type right on 85-100 % of the
+    found; ui 85.4 / edge 88.4 / clear 94.0 lowest). Takeaways: false tracks are almost all COASTING tracks (no
+    sighting: the mob moved / died / was a fade) = step 4's evidence; misses are fade-ins, UI over the mob, players
+    in front and the screen edge = 3.2 (opacity + per-pixel labels) and step 5 (players as occluders).
+    Labelling notes: where two mobs overlap and one track sits between them, the token moves it (@x,y) to the mob
+    of its type if one is there, else to the nearer; mobs fully under the quickslots = "?" or not added.
+    `tools/perc/labels/patches.py RUN PICK` = the camera followed over every saved
     frame (3858 / 3858, cached RUN/labels/cams.json), D patches per picked frame (p50 13, max 27), one sheet per frame
     in RUN/labels/sheets/ (the frame + the recording's tracks lettered + a 2x tile per track and per untracked patch,
     screen ticks + footholds). Judgments: tools/perc/labels/20261116_012059_1_judged.jsonl (format in
     tools/perc/labels/label.py: a token per track letter + added mobs + unsure spots, classes e/p/s/u/f/d/x/h);
-    `label.py RUN JUDGED` -> RUN/labels.json v2. Sheets are judged in pick order (the line count = done). After the
-    300: label_eval per class (v2 reader) = the "before" numbers. Seen so far: many weak / unseen tracks are real
+    `label.py RUN JUDGED` -> RUN/labels.json v2. Seen while labelling: many weak / unseen tracks are real
     mobs under the cursor tooltip / quickslots / chat (u), behind players (p), or fading in (f); "n" = tracks on
     nothing (dying tracks after the corpse went, a few ghosts).
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).

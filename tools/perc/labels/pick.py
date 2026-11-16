@@ -6,7 +6,7 @@ Half spread evenly over the run (what perception sees on average), half the hard
 a swing of ours in the last 0.4 s with a mob within 200 px (effects, damage numbers over mobs), a live track near
 us not sighted this frame (covered or lost), a weak sighting (score < 0.8), a dying track, a track at the screen's
 edge, a tentative track, us on a rope. Hard frames keep >= 0.5 s apart. Output: {"run", "frames": [{"n", "frame",
-"t", "why"}]}; the labels go to RUN/labels.json ({tick: {"real": [[x, feet y]], "missed": [...]}}, label_eval.py).
+"t", "why"}]}; the labels go to RUN/labels.json v2 (labels/label.py, label_eval.py).
 """
 import argparse
 import json
