@@ -584,6 +584,31 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     (5) Deliverables: the planes + test; perception/fit.py (not wired: 3.3 runs it in shadow); tools/perc/fit/
     (offline: thresholds on synth, report on labels). Gate: synth recall >= 99 % per case, 0 false mobs on the 50
     mob-free frames and on Dangerous Steam's ghost spots, every label class >= today's (3.0a's "before"), ms.
+  - **3.2 IN PROGRESS (2026-11-16, session cut by the usage limit):**
+    - DONE planes: `assets scene` writes `layers/behind_L.png` + `front_L.png` per foothold layer (rebuilt the 5
+      clean maps; scene.png bit-identical); `Scene.split(C, L)` -> B, known_B, F, A; expected() refactored onto
+      `_backs` / `_anim` (same output). tests/test_scene_layers.py: F + (1 - A) B = expected() within 1.5 levels
+      (two rounded uint8 canvases; kept uint8, fp16 of them = the same numbers). Line 1 / Transfer: 8-10 planes, ~250 MB.
+    - v1 `perception/fit.py` (not wired) + tools/perc/fit/run.py (synth | labels | ghosts --live) + sweep.py.
+      Stage 2 opacity = MODE of per-pixel ratios (median failed under > 50 % cover); jump poses = "air" group
+      (synth lifts them 10-45 px; real: a falling Zombie at 012059_1 n1710 had no foothold within 40 px -> next: free y).
+    - Loose run, synth ant4_500: **99.1 % (779 / 786), 0 wrong type, 2 false (a faint die1_2 at y 712 on 2 free
+      frames, gone at min_seen 200)**; per case clear / fade / dying / hit / scenery / edge 100 %, player 98.2, effect
+      97.8, ui 94.9. ui misses = hud.ui_mask's chat rect (630-700) hides world that is visible at native -> fit must
+      treat the UI as per-pixel cover (no mask) and D windows unmask the chat rect. player / effect misses = vis
+      0.16-0.40: stage 1's least-squares rank puts them 27th-6576th in their window.
+    - Labels (012059_1, 0.03 / 100 / 0.3): 86.4 %, clear 90.3, false 148: looked at 12 -> mostly LABEL offsets of
+      25-60 px (jumping / overlapping mobs: labels sit at the recording's track) or unlabelled mobs (behind players,
+      behind the see-through minimap) - the fit's pixels match 100 %. Needs a fair match rule for both sides
+      (e.g. label feet inside the body box) before the "every class >= before" gate means anything. One real stage-1
+      miss: n549, a fully visible Zombie (2547 / 2547 px exact) not in the top-K of a 2-mob window.
+    - **SPEED IS THE BLOCKER: v1 ~220 ms / frame.** cudnn conv with 75x72 kernels runs at ~3 TMAC/s (air strips
+      0.1). NEXT (planned, not built): `_positions` vectorized (100 ms of Python today); D-pruned positions (box share
+      of D-bad over valid pixels via integral images) then exact Srq / Sqq by gather + fp16 matmul at the survivors;
+      stage 2 + the greedy pick batched (pick on the CPU). Then: ghosts run (Dangerous Steam live weak tracks: 85, 266
+      sightings, cameras from replay/HEAD.jsonl scene_cam), thresholds, report, pytest fit test. If 5 ms p90 is out of
+      reach exactly: tell the user with numbers (options: coarse stride, grey stage 1, FFT) - no change of course
+      without their word.
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")

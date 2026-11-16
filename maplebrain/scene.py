@@ -163,6 +163,22 @@ def build_scene(img: dict, m: dict, parts: _Parts) -> tuple:
     return out, (anim if n_anim else None), meta
 
 
+def mob_layers(m: dict) -> list:
+    """The foothold layers of a map (map.json): the layers its mobs can be drawn on (a mob is drawn on its
+    foothold's layer: over the tiles / objects of layers <= L, under those of layers > L)."""
+    return sorted({int(f.get("layerId", 0)) for f in (m.get("footholds") or {}).values()})
+
+
+def build_layers(img: dict, m: dict, parts: _Parts, layers) -> dict:
+    """L -> (behind, front): premultiplied BGRA uint8 canvases (scene.png's coordinates) of the tiles / objects of
+    layers <= L and of layers > L (PLAN-perception.md step 3.2: the fit's planes)."""
+    out = {}
+    for L in layers:
+        sub = [{str(k): img[str(k)] for k in ks if str(k) in img} for ks in (range(0, L + 1), range(L + 1, 8))]
+        out[L] = tuple(build_scene(s, m, parts)[0] for s in sub)
+    return out
+
+
 def build_scenes(export: Path, assets: Path, map_ids=None, out: Path = ROOT, log=print) -> int:
     """Render the scenes of `map_ids` (default: every map with mob spawns) into `out`. Returns how many."""
     from .gamedata import load_xml
@@ -180,13 +196,19 @@ def build_scenes(export: Path, assets: Path, map_ids=None, out: Path = ROOT, log
             log(f"map {mid}: not in the export / assets")
             continue
         img = load_xml(src)
-        canvas, anim, meta = build_scene(img, json.loads(mj.read_text(encoding="utf-8")), parts)
+        m = json.loads(mj.read_text(encoding="utf-8"))
+        canvas, anim, meta = build_scene(img, m, parts)
         if canvas is None:
             log(f"map {mid}: no footholds / bounds")
             continue
         d = out / str(mid)
         d.mkdir(parents=True, exist_ok=True)
         cv2.imwrite(str(d / "scene.png"), canvas, [cv2.IMWRITE_PNG_COMPRESSION, 3])
+        meta["layers"] = mob_layers(m)
+        (d / "layers").mkdir(exist_ok=True)
+        for L, pair in build_layers(img, m, parts, meta["layers"]).items():
+            for name, c in zip(("behind", "front"), pair):
+                cv2.imwrite(str(d / "layers" / f"{name}_{L}.png"), c, [cv2.IMWRITE_PNG_COMPRESSION, 3])
         if anim is not None:
             cv2.imwrite(str(d / "anim.png"), anim)
         elif (d / "anim.png").exists():
@@ -213,14 +235,19 @@ def back_pos(b: dict, C, woff: int = WOFF, hoff: int = HOFF) -> tuple:
 
 
 class Scene:
-    def __init__(self, meta: dict, canvas: np.ndarray, back_pics: list, anim: np.ndarray | None = None, device=None):
-        """`canvas`: premultiplied BGRA uint8 (tiles + objects); `back_pics`: straight-alpha BGRA per meta back."""
+    def __init__(self, meta: dict, canvas: np.ndarray, back_pics: list, anim: np.ndarray | None = None, device=None,
+                 layers: dict | None = None):
+        """`canvas`: premultiplied BGRA uint8 (tiles + objects); `back_pics`: straight-alpha BGRA per meta back;
+        `layers`: L -> (behind, front) premultiplied BGRA uint8 canvases like `canvas` (build_layers; `split`)."""
         import torch
         self.torch = torch
         self.dev = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.meta, self.x0, self.y0 = meta, meta["x0"], meta["y0"]
         self.woff, self.hoff = WOFF, HOFF                            # (not the build's: a constant of the client)
         self.canvas = torch.from_numpy(np.ascontiguousarray(canvas)).to(self.dev)              # (h, w, 4) uint8
+        # the fit's planes (step 3.2), kept as the stored uint8 (fp16 of them is the same numbers at twice the memory)
+        self.layers = {int(L): tuple(torch.from_numpy(np.ascontiguousarray(c)).to(self.dev) for c in pair)
+                       for L, pair in (layers or {}).items()}
         self.anim = None if anim is None else torch.from_numpy(anim > 0).to(self.dev)
         self.backs = []
         for b, pic in zip(meta["backs"], back_pics):
@@ -283,7 +310,9 @@ class Scene:
         canvas = cv2.imread(str(d / "scene.png"), cv2.IMREAD_UNCHANGED)
         anim = cv2.imread(str(d / "anim.png"), cv2.IMREAD_GRAYSCALE) if (d / "anim.png").exists() else None
         pics = [cv2.imread(str(Path(root) / "backs" / b["file"]), cv2.IMREAD_UNCHANGED) for b in meta["backs"]]
-        return cls(meta, canvas, pics, anim, device)
+        layers = {L: tuple(cv2.imread(str(d / "layers" / f"{k}_{L}.png"), cv2.IMREAD_UNCHANGED) for k in ("behind", "front"))
+                  for L in meta.get("layers") or [] if (d / "layers" / f"front_{L}.png").exists()}
+        return cls(meta, canvas, pics, anim, device, layers)
 
     @staticmethod
     def have(map_id: int, root: Path = ROOT) -> bool:
@@ -318,16 +347,87 @@ class Scene:
         plane = t[ys.clamp(0, ph - 1)][:, xs.clamp(0, pw - 1)]
         return plane * (oky[:, None] & okx[None, :])[..., None]
 
-    def _crop(self, C, w: int, h: int):
-        """The tile / object canvas for camera C, zero outside the rendered area: (h, w, 4) uint8."""
+    def _crop(self, C, w: int, h: int, canvas=None):
+        """The tile / object canvas (default: all layers) for camera C, zero outside the rendered area: (h, w, 4)
+        uint8."""
         torch = self.torch
+        canvas = self.canvas if canvas is None else canvas
         ax, ay = int(C[0]) - self.x0, int(C[1]) - self.y0
-        ch, cw = self.canvas.shape[:2]
+        ch, cw = canvas.shape[:2]
         out = torch.zeros((h, w, 4), dtype=torch.uint8, device=self.dev)
         x0, y0, x1, y1 = max(0, ax), max(0, ay), min(cw, ax + w), min(ch, ay + h)
         if x1 > x0 and y1 > y0:
-            out[y0 - ay:y1 - ay, x0 - ax:x1 - ax] = self.canvas[y0:y1, x0:x1]
+            out[y0 - ay:y1 - ay, x0 - ax:x1 - ax] = canvas[y0:y1, x0:x1]
         return out
+
+    def _backs(self, C, w: int, h: int, front: int, out, cover, unknown, pre: bool = True):
+        """Draw the background layers (`front` or not) over (out premultiplied bgr, cover, unknown) for camera C ->
+        the three updated. `pre`: from the pre-composed groups (`_compose`); False = layer by layer."""
+        def draw(b, t):
+            nonlocal out, cover, unknown
+            plane = self._back_plane(b, t, C, w, h)
+            a = plane[..., 3:4] / 255.0
+            if not b["known"]:
+                unknown = unknown | (a[..., 0] > 0.02)
+                return
+            out = out * (1 - a) + plane[..., :3]
+            cover = cover * (1 - a[..., 0]) + a[..., 0]
+
+        for item in self.groups[front] if pre else [("one", b, t) for b, t in self.backs if bool(b["front"]) == bool(front)]:
+            if item[0] == "one":
+                draw(item[1], item[2])
+                continue
+            _, key, g, (U0, V0), layers = item
+            sx, sy = self._shift(*key, C)
+            u, v = -sx - U0, -sy - V0                                 # the plane's column / row at screen (0, 0)
+            if u < 0 or v < 0 or u + w > g.shape[1] or v + h > g.shape[0]:
+                for b, t in layers:                                   # a camera outside the rendered area
+                    draw(b, t)
+                continue
+            crop = g[v:v + h, u:u + w].float()
+            a = crop[..., 3:4]
+            out = out * (1 - a) + crop[..., :3]
+            cover = cover * (1 - a[..., 0]) + a[..., 0]
+        return out, cover, unknown
+
+    def _anim(self, C, w: int, h: int):
+        """(h, w) bool: where an animated object draws (unknown), or None."""
+        if self.anim is None:
+            return None
+        torch = self.torch
+        ax, ay = int(C[0]) - self.x0, int(C[1]) - self.y0
+        an = torch.zeros((h, w), dtype=torch.bool, device=self.dev)
+        ch, cw = self.anim.shape
+        x0, y0, x1, y1 = max(0, ax), max(0, ay), min(cw, ax + w), min(ch, ay + h)
+        if x1 > x0 and y1 > y0:
+            an[y0 - ay:y1 - ay, x0 - ax:x1 - ax] = self.anim[y0:y1, x0:x1]
+        return an
+
+    def split(self, C, L: int, w: int = W, h: int = PLAY_H) -> tuple:
+        """The scene split at foothold layer L (PLAN-perception.md step 3.2): what a mob on layer L is drawn over
+        and what is drawn over it, for camera C, the top `h` rows. -> (B bgr float (h, w, 3) = backs + tiles /
+        objects of layers <= L, known_B bool (h, w), F premultiplied bgr float (h, w, 3) = tiles / objects of layers
+        > L + the front backs, A float (h, w) = F's alpha). F + (1 - A) * B = expected(C) (tests/test_scene.py);
+        known_B = B is fully covered by fixed scenery and nothing animated / moving draws there (where A ~ 1 the
+        pixel shows F alone, whatever B is). Needs the build's layers (assets scene, 2026-11-16 3.2 on)."""
+        torch = self.torch
+        behind, front = self.layers[int(L)]
+        z3 = torch.zeros((h, w, 3), device=self.dev)
+        z1 = torch.zeros((h, w), device=self.dev)
+        unk = torch.zeros((h, w), dtype=torch.bool, device=self.dev)
+        B, cov, unk = self._backs(C, w, h, 0, z3, z1, unk)
+        sc = self._crop(C, w, h, behind).float()
+        a = sc[..., 3] / 255.0
+        B = B * (1 - a[..., None]) + sc[..., :3]
+        cov = cov * (1 - a) + a
+        unk = unk & (a < 0.98)
+        fc = self._crop(C, w, h, front).float()
+        F, A, unk_f = self._backs(C, w, h, 1, fc[..., :3], fc[..., 3] / 255.0, torch.zeros_like(unk))
+        known = (cov > 0.98) & ~unk & ~unk_f
+        an = self._anim(C, w, h)
+        if an is not None:
+            known &= ~an
+        return B, known, F, A
 
     def expected(self, C, w: int = W, h: int = PLAY_H, pre: bool = True) -> tuple:
         """What the frame's top `h` rows show for camera C where nothing moves: (bgr float tensor (h, w, 3), known
@@ -339,50 +439,16 @@ class Scene:
         out = torch.zeros((h, w, 3), device=self.dev)
         cover = torch.zeros((h, w), device=self.dev)                 # how much fixed scenery covers the pixel
         unknown = torch.zeros((h, w), dtype=torch.bool, device=self.dev)
-
-        def draw(b, t):
-            nonlocal out, cover, unknown
-            plane = self._back_plane(b, t, C, w, h)
-            a = plane[..., 3:4] / 255.0
-            if not b["known"]:
-                unknown |= a[..., 0] > 0.02
-                return
-            out = out * (1 - a) + plane[..., :3]
-            cover = cover * (1 - a[..., 0]) + a[..., 0]
-
-        def draw_all(front):
-            nonlocal out, cover
-            for item in self.groups[front] if pre else [("one", b, t) for b, t in self.backs if bool(b["front"]) == bool(front)]:
-                if item[0] == "one":
-                    draw(item[1], item[2])
-                    continue
-                _, key, g, (U0, V0), layers = item
-                sx, sy = self._shift(*key, C)
-                u, v = -sx - U0, -sy - V0                             # the plane's column / row at screen (0, 0)
-                if u < 0 or v < 0 or u + w > g.shape[1] or v + h > g.shape[0]:
-                    for b, t in layers:                               # a camera outside the rendered area
-                        draw(b, t)
-                    continue
-                crop = g[v:v + h, u:u + w].float()
-                a = crop[..., 3:4]
-                out = out * (1 - a) + crop[..., :3]
-                cover = cover * (1 - a[..., 0]) + a[..., 0]
-
-        draw_all(0)
+        out, cover, unknown = self._backs(C, w, h, 0, out, cover, unknown, pre)
         sc = self._crop(C, w, h).float()
         a = sc[..., 3:4] / 255.0
         out = out * (1 - a) + sc[..., :3]
         cover = cover * (1 - a[..., 0]) + a[..., 0]
         unknown &= a[..., 0] < 0.98                                  # an unknown back behind opaque scenery: hidden
-        if self.anim is not None:
-            ax, ay = int(C[0]) - self.x0, int(C[1]) - self.y0
-            an = torch.zeros((h, w), dtype=torch.bool, device=self.dev)
-            ch, cw = self.anim.shape
-            x0, y0, x1, y1 = max(0, ax), max(0, ay), min(cw, ax + w), min(ch, ay + h)
-            if x1 > x0 and y1 > y0:
-                an[y0 - ay:y1 - ay, x0 - ax:x1 - ax] = self.anim[y0:y1, x0:x1]
+        an = self._anim(C, w, h)
+        if an is not None:
             unknown |= an
-        draw_all(1)
+        out, cover, unknown = self._backs(C, w, h, 1, out, cover, unknown, pre)
         return out, (cover > 0.98) & ~unknown
 
     # ---- the camera
