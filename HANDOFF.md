@@ -57,7 +57,7 @@ The user supervises every run at the PC. Botting is against Nexon's ToS (ban ris
 Step 2 is done and live-checked (below). Step 3's order is in PLAN-perception.md ("Step 3") and "Step 3 state"
 (after "Step 2 state"): 3.0a labels -> 3.0b synthetic frames -> 3.1 D in shadow -> 3.2 the fit -> 3.3 FrameFacts v2
 in shadow -> 3.4 the switch on clean maps. **3.0a + 3.0b DONE (labels, synthetic frames, "before" numbers on both in
-"Step 3 state"); NEXT = 3.1 (D in shadow), OK'd by the user 2026-11-16 (proposal at the end of the 3.0b entry in "Step 3 state").** `watch` is RUNNING again (restarted
+"Step 3 state"); NEXT = 3.1 (D in shadow), OK'd by the user 2026-11-16 (plan: the "3.1" bullet in "Step 3 state").** `watch` is RUNNING again (restarted
 by the user): never stop it.
 
 ### TASK (the user, 2026-11-16): improve the gate test by taking NEW footage
@@ -526,6 +526,13 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     track through cover), the synthetic ones are first sightings - the honest number for "can the frame show it";
     synthetic covers are also heavier (visible share p50: effect 0.62, player 0.61, ui 0.60, edge 0.50). Takeaway for 3.2: the misses are all "part of the body is
     something else" (cover, opacity, edge) - exactly the per-pixel fit's job; no ghost to fix on this map.
+  - **3.1 (D in shadow), OK'd by the user 2026-11-16:** on ticks with the scene camera found, D = |frame -
+    expected(C)| > 4 on the GPU (known scenery, outside hud.ui_mask), the label tool's blob rule (3x3 core, grown
+    13x13, >= 60 px) -> patches [x, y, w, h, area] in FrameFacts (version bump); nothing reads them (tracking
+    unchanged). Measure: synthetic = share of pasted mobs inside a patch per visible share (target 100 %), patches
+    on mob-free frames only at our blob + the pasted distractors; labels = labelled mobs inside a patch; gate clips
+    = patches per frame + area p50 / p90 (the fit's cost) and D's ms (bench, game running). Gate: replay the same
+    tracks, bench <= baseline + D's measured cost.
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")
