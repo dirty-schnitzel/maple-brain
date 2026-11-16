@@ -35,7 +35,7 @@ def test_gpu_grey_is_cv2s_bit_for_bit():
 
 
 @pytest.mark.parametrize("name", ["lie_detector_game.jpg", "lie_detector_panel.jpg", "lie_detector_blue_game.jpg",
-                                  "lie_detector_question.jpg", "lie_detector_none.jpg", "perf_ant4/022.jpg"])
+                                  "lie_detector_question.jpg", "lie_detector_none.jpg", "perf_ant4/022.webp"])
 def test_gpu_scores_and_places_are_cv2s(name):
     from maplebrain.perception.liedetector import GpuLieLook
     tpls = _tpls()

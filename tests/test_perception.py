@@ -5,125 +5,17 @@ import cv2
 import numpy as np
 import pytest
 
-from maplebrain.config import Config
 from maplebrain.perception import hud
-from maplebrain.perception.perceiver import Perceiver
 from maplebrain.perception.selfpos import find_self
 
 FX = Path(__file__).parent / "fixtures"
-TAG = np.load(FX / "self_tag_gray.npy")
-
-
-def img(name):
-    f = cv2.imread(str(FX / name))
-    assert f is not None, name
-    return f
+TAG = np.load(Path(__file__).parents[1] / "assets" / "self_tag_gray.npy")      # the bot's own (1:1 native)
 
 
 # ---------------------------------------------------------------- own position
-@pytest.mark.parametrize("name, xy", [
-    ("self_normal.png", (674, 579)),
-    ("self_bridge.jpg", (717, 560)),          # tag in front of the bright woven bridge (hunt6: lost for 15s)
-    ("self_dim_on_grass.jpg", (1051, 594)),   # dim anti-aliased tag over grass (hunt6d: never found)
-    ("self_under_cloud.jpg", (277, 519)),     # drifting cloud over the tag (manual 20261101_225745_2 287 s:
-    ("self_under_cloud_swing.jpg", (277, 519)),  # 0.46 before the high-pass, 2 s of 'hidden? backing out')
-])
-def test_finds_own_name_tag(name, xy):
-    me = find_self(img(name), TAG)
-    assert me is not None and abs(me[0] - xy[0]) <= 3 and abs(me[1] - xy[1]) <= 3
-
-
-def test_hidden_behind_foreground_object_is_not_found():
-    assert find_self(img("self_hidden_behind_basket.jpg"), TAG) is None
-
-
-@pytest.mark.parametrize("name", ["self_normal.png", "self_bridge.jpg", "self_dim_on_grass.jpg",
-                                  "self_under_cloud.jpg", "hp_30_of_66_two_mob_bars.png", "exp_88_24.jpg"])
-def test_searching_near_a_wrong_spot_never_matches_something_else(name):
-    f = img(name)
-    me = find_self(f, TAG)
-    for off in (-250, 250):
-        r = find_self(f, TAG, near=(me[0] + 37 + off, me[1]), min_score=0.64)
-        assert r is None or abs(r[0] - me[0]) <= 3          # finds us or nothing (once matched chat text)
-
-
 # ---------------------------------------------------------------- HUD
-@pytest.mark.parametrize("name, hp, mp", [
-    ("hp_30_of_66_two_mob_bars.png", (30, 66), (17, 17)),   # low HP: the bar turned pale pink (once read as 0%)
-    ("hp_60_of_66.jpg", (60, 66), (17, 17)),                  # (JPEG: blurred digits, pale brackets)
-    ("hp_0_dead.jpg", (0, 66), (17, 17)),
-    ("self_normal.png", (66, 66), (17, 17)),
-    ("exp_3_51.jpg", (77, 82), (29, 29)),
-    ("exp_24_56.jpg", (43, 82), (29, 29)),
-    ("quickslot_tooltip_over_end.jpg", (92, 130), (65, 65)),
-])
-def test_hp_mp_numbers(name, hp, mp):
-    """HP/MP come from the HUD text "HP [cur/max]" only (the user, session 16), not the bar's fill."""
-    f = img(name)
-    assert hud.read_pair(f, hud.HP_TEXT) == hp and hud.read_pair(f, hud.MP_TEXT) == mp
-
-
-@pytest.mark.parametrize("name", ["exp_88_24.jpg", "exp_3_51.jpg", "exp_24_56.jpg"])
-def test_exp_points_readable_on_older_hud_frames(name):
-    assert hud.exp_points(img(name)) is not None                    # (the bar isn't used any more: points only)
-
-
-def test_mob_hp_bars():
-    bars = sorted(hud.find_mob_bars(img("hp_30_of_66_two_mob_bars.png")))
-    assert [(b[0], b[1]) for b in bars] == [(626, 517), (692, 526)]
-
-
-def test_minimap_dot_found():
-    assert hud.minimap_dot(img("self_normal.png")) is not None
-
-
 # ---------------------------------------------------------------- perceiver + motion look
-def test_look_finds_snails_on_our_ground_line_and_nothing_else():
-    frames = [img(f"look_snails/f{i:03d}.png") for i in (87, 88, 89, 90)]
-    p = Perceiver(Config(), TAG)
-    obs = p.observe(frames[-1], t=0.0)
-    assert obs.me is not None and obs.me[1] == 579
-    obs = p.look(frames, obs)
-    assert obs.look_align > 0.9
-    xs = sorted(int(b[0] + b[2] / 2) for b in obs.moving)
-    # three snails walking on our ground line; flowers/foliage/high leaves rejected
-    assert len(xs) == 3 and all(abs(a - b) <= 12 for a, b in zip(xs, [252, 318, 437]))
-
-
-def test_perceiver_observation_fields():
-    p = Perceiver(Config(), TAG)
-    obs = p.observe(img("hp_30_of_66_two_mob_bars.png"), t=1.0)
-    assert obs.me is not None
-    assert len(obs.bar_mobs) == 2 and obs.known_mobs[:2] == obs.bar_mobs
-    assert obs.hp == pytest.approx(30 / 66, abs=0.04)
-
-
 # ---------------------------------------------------------------- mob library
-def test_library_forgets_a_wrong_entry_even_when_the_tracker_box_is_bigger():
-    """pkg_swing1: a grass tuft got into the library (47x40); 'not a mob' asked it to forget the tracker's padded
-    55x48 template -> shapes never matched, nothing was forgotten, the bot hit the grass 33 times."""
-    from maplebrain.perception.mobs import MobLibrary, Tracker, gray
-    f = img("library_grass.jpg")
-    x, y, w, h = 690, 542, 47, 40
-    lib = MobLibrary()
-    lib.add(gray(f)[y:y + h, x:x + w])
-    assert lib.find(f, 579, [])                                             # it matches the grass
-    tracked = Tracker(f, (x, y, w, h))
-    assert tracked.box[2:] != (w, h)
-    lib.forget_at(f, tracked.box)
-    assert len(lib) == 0 and not lib.find(f, 579, [])
-
-
-def test_library_forget_keeps_entries_that_do_not_match_there():
-    from maplebrain.perception.mobs import MobLibrary, gray
-    f = img("library_grass.jpg")
-    lib = MobLibrary()
-    lib.add(gray(f)[542:582, 690:737])                                      # the grass
-    lib.add(gray(f)[540:580, 100:147])                                      # something elsewhere
-    lib.forget_at(f, (686, 538, 55, 48))
-    assert len(lib) == 1
-
-
 def test_mobs_a_step_below_us_count_but_not_ones_above():
     """pkg_swing1 start: we stood on a small step; snails on the ground ~60 px below were filtered out as 'not on
     our ground line'. Walking off a step is free; going up needs a jump."""
@@ -137,89 +29,7 @@ def test_mobs_a_step_below_us_count_but_not_ones_above():
 
 
 # ---------------------------------------------------------------- own tag cut off by the screen edge
-def _shift(frame, dx):
-    """The frame moved dx px sideways (what leaves the picture is gone, the rest is black)."""
-    return cv2.warpAffine(frame, np.float32([[1, 0, dx], [0, 1, 0]]), (frame.shape[1], frame.shape[0]))
-
-
-@pytest.mark.parametrize("visible", [70, 56, 46])
-def test_finds_own_tag_cut_off_by_the_right_screen_edge(visible):
-    """pkg_sprites3 69-76s: at the map's right end the camera stops and our tag ran off the screen ('JenkinsJ').
-    Not found for 7 s; 'backing out' walked further right while a Blue Snail hit us 65 -> 51 %."""
-    f = img("self_normal.png")                      # tag at x 674..748 (centre 711), top 579
-    W = f.shape[1]
-    dx = (W - visible) - 674
-    me = find_self(_shift(f, dx), TAG)
-    assert me is not None
-    assert abs((me[0] + me[2] / 2) - (711 + dx)) <= 3 and abs(me[1] - 579) <= 3
-
-
-@pytest.mark.parametrize("visible", [70, 50])
-def test_finds_own_tag_cut_off_by_the_left_screen_edge(visible):
-    f = img("self_normal.png")
-    dx = -(674 + 74 - visible)
-    me = find_self(_shift(f, dx), TAG)
-    assert me is not None
-    assert abs((me[0] + me[2] / 2) - (711 + dx)) <= 3 and abs(me[1] - 579) <= 3
-
-
-def test_a_sliver_of_a_tag_at_the_edge_is_not_trusted():
-    f = img("self_normal.png")
-    dx = (f.shape[1] - 25) - 674                   # only 25 of 74 px left: too little to be sure
-    assert find_self(_shift(f, dx), TAG) is None
-
-
-@pytest.mark.parametrize("name", ["hp_30_of_66_two_mob_bars.png", "exp_88_24.jpg", "library_grass.jpg"])
-def test_edge_search_does_not_invent_a_tag(name):
-    f = img(name)
-    me = find_self(f, TAG)
-    if me is not None:                              # the frame's real tag, wherever it is - never at an edge
-        assert 0 <= me[0] and me[0] + me[2] <= f.shape[1]
-
-
 # ---------------------------------------------------------------- potions: HP/MP bars and the quickslots
-def test_hp_mp_numbers_in_the_dark_low_hp_flash():
-    f = img("quickslot_hp_potions_4.jpg")
-    assert f.shape == (768, 1366, 3)
-    assert hud.read_pair(f, hud.HP_TEXT) == (60, 130) and hud.read_pair(f, hud.MP_TEXT) == (65, 65)
-
-
-def test_slot_with_potions_and_empty_slots():
-    f = img("quickslot_hp_potions_4.jpg")                                     # 4 red potions on Del, End empty
-    assert hud.slot_filled(f, "delete") is True
-    assert hud.slot_filled(f, "end") is False
-    assert hud.slot_filled(f, "ctrl") is False and hud.slot_filled(f, "pagedown") is False
-
-
-def test_no_potions_yet_reads_empty():
-    assert hud.slot_filled(img("quickslot_no_potions.jpg"), "delete") is False
-
-
-def test_unknown_key_has_no_slot():
-    assert hud.slot_filled(img("quickslot_hp_potions_4.jpg"), "f1") is None
-
-
-def test_a_tooltip_from_the_cursor_is_not_taken_for_mp_potions():
-    """pkg_sprites7b frame 300: the cursor on Del opened the potion's tooltip over End/PgDn."""
-    f = img("quickslot_tooltip_over_end.jpg")
-    assert hud.slot_filled(f, "end") is True                                  # the raw reading is fooled...
-    cfg = Config()
-    cfg.keys.hp_potion, cfg.keys.mp_potion = "delete", "end"                  # where these screenshots have them
-    p = Perceiver(cfg, TAG)
-    for i in range(5):
-        p.observe(img("quickslot_hp_potions_4.jpg"), i * 0.05)                # End empty before
-    obs = p.observe(f, 0.3, cursor=(990, 678))                                # ...cursor over the slots: skipped
-    assert obs.mp_potions is False and obs.hp_potions is True
-
-
-def test_one_odd_slot_reading_does_not_flip_the_answer():
-    p = Perceiver(Config(), TAG)
-    for i in range(4):
-        p.observe(img("quickslot_hp_potions_4.jpg"), i * 0.05)
-    obs = p.observe(img("quickslot_tooltip_over_end.jpg"), 0.25)              # no cursor info this time
-    assert obs.mp_potions is False
-
-
 # ---------------------------------------------------------------- the game's Lie Detector (anti-bot test)
 def _lie(background=False):
     from maplebrain.perception.liedetector import LieDetector
@@ -246,7 +56,7 @@ def test_the_clients_own_lie_detector_windows_are_seen_at_native(name):
     frames: >= 0.970), at any place on the screen; the plain frames stay far below the bar."""
     win = cv2.imread(str(FX / name), cv2.IMREAD_UNCHANGED)
     a = win[..., 3:4].astype(np.float32) / 255
-    for frame_name, (x, y) in (("000.jpg", (1080, 480)), ("022.jpg", (400, 200)), ("044.jpg", (0, 0))):
+    for frame_name, (x, y) in (("000.webp", (1080, 480)), ("022.webp", (400, 200)), ("044.webp", (0, 0))):
         frame = cv2.imread(str(FX / "perf_ant4" / frame_name))
         assert _lie().score(frame)[0] < 0.6
         h, w = win.shape[:2]
@@ -292,7 +102,7 @@ def test_lie_detector_bar_is_lowered_for_the_native_window_and_native_frames_sta
     from stretched windows: a real one is expected ~0.85 there). Best false score on native frames of 7 maps: 0.668."""
     lie = _lie()
     assert lie.min_score == 0.75
-    for name in ("000.jpg", "022.jpg", "044.jpg"):                   # native fight frames (Ant Tunnel IV)
+    for name in ("000.webp", "022.webp", "044.webp"):                   # native fight frames (Ant Tunnel IV)
         s, _ = lie.score(cv2.imread(str(FX / "perf_ant4" / name)))
         assert s < 0.70
 
@@ -369,8 +179,8 @@ def test_the_ui_mask_takes_the_minimap_window_as_measured():
     d = hud.ui_mask((768, 1366, 3))
     assert d[100, 220] == 1 and d[190, 100] == 0                     # the default: UI_RECTS' 215x195
     f = cv2.imread(str(Path(__file__).parent / "fixtures" / "perf_ant4" / sorted(
-        p.name for p in (Path(__file__).parent / "fixtures" / "perf_ant4").glob("*.jpg"))[0]))
-    w = find_window(f)                                                # Ant Tunnel IV (recorded 1 px left)
+        p.name for p in (Path(__file__).parent / "fixtures" / "perf_ant4").glob("*.webp"))[0]))
+    w = find_window(f)                                                # Ant Tunnel IV
     assert w is not None and hud.minimap_rect(w)[2:] in ((229, 198), (230, 198))
 
 
@@ -383,7 +193,7 @@ def test_the_gpu_tag_look_finds_what_the_cpu_look_finds():
     look = GpuTagLook(TAG, dev)
     fx = Path(__file__).parent / "fixtures" / "perf_ant4"
     n = found = 0
-    for p in sorted(fx.glob("*.jpg"))[::3]:
+    for p in sorted(fx.glob("*.webp"))[::3]:
         f = cv2.imread(str(p))
         cpu = find_self(f, TAG, min_score=0.66, edges=False)
         _, x, y = look.look(torch.from_numpy(f).to(dev), hud.ui_mask(f.shape))

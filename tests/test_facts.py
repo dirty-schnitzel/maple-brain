@@ -19,7 +19,7 @@ FX = Path(__file__).parent / "fixtures" / "perf_ant4"
 
 
 def _frames(n=6):
-    fs = sorted(FX.glob("*.jpg"))
+    fs = sorted(FX.glob("*.webp"))
     if not fs:
         pytest.skip("no tests/fixtures/perf_ant4")
     return [cv2.imread(str(p)) for p in fs[:n]]

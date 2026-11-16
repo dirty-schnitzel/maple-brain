@@ -1,10 +1,7 @@
 """Which map are we on (nav/identify.py): the on-screen minimap vs every map's canvas in assets/mcw.
 
-Fixtures (tests/fixtures/mapid/*.png) are the screen's corner (x 0-330, y 40-330) of recorded frames, 3 consecutive
-saved frames (~0.15-0.3 s apart) per map; the matching runs against all ~300 minimaps of assets/mcw, so look-alikes are
-in play (East Rocky Mountain I vs IV, Snail Hunting Ground III vs Hot Sand, Henesys Townstreet's single house that
-matched anything before the frame check). 10005063_ant_tunnel4_lower: a live frame from the lower right of Ant Tunnel
-IV, the window scrolled down to the canvas' rows 60-171.
+Synthetic minimap windows only (the recorded FHD fixtures were removed 2026-11-16 with the other pre-native footage;
+native ones to come with the new gate footage, HANDOFF).
 """
 from pathlib import Path
 
@@ -12,24 +9,11 @@ import cv2
 import numpy as np
 import pytest
 
-from maplebrain.nav.identify import NAME_FONT, MapIdentifier, name_scores
+from maplebrain.nav.identify import NAME_FONT, MapIdentifier
 from maplebrain.nav.localize import Window, find_window
 
 ROOT = Path(__file__).resolve().parents[1]
-FX = ROOT / "tests" / "fixtures" / "mapid"
 MCW = ROOT / "assets" / "mcw"
-CROP = (0, 40, 330, 330)        # x0, y0, x1, y1 of the fixtures
-
-
-def frame(name: str) -> np.ndarray:
-    """A 1366x768 frame with the fixture crop in its place."""
-    f = np.zeros((768, 1366, 3), np.uint8)
-    crop = cv2.imread(str(FX / f"{name}.png"))
-    x0, y0, x1, y1 = CROP
-    f[y0:y1, x0:x1] = crop
-    return f
-
-
 @pytest.fixture(scope="module")
 def ident():
     i = MapIdentifier.load(MCW)
@@ -38,43 +22,9 @@ def ident():
     return i
 
 
-MAPS = [("42_snail3", 42), ("50_split_road_crowd", 50), ("10004040_perion", 10004040),
-        ("10004050_east_rocky", 10004050)]
-
-
-@pytest.mark.parametrize("name,map_id", MAPS)
-def test_recognises_the_map_from_three_frames(ident, name, map_id):
-    m = ident.identify([frame(f"{name}_{i}") for i in range(3)])
-    assert m.map_id == map_id, m
-    assert m.score - m.runner_score >= 0.1                 # a clear lead, not a coin toss
-    assert m.origin is not None and m.origin[1] == 72      # the canvas sits under the window's title (y 72)
-
-
-@pytest.mark.parametrize("name,map_id", MAPS)
-def test_each_single_frame_is_never_another_map(ident, name, map_id):
-    for i in range(3):
-        assert ident.identify(frame(f"{name}_{i}")).map_id in (map_id, None)
-
-
-def test_crowded_minimap_with_markers_against_one_edge(ident):
-    """A Split Road with ~30 red player dots, portals against the right edge (that edge's contrast 34 vs ~140)."""
-    m = ident.identify(frame("50_split_road_crowd_0"))
-    assert m.map_id == 50
-
-
-def test_minimap_covered_by_the_inventory_is_no_answer(ident):
-    m = ident.identify(frame("covered_inventory_0"))
-    assert m.map_id is None and m.why
-
-
 def test_no_minimap_at_all(ident):
     m = ident.identify(np.full((768, 1366, 3), 90, np.uint8))
     assert m.map_id is None and "no minimap window" in m.why
-
-
-def test_a_covered_frame_among_good_ones_is_skipped(ident):
-    shots = [frame("covered_inventory_0"), frame("10004050_east_rocky_0"), frame("10004050_east_rocky_1")]
-    assert ident.identify(shots).map_id == 10004050
 
 
 # ---------------------------------------------------------------- synthetic: frame check and look-alikes
@@ -94,31 +44,12 @@ def _art(seed, h=60, w=140):
     return np.dstack([img, np.full((h, w), 255, np.uint8)])
 
 
-@pytest.mark.parametrize("name,box", [
-    ("10004040_perion_0", (6, 72, 243, 85)), ("42_snail3_0", (7, 72, 199, 101)),
-    ("10003061_line1_area1_0", (6, 72, 266, 66)),
-    ("10004050_east_rocky_0", (7, 72, 171, 128)),             # the 125 px canvas, centred in a wider window
-    ("10005063_ant_tunnel4_lower_0", (6, 72, 219, 112)),      # 112 rows of a 172-row canvas
-    ("50_split_road_crowd_0", (7, 72, 235, 68))])             # a marker on the frame row: 235 of 239
-def test_the_window_is_measured_on_screen(name, box):
-    assert find_window(frame(name)) == Window(*box)
-
-
 def test_a_window_is_found_wherever_it_sits():
     assert find_window(_window(_art(1)[..., :3], at=(20, 90))) == Window(20, 90, 140, 60)
 
 
 def test_no_window_on_a_blank_or_covered_screen():
     assert find_window(np.full((768, 1366, 3), 90, np.uint8)) is None
-    assert find_window(frame("covered_inventory_0")) is None
-
-
-def test_scrolled_window_live_frame(ident):
-    """Lower right of Ant Tunnel IV: the window shows rows 60-171 of the 172 (no map of that size fits any more)."""
-    m = ident.identify(frame("10005063_ant_tunnel4_lower_0"))
-    assert m.map_id == 10005063, m
-    assert m.score > 0.8 and m.score - m.runner_score >= 0.3
-    assert m.origin == (6, 72 - 60)                            # the canvas' top sits above the window
 
 
 @pytest.mark.parametrize("row", [0, 30, 60])
@@ -196,17 +127,6 @@ def test_a_canvas_of_another_size_never_fits():
 
 
 # ---------------------------------------------------------------- look-alikes told apart by the name
-def test_line1_area1_is_told_apart_by_its_name(ident):
-    """Line 1 <Area 1> / <Area 2> / Line 2 <Area 1>: minimaps 0.89 / 0.87 / 0.85 - the name above the canvas decides
-    (frames from runs/l1a1_trk2, JPEG)."""
-    shots = [frame(f"10003061_line1_area1_{i}") for i in range(3)]
-    m = ident.identify(shots)
-    assert m.map_id == 10003061, m
-    assert m.why == "told apart by the name"
-    sc = name_scores(shots[0], m.origin, {k: ident.names[k] for k in (10003061, 10003063, 10003066)})
-    assert sc[10003061] - max(sc[10003063], sc[10003066]) >= 0.15
-
-
 def _named_window(canvas_bgr, name, at=(10, 72)):
     """_window with the map's name printed white on a darker strip above the canvas (like the game's title)."""
     from PIL import Image, ImageDraw, ImageFont

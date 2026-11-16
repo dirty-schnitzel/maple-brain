@@ -1,66 +1,15 @@
 """Loot by sight (perception/drops.py): items lying on the ground bob up and down in place (the user: 'items are
 shimmering, floating and slightly moving vertically'); nothing else on the ground line does that."""
-import json
-from pathlib import Path
-
 import cv2
 import numpy as np
-import pytest
 
 from maplebrain.perception.drops import DropSpotter
 
-FIX = Path(__file__).parent / "fixtures" / "drops"
 FEET = 579
-
-
-def replay(name):
-    """Feed a recorded stretch (the band around our floor, every 3rd live frame) through a fresh DropSpotter."""
-    d = FIX / name
-    seq = json.loads((d / "seq.json").read_text(encoding="utf-8"))
-    y0, y1 = seq["rows"]
-    sp, every = DropSpotter(), []
-    for fr in seq["frames"]:
-        f = np.zeros((768, 1366, 3), np.uint8)
-        f[y0:y1] = cv2.imread(str(d / fr["file"]))
-        rep = sp.update(f, fr["t"], fr["me"][1], fr["me"][0])
-        every.append([b for b, _ in rep])
-    return every, seq
 
 
 def centre(b):
     return b[0] + b[2] / 2
-
-
-def test_drops_on_a_crowded_map_are_found():
-    """pkg_others2m 29.5-33.5 s, map 50: spores, a Blue Snail Shell and coins we never picked up lie left of us."""
-    every, _ = replay("map50_drops")
-    items = [186, 321, 400, 426, 525]         # last frame: spore, shell, coin, spore, a thin stick (centres)
-    last = every[-1]
-    assert len(last) >= 3
-    for b in last:
-        assert min(abs(centre(b) - x) for x in items) < 15, b
-        assert 540 <= b[1] + b[3] <= FEET + 4          # lying on our floor
-
-
-@pytest.mark.parametrize("name", ["map50_drops", "map50_crowd_none", "map42_snails_none", "map50_own_axe_none"])
-def test_no_drop_is_ever_reported_on_a_character_or_a_mob(name):
-    """pkg_human5m 242-246 s: 7 players, Shrooms, swings, no drops. pkg_decisive1 30-34 s: snails, flowers in the
-    wind. pkg_sight1 130 s: standing still facing left, our own axe sticks out 28 px and bobs with our breathing -
-    it was 'a drop at dx -28' (walked into a step at it for 5 s, many fake pickups). Characters stand over their name
-    tags; we are at me."""
-    every, seq = replay(name)
-    for boxes, fr in zip(every, seq["frames"]):
-        for b in boxes:
-            assert abs(centre(b) - fr["me"][0]) > 45, (fr["file"], b)          # not on us (nor our weapon)
-    if name.endswith("_none"):
-        assert all(not boxes for boxes in every)
-
-
-def test_drops_are_followed_while_the_camera_moves():
-    """The camera slides with us; a remembered drop's box moves with the scenery, it isn't lost or doubled."""
-    every, _ = replay("map50_drops")
-    counts = [len(b) for b in every[12:]]      # (from ~2 s in: each needs a few recorded frames to be confirmed)
-    assert min(counts) >= 2 and max(counts) <= 5
 
 
 # ---------------------------------------------------------------- synthetic: what counts as a drop

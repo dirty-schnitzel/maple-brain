@@ -71,9 +71,10 @@ def bench(frames: list, map_id: int = ANT4) -> dict:
     from maplebrain.nav.sim import SimDriver
     sys.path.insert(0, str(ROOT / "tools" / "perc"))
     import frames as rec                                           # a recording's 1 px capture error undone
-    per, me, brain, rig = build(map_id, scene_tol=30)              # JPEG: the scene camera at +-30 (exact: PNG runs)
+    jpeg = bool(frames) and Path(frames[0]).suffix.lower() == ".jpg"
+    per, me, brain, rig = build(map_id, scene_tol=30 if jpeg else 4)   # JPEG runs: the scene camera at +-30
     drv = SimDriver()
-    shift = rec.xshift(Path(frames[0]).parent) if frames else 0    # the fixture: xshift.txt beside the frames
+    shift = rec.xshift(Path(frames[0]).parent) if frames else 0    # a recording's xshift.txt beside its frames
     imgs = [rec.unshift(cv2.imread(str(p)), shift) for p in frames]
     big = cv2.resize(imgs[0], SCREEN)                              # what dxcam hands over on the user's screen
     rows = []
@@ -104,7 +105,7 @@ def bench(frames: list, map_id: int = ANT4) -> dict:
 
 
 def fixture_frames() -> list:
-    return sorted(FIXTURE.glob("*.jpg"))
+    return sorted(FIXTURE.glob("*.webp"))
 
 
 def report(r: dict, base: dict | None = None) -> str:
@@ -129,7 +130,8 @@ def main():
     note = prefer_performance()                      # as the bot does (__main__): the bench measures what it gets
     if not a.json:
         print(note)
-    frames = sorted(a.frames.glob("*.jpg"))[:a.n] if a.frames else fixture_frames()
+    frames = (sorted(p for p in a.frames.iterdir() if p.suffix.lower() in (".jpg", ".png", ".webp"))[:a.n]
+              if a.frames else fixture_frames())
     r = bench(frames, a.map)
     if a.json:
         print(json.dumps(r))
