@@ -60,8 +60,7 @@ in shadow -> 3.4 the switch on clean maps. **3.0a + 3.0b DONE (labels, synthetic
 "Step 3 state"); 3.1 (D in shadow) DONE too; 3.2 (the fit) IN PROGRESS: accurate but 12-40x too slow (62 / 116 /
 200 ms). 2026-11-17: the speed problem was reviewed and a new search PROPOSED - PLAN-fit-speed.md (exact-colour
 voting replaces the least-squares stage 1; prototype tools/perc/redesign/exp_vote.py: candidates in ~2 ms, synth
-opaque cases 100 %, labels 94.3 %). NEXT = the user's OK on that plan, then its Session 1 (prompt inside); without
-the OK nothing of it is built. See the "3.2 speed review" bullet in "Step 3 state".** `watch` is RUNNING again
+opaque cases 100 %, labels 94.3 %). OK'd by the user 2026-11-17: NEXT = its Session 1 (prompt inside). See the "3.2 speed review" bullet in "Step 3 state".** `watch` is RUNNING again
 (restarted by the user): never stop it.
 
 ### TASK (the user, 2026-11-16): improve the gate test by taking NEW footage
@@ -621,7 +620,7 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
       Options put to the user: (a) s1_step 2; (b) GPU-side selection (kill the Python glue); (c) skip thin
       windows (chat line strips, tags); (d) a custom CUDA kernel (install); (e) track windows first, D windows only
       where no track explains the blob (3.3 design); (f) a looser ms target for the fit.
-  - **3.2 speed review (2026-11-17, Fable max; PLAN-fit-speed.md = PROPOSED, the user's OK pending).** The user's
+  - **3.2 speed review (2026-11-17, Fable max; PLAN-fit-speed.md, OK'd by the user the same day).** The user's
     answers that day: label matching at 40 / 30 px for both sides OK; the chat box is kept minimized (memory
     chat-minimized). Speed options (b) + (c) + (e) were OK'd, then the user asked for a review first - its result:
     - they cannot reach the target: the cost is the QUESTION stage 1 asks (every feet position x every pose x 54 k

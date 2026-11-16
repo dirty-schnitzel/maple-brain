@@ -1,5 +1,5 @@
 # PLAN: the fit's speed - exact-colour voting replaces the least-squares search
-**Status: PROPOSED 2026-11-17 (Fable, max effort; review of 3.2's speed blocker). NOT OK'd yet - the user decides.**
+**Status: OK'd by the user 2026-11-17 (proposed by Fable, max effort; review of 3.2's speed blocker).**
 Executors: Opus (high), two sessions; prompts at the end. Parent plan: PLAN-perception.md step 3.2; state: HANDOFF
 "Step 3 state". Evidence: tools/perc/redesign/exp_vote.py (E9) + exp_exact.py / exp_fade_exact.py / exp_tint.py.
 
@@ -109,7 +109,11 @@ per-layer images 5.7.
   the pairs that hit (o = sum r.q / sum q.q, q = palette colour - B), (b) alphas 38..252, pairs subsampled (1 / 4)
   and step 3 if needed, (c) at most 2 alphas a frame, skipped when the residue has < n_min pairs, our own body box
   excluded. Gate: synth fade >= 99 % (report o < 0.3 apart), labels fade >= 93.2 and dying >= 93.9 (the LS fit's),
-  0 false fade mobs on synth, fade pass <= 1 ms p50 / <= 3 ms p90. Fallback if the alpha route misses the gate:
+  0 false fade mobs on synth, fade pass <= 1 ms p50 / <= 3 ms p90. First lever if the ms gate is missed (the
+  user, 2026-11-17: restrict to the likely): search the residue only where a fade can be - around tracked mobs that
+  are dying / were just hit (fade-out) and around the map's spawn points (fade-in; measure labelled fades' distance
+  to the nearest spawn first) - instead of the whole screen. (Restricting POSES does not speed the vote: its cost
+  is sprite-coloured pixels, and the full table is what keeps ~1 candidate per mob.) Fallback if the alpha route misses the gate:
   the LS search from 7744b1d (`_stage1`) ONLY at feet positions inside the cells the pair count flags - tell the
   user first.
 - S5 tints: palette x (B 255, G 168, R 10) / 255 (rounding from the measured colour pairs; exp_tint.py) as LUT
@@ -151,7 +155,7 @@ ids + vote 2.0 ms [1.7-3.8] | fade search 0.5-1.0 [2.4-4.8], +1 per fading alpha
 **Session 1 (Opus, high):**
 ```
 Continue the perception redesign on branch `perception`. Read HANDOFF.md top to bottom, then PLAN-fit-speed.md (the
-user OK'd it on <date>): execute its "Session 1" (S1-S3) exactly; E9 = tools/perc/redesign/exp_vote.py is the
+user OK'd it on 2026-11-17): execute its "Session 1" (S1-S3) exactly; E9 = tools/perc/redesign/exp_vote.py is the
 reference implementation to productionize, tools/perc/fit/* the tools to adapt. Budget matters: be terse.
 Gates as written there (vote <= 2.5 ms p90; opaque fit <= 4 ms p90 on the labels frames; synth opaque cases >= 99 %,
 0 false; labels non-fade classes >= the LS fit's column; steam ghost spots 0). If a gate fails or a design point
