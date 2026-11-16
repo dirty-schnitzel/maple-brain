@@ -89,7 +89,9 @@ def main(argv=None) -> int:
     w.add_argument("--seconds", type=float, default=4 * 3600)
     s = sub.add_parser("assets", help="rebuild assets/mcw from the client export (tools/cwdata/export.ps1; "
                        "see assets/README.md)")
-    s.add_argument("action", choices=["build"])
+    s.add_argument("action", choices=["build", "scene"], help="build: assets/mcw (maps, mobs; in git). scene: the "
+                   "scene model's pictures per map -> assets/scene (large, not in git; PLAN-perception.md step 1)")
+    s.add_argument("maps", type=int, nargs="*", help="scene: these map ids (default: every map with mob spawns)")
     s.add_argument("--export", type=Path, default=None, help="the export folder (default: export.ps1's)")
     a = ap.parse_args(argv)
     if a.cmd == "livemap":
@@ -110,7 +112,12 @@ def main(argv=None) -> int:
         to = (int(a.to[0]), a.to[1] if len(a.to) > 1 else None) if a.to else None
         return goto(a.out, cfg, a.seconds, to, focus=not a.no_focus, frames_every=a.frames_every, seed=a.seed)
     if a.cmd == "assets":
-        from .gamedata import EXPORT, build
+        from .gamedata import EXPORT, ROOT, build
+        if a.action == "scene":
+            from .scene import build_scenes
+            n = build_scenes(a.export or EXPORT, ROOT, a.maps or None)
+            print(f"{n} scenes built")
+            return 0
         build(a.export or EXPORT)
         return 0
     if a.cmd in ("run", "serve"):
