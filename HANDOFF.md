@@ -3,9 +3,10 @@
 brain v3 (**PLAN-v3.md**) steps 1-3 are DONE and **Platform mode passed its live test** (2026-11-15, Ant Tunnel IV;
 the user: "perfect platform mode test"). NOW = the perception redesign (**PLAN-perception.md**, agreed 2026-11-16,
 branch `perception`): steps 0-1 DONE, **step 2 (pipeline) in progress - see "Step 2 state" below** (sub-steps
-2.1-2.8 committed: the scene camera is the camera on clean maps, own tag 1:1 + its whole-screen look on the GPU,
-Lie Detector native templates + GPU look + watch 1 / s; NEXT = finish 2.8 (live check) then 2.9, see "START HERE
-NEXT SESSION"); open offer: the humanness report (below).
+2.1-2.9 committed: the scene camera is the camera on clean maps, own tag 1:1 + its whole-screen look on the GPU,
+Lie Detector native templates + GPU look + watch 1 / s, HUD cache + CPU readers in threads: bench 18.4 ms, step 2's
+gate met; NEXT = one live check of 2.8 + 2.9, then step 3, see "START HERE NEXT SESSION"); open offer: the
+humanness report (below).
 Sessions 6-23, the old brain (v1), and superseded plans moved verbatim to **HISTORY.md** on 2026-11-08: grep it for
 old runs, numbers and decisions.
 Latest: 2026-11-15 Platform mode live (runs below), F9 mark fix; the hybrid BT + imitation-learning proposal reviewed
@@ -52,30 +53,30 @@ find mobs, fight them like a player, pick up loot, use potions, and **navigate p
 later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never reads memory or packets.
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
-## START HERE NEXT SESSION (after 2026-11-16 evening): finish 2.8 (below), then 2.9
-**2.8 state (Lie Detector; code committed, see "DONE 2.8" in "Step 2 state"):** native 1:1 title templates from the
-client, the hunt's look on the GPU, `watch` once a second. **Still open for 2.8:**
+## START HERE NEXT SESSION (after 2026-11-16 night): step 2 DONE (2.9 committed) -> one live check, then step 3
+**2.9 DONE (see "DONE 2.9" in "Step 2 state"): bench p50 22.0 -> 18.4 ms, p90 25.7 -> 21.1 (gate 20 / 25 met),
+re-baselined; full replay gate: the same tracks on all 7 clips.** Cut by the user to what survives step 3 (HUD
+cache + CPU readers in threads); the FFT whole-screen search and a faster `find_near` were DROPPED - step 3
+replaces both (rule: memory no-work-step3-replaces).
 - **Remind the user: `watch` is OFF - restart it** (`... -m maplebrain watch runs\watch --seconds 14400`: now 1 look
   / s on the CPU by default; `--gpu` exists, but the bench showed no gain from it - see the numbers).
-- The live check by the user: `serve runs\play --observe --gpu --tracker` ~2 min with watch running -> tick p50 / p90
-  vs 154819_1 (28 / 31) and the `lie` part (~3 ms on 1 tick in ~10). The bench (tools/perc/ld/ld_speed.py) showed
-  no difference between any of the settings (see "DONE 2.8").
+- **ONE live check covers 2.8 + 2.9** (the user chose "after the changes"): `serve runs\play --observe --gpu
+  --tracker` ~2 min with watch running -> tick p50 / p90 vs 154819_1 (28 / 31), the `lie` part (~3 ms on 1 tick in
+  ~10), parts `self` / `hud` / `scene` ~0 (hidden behind `gpu`), HP / MP / EXP / slots read as before.
+- Then **step 3 (the mob matcher)**; inputs measured for it in "DONE 2.9" (the near search's cost by window size).
 - The bar back to 0.80? The user's word only. Facts for it: the gold title's best false score on 8641 native frames
   0.496, the sound title 0.434, blue title 0.565, "Question in" 0.522 -> the set's 0.565; the client's own windows
   pasted at native >= 0.970. Old stretched JPEG fixture panel: 0.79 (a non-native window would sit near 0.80).
 - Any real Lie Detector at native: its PNG from watch -> check the gold title's score (expected ~0.97+) and cut the
   blue title / "Question in" (font text, no client picture) 1:1 from it.
 
-Then **2.9** (below). Read PLAN-perception.md (step 2 block) and "Step 2 state". Branch `perception`, all pushed.
+Read PLAN-perception.md (step 3 row) and "Step 2 state". Branch `perception`, all pushed.
 Rules unchanged: agree changes with the user, pytest + the speed line
-(baseline 24.3 ms, re-baselined 2026-11-16 at 2.6; BENCH ONLY WITH THE GAME RUNNING - the GPU idles at P3/P5 without
+(baseline 18.4 ms, re-baselined 2026-11-16 at 2.9; BENCH ONLY WITH THE GAME RUNNING - the GPU idles at P3/P5 without
 it and everything reads 40 % slow) + `python tools/perc/replay/gate.py --quick` per sub-step, the full gate before a
 commit that changes tracking; no live / scripted input without the user's OK; never stop `maplebrain watch`
-(**it is OFF since 2026-11-16 for the 2.8 measurements - the user stopped it: restart it or ask**).
-- **2.9** async GPU + CPU readers in threads + HUD cache + the FFT whole-screen search (10.75 of the detector's
-  13.6 ms are its NCC convolutions; 2.8's `GpuLieLook` is a working FFT NCC matcher, exact to cv2 - reuse it);
-  the plan's gate: bench p50 <= 20 ms, p90 <= 25.
-- Then step 3 (the mob matcher). The 300 picked frames for by-eye labels are still unlabelled.
+(**it is OFF since 2026-11-16 for the 2.8 measurements - the user stopped it: restart it or ask**); never optimize
+code a later step replaces. The 300 picked frames for by-eye labels are still unlabelled.
 
 ## Earlier START HERE (2026-11-16): the perception redesign, PLAN-perception.md step 0
 **Read PLAN-perception.md top to bottom** (the scene model: explain the frame with the client's own assets; the
@@ -390,6 +391,34 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
       thread + watch off 21.6 / 23.9 / 37.9; + watch 0.3 s 21.8 / 24.0 / 37.0; hunt GPU + watch off 21.6 / 24.0 /
       37.1; + watch 0.3 s 21.6 / 24.7 / 36.9; + watch 1 s CPU 21.5 / 24.0 / 37.0; + watch 1 s GPU 21.8 / 24.9 /
       37.9 -> all in the noise; kept: hunt GPU (never late) + watch 1 s CPU. The `lie` part: <= 3.1 ms on a look tick.
+  - **DONE 2.9 (bench 22.0 -> 18.4 ms p50, p90 25.7 -> 21.1; the gate p50 <= 20 / p90 <= 25 met):**
+    - Profile before (synchronized timers, fixture, game up): whole-screen search convolutions 7.6, peaks + refine
+      2.4, `find_near` 6.3 p50 / **20.0 p90**, players' tags 6.1 (already on a thread), HUD 2.4 (HP / MP text 2.0),
+      own tag near 1.3, scene camera 0.7, grey 0.5, upload 0.3.
+    - **2.9a HUD cache** (`hud.HudText`): HP / MP / EXP each re-read only when its crop (number row, rows 740-746)
+      changed - a reading is a pure function of that crop, so the result is identical by construction. Crops repeat
+      on 94-98 % of saved native frames 3 ticks apart (3 recordings). HUD 2.4 -> 0.1 ms; bench 22.0 -> 19.4-19.7.
+      Test: tests/test_hud.py (mixed sequence = plain readers on every frame; a pixel inside / outside a crop).
+    - **2.9b CPU readers in threads** (`Perceiver.readers`, 3 threads): right after the upload, `_read_self` (the
+      grey + own tag near search + the fallback's phase correlation), `_read_hud` (HudText + the potion slots) and
+      players' tags start; this thread runs the Lie Detector look + the mob detector on the GPU meanwhile; everything
+      with memory (HP / MP pairs, slot votes, EXP history, prev_small, me_near, the wide look) is applied after the
+      join. Parts `self` / `hud` / `scene` / grey -> ~0 (hidden); `gray` part renamed `upload`. One order change:
+      players' tags get the minimap rectangle from before this tick's minimap read (differs only on a tick that
+      re-finds the minimap window). `hud.ui_mask` made thread-safe (returned from the local, not re-read from the
+      cache another thread may clear). Bench 18.2-18.4 (p90 20.8-22.4); full gate: SAME tracks on all 7 clips,
+      every column identical.
+    - **Dropped (the user: "Don't do anything that step3 replaces"):** the FFT whole-screen search and a faster
+      `find_near`. Measured for later (tmp scripts, not committed):
+      - FFT whole-screen masked NCC (rfft2 of the frame, its square and the centred frame x cached template / mask
+        spectra, batched irfft2): **7.7 -> 4.4 ms** on Ant Tunnel IV's 26 poses; the detector's peak set identical
+        on 45 of 45 fixture frames (329 peaks); scores above 0.58 within 0.011; BUT the FFT error is absolute
+        (relative to the whole image's energy), so near-flat windows differ by up to 1.4 - GpuLieLook's exactness
+        came from int64 integral box sums, which a masked search can't use. Worth it only for maps without a clean
+        scene, if they keep the dense search after step 3.
+      - **`find_near` = the tick's p90 (input for step 3):** always the visible-only path; tracks unseen > 0.12 s get
+        pad 32 at ~1.1 ms per spot (pad 24: ~0.5), and a batch is rounded up to 2/4/8/16 spots - 9 spots cost 16
+        (17.6 ms on fixture frames 5-20, 9-14 coasting / hidden tracks). Step 3's windows must not scale like that.
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")

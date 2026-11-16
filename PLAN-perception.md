@@ -128,9 +128,12 @@ in shadow, 2.6 it IS the camera on clean maps (mob feet within 2 px of their pla
 Tunnel IV; bench 24.3 ms), 2.7 own tag 1:1 + its whole-screen look on the GPU (42 -> 8-12 ms) - DONE. 2.8 Lie
 Detector: native 1:1 title templates from the client's own windows (pasted at native >= 0.970, was down to 0.677 /
 0.780; false max 0.671 -> 0.496), the hunt's look on the GPU (FFT NCC exact to cv2, ~3.5 ms vs ~90 on the CPU),
-watch 1 look / s - code DONE, the user's live check open. Next: 2.9 async + FFT. The gate is now tools/perc/replay/gate.py (~1 min clips of every clean map, cached). Found: the whole-screen NCC is 10.75 of
-the detector's 13.6 ms (the FFT search is the big cut); the bench needs the game running (GPU P-state: 40-43 ms
-idle vs 27-30 with the game).
+watch 1 look / s - code DONE. 2.9 (the user cut it to what survives step 3): HUD text cache (re-read only when its
+crop changed: identical by construction) + CPU readers in threads beside the GPU work -> **bench p50 22.0 -> 18.4
+ms, p90 25.7 -> 21.1: step 2's gate met**, replay the same tracks on all 7 clips. The FFT whole-screen search
+(measured 7.7 -> 4.4 ms, same peaks) and a faster `find_near` were dropped: step 3 replaces both. Open: one live
+check of 2.8 + 2.9 by the user. The gate is tools/perc/replay/gate.py (~1 min clips of every clean map, cached); the
+bench needs the game running (GPU P-state: 40-43 ms idle vs 27-30 with the game).
 
 ### Lie Detector watch (added by the user, 2026-11-16) - part of step 2
 - **`maplebrain watch` looks once per second** (today every 0.3 s; the Lie Detector gives 10+ s). Each look = 4

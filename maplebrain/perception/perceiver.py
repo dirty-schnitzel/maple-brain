@@ -1,6 +1,7 @@
 """Frame(s) -> Observation. Stateful only where perception needs memory (tracker, mob library, HUD smoothing);
 it never presses keys and never decides anything."""
 from collections import deque
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 
 import time
@@ -82,6 +83,7 @@ class Perceiver:
         self.new_max = {}                               # "hp"/"mp" -> a max seen once (a level-up / gear changes
                                                         # it; one misread must not)
         self.slot_hist = {}                             # key -> recent slot readings (majority vote)
+        self.hud_text = hud.HudText()                   # HP / MP / EXP text, re-read only when it changed
         self.points_hist = deque(maxlen=3)
         self.library = MobLibrary(cfg.perception.library_size, cfg.perception.library_score)
         self.tracker: Tracker | None = None
@@ -94,12 +96,13 @@ class Perceiver:
         self.last_sprites = []                          # the last frame's sprite hits (to know a new target's id)
         self.world = None                               # the mob tracker (--gpu): logs obs.mobs, the brain doesn't
         ctx = getattr(sprites, "track_ctx", None)       # use it yet
+        # the CPU readers' threads (2.9b): our tag + grey, HUD, players' tags - one each, beside the GPU work
+        self.readers = ThreadPoolExecutor(3, thread_name_prefix="read")
+        self._pending = []                              # this tick's readers until it ends
         if ctx is not None:
-            from concurrent.futures import ThreadPoolExecutor
             from .world import World
             self.world = World(*ctx)
-            self.tag_pool = ThreadPoolExecutor(1)       # name tags (CPU) while the GPU finds mobs
-            self.plat_shift = None                      # the camera's shift measured on the platforms (camshift.py)
+            self.plat_shift = None                     # the camera's shift measured on the platforms (camshift.py)
             if self.world.nav is not None and cfg.perception.platform_shift:
                 from .camshift import PlatformShift
                 self.plat_shift = PlatformShift(self.world.nav)
@@ -207,17 +210,45 @@ class Perceiver:
         self.new_max.pop(name, None)
         return r
 
-    def _slot(self, frame, key, cursor):
+    def _slot(self, key, slots):
         """Majority of the last 5 readings of `key`'s quickslot; a frame with the cursor over the key layout is
-        skipped (its tooltip covers the slots next to it: pkg_sprites7b frame 300)."""
+        skipped (its tooltip covers the slots next to it: pkg_sprites7b frame 300). `slots`: this frame's readings
+        (`_read_hud`), None when skipped."""
         h = self.slot_hist.setdefault(key, deque(maxlen=5))
         self.facts.slots[key] = None
-        if not hud.in_quickslots(cursor):
-            v = self.facts.slots[key] = hud.slot_filled(frame, key)
+        if slots is not None:
+            v = self.facts.slots[key] = slots.get(key)
             if v is None:
                 return None
             h.append(v)
         return (sum(h) * 2 > len(h)) if h else None
+
+    # ---- the CPU readers (2.9b): pure, run on `self.readers` while the GPU works
+    def _read_self(self, frame, near, minimap, want_shift, prev_small):
+        """The frame's grey, our tag's near search around `near` (None: not searched), and - `want_shift` (the
+        fallback camera) - the whole frame's shift since `prev_small` by phase correlation.
+        -> (gray, tag or None, small for the next tick or None, (dx, dy) or None)."""
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        me = None
+        if near is not None:
+            me = find_self(frame, self.tpl, near=near, min_score=self.cfg.perception.self_near_score, gray=gray,
+                           minimap=minimap)
+        small = shift = None
+        if want_shift:
+            small = cv2.resize(gray[:620], (341, 155), interpolation=cv2.INTER_AREA).astype(np.float32)
+            if prev_small is not None:
+                (dx, dy), resp = cv2.phaseCorrelate(prev_small, small)
+                if resp > 0.2:
+                    shift = (float(dx * 4), float(dy * 4))
+        return gray, me, small, shift
+
+    def _read_hud(self, frame, cursor):
+        """HP / MP / EXP text (cached while unchanged) + the potion keys' quickslots (None: the cursor is over
+        them) -> (hp, mp, exp points, {key: filled} or None). Only this reader touches `hud_text`."""
+        hp, mp, pts = self.hud_text.read(frame)
+        keys = (self.cfg.keys.hp_potion, self.cfg.keys.mp_potion)
+        slots = None if hud.in_quickslots(cursor) else {k: hud.slot_filled(frame, k) for k in keys}
+        return hp, mp, pts, slots
 
     def observe(self, frame, t: float, cursor=None) -> Observation:
         p, z = self.cfg.perception, self.cfg.zones
@@ -225,32 +256,45 @@ class Perceiver:
         f = self.facts = FrameFacts(t=t)                    # what this frame shows (facts.py); obs = facts + memory
         self.last_frame, self.last_t = frame, t
         self.parts, self._t0 = {}, time.perf_counter()      # ms per part of this frame (ticks timings.parts)
-        # the frame's grey, once (PLAN-perception.md step 2): our tag, the Lie Detector, the scene shift, camshift.
-        # Read-only from here on (the Lie Detector's thread reads it while this tick goes on).
-        gray = self._gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        if self.tag_gpu is not None:                    # the frame to the GPU now (the tag's look may need it)
+        # PLAN-perception.md step 2.9b: the frame goes to the GPU first, then the CPU readers start on their threads
+        # (the frame's grey + our tag's near search + the whole-frame shift / the HUD text + quickslots / players'
+        # tags) while this thread runs the GPU work (Lie Detector look, mob detector). Readers are pure (frame + what
+        # they're handed now -> readings); everything with memory is applied below, on this thread, after the join,
+        # so a tick reads exactly what it read in series.
+        for fut in self._pending:                       # a tick that raised: its readers end before new ones start
+            fut.result()
+        if self.tag_gpu is not None:
             self.sprites.gpu.prepare(frame)
-        self._mark("gray")
+        exact, mm = self._exact(), self.minimap
+        rd_self = self.readers.submit(self._read_self, frame, self.me_near, mm, not exact, self.prev_small)
+        rd_hud = self.readers.submit(self._read_hud, frame, cursor)
+        tags = self.readers.submit(find_tags, frame, None, mm) if self.world is not None else None
+        self._pending = [x for x in (rd_self, rd_hud, tags) if x is not None]
+        self._mark("upload")
         if self.lie_detector is not None:
             u8 = self.sprites.gpu.frame_u8 if self.tag_gpu is not None else None    # uploaded above
-            f.lie = self.lie_detector.check(frame, t, gray=gray, frame_u8=u8)
+            on_gpu = u8 is not None and self.lie_detector.gpu is not None
+            g = None if on_gpu else rd_self.result()[0]                           # the CPU look needs the grey
+            f.lie = self.lie_detector.check(frame, t, gray=g, frame_u8=u8)
             obs.lie_detector = f.lie[0]
         self._mark("lie")
-        if self._exact():                               # the scene camera holds (last tick): no whole-frame shift
+        hits = None
+        if self.world is not None:                      # the mob detector on the GPU, the readers run meanwhile
+            hits = f.hits = self.sprites._all(frame)
+            self._mark("gpu")
+        # the frame's grey, once (PLAN-perception.md step 2): our tag, the Lie Detector, the scene shift, camshift.
+        # Read-only (the Lie Detector's CPU thread reads it while this tick goes on).
+        gray, me, small, shift = rd_self.result()
+        self._gray = gray
+        if exact:                                       # the scene camera holds (last tick): no whole-frame shift
             self.prev_small = None                      # (the fallback restarts from the next frame it's needed)
         else:
-            small = cv2.resize(gray[:620], (341, 155), interpolation=cv2.INTER_AREA).astype(np.float32)
-            if self.prev_small is not None:
-                (dx, dy), resp = cv2.phaseCorrelate(self.prev_small, small)
-                if resp > 0.2:
-                    f.scene_shift = (float(dx * 4), float(dy * 4))
-                    obs.scene_dx, obs.scene_dy = f.scene_shift
+            if shift is not None:
+                f.scene_shift = shift
+                obs.scene_dx, obs.scene_dy = shift
             self.prev_small = small
         self._mark("scene")
-        me = None
         if self.me_near is not None:
-            me = find_self(frame, self.tpl, near=self.me_near, min_score=p.self_near_score, gray=gray,
-                           minimap=self.minimap)
             f.tag_look = "near"
         if me is None and not 0 < self.wide_next_t - t <= 1.0:   # lost: the whole screen ~4x a second (25-150 ms;
             near_edge = self.me_near is None or not 150 < self.me_near[0] < frame.shape[1] - 150   # the minimap
@@ -260,7 +304,7 @@ class Perceiver:
             self._mark("self_wide")
         f.tag = me
         self._mark("self")
-        f.hp, f.mp = hud.read_pair(frame, hud.HP_TEXT), hud.read_pair(frame, hud.MP_TEXT)
+        f.hp, f.mp, pts, slots = rd_hud.result()
         self.hp_pair = self._pair(f.hp, "hp", self.hp_pair)
         self.mp_pair = self._pair(f.mp, "mp", self.mp_pair)
         if self.hp_pair:
@@ -269,9 +313,9 @@ class Perceiver:
         if self.mp_pair:
             obs.mp_now, obs.mp_max = self.mp_pair
             obs.mp = self.mp_pair[0] / self.mp_pair[1]
-        obs.hp_potions = self._slot(frame, self.cfg.keys.hp_potion, cursor)
-        obs.mp_potions = self._slot(frame, self.cfg.keys.mp_potion, cursor)
-        pts = f.exp_points = hud.exp_points(frame)
+        obs.hp_potions = self._slot(self.cfg.keys.hp_potion, slots)
+        obs.mp_potions = self._slot(self.cfg.keys.mp_potion, slots)
+        f.exp_points = pts
         if pts is not None:
             self.points_hist.append(pts)
         if len(self.points_hist) == 3:                  # 2 of 3 agree: one misread never makes a kill
@@ -282,7 +326,8 @@ class Perceiver:
             self.minimap_t = t                                         # position without a tag (SelfTracker)
         self._mark("locate")
         if self.world is not None:
-            self._track(frame, obs, me)
+            self._track(frame, obs, me, hits, tags)
+        self._pending = []
         if me is None:
             return obs
         self.me_near = (me[0] + me[2] / 2, me[1])
@@ -367,12 +412,11 @@ class Perceiver:
         self.parts[name] = round(self.parts.get(name, 0) + 1000 * (now - self._t0), 1)
         self._t0 = now
 
-    def _track(self, frame, obs, me):
+    def _track(self, frame, obs, me, hits, tags):
+        """The tracker's tick: `hits` = the mob detector's on this frame, `tags` = the players' tags reader (a
+        future: players' bodies hide mobs, drawn over them)."""
         band = self.sprites
         f = self.facts
-        tags = self.tag_pool.submit(find_tags, frame, None, self.minimap)   # players' bodies hide mobs (drawn over)
-        hits = f.hits = band._all(frame)
-        self._mark("gpu")
         me_s = (me[0] + me[2] / 2, me[1]) if me is not None else None
         exact = None
         sc = self.scene_cam

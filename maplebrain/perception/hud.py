@@ -26,9 +26,12 @@ def minimap_rect(window) -> tuple:
 
 def ui_mask(shape, minimap: tuple | None = None) -> np.ndarray:
     """1 where the pixel is game world, 0 where it's UI. `minimap`: the minimap window's measured rectangle
-    (minimap_rect) in place of UI_RECTS' default one."""
+    (minimap_rect) in place of UI_RECTS' default one.
+    The CPU readers call it from their threads (2.9b): the mask is returned from the local, never re-read from the
+    cache (another thread may clear it in between). Callers only read it."""
     key = (shape[:2], minimap)
-    if key not in _ui_cache:
+    m = _ui_cache.get(key)
+    if m is None:
         m = np.ones(shape[:2], np.uint8)
         for i, (x0, y0, x1, y1) in enumerate(UI_RECTS):
             if i == 0 and minimap is not None:
@@ -37,7 +40,7 @@ def ui_mask(shape, minimap: tuple | None = None) -> np.ndarray:
         if len(_ui_cache) > 32:
             _ui_cache.clear()
         _ui_cache[key] = m
-    return _ui_cache[key]
+    return m
 
 
 HP_TEXT = (505, 612)                 # x range of the HUD's "HP [409/783]" (the user, session 16: read the exact
@@ -183,6 +186,39 @@ def _exp_points_at(frame, x0: int, y0: int) -> int | None:
             return None
         value = value * 10 + d
     return value
+
+
+class HudText:
+    """The HUD's HP / MP "[cur/max]" and EXP points, each read only when its pixels changed (PLAN-perception.md
+    step 2.9a). Every reading is a pure function of one small crop of the number row (read_pair: rows NUM_Y..+7 of
+    its span; exp_points: the same rows, x 748..803 - both places it tries), so a byte-identical crop gives the
+    identical reading: the last one is returned instead (~2.3 ms -> ~0.01). On the native recordings the crops
+    repeat on 94-98 % of saved frames 3 ticks apart (2026-11-16). One instance per reader (not thread-safe)."""
+
+    CROPS = {"hp": (NUM_Y, HP_TEXT[0], HP_TEXT[1]), "mp": (NUM_Y, MP_TEXT[0], MP_TEXT[1]),
+             "exp": (EXP_TEXT[1], EXP_TEXT[0] - 1, EXP_TEXT[0] + EXP_CELL * 7 + EXP_COMMA * 2 + 2)}
+
+    def __init__(self):
+        self._last = {}                                 # name -> (crop, reading)
+        self.reads = self.hits = 0
+
+    def _get(self, frame, name, read):
+        y, x0, x1 = self.CROPS[name]
+        crop = frame[y:y + EXP_ROWS, x0:x1]
+        last = self._last.get(name)
+        if last is not None and np.array_equal(last[0], crop):
+            self.hits += 1
+            return last[1]
+        self.reads += 1
+        v = read()
+        self._last[name] = (crop.copy(), v)
+        return v
+
+    def read(self, frame) -> tuple:
+        """(hp, mp, exp_points) as read_pair(HP_TEXT), read_pair(MP_TEXT), exp_points would read this frame."""
+        return (self._get(frame, "hp", lambda: read_pair(frame, HP_TEXT)),
+                self._get(frame, "mp", lambda: read_pair(frame, MP_TEXT)),
+                self._get(frame, "exp", lambda: exp_points(frame)))
 
 
 def minimap_dot(frame, box=MINIMAP_BOX):
