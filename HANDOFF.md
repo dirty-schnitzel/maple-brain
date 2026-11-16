@@ -205,7 +205,7 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     `Screen(hwnd, dxcam=False)`). A running `watch` gets it at its next start (the user's).
     Dark Cave replayed through the guard (tests/test_window.py, the measured drag): paused at 16.41 s (the first
     shifted tick; 0 shifted frames used instead of 60 s of them), re-aimed once at 17.8-17.9 s on the final place,
-    back at 18.1-18.2 s (+ the settle). Tests: tests/test_window.py (17). pytest green, bot speed 31.0 ms
+    back at 18.1-18.2 s (+ the settle). Tests: tests/test_window.py (16). pytest green, bot speed 31.0 ms
     (baseline 30.0; the bench has no window), replay press1 HEAD vs work: 166 real + 11 weak both, 100 % found.
     Left open: the compositor may show a move 1-2 frames before / after the box reports it (not measurable on
     the recording: no box was logged); NOT live-tested yet (drag the window during a `serve --observe`).
