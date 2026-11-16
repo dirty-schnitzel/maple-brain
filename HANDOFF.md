@@ -62,8 +62,8 @@ in shadow -> 3.4 the switch on clean maps. **3.0a + 3.0b DONE (labels, synthetic
 voting replaces the least-squares stage 1; prototype tools/perc/redesign/exp_vote.py: candidates in ~2 ms, synth
 opaque cases 100 %, labels 94.3 %). OK'd by the user 2026-11-17. Session 1 (S1-S3) DONE 2026-11-17: vote + fit on
 votes in maplebrain/ (fit 2.6 / 3.2 ms p50 / p90 on the labels frames, was 119 / 160); every gate met but the labels
-one AS WRITTEN (its classes hold fading mobs, S4's) - WAITING for the user's call: see "3.2 Session 1" in "Step 3
-state".** `watch` is RUNNING again
+one AS WRITTEN (its classes hold fading mobs, S4's); the user ACCEPTED it on the not-fading subset 2026-11-17 (full
+classes = S4 / S5's gate). NEXT = Session 2 (S4-S6). See "3.2 Session 1" in "Step 3 state".** `watch` is RUNNING again
 (restarted by the user): never stop it.
 
 ### TASK (the user, 2026-11-16): improve the gate test by taking NEW footage
@@ -684,7 +684,7 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
       False (unjudged labels): vote 121, LS 436.
     - pytest green (+ tests/test_vote.py); bot speed 21.8 ms (p90 25.2; baseline 18.4 - the D-on state of 3.1, which
       read 22.3; no live code changed: nothing live imports vote.py / fit.py).
-    - Asked of the user: accept the labels gate on the not-fading subset for Session 1 (the full classes are S4 /
+    - ACCEPTED by the user 2026-11-17 ("yes"): the labels gate on the not-fading subset for Session 1; was asked: accept it on the not-fading subset for Session 1 (the full classes are S4 /
       S5's gate), or another call. The comparison: `tools/perc/fit/subset.py` (E9 fade cells cached in
       RUN/fit/fading_e9.json; the LS rows from 7744b1d's fit.py + run.py via git show).
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
