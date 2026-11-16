@@ -93,7 +93,7 @@ sprites.py, motion.py.
 | 0 Ground | Native window check with the user (5 min `serve --observe --frames` on Ant Tunnel IV at 1366x768): is the picture 1:1 with the sprites? New fixture + bench at (1366, 768), re-baseline on purpose. `tools/perc/replay` (old vs new tracker on recorded frames). Label ~300 frames | sprite pixels within +-4 levels >= 95 % on clear mobs (else: stays "resampled", wider tolerances); replay reproduces today's runs |
 | 1 Scene model | export.ps1: + Map/Back (+ Npc, Item/Pet, Effect/BasicEff for later); `assets build`: per-map render (tiles, objects, backs with parallax), animated parts flagged unknown; GPU registration -> C | camera within 1 px of hand-checked frames; >= 98 % of non-dynamic pixels explained on Ant Tunnel IV, Line 1, Perion (fog!); platform overlay pictures for the user |
 | 2 Pipeline | FrameFacts contract; one upload; GPU launched async, CPU readers in threads; today's detector inside it (FFT search), HUD cache, tag fallback off the main path; watch at 1 look / s + the Lie Detector match on the GPU (section below) | replay identical; bench tick p50 <= 20 ms, p90 <= 25 |
-| 3 Mob matcher | residual D; sprite-over-scenery fit (opacity, per-pixel labels) in windows; SEEN / COVERED / ABSENT in FrameFacts; coarse / refine / near removed | synthetic recall >= 99 %, 0 scenery ghosts; labels >= today on every class; the documented ghost tracks (HANDOFF table) gone in replay |
+| 3 Mob matcher | residual D; sprite-over-scenery fit (opacity, per-pixel labels) in windows; SEEN / COVERED / ABSENT in FrameFacts; coarse / refine / near removed (from the clean-map path) | synthetic recall >= 99 %, 0 scenery ghosts; labels >= today on every class; native ghost tracks (Dangerous Steam, the clips' weak tracks) gone in replay |
 | 4 Tracker | 3-valued evidence replaces fight_s / lose_s / covered_s; knockback + walk model; spawn-point watch; opacity states | replay: lost-alive moments (E4 set) held >= 95 %; time a dead mob stays "live" p90 <= 0.1 s; live 3 min: solid presses >= 85 % |
 | 5 Other classes | players + pet as occluders from tags / client sprites (= A1), bubbles = unexplained (= A6), HP bars + mob tags + damage numbers (= A3), hit time per weapon (A5) | labels; live: solid presses >= 95 % |
 | 6 60 Hz | frame pacing (one tick per rendered frame), p99 work, thresholds re-measured at 60 fps | live tick p50 <= 12 ms, p99 <= 16.6; gap after a swing vs the user's 0.09 s |
@@ -134,6 +134,34 @@ ms, p90 25.7 -> 21.1: step 2's gate met**, replay the same tracks on all 7 clips
 (measured 7.7 -> 4.4 ms, same peaks) and a faster `find_near` were dropped: step 3 replaces both. Open: one live
 check of 2.8 + 2.9 by the user. The gate is tools/perc/replay/gate.py (~1 min clips of every clean map, cached); the
 bench needs the game running (GPU P-state: 40-43 ms idle vs 27-30 with the game).
+
+**Step 3 (order AGREED 2026-11-16; details HANDOFF "Step 3 state"):**
+- 3.0 truth first, no live-path code: (a) by-eye labels of the 300 picked frames, candidates = the patches of
+  D = frame - scene (never a matcher's output), per mob feet / type / class (clear, behind scenery, under an effect
+  or damage number, behind a player / pet / tag, see-through, dying, edge), labels.json v2 + label_eval per class;
+  (b) synthetic frames (tools/perc/synth/): real native frames at their camera as the base (pasted only where D is
+  empty), client sprites drawn as the game draws them (sprite alpha x opacity, on the foothold's layer, front layers
+  over them), BasicEff sparks / damage digits and real player / pet / bubble patches over them, mob-free frames;
+  truth by construction; a fixed-seed ~40-frame set in pytest. "Before" = today's detector + tracker on both.
+- 3.1 D in shadow: D + its patches in FrameFacts; measured on the clips: labelled mobs inside a patch, patch area
+  p50 / p90 (the fit's cost), ms.
+- 3.2 the fit: the scene split per mob layer (behind / front planes; together = today's expected()), per window
+  every candidate pose x position: opacity in closed form + residual, per-pixel labels at the best -> SEEN /
+  COVERED / ABSENT; thresholds fitted on synth + labels. Windows: D patches (all the map's types; replaces the
+  whole-screen search + refine) and track predictions (voted types + die poses; replaces find_near), packed by
+  area, D-pruned positions; target <= 5 ms p90. Gate: synth recall >= 99 %, 0 false mobs on mob-free synth and on
+  the native ghost set, every label class >= today.
+- 3.3 FrameFacts v2 in shadow (both detectors run, the tracker uses today's), compared frame by frame.
+- 3.4 the switch on clean maps (scene camera found this tick): SEEN -> Hit, COVERED / ABSENT -> None (timeouts stay
+  until step 4: step 3 changes the evidence, step 4 the tracker); search / refine / find_near / cover probes /
+  edge-ghost score rule off on that path. Gate: full replay judged per clip (real tracks same or more, 0 scenery
+  ghosts among the weak ones), labels, bench <= 18.4 ms, the user's live check.
+- Maps without a clean scene (moving / animated backs, a lost scene camera, non-native windows): today's path
+  whole and untouched, per tick; no FFT for it now (the clouds task decides its future: then the measured 7.7 ->
+  4.4 ms FFT is the option). The old search code is deleted only when no map needs it (the user's call then).
+- Ghost gate on NATIVE footage (the documented FHD ghost runs only ever test the fallback): Dangerous Steam's
+  scenery ghosts + the native clips' weak tracks. Tests on pre-native footage were deleted (the user, 2026-11-16;
+  Lie Detector tests kept); the perf fixture is lossless now. New gate footage: HANDOFF task.
 
 ### Lie Detector watch (added by the user, 2026-11-16) - part of step 2
 - **`maplebrain watch` looks once per second** (today every 0.3 s; the Lie Detector gives 10+ s). Each look = 4

@@ -5,7 +5,7 @@ the user: "perfect platform mode test"). NOW = the perception redesign (**PLAN-p
 branch `perception`): steps 0-1 DONE, **step 2 (pipeline) in progress - see "Step 2 state" below** (sub-steps
 2.1-2.9 committed: the scene camera is the camera on clean maps, own tag 1:1 + its whole-screen look on the GPU,
 Lie Detector native templates + GPU look + watch 1 / s, HUD cache + CPU readers in threads: bench 18.4 ms, step 2's
-gate met; NEXT = one live check of 2.8 + 2.9, then step 3, see "START HERE NEXT SESSION"); open offer: the
+gate met, live-checked; NOW = step 3, order agreed, see "START HERE NEXT SESSION"); open offer: the
 humanness report (below).
 Sessions 6-23, the old brain (v1), and superseded plans moved verbatim to **HISTORY.md** on 2026-11-08: grep it for
 old runs, numbers and decisions.
@@ -53,7 +53,31 @@ find mobs, fight them like a player, pick up loot, use potions, and **navigate p
 later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never reads memory or packets.
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
-## START HERE NEXT SESSION (after 2026-11-16 night): step 2 DONE (2.9 committed) -> one live check, then step 3
+## START HERE NEXT SESSION: step 3 (the mob matcher), order AGREED 2026-11-16 - see "Step 3 state" below
+Step 2 is done and live-checked (below). Step 3's order is in PLAN-perception.md ("Step 3") and "Step 3 state"
+(after "Step 2 state"): 3.0a labels -> 3.0b synthetic frames -> 3.1 D in shadow -> 3.2 the fit -> 3.3 FrameFacts v2
+in shadow -> 3.4 the switch on clean maps. `watch` is RUNNING again (restarted by the user): never stop it.
+
+### TASK (the user, 2026-11-16): improve the gate test by taking NEW footage
+The tests on pre-native footage were deleted (d87e5b4; the Lie Detector ones kept); for now the gate = today's
+native clips (tools/perc/replay/gate.py) + the lossless perf fixture. The user can record more. Proposed set
+(each ~1-2 min, the user playing, `serve runs\play --observe --gpu --tracker --frames-png`, native window, current
+code so ticks.jsonl carries the FrameFacts + scene camera as the "before"):
+| # | Map | What to do | Tests |
+|---|---|---|---|
+| 1 | Ant Tunnel IV | fight hard in a dense spot, pet out | effects over mobs, deaths, fade-ins, speech bubbles; a future bench fixture |
+| 2 | Dangerous Steam | walk the whole map, then fight | the ghost gate (83 of its 85 weak tracks were scenery ghosts of one type) |
+| 3 | The Rain-Forest East of Henesys (10001070, clean) | hunt Pigs near the grass | mobs behind front scenery |
+| 4 | Line 1 <Area 1> | stay near spawns | see-through Bubblings, spawn fade-in |
+| 5 | any clean map, busy channel | fight among other players | players / skills / tags over mobs |
+| 6 | Dark Cave | fight the flyers, don't move the window | the old clip is cut at 16 s by a window drag |
+Reuse: Transfer Area (animated objects); Perion Street Corner at native as the FALLBACK clip instead of fix3 (FHD).
+Then: clips into gate.CLIPS, ~40-50 picked frames per clip for labels (pick.py), native unit tests for the HUD /
+quickslots / own tag / map id (their old tests are gone: those readers have no tests until then), a real
+Lie Detector at native when one comes (watch's PNG). Any clean map works if one isn't practical: 110 maps have a
+clean scene (`Scene.clean_meta`).
+
+## Earlier START HERE (after 2026-11-16 night): step 2 DONE (2.9 committed) -> one live check, then step 3
 **2.9 DONE (see "DONE 2.9" in "Step 2 state"): bench p50 22.0 -> 18.4 ms, p90 25.7 -> 21.1 (gate 20 / 25 met),
 re-baselined; full replay gate: the same tracks on all 7 clips.** Cut by the user to what survives step 3 (HUD
 cache + CPU readers in threads); the FFT whole-screen search and a faster `find_near` were DROPPED - step 3
@@ -425,6 +449,25 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
       - **`find_near` = the tick's p90 (input for step 3):** always the visible-only path; tracks unseen > 0.12 s get
         pad 32 at ~1.1 ms per spot (pad 24: ~0.5), and a batch is rounded up to 2/4/8/16 spots - 9 spots cost 16
         (17.6 ms on fixture frames 5-20, 9-14 coasting / hidden tracks). Step 3's windows must not scale like that.
+- **Step 3 state (2026-11-16): the order AGREED with the user** (PLAN-perception.md "Step 3"; each sub-step: pytest +
+  the speed line + `gate.py --quick`, full gate before a commit that changes tracking).
+  - Facts behind the order (from the code): (1) the fit needs the scenery split at the mob's layer - scene.png is all
+    8 layers merged; a mob on foothold layer L is drawn over layers <= L and under layers > L + front backs; the
+    cover masks are binary (alpha >= 128) and miss front backs -> per mob layer "behind" + "front" planes (3.2).
+    (2) The perf fixture was JPEG -> DONE d87e5b4: lossless WebP, same 45 frames, shift undone; bench 18.3 ms
+    (baseline 18.4, not re-baselined). (3) The documented ghost runs (P2 table) are FHD JPEG: the scene camera never
+    registers there, so they only test the fallback -> the ghost gate is native (Dangerous Steam + the clips' weak
+    tracks). (4) Ant Tunnel IV: 2 types, 46 poses (all animations x 2 facings), 26 live.
+  - Cost input from DONE 2.9: find_near ~1.1 ms per spot at pad 32 because every pose is convolved over every window
+    (padded to the largest pose) then masked, batches rounded to 2/4/8/16 (9 spots = 16 ms = the tick's p90) -> the
+    new windows: packed by area, each window only its candidate poses, D-pruned positions. The FFT (7.7 -> 4.4 ms
+    whole screen) is NOT used in the fit: its error is absolute (up to 1.4 on near-flat windows, where the fit must
+    be exact); kept as the option for the fallback if it outlives the clouds task.
+  - Decided: COVERED / ABSENT go to today's tracker as None in 3.4 (its timeouts stay until step 4); maps without a
+    clean scene keep today's path whole, per tick; labels = the 300 picked frames of 012059_1 (no extra maps until
+    the new footage); tests on pre-native footage deleted (d87e5b4: 1200 -> 1074 tests; kept: every Lie Detector
+    test + test_runner / test_window, which run the loop on look_snails + tests/fixtures/self_tag_gray.npy).
+  - NEXT: 3.0a labels.
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")
