@@ -467,7 +467,7 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     clean scene keep today's path whole, per tick; labels = the 300 picked frames of 012059_1 (no extra maps until
     the new footage); tests on pre-native footage deleted (d87e5b4: 1200 -> 1074 tests; kept: every Lie Detector
     test + test_runner / test_window, which run the loop on look_snails + tests/fixtures/self_tag_gray.npy).
-  - **3.0a IN PROGRESS: by-eye labels (173 of 300 judged, in pick order; NEXT sheet = the pick after n6741, i.e. n6759).** `tools/perc/labels/patches.py RUN PICK` = the camera followed over every saved
+  - **3.0a IN PROGRESS: by-eye labels (253 of 300 judged, in pick order; NEXT sheet = n9831, the pick after n9786; the rest: 9831..11574, 45 sheets). The user finds this costly: judge 2 sheets per Read pair, terse tokens, commit every ~20.** `tools/perc/labels/patches.py RUN PICK` = the camera followed over every saved
     frame (3858 / 3858, cached RUN/labels/cams.json), D patches per picked frame (p50 13, max 27), one sheet per frame
     in RUN/labels/sheets/ (the frame + the recording's tracks lettered + a 2x tile per track and per untracked patch,
     screen ticks + footholds). Judgments: tools/perc/labels/20261116_012059_1_judged.jsonl (format in
