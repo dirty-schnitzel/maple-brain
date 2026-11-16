@@ -57,9 +57,12 @@ The user supervises every run at the PC. Botting is against Nexon's ToS (ban ris
 Step 2 is done and live-checked (below). Step 3's order is in PLAN-perception.md ("Step 3") and "Step 3 state"
 (after "Step 2 state"): 3.0a labels -> 3.0b synthetic frames -> 3.1 D in shadow -> 3.2 the fit -> 3.3 FrameFacts v2
 in shadow -> 3.4 the switch on clean maps. **3.0a + 3.0b DONE (labels, synthetic frames, "before" numbers on both in
-"Step 3 state"); 3.1 (D in shadow) DONE too; NEXT = 3.2 (the fit), OK'd by the user 2026-11-16 (plan: the "3.2
-proposal" bullet in "Step 3 state").** `watch` is RUNNING again (restarted
-by the user): never stop it.
+"Step 3 state"); 3.1 (D in shadow) DONE too; 3.2 (the fit) IN PROGRESS: accurate but 12-40x too slow (62 / 116 /
+200 ms). 2026-11-17: the speed problem was reviewed and a new search PROPOSED - PLAN-fit-speed.md (exact-colour
+voting replaces the least-squares stage 1; prototype tools/perc/redesign/exp_vote.py: candidates in ~2 ms, synth
+opaque cases 100 %, labels 94.3 %). NEXT = the user's OK on that plan, then its Session 1 (prompt inside); without
+the OK nothing of it is built. See the "3.2 speed review" bullet in "Step 3 state".** `watch` is RUNNING again
+(restarted by the user): never stop it.
 
 ### TASK (the user, 2026-11-16): improve the gate test by taking NEW footage
 The tests on pre-native footage were deleted (d87e5b4; the Lie Detector ones kept); for now the gate = today's
@@ -618,6 +621,29 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
       Options put to the user: (a) s1_step 2; (b) GPU-side selection (kill the Python glue); (c) skip thin
       windows (chat line strips, tags); (d) a custom CUDA kernel (install); (e) track windows first, D windows only
       where no track explains the blob (3.3 design); (f) a looser ms target for the fit.
+  - **3.2 speed review (2026-11-17, Fable max; PLAN-fit-speed.md = PROPOSED, the user's OK pending).** The user's
+    answers that day: label matching at 40 / 30 px for both sides OK; the chat box is kept minimized (memory
+    chat-minimized). Speed options (b) + (c) + (e) were OK'd, then the user asked for a review first - its result:
+    - they cannot reach the target: the cost is the QUESTION stage 1 asks (every feet position x every pose x 54 k
+      values; 34 k positions a real frame, 870 k with flyers), estimated 25-40 ms after (b) + (c) + (e).
+    - **Measured (E9, tools/perc/redesign/): native frames show sprite colours EXACTLY** (difference 0 on 98.57 % of
+      827 k opaque pixels, the rest covered); palettes are tiny (Horny 77 colours, Zombie 134, Stirge 14) and
+      sprites dithered (~1350-1900 non-flat 2x2 blocks per pose); real fades are exact (residual 0 on 90 %, one o
+      per mob; respawn waves fade in together); **the blue "hit" mobs are FROZEN mobs = sprite x (B 255, G 168, R
+      10) / 255 exactly** (the LS fit accepts them at "seen 17 %" by their black outline).
+    - **Proposed search = voting:** palette id per pixel (LUT) -> 2x2 id blocks = features -> a table says which
+      (pose, feet) cells a feature allows -> votes -> exclusive votes (a feature counts for its best cell) -> ~4-7
+      cells a frame -> the existing stage 2 + pick. Fades: un-blend the residue at the alpha that makes its pixel
+      pairs sprite colour pairs, then the same vote. Tints: more palette colours. No windows / footholds / air
+      case; the opaque vote needs no scene.
+    - **Prototype numbers (exp_vote.py candidates -> today's stage 2 + pick, nothing tuned):** synth 99.5 %, 0
+      false, every opaque case 100 % (player / effect were 98.2 / 97.8), fade 96.2 (alpha not refined); labels at
+      40 / 30: 94.3 % (LS fit 93.3, before 86.9), clear 97.5, player 90.7 (82.8), ui 87.5 (80.6), scenery 98.0,
+      edge 96.7; below the LS fit until built: fade 82.7 (93.2), dying 90.2 (93.9), hit 78.8 (84.8: frozen).
+      Candidate search 1.7-3.8 ms p50 whole frame (2.1-2.3 on Line 1 / Steam / Transfer), stage-2 candidates 4-7
+      (max 27) instead of ~380-720. Other maps vs today's well-sighted tracks: Bubbling 91.9 %, Stirge 94.7-98.0 %.
+    - The plan: 2 Opus sessions (S1-S3 the vote + fit on votes + tools; S4-S6 fades, tints, other maps, close 3.2),
+      gates and prompts inside. Not built: anything in maplebrain/ (fit.py is still the LS fit of 7744b1d).
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")

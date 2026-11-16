@@ -11,3 +11,13 @@ the repo root; they write their outputs next to themselves (ant4_render.png is 4
                                       (682 = that recording's 1 px capture error; E8: 683)
     exp_backfit.py fit RUN | solve RUN..   E8: each background layer's position measured on 7 maps -> one arithmetic:
                                       off + trunc(r * (C + off) / 100), off 683 / 468: 736 of 736 (x), 587 of 587 (y)
+
+E9 (2026-11-17, behind PLAN-fit-speed.md: the fit's candidate search by exact-colour voting):
+    exp_exact.py                      E9a: frame colour = sprite colour exactly (98.57 % of opaque pixels, the rest
+                                      covered); palettes (Horny 77 colours, Zombie 134, Stirge 14, Bubbling 60)
+    exp_fade_exact.py real | synth    E9b: real fades are I = B + o (s - B) to the level, one o per mob; the per-pixel
+                                      "some colour at some opacity" test is NOT selective (kept as the dead end)
+    exp_tint.py N,TYPE,X,Y ...        E9c: frozen mobs = sprite x (B 255, G 168, R 10) / 255, exactly
+    exp_vote.py table MAP | synth OUT | labels RUN | tracks RUN REPLAY
+                                      E9: palette ids -> 2x2 features -> votes -> exclusive votes (+ fades by
+                                      un-blending at the residue's alpha): candidates vs truth / labels / tracks, ms
