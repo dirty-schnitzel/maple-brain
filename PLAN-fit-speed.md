@@ -116,6 +116,9 @@ per-layer images 5.7.
   is sprite-coloured pixels, and the full table is what keeps ~1 candidate per mob.) Fallback if the alpha route misses the gate:
   the LS search from 7744b1d (`_stage1`) ONLY at feet positions inside the cells the pair count flags - tell the
   user first.
+  **DONE 2026-11-17 (b39503a), changed with the user's OK: one alpha per 48 px cell, no cap a frame ((c) capped
+  synth at 82.9 %), the un-blend tolerance by 1 / o (+-2 / 3 / 4 / 6), fades in the same vote; the fade pass ~1.7
+  ms p50 accepted (the whole fit <= 5 ms p90 is the gate). Numbers: HANDOFF "3.2 Session 2".**
 - S5 tints: palette x (B 255, G 168, R 10) / 255 (rounding from the measured colour pairs; exp_tint.py) as LUT
   entries of the same ids, stage 2 with the tinted sprite; FitMob gets `tint`. Gate: labels hit >= 84.8, effect >=
   88.7 (before's). Log, don't guess, other tints: a mob-shaped residue blob no cell explains -> saved crop for

@@ -63,9 +63,9 @@ voting replaces the least-squares stage 1; prototype tools/perc/redesign/exp_vot
 opaque cases 100 %, labels 94.3 %). OK'd by the user 2026-11-17. Session 1 (S1-S3) DONE 2026-11-17: vote + fit on
 votes in maplebrain/ (fit 2.6 / 3.2 ms p50 / p90 on the labels frames, was 119 / 160); every gate met but the labels
 one AS WRITTEN (its classes hold fading mobs, S4's); the user ACCEPTED it on the not-fading subset 2026-11-17 (full
-classes = S4 / S5's gate). Session 2 S4 (fades) built 2026-11-17 and STOPPED for the user's call: per-cell alphas
-replace "at most 2 a frame" (wrong on synth), accuracy gates met, fade pass 1.65 ms p50 vs 1 - see "3.2 Session 2"
-in "Step 3 state"; then S5 (tints), S6.** `watch` was NOT running on 2026-11-17 (no python process): the user's to
+classes = S4 / S5's gate). Session 2 S4 (fades) DONE 2026-11-17 and accepted by the user (per-cell alphas, the
+1 / o tolerance, fade pass ~1.7 ms p50 kept) - see "3.2 Session 2" in "Step 3 state". NEXT = S5 (tints), then S6 +
+close 3.2.** `watch` was NOT running on 2026-11-17 (no python process): the user's to
 restart; never stop it.
 
 ### TASK (the user, 2026-11-16): improve the gate test by taking NEW footage
@@ -689,8 +689,10 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     - ACCEPTED by the user 2026-11-17 ("yes"): the labels gate on the not-fading subset for Session 1; was asked: accept it on the not-fading subset for Session 1 (the full classes are S4 /
       S5's gate), or another call. The comparison: `tools/perc/fit/subset.py` (E9 fade cells cached in
       RUN/fit/fading_e9.json; the LS rows from 7744b1d's fit.py + run.py via git show).
-  - **3.2 Session 2, S4 fades (2026-11-17): built; STOPPED for the user's call - one design point failed on the
-    data, the fade-pass ms gate missed.** All ms pinned, game up, expected() not counted (D's).
+  - **3.2 Session 2, S4 fades (2026-11-17): DONE (b39503a). ACCEPTED by the user the same day: (A) one alpha per
+    cell, no cap a frame + the 1 / o tolerance replace "at most 2 alphas a frame"; (B) the fade pass stays at ~1.7 ms
+    p50 (no CUDA graphs, no spot restriction): the gate is the whole fit <= 5 ms p90 incl. fades (S6). NEXT = S5.**
+    All ms pinned, game up, expected() not counted (D's).
     - **Design point (c) "at most 2 alphas a frame" is wrong on synth:** 34 of the 50 synth fade frames hold 2-3
       fading mobs at different opacities; 18 of the 105 fading mobs are beyond their frame's top 2 alphas -> ceiling
       82.9 % (measured 77.1 % with (c)). Built instead (PROPOSED): ONE alpha per 48 px cell (its own refined o; a
