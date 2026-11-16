@@ -467,7 +467,15 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     clean scene keep today's path whole, per tick; labels = the 300 picked frames of 012059_1 (no extra maps until
     the new footage); tests on pre-native footage deleted (d87e5b4: 1200 -> 1074 tests; kept: every Lie Detector
     test + test_runner / test_window, which run the loop on look_snails + tests/fixtures/self_tag_gray.npy).
-  - NEXT: 3.0a labels.
+  - **3.0a IN PROGRESS: by-eye labels.** `tools/perc/labels/patches.py RUN PICK` = the camera followed over every saved
+    frame (3858 / 3858, cached RUN/labels/cams.json), D patches per picked frame (p50 13, max 27), one sheet per frame
+    in RUN/labels/sheets/ (the frame + the recording's tracks lettered + a 2x tile per track and per untracked patch,
+    screen ticks + footholds). Judgments: tools/perc/labels/20261116_012059_1_judged.jsonl (format in
+    tools/perc/labels/label.py: a token per track letter + added mobs + unsure spots, classes e/p/s/u/f/d/x/h);
+    `label.py RUN JUDGED` -> RUN/labels.json v2. Sheets are judged in pick order (the line count = done). After the
+    300: label_eval per class (v2 reader) = the "before" numbers. Seen so far: many weak / unseen tracks are real
+    mobs under the cursor tooltip / quickslots / chat (u), behind players (p), or fading in (f); "n" = tracks on
+    nothing (dying tracks after the corpse went, a few ghosts).
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")
