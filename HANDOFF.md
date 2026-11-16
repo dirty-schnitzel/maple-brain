@@ -60,10 +60,16 @@ cache + CPU readers in threads); the FFT whole-screen search and a faster `find_
 replaces both (rule: memory no-work-step3-replaces).
 - **Remind the user: `watch` is OFF - restart it** (`... -m maplebrain watch runs\watch --seconds 14400`: now 1 look
   / s on the CPU by default; `--gpu` exists, but the bench showed no gain from it - see the numbers).
-- **ONE live check covers 2.8 + 2.9** (the user chose "after the changes"): `serve runs\play --observe --gpu
-  --tracker` ~2 min with watch running -> tick p50 / p90 vs 154819_1 (28 / 31), the `lie` part (~3 ms on 1 tick in
-  ~10), parts `self` / `hud` / `scene` ~0 (hidden behind `gpu`), HP / MP / EXP / slots read as before.
-- Then **step 3 (the mob matcher)**; inputs measured for it in "DONE 2.9" (the near search's cost by window size).
+- **DONE: the live check of 2.8 + 2.9** (`runs/play/20261116_193954_1`, Ant Tunnel IV, 132 s, 6889 ticks, serve
+  --observe --gpu --tracker, watch running; the user played): **tick p50 19.0 / p90 22.0 / p99 33.4 ms, 52.3 fps**
+  (154819_1: 28 / 31 / 54, 34.5 fps). Parts p50: gpu 11.3, world 4.0, scenecam 0.7, upload 0.3, hud 0.1; self /
+  scene / grey 0 (hidden); `lie` 3.0 ms p50 (max 5.8) on its 423 look ticks (1 in ~16); self_wide 4.1 ms on 36
+  ticks (was 28); locate 2.3 p50 on 434 ticks (1 / s), max 21. HP / MP / EXP read on 100 % of ticks, 62 distinct HP
+  readings, EXP never decreasing, max HP / MP constant (1659 / 670), slots read on 100 %; tag 95.7 %; Lie Detector
+  best score 0.508 (none on screen). Scene camera on every tick after the first tag (ticks 0-58 = the first 1.4 s,
+  no seed until our tag was found), share p50 0.92.
+- **NEXT: step 3 (the mob matcher)** - order to agree with the user first; inputs measured for it in "DONE 2.9"
+  (the near search's cost by window size).
 - The bar back to 0.80? The user's word only. Facts for it: the gold title's best false score on 8641 native frames
   0.496, the sound title 0.434, blue title 0.565, "Question in" 0.522 -> the set's 0.565; the client's own windows
   pasted at native >= 0.970. Old stretched JPEG fixture panel: 0.79 (a non-native window would sit near 0.80).
