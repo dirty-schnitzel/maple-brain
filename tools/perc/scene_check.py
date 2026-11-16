@@ -1,11 +1,13 @@
 """The scene model against a recording (PLAN-perception.md step 1 gates): is the camera exact, how much of the
 picture does the scene explain?
 
-    python tools/perc/scene_check.py RUN [--n 200] [--tol 4] [--pictures 6] [--map ID]
+    python tools/perc/scene_check.py RUN [--n 200] [--tol 4] [--pictures 6] [--map ID] [--follow] [--t1 S]
 
 RUN = a recording with frames (PNG at native 1366x768 for --tol 4; old JPEG runs: --tol 30). Needs
 `python -m maplebrain assets scene MAP` first. On --n saved frames, evenly spread:
-- camera: `Scene.locate` from the tracker's camera (ticks.jsonl); share of landmarks matching; difference to the
+- camera: `Scene.locate` from the tracker's camera (ticks.jsonl) - or with --follow from the camera of the saved
+  frame before (every saved frame is registered, as the bot would; the tracker's camera only to recover: needed
+  where the tracker itself is lost); share of landmarks matching; difference to the
   tracker's camera; CHECK: is the registered camera the one that explains the most pixels among the 25 cameras
   within 2 px (counted over the whole play area, not the landmarks)?
 - explained: play-area pixels (HUD off) within --tol of the expected scene; the same outside the boxes of dynamic
@@ -29,6 +31,8 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(Path(__file__).parent))
+import frames as rec  # noqa: E402  (undoes a recording's 1 px capture error: RUN/xshift.txt)
 
 
 def ui_mask(h: int, w: int) -> np.ndarray:
@@ -65,6 +69,8 @@ def main():
     ap.add_argument("--tol", type=int, default=4)
     ap.add_argument("--pictures", type=int, default=0)
     ap.add_argument("--map", type=int, default=None)
+    ap.add_argument("--follow", action="store_true")
+    ap.add_argument("--t1", type=float, default=None, help="only ticks before this time (s)")
     a = ap.parse_args()
     import torch
     from maplebrain.perception.tags import find_tags
@@ -77,15 +83,29 @@ def main():
     scene = Scene.load(map_id)
     mj = json.loads((ROOT / "assets" / "mcw" / "maps" / str(map_id) / "map.json").read_text(encoding="utf-8"))
     ticks = [json.loads(l) for l in open(a.run / "ticks.jsonl", encoding="utf-8")]
-    ticks = [k for k in ticks if k.get("frame") and k["obs"].get("cam")]
+    ticks = [k for k in ticks if k.get("frame") and k["obs"].get("cam") and (a.t1 is None or k["obs"]["t"] < a.t1)]
+    every = ticks
     ticks = [ticks[int(i * (len(ticks) - 1) / max(1, a.n - 1))] for i in range(min(a.n, len(ticks)))]
+    picked = {k["frame"]: i for i, k in enumerate(ticks)}
     h, w = PLAY_H, 1366
     ui = ui_mask(h, w)
     ui_t = torch.from_numpy(ui).to(scene.dev)
     rows, shown = [], 0
     out_dir = a.run / "scene_check"
-    for i, k in enumerate(ticks):
-        frame = cv2.imread(str(a.run / "frames" / k["frame"]))
+    prev, last, followed, seen = None, None, 0, 0
+    bar = 0.2 if a.tol <= 8 else 0.35
+    for k in (every if a.follow else ticks):
+        i = picked.get(k["frame"])
+        if i is None:                                                 # --follow: a frame in between, camera only
+            frame = rec.read(a.run, k["frame"])
+            if frame is not None:
+                ft = torch.from_numpy(np.ascontiguousarray(frame[:h])).to(scene.dev)
+                reg = scene.locate(ft, C_guess=prev, seed=k["obs"]["cam"], tol=a.tol, mask=ui_t, min_share=bar,
+                                   last_share=last)
+                prev, last = (reg[0], reg[1]) if reg is not None else (prev, None)
+                seen, followed = seen + 1, followed + (reg is not None)
+            continue
+        frame = rec.read(a.run, k["frame"])
         if frame is None:
             continue
         obs = k["obs"]
@@ -93,11 +113,15 @@ def main():
         if scene.dev == "cuda":
             torch.cuda.synchronize()
         t0 = time.perf_counter()
-        reg = scene.locate(ft, seed=obs["cam"], tol=a.tol, mask=ui_t, min_share=0.2 if a.tol <= 8 else 0.35)
+        reg = scene.locate(ft, C_guess=prev if a.follow else None, seed=obs["cam"], tol=a.tol, mask=ui_t, min_share=bar,
+                           last_share=last if a.follow else None)
+        last = reg[1] if reg is not None else None
+        seen, followed = seen + 1, followed + (reg is not None)
         if reg is None:
             rows.append({"frame": k["frame"], "reg": None})
             continue
         C, share, n_marks = reg
+        prev = C
         exp, known = scene.expected(C)
         d = (ft.float() - exp).abs().amax(dim=2)
         ok = (d <= a.tol) & known
@@ -114,7 +138,7 @@ def main():
                     if n2 > best[0]:
                         best = (n2, dx, dy)
         okn, knownn = ok.cpu().numpy(), known.cpu().numpy()
-        dyn = dynamic_mask(obs, find_tags(frame), h, w)
+        dyn = dynamic_mask(obs, find_tags(frame), h, w)             # (obs: the recording's own columns, +-1 px)
         still = ui & ~dyn
         bad = (~okn & ui).astype(np.uint8)                            # not explained: blobs (dynamic things, by
         blob = cv2.dilate(cv2.erode(bad, np.ones((3, 3), np.uint8)), np.ones((9, 9), np.uint8)) > 0   # their nature) or
@@ -140,7 +164,10 @@ def main():
             shown += 1
     good = [r for r in rows if r.get("reg") is not None]
     q = lambda v, p: float(np.percentile(v, p))                       # noqa: E731
-    print(f"{a.run}: map {map_id}, {len(rows)} frames, tolerance +-{a.tol}; device {scene.dev}")
+    print(f"{a.run}: map {map_id}, {len(rows)} frames, tolerance +-{a.tol}; device {scene.dev}" +
+          (f"; picture moved {rec.xshift(a.run)} px right (xshift.txt)" if rec.xshift(a.run) else ""))
+    if a.follow:
+        print(f"  followed frame to frame: camera found on {followed} of {seen} saved frames")
     print(f"  registered {len(good)} of {len(rows)}; landmarks matching p5 / p50: {100 * q([r['reg'] for r in good], 5):.1f} % / "
           f"{100 * q([r['reg'] for r in good], 50):.1f} % (of {int(q([r['marks'] for r in good], 50))} landmarks)")
     off = [r for r in good if r["best_other"] != (0, 0)]

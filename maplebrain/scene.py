@@ -14,10 +14,13 @@ Build (`python -m maplebrain assets scene [MAP ...]`, from the client export; NO
 Run time: `Scene.load(map_id)`; `expected(C)` -> the scene for camera C (map = screen + C) + which pixels are
 known; `register(frame, C_guess)` -> the camera. Torch tensors (GPU when there is one).
 
-Background position (HeavenClient's MapBackgrounds with the client's own integer arithmetic; fitted on 65 layer
-positions, all exact):  screen x of the picture's origin = bx + WOFF + trunc(rx * (Cx + WOFF) / 100), y alike with
-HOFF; tiled types repeat every cx / cy px (0 = the picture's size). Moving types (4-7: clouds) and animated backs
-have no fixed place: their pixels are unknown.
+Background position (HeavenClient's MapBackgrounds with the client's own integer arithmetic):
+    screen x of the picture's origin = bx + WOFF + trunc(rx * (Cx + WOFF) / 100),  y alike with HOFF
+WOFF 683 (half the width), HOFF 468 (768 - 300: the old 800x600 client's centre, kept from the bottom); division
+toward zero. Measured layer by layer on 7 maps (tools/perc/redesign/exp_backfit.py, rx -2 .. -80): every position
+exact. (First fitted as 682 on Ant Tunnel IV alone: that recording was captured 1 px off, capture.game_columns.)
+Tiled types repeat every cx / cy px (0 = the picture's size). Moving types (4-7: clouds) and animated backs have no
+fixed place: their pixels are unknown.
 """
 import json
 import shutil
@@ -28,7 +31,7 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1] / "assets" / "scene"
 W, H, PLAY_H = 1366, 768, 700
-WOFF, HOFF = 682, 468          # the client's "screen centre" in the background formula (fitted, see above)
+WOFF, HOFF = 683, 468          # the client's "screen centre" in the background formula (measured, see above)
 PAD = 200                      # px of map rendered around the footholds / vrBounds
 H_TILED, V_TILED, MOVING = (1, 3, 4, 6, 7), (2, 3, 5, 6, 7), (4, 5, 6, 7)
 
@@ -155,7 +158,7 @@ def build_scene(img: dict, m: dict, parts: _Parts) -> tuple:
                       "size": [im.shape[1], im.shape[0]],
                       "known": int(kind == "back" and typ not in MOVING)})
     out = np.clip(canvas + 0.5, 0, 255).astype(np.uint8)
-    meta = {"x0": x0, "y0": y0, "w": x1 - x0, "h": y1 - y0, "woff": WOFF, "hoff": HOFF, "objects": n_obj, "tiles": n_tile,
+    meta = {"x0": x0, "y0": y0, "w": x1 - x0, "h": y1 - y0, "objects": n_obj, "tiles": n_tile,
             "animated": int(n_anim), "backs": backs}
     return out, (anim if n_anim else None), meta
 
@@ -216,7 +219,7 @@ class Scene:
         self.torch = torch
         self.dev = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.meta, self.x0, self.y0 = meta, meta["x0"], meta["y0"]
-        self.woff, self.hoff = meta.get("woff", WOFF), meta.get("hoff", HOFF)
+        self.woff, self.hoff = WOFF, HOFF                            # (not the build's: a constant of the client)
         self.canvas = torch.from_numpy(np.ascontiguousarray(canvas)).to(self.dev)              # (h, w, 4) uint8
         self.anim = None if anim is None else torch.from_numpy(anim > 0).to(self.dev)
         self.backs = []
@@ -381,15 +384,24 @@ class Scene:
         return (gx + int(d[ix]), gy + int(d[iy])), float(ok[iy, ix]), int(len(sx))
 
     def locate(self, frame, C_guess=None, seed=None, tol: int = 4, h: int = PLAY_H, mask=None, wide: int = 48,
-               min_share: float = 0.2):
+               min_share: float = 0.2, last_share: float | None = None):
         """The camera, from the last one (`C_guess`: looked for within 12 px, then `wide`) and / or a rough one
-        (`seed`: the minimap's, within `wide`). A wrong offset matches ~2 % of the landmarks, the right one 40-95 %
-        (40 %: a game window open over the scene), so `min_share` 0.2 tells them apart: None = not found (a camera
-        that only resembles the last one is worse than none)."""
+        (`seed`: the minimap's, within `wide`). A wrong offset matches ~2 % of the landmarks on most scenery, the
+        right one 40-95 % (40 %: a game window open over the scene): under `min_share` = not found, None (a camera
+        that only resembles the last one is worse than none).
+        But scenery repeats (Transfer Area's brick walls, 2026-11-16: the camera had moved > 12 px between saved
+        frames, a camera one brick over matched 31 % and was taken, 61 px off for 2 s): a look is final only if it
+        matches about as well as the last frame did (`last_share`, x 0.85); else every look is made and the best
+        match wins."""
+        best = None
         for guess, radius in ((C_guess, 12), (C_guess, wide), (seed, wide)):
             if guess is None:
                 continue
             r = self.register(frame, guess, radius, tol, h, mask)
-            if r is not None and r[1] >= min_share:
-                return r
-        return None
+            if r is None:
+                continue
+            if best is None or r[1] > best[1]:
+                best = r
+            if last_share is not None and r[1] >= max(min_share, 0.85 * last_share):
+                break
+        return best if best is not None and best[1] >= min_share else None

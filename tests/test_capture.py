@@ -35,6 +35,17 @@ def test_full_width_game_without_bars():
     assert game_columns(raw) == (0, 1366)
 
 
+def test_a_dark_edge_column_in_the_native_window_does_not_move_the_crop():
+    """2026-11-16, Ant Tunnel IV + Dangerous Steam at native: the game's leftmost column was dark, the crop became
+    (1, 1367) - the whole picture 1 px left of its place, the last column from outside the window."""
+    raw = np.full((768, 1366, 3), 90, np.uint8)
+    raw[:, 0] = 0
+    assert game_columns(raw) == (0, 1366)
+    raw[:, :2] = 0
+    raw[:, -1] = 0
+    assert game_columns(raw) == (0, 1366)
+
+
 def test_a_native_1366x768_picture_is_not_resized():
     """The game windowed at 1366x768 (PLAN-perception.md): the frame is the game's own pixels, untouched."""
     rng = np.random.default_rng(0)

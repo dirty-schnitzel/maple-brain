@@ -6,6 +6,11 @@ grayscale over the whole frame (the windows can sit anywhere): panel 0.89-0.90, 
 ~14,000 frames of 29 runs without it was 0.67. A full-frame match costs ~13 ms per template, so it runs every ~0.3 s
 - on its own thread (2026-11-05, runs/kd2: 4 templates beside the GPU / tag threads took 100-500 ms and were the
 loop's worst stalls); the answer is at most one look late (~0.3-0.5 s; the Lie Detector gives 10+ s).
+
+The bar is 0.75 since 2026-11-16 (was 0.80; the user's call): the game runs at native 1366x768 now and these
+templates were cut from stretched windows, so a real one is expected to score a few % lower (the panel ~0.85, not
+verified: no Lie Detector seen at native yet). Best false score on native PNG frames: 0.668 (the panel template;
+all 3609 frames of 6 maps, 0.644-0.668 per map; Ant Tunnel IV 0.65). Back to 0.80 once the templates are re-cut 1:1 from a native Lie Detector (PLAN-perception.md).
 """
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -25,7 +30,7 @@ NAMES = ("lie_detector_panel.npy", "lie_detector_game.npy",
 
 
 class LieDetector:
-    def __init__(self, templates, min_score: float = 0.8, every_s: float = 0.3, background: bool = True):
+    def __init__(self, templates, min_score: float = 0.75, every_s: float = 0.3, background: bool = True):
         self.templates, self.min_score, self.every_s = list(templates), min_score, every_s
         self.next_t, self.last = -1e9, (False, 0.0, None)
         self.pool = ThreadPoolExecutor(1, thread_name_prefix="lie") if background else None

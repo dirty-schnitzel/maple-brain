@@ -100,6 +100,8 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
   - **Found at native (constants and templates measured on stretched windows):**
     - FIXED: the HUD's EXP text sits 1 px left -> `exp_points` read 0 of 11,576 ticks; it now tries both places
       (193 of 193 frames, 14 by-eye checked in tests/fixtures/exp_points_native.npz). HP / MP read 100 %.
+      (CAUSE found later that day: not the HUD - THIS RECORDING was captured 1 px off, see "Step 1 on 7 maps".
+      The reader stays tolerant; the perf fixture and exp_points_native.npz are from the shifted recording.)
     - OPEN: `assets/self_tag_gray.npy` is a resampled-look template: tag score p50 0.864 at native (found 91.7 % of
       ticks; a 1:1 template would be ~1.0) -> re-cut it from the PNG run (step 2 at the latest).
     - **OPEN, safety: the Lie Detector templates are resampled-look too.** Estimate (HUD text through the old
@@ -107,6 +109,9 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
       ~0.85 at native (bar 0.80; best false score on native frames 0.65). Not verifiable without an LD at native:
       the user decides whether `LieDetector.min_score` goes 0.80 -> 0.75 until native templates exist (watch needs
       a restart then: the user's).
+      **DECIDED 2026-11-16 (the user): the bar is 0.75** (`LieDetector.__init__`). Best false score on all 3609
+      native frames of the 6 new recordings: 0.668 (the panel template, 0.644-0.668 per map). A running `watch`
+      keeps 0.80 until the user restarts it.
     - OPEN: the tracker's camera reads +6 px x / +3 px y (p50) off the scenery registration at native (FHD: 0 / +1):
       probably the minimap's sub-pixel handling in `localize.py`. Step 1's registration replaces it; until then
       platform edges are ~6 px off.
@@ -145,6 +150,54 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     (step 1's remaining gates); then step 2 (pipeline: FrameFacts, one upload, the scene camera replaces camshift /
     phase correlation / the per-tick minimap; watch at 1 look / s + Lie Detector on the GPU). The 300 picked frames
     are still to label (now with the subtraction picture to check by).
+- **Step 1 on 7 maps (2026-11-16, later): the user recorded 6 more native PNG runs** - runs/play/20261116_
+  084719_1 Dark Cave (77 s), 084844_2 Dangerous Steam (94 s), 085108_3 Line 1 <Area 1> (56 s), 085215_4 Transfer
+  Area (40 s), 085414_5 Perion Street Corner (64 s), 085620_6 Land of Wild Boar (74 s); with Ant Tunnel IV = 7 maps.
+  - **FIXED capture bug: `capture.game_columns` cropped (1, 1367) when the game's left edge column was dark** (the
+    native window has no bars to measure; now the whole width is taken unmeasured). Ant Tunnel IV (012059_1) and
+    Dangerous Steam (084844_2) were recorded 1 px LEFT of their place, the last column from outside the window.
+    Those two runs carry `xshift.txt` = 1; `tools/perc/frames.py` (`read`) puts the picture back, and
+    `python tools/perc/frames.py RUN..` measures / marks a recording. This was the "EXP text 1 px left", 1 px of
+    the "tracker camera off" and the 682.
+  - **The background arithmetic is one formula on all 7 maps:** `b + off + trunc(r * (C + off) / 100)`, off **683**
+    (half the width) / 468, measured layer by layer (E8, tools/perc/redesign/exp_backfit.py): 736 of 736 positions
+    in x (rx -2 .. -80), 587 of 587 in y. With 682 Line 1 (rx -30 / -50 / -80) explained only 81 % of the picture.
+  - **FIXED `Scene.locate` on scenery that repeats:** Transfer Area's brick walls let a camera one brick over match
+    31 % of the landmarks; following frame to frame it was taken (61 px off for 2 s). Now a look is final only if
+    it matches about as well as the last frame did (`last_share` x 0.85), else all looks are made and the best
+    wins. "A wrong offset matches ~2 %" holds only on scenery that does not repeat.
+  - **`scene_check.py RUN --n 120 --follow`** (new: --follow registers every saved frame from the one before, as
+    the bot would; --t1). Camera found on every saved frame of every run and the best of its 25 neighbours on
+    120 / 120 everywhere. Explained outside blobs p5 / p50, whole play area p50, unknown p50:
+        Ant Tunnel IV        99.58 / 99.87 %   95.2 %   0.0 %
+        Dark Cave (0-16 s)   99.86 / 99.95 %   96.8 %   0.0 %
+        Dangerous Steam      99.61 / 99.87 %   96.4 %   1.7 %
+        Line 1 <Area 1>      99.64 / 99.80 %   94.1 %   0.9 %
+        Transfer Area        99.44 / 99.89 %   96.6 %   1.5 % (max 26.7 %: animated objects)
+        Perion Street Corner 99.27 / 99.71 %   60.9 %  24.3 %
+        Land of Wild Boar    99.54 / 99.85 %   52.1 %  34.8 %
+    Register + expected + compare 4-10 ms (Line 1 / Transfer Area 16-22 ms: 29-36 background layers drawn one by
+    one -> pre-compose the layers of one parallax in step 2).
+  - **OPEN, step 1: Perion's moving clouds (type 4 backs, rx 5 .. 35 = a speed, not a parallax).** They drift over
+    the background rocks (never over tiles / mobs). Today their place is taken from the fixed formula: the area
+    marked unknown is not where they are, and where they are the rocks behind read as "something drawn over the
+    scene" (blobs 43-50 % of the play area). To do: measure where / how they move (y, speed), then either mark
+    the rows they can reach unknown or - better - find each layer's x per frame (a known picture, 1-D search) and
+    explain it.
+  - Dark Cave 084719_1: **the game window was moved ~33 px left / 22 px up at 16.4 s** (a mouse drag; no key) and
+    the capture kept its old place: from then on the picture is cut (the desktop shows at the right edge). Only
+    0-16.3 s is a clean picture. The capture never re-checks the window's place: a guard is proposed (step 2).
+  - Sprites 1:1 on the new maps (`native_check.py`, per-mob median 100 % everywhere): Stirge / Horny / Zombie
+    Mushroom 95-99 % pooled. Bubbling (Line 1) 50 %: a half-transparent mob (score 0.995) - needs sprite-over-
+    scene, not sprite alone (step 3). Wild Boar 74 %, Snail 78 %: some are pale (fading in, to check).
+  - Today's tracker on them: Dangerous Steam 85 weak tracks (83 of one mob type: scenery ghosts) beside 173 real;
+    Perion Street Corner 31 weak / 96 real. **Tick 61-68 ms on the two Perion maps** (gpu 18-40 ms, world 15-32 ms).
+  - **Speed finding: the bench read 42-46 ms today with and without these changes (A/B by stash), 28.8-29.2 ms
+    pinned to the performance cores** (affinity 0xFFFF + AboveNormal; baseline 30.0). Windows runs a background
+    console process on the efficiency cores while the game is in front - the live bot is such a process. To test in
+    step 2: the bot sets its own priority / affinity / no power throttling.
+  - pytest green pinned (speed 28.8 ms); replay press1 HEAD vs work: 166 real + 11 weak both, 100 % found.
+  - **NEXT (order to agree):** Perion's moving clouds (closes step 1); then step 2. Labels still open.
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")

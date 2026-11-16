@@ -110,6 +110,15 @@ by landmark registration: found on 3858 of 3858 frames, the best of its 25 neigh
 explains 99.82 % of the pixels outside moving things; 3.0 ms on the GPU. Today's camera is > 8 px off on 39 % of
 frames. Open: native recordings of Line 1 and Perion for their gates. Details: HANDOFF "Step 1 state".
 
+**Step 1 on 7 maps (2026-11-16, the user's 6 more native recordings):** the offset is 683 / 468 (682 was a 1 px
+capture error on the Ant Tunnel IV recording, fixed in `capture.game_columns`): one arithmetic reproduces 736 of
+736 (x) and 587 of 587 (y) measured layer positions. Camera exact on 120 of 120 checked frames of every map and
+followed through every saved frame; outside moving things the scene explains 99.71-99.95 % (p50 per map).
+**Open in step 1: Perion's moving cloud layers** (drawn over the background rocks, today neither explained nor
+marked unknown where they really are: 43-50 % of the play area is left over there). Also for step 2: the bot's
+process runs on the efficiency cores while the game is in front (tick 44 ms vs 29 ms pinned to the P-cores); the
+capture does not follow a moved game window. Details: HANDOFF "Step 1 on 7 maps".
+
 ### Lie Detector watch (added by the user, 2026-11-16) - part of step 2
 - **`maplebrain watch` looks once per second** (today every 0.3 s; the Lie Detector gives 10+ s). Each look = 4
   full-frame template matches on the CPU (~13 ms each) in a second process, beside the hunt.
@@ -117,7 +126,8 @@ frames. Open: native recordings of Line 1 and Perion for their gates. Details: H
   is already uploaded (step 2: one upload), instead of the CPU thread that competes with the HUD / tag readers; in
   watch: its own small GPU job. Measure the hunt's tick p50 / p90 with watch off, watch as today, watch at 1 s, and
   watch on the GPU (bench + a live observe run); keep what is faster and never slower to notice an LD.
-- Same work: native 1:1 Lie Detector templates (today's are cut from stretched windows: HANDOFF, the 0.80 bar).
+- Same work: native 1:1 Lie Detector templates (today's are cut from stretched windows; until then the bar is
+  0.75 instead of 0.80, the user's call 2026-11-16; best false score on native frames of 7 maps 0.668).
 
 ## Risks and unknowns
 - Native 1366x768: "renders 1:1" is assumed, not proven (HANDOFF TODO) - step 0 decides the tolerances. The 72,857

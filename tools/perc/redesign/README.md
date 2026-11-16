@@ -8,3 +8,6 @@ the repo root; they write their outputs next to themselves (ant4_render.png is 4
     exp_absent.py                     E5: scenery visible in a track's body box = absent
     exp_back.py RUN [N]               E7: parallax backs under the render: the client's constants (WOFF 682, HOFF 468,
                                       integer division toward zero), share of the picture explained (PNG run)
+                                      (682 = that recording's 1 px capture error; E8: 683)
+    exp_backfit.py fit RUN | solve RUN..   E8: each background layer's position measured on 7 maps -> one arithmetic:
+                                      off + trunc(r * (C + off) / 100), off 683 / 468: 736 of 736 (x), 587 of 587 (y)

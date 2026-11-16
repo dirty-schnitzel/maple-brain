@@ -268,6 +268,16 @@ def test_lie_detector_not_seen_on_a_normal_frame():
     assert not _lie().seen(cv2.imread(str(FX / "sprites_six_unhit.jpg")))
 
 
+def test_lie_detector_bar_is_lowered_for_the_native_window_and_native_frames_stay_clear_of_it():
+    """2026-11-16 (the user's call): 0.80 -> 0.75 until the templates are re-cut 1:1 at native 1366x768 (they are
+    from stretched windows: a real one is expected ~0.85 there). Best false score on native frames of 7 maps: 0.668."""
+    lie = _lie()
+    assert lie.min_score == 0.75
+    for name in ("000.jpg", "022.jpg", "044.jpg"):                   # native fight frames (Ant Tunnel IV)
+        s, _ = lie.score(cv2.imread(str(FX / "perf_ant4" / name)))
+        assert s < 0.70
+
+
 def test_lie_detector_check_is_throttled_but_catches_it_within_the_interval():
     lie = _lie()
     none, game = cv2.imread(str(FX / "lie_detector_none.jpg")), cv2.imread(str(FX / "lie_detector_game.jpg"))

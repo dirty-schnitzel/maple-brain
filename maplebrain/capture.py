@@ -36,10 +36,16 @@ def game_columns(raw: np.ndarray) -> tuple[int, int]:
     crop by ~34 px -> the whole frame squeezed 1.3 %, quickslots 13 px off, potions read as gone, bot stopped.
     Now a column belongs to the game only if a good share of its rows is lit, and the width is the game's
     1366:768 shape at this height; if the lit columns don't match that width, the game is centred (pillarboxing
-    is symmetric)."""
+    is symmetric).
+    No bars at all (the client area has the game's shape: the native 1366x768 window) -> the whole width, never
+    measured: 2026-11-16 a dark left edge column (Ant Tunnel IV, Dangerous Steam) read as 'bar' moved the crop to
+    (1, 1367) - every pixel 1 px left of its place, the last column from outside the window (the EXP text '1 px
+    left', the backgrounds' offset fitted as 682 instead of 683)."""
     h, w = raw.shape[:2]
     want = min(w, round(h * W / H))
     centred = ((w - want) // 2, (w - want) // 2 + want)
+    if want == w:
+        return centred
     lit = np.where((raw.max(axis=2) > 12).mean(axis=0) > 0.3)[0]
     if len(lit) == 0 or abs((int(lit[-1]) + 1 - int(lit[0])) - want) > 2:
         return centred                      # (a dark game edge, or something tall lit in a bar)

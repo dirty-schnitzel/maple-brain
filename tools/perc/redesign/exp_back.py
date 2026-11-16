@@ -5,7 +5,10 @@ explained?
 
 Model (HeavenClient MapBackgrounds, tiled types; the client's own integer arithmetic): the picture's origin is at
     screen x = bx + WOFF + trunc(rx * (Cx + WOFF) / 100)      (y alike with ry, HOFF),  repeated every cx / cy px
-with C = the camera (map = screen + C). RESULT 2026-11-16: WOFF 682, HOFF 468, division toward zero - all 65 layer
+with C = the camera (map = screen + C). CORRECTED the same day by E8 (exp_backfit.py, 7 maps): WOFF is 683 - this
+experiment's recording (Ant Tunnel IV) was captured 1 px off (capture.game_columns), which read as 682. This
+script reads the frames as recorded, so its own numbers stand as printed then:
+RESULT 2026-11-16: WOFF 682, HOFF 468, division toward zero - all 65 layer
 positions of 13 frames (fitted one by one, +-2 px) match exactly.
 """
 import json

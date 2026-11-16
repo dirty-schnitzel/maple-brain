@@ -30,14 +30,16 @@ def _world(seed=0, backs=None, front=False):
 
 
 def test_background_position_is_the_clients_integer_arithmetic():
-    """Fitted on Ant Tunnel IV (65 layer positions): origin at b + off + trunc(r * (C + off) / 100), off 682 / 468,
-    division TOWARD ZERO (not floor: they differ for negative products)."""
+    """Measured on 7 maps (exp_backfit.py): origin at b + off + trunc(r * (C + off) / 100), off 683 / 468, division
+    TOWARD ZERO (not floor: they differ for negative products). The cases are measured ones (frame, layer)."""
     b = _back(x=-3, y=-21, rx=-15, ry=-15, origin=[400, 300], size=[800, 600])
-    assert sc.back_pos(b, (1119, 824)) == (-3 + 682 + int(-15 * (1119 + 682) / 100) - 400,
+    assert sc.back_pos(b, (1119, 824)) == (-3 + 683 + int(-15 * (1119 + 683) / 100) - 400,
                                            -21 + 468 + int(-15 * (824 + 468) / 100) - 300)
-    assert sc.back_pos(_back(rx=-5, ry=-5, origin=[0, 0]), (-899, -540)) == (682 + 10, 468 + 3)   # -5 * -217 / 100 = 10.85
-    assert sc.back_pos(_back(rx=-5, ry=-5, origin=[0, 0]), (-641, -428)) == (682 - 2, 468 - 2)    # trunc(-2.05) = -2
-    assert sc.back_pos(_back(flip=1, rx=0, ry=0, origin=[10, 0]), (0, 0))[0] == 682 - 70          # mirrored origin
+    assert sc.back_pos(_back(rx=-5, ry=-5, origin=[0, 0]), (-900, -540)) == (683 + 10, 468 + 3)   # -5 * -217 / 100 = 10.85
+    assert sc.back_pos(_back(rx=-5, ry=-5, origin=[0, 0]), (-642, -428)) == (683 - 2, 468 - 2)    # trunc(-2.05) = -2
+    assert sc.back_pos(_back(rx=-50, ry=-100, origin=[0, 0]), (-578, -518)) == (683 - 52, 518)    # Line 1: -52.5 -> -52
+    assert sc.back_pos(_back(rx=-30, ry=-100, origin=[0, 0]), (93, -348)) == (683 - 232, 348)     # Line 1: -232.8
+    assert sc.back_pos(_back(flip=1, rx=0, ry=0, origin=[10, 0]), (0, 0))[0] == 683 - 70          # mirrored origin
 
 
 def test_expected_is_the_tiles_over_the_tiled_background_and_everything_is_known():
@@ -83,6 +85,31 @@ def test_register_finds_the_camera_to_the_pixel_under_clutter():
     assert got == (150, 150)
     assert s.locate(_frame(s, (150, 150)), (20, 20), h=420) is None          # lost: no camera, not a wrong one
     assert s.locate(_frame(s, (150, 150)), (20, 20), seed=(170, 120), h=420)[0] == (150, 150)   # the minimap's rough one
+
+
+def test_locate_is_not_fooled_by_scenery_that_repeats():
+    """Transfer Area 2026-11-16: brick walls. A camera one brick over matches part of the landmarks; when the last
+    camera is > 12 px old the near look finds only that one - it must not be final."""
+    rng = np.random.default_rng(7)
+    canvas = np.zeros((700, 900, 4), np.uint8)
+    brick = rng.integers(0, 255, (40, 40, 3), dtype=np.uint8)
+    canvas[100:400, :, :3] = np.tile(brick, (8, 23, 1))[:300, :900]           # a wall: repeats every 40 px
+    canvas[100:400, :, 3] = 255
+    for _ in range(25):                                                       # + things that don't repeat
+        x, y, w, h = int(rng.integers(0, 800)), int(rng.integers(400, 640)), int(rng.integers(40, 100)), int(rng.integers(30, 60))
+        canvas[y:y + h, x:x + w, :3] = rng.integers(0, 255, (h, w, 3), dtype=np.uint8)
+        canvas[y:y + h, x:x + w, 3] = 255
+    pic = np.zeros((60, 80, 4), np.uint8)
+    pic[..., :3], pic[..., 3] = rng.integers(0, 16, (60, 80, 3), dtype=np.uint8) * 17, 255
+    s = sc.Scene({"x0": -100, "y0": -50, "w": 900, "h": 700, "backs": [_back()]}, canvas, [pic], device="cpu")
+    C = (150, 100)
+    f = _frame(s, C, clutter=0)
+    old = (C[0] + 32, C[1])                                                   # the last camera, 32 px old
+    alias = s.register(f, old, radius=12, h=420)
+    assert alias[0] == (C[0] + 40, C[1]) and 0.2 < alias[1] < 0.8             # one brick over: a partial match
+    assert s.locate(f, old, h=420, last_share=0.95)[0] == C                   # not final: the wide look, the best wins
+    assert s.locate(f, old, h=420)[0] == C                                    # no last share: every look, the best
+    assert s.locate(f, (C[0] + 3, C[1] - 2), h=420, last_share=0.95)[0] == C
 
 
 def test_register_says_how_little_matches_on_another_picture():
