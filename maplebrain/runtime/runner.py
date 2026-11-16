@@ -330,7 +330,7 @@ def _hunt(rig: Rig, rec: Recorder, t0: float, until, observe: bool = False, area
                     timings["gpu_ms"] = round(rig.sprites.last_ms, 1)
                     timings["gpu_mobs"] = [[h.mob_id, *map(int, h.feet), h.pose.anim, h.score]
                                            for h in rig.sprites.all_hits]
-                rec.tick(frame, obs, actions, brain.mode, timings)
+                rec.tick(frame, obs, actions, brain.mode, timings, facts=getattr(perceiver, "facts", None))
                 if stop:
                     ex.release_all()
                     status = f"STOPPED: {stop.reason}"

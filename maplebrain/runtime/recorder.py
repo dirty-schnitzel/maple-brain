@@ -41,7 +41,9 @@ class Recorder:
         print(line.encode("ascii", "replace").decode())
         self.log.write(line + "\n")
 
-    def tick(self, frame, obs, actions, mode, timings) -> None:
+    def tick(self, frame, obs, actions, mode, timings, facts=None) -> None:
+        """One line of ticks.jsonl; `facts`: the Perceiver's FrameFacts of this frame (perception/facts.py: what the
+        frame showed, before any memory) -> "facts", read back with FrameFacts.from_dict."""
         self.n += 1
         frame_file = None
         if self.every and (self.n % self.every == 0 or any(type(a).__name__ in ("Track", "Stop", "Forget") for a in actions)):
@@ -54,6 +56,8 @@ class Recorder:
         rec = {"n": self.n, "frame": frame_file, "mode": mode, "obs": asdict(obs), "timings": timings,
                "actions": [f"{type(a).__name__}{'(' + ','.join(str(v) for v in a.__dict__.values()) + ')' if a.__dict__ else ''}"
                            for a in actions]}
+        if facts is not None:
+            rec["facts"] = facts.as_dict()
         self.ticks.write(json.dumps(rec, default=str) + "\n")
 
     def close(self) -> None:

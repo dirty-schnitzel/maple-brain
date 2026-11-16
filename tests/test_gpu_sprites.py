@@ -46,6 +46,28 @@ def test_scores_equal_opencv(det):
     assert likely.any() and d[likely].max() < 0.01
 
 
+def test_half_size_on_the_gpu_is_opencvs_inter_area_to_the_bit(det):
+    """find() halves the uploaded frame on the GPU instead of cv2.resize + a second upload (PLAN-perception.md
+    step 2): the picture the whole-screen search sees must stay the same, pixel for pixel."""
+    frames = [cv2.imread(str(p)) for p in sorted((FX / "perf_ant4").glob("*.jpg"))[::9]]
+    frames.append(cv2.imread(str(FX / "library_grass.jpg")))
+    rng = np.random.default_rng(1)
+    frames.append(rng.integers(0, 256, (768, 1366, 3), dtype=np.uint8))             # every rounding case
+    for f in frames:
+        play = f[:700]
+        ref = cv2.resize(play, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
+        got = det._half(det.upload(play)).permute(1, 2, 0).byte().cpu().numpy()
+        assert np.array_equal(got, ref)
+
+
+def test_find_from_the_one_upload_equals_the_old_cpu_resize_path(det):
+    frame = cv2.imread(str(FX / "library_grass.jpg"))
+    new = det.find(frame)
+    small = cv2.resize(frame[:700], None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
+    assert torch.equal(det.scores(small), det.scores(det._half(det.upload(frame[:700]))))
+    assert det.frame_u8.shape == frame.shape and new == det.find(frame)
+
+
 @pytest.mark.parametrize("mob,flip", [(8, False), (8, True), (10, False), (10, True)])
 def test_finds_a_pasted_pig_anywhere_with_pose_and_feet(det, mob, flip):
     """Whole screen: a Pig pasted high up in the trees (no band around our feet) is found, its feet exact."""

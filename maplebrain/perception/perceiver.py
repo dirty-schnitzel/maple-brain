@@ -12,6 +12,7 @@ from ..config import Config
 from ..geometry import bottom, cx, overlaps
 from . import hud
 from .mobs import MobLibrary, Tracker
+from .facts import FrameFacts
 from .motion import moving_blobs
 from .selfpos import find_self
 from .tags import find_tags, tag_body
@@ -114,10 +115,12 @@ class Perceiver:
             loc.calibrate(frame)
         if loc is not None:
             loc.follow(frame)
-        obs.dot = hud.minimap_dot(frame, loc.dot_box() if loc is not None else hud.MINIMAP_BOX)
+        f = self.facts
+        obs.dot = f.dot = hud.minimap_dot(frame, loc.dot_box() if loc is not None else hud.MINIMAP_BOX)
         w = loc.where(obs.dot) if loc is not None else None
         if w is not None:
-            obs.map_pos, obs.platform, obs.rope = (round(w.x, 1), round(w.y, 1)), w.platform, w.rope
+            f.map_pos, f.platform, f.rope = (round(w.x, 1), round(w.y, 1)), w.platform, w.rope
+            obs.map_pos, obs.platform, obs.rope = f.map_pos, f.platform, f.rope
 
     # ---- commands from the brain (via the runner)
     def track(self, frame, box):
@@ -150,10 +153,10 @@ class Perceiver:
                 self.library.forget_at(frame, self.tracker.box)
 
     # ---- observing
-    def _pair(self, frame, name, span, last):
-        """The HUD's [cur/max] for HP or MP. Unreadable (covered) -> the last good reading. A different max is
-        taken only when read twice in a row (level-up / gear), so a single misread can't change it."""
-        r = hud.read_pair(frame, span)
+    def _pair(self, r, name, last):
+        """The HUD's [cur/max] for HP or MP from this frame's reading `r` (FrameFacts hp / mp). Unreadable (covered)
+        -> the last good reading. A different max is taken only when read twice in a row (level-up / gear), so a
+        single misread can't change it."""
         if r is None:
             return last
         if last is not None and r[1] != last[1]:
@@ -167,8 +170,9 @@ class Perceiver:
         """Majority of the last 5 readings of `key`'s quickslot; a frame with the cursor over the key layout is
         skipped (its tooltip covers the slots next to it: pkg_sprites7b frame 300)."""
         h = self.slot_hist.setdefault(key, deque(maxlen=5))
+        self.facts.slots[key] = None
         if not hud.in_quickslots(cursor):
-            v = hud.slot_filled(frame, key)
+            v = self.facts.slots[key] = hud.slot_filled(frame, key)
             if v is None:
                 return None
             h.append(v)
@@ -177,30 +181,40 @@ class Perceiver:
     def observe(self, frame, t: float, cursor=None) -> Observation:
         p, z = self.cfg.perception, self.cfg.zones
         obs = Observation(t=t)
+        f = self.facts = FrameFacts(t=t)                    # what this frame shows (facts.py); obs = facts + memory
         self.last_frame, self.last_t = frame, t
         self.parts, self._t0 = {}, time.perf_counter()      # ms per part of this frame (ticks timings.parts)
+        # the frame's grey, once (PLAN-perception.md step 2): our tag, the Lie Detector, the scene shift, camshift.
+        # Read-only from here on (the Lie Detector's thread reads it while this tick goes on).
+        gray = self._gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        self._mark("gray")
         if self.lie_detector is not None:
-            obs.lie_detector = self.lie_detector.check(frame, t)[0]
+            f.lie = self.lie_detector.check(frame, t, gray=gray)
+            obs.lie_detector = f.lie[0]
         self._mark("lie")
-        small = cv2.resize(cv2.cvtColor(frame[:620], cv2.COLOR_BGR2GRAY), (341, 155),
-                           interpolation=cv2.INTER_AREA).astype(np.float32)
+        small = cv2.resize(gray[:620], (341, 155), interpolation=cv2.INTER_AREA).astype(np.float32)
         if self.prev_small is not None:
             (dx, dy), resp = cv2.phaseCorrelate(self.prev_small, small)
-            obs.scene_dx = float(dx * 4) if resp > 0.2 else None
-            obs.scene_dy = float(dy * 4) if resp > 0.2 else None
+            if resp > 0.2:
+                f.scene_shift = (float(dx * 4), float(dy * 4))
+                obs.scene_dx, obs.scene_dy = f.scene_shift
         self.prev_small = small
         self._mark("scene")
         me = None
         if self.me_near is not None:
-            me = find_self(frame, self.tpl, near=self.me_near, min_score=p.self_near_score)
+            me = find_self(frame, self.tpl, near=self.me_near, min_score=p.self_near_score, gray=gray)
+            f.tag_look = "near"
         if me is None and not 0 < self.wide_next_t - t <= 1.0:   # lost: the whole screen ~4x a second (25-150 ms;
             near_edge = self.me_near is None or not 150 < self.me_near[0] < frame.shape[1] - 150   # the minimap
-            me = find_self(frame, self.tpl, min_score=p.self_min_score, edges=near_edge)          # meanwhile)
+            me = find_self(frame, self.tpl, min_score=p.self_min_score, edges=near_edge, gray=gray)   # meanwhile)
+            f.tag_look = "wide"
             self.wide_next_t = t + (0 if me is not None else p.self_wide_every_s)
             self._mark("self_wide")
+        f.tag = me
         self._mark("self")
-        self.hp_pair = self._pair(frame, "hp", hud.HP_TEXT, self.hp_pair)
-        self.mp_pair = self._pair(frame, "mp", hud.MP_TEXT, self.mp_pair)
+        f.hp, f.mp = hud.read_pair(frame, hud.HP_TEXT), hud.read_pair(frame, hud.MP_TEXT)
+        self.hp_pair = self._pair(f.hp, "hp", self.hp_pair)
+        self.mp_pair = self._pair(f.mp, "mp", self.mp_pair)
         if self.hp_pair:
             obs.hp_now, obs.hp_max = self.hp_pair
             obs.hp = obs.hp_raw = self.hp_pair[0] / self.hp_pair[1]
@@ -209,7 +223,7 @@ class Perceiver:
             obs.mp = self.mp_pair[0] / self.mp_pair[1]
         obs.hp_potions = self._slot(frame, self.cfg.keys.hp_potion, cursor)
         obs.mp_potions = self._slot(frame, self.cfg.keys.mp_potion, cursor)
-        pts = hud.exp_points(frame)
+        pts = f.exp_points = hud.exp_points(frame)
         if pts is not None:
             self.points_hist.append(pts)
         if len(self.points_hist) == 3:                  # 2 of 3 agree: one misread never makes a kill
@@ -305,20 +319,22 @@ class Perceiver:
 
     def _track(self, frame, obs, me):
         band = self.sprites
+        f = self.facts
         tags = self.tag_pool.submit(find_tags, frame)  # players' bodies hide mobs (they're drawn over them)
-        hits = band._all(frame)
+        hits = f.hits = band._all(frame)
         self._mark("gpu")
         me_s = (me[0] + me[2] / 2, me[1]) if me is not None else None
         shift = None
         if self.plat_shift is not None:                 # platforms move 1:1 with the camera; the whole frame doesn't
-            shift = self.plat_shift.update(frame, self.world.cam.C, me_s, obs.t)
+            shift = f.plat_shift = self.plat_shift.update(self._gray, self.world.cam.C, me_s, obs.t)
             obs.cam_src = "platforms" if shift is not None else "scene"
             self._mark("camshift")
         if shift is None and obs.scene_dx is not None:
             shift = (obs.scene_dx, obs.scene_dy)
+        f.tags = tags.result()
         trs = self.world.update(obs.t, hits, me_s, obs.map_pos, shift,
                                 near=lambda spots, pad=24, vis=None: band.gpu.find_near(frame, spots, pad=pad, vis=vis),
-                                tags=tags.result())
+                                tags=f.tags)
         self._mark("world")
         obs.mobs = [tr.as_dict(obs.t) for tr in trs]
         obs.cam = tuple(round(v, 1) for v in self.world.cam.C) if self.world.cam.C else None

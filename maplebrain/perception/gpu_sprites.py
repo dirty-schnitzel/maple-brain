@@ -144,23 +144,42 @@ class GpuSpriteDetector:
         ids = sorted({int(x["id"]) for x in m.get("mobs") or []})
         return cls([root / "mobs" / str(i) for i in ids if (root / "mobs" / str(i) / "mob.json").exists()], **kw)
 
-    def _dev_frame(self, play, fresh=False):
-        """The play area on the device, zero-mean (3, h, w) float. `find` uploads it (`fresh`) and the refine step and
-        find_near calls on that same frame reuse it; anything else is uploaded each time (a buffer can be reused or
-        drawn into in place - only `find` marks the start of a new frame)."""
+    def upload(self, frame):
+        """The whole frame on the device, uint8 (h, w, 3): the tick's one copy to the GPU (PLAN-perception.md step 2).
+        `find` makes it; the detector's other steps (and later the scene camera) read `frame_u8`."""
+        return self.torch.from_numpy(np.ascontiguousarray(frame)).to(self.dev)
+
+    def _dev_frame(self, play, fresh=False, u8=None):
+        """The play area on the device, zero-mean (3, h, w) float. `find` makes it (`fresh`, from the uploaded frame
+        `u8`) and the refine step and find_near calls on that same frame reuse it; anything else is uploaded each time
+        (a buffer can be reused or drawn into in place - only `find` marks the start of a new frame)."""
         key = (play.__array_interface__["data"][0], play.shape, play[::61, ::59].tobytes())
         if not fresh and getattr(self, "_frame_key", None) == key:
             return self._frame_dev
-        x = self.torch.from_numpy(np.ascontiguousarray(play)).to(self.dev).permute(2, 0, 1).float() / 255
+        if u8 is None:
+            u8 = self.torch.from_numpy(np.ascontiguousarray(play)).to(self.dev)
+        x = u8.permute(2, 0, 1).float() / 255
         x = x - x.mean()
         if fresh:
             self._frame_dev, self._frame_key = x, key
         return x
 
-    def scores(self, img_small: np.ndarray):
-        """(K, h, w) NCC of every template at every top-left position of the (scaled) image."""
+    def _half(self, u8):
+        """(3, h/2, w/2) float 0..255 of an uploaded (h, w, 3) uint8 picture: every 2x2 block's mean rounded the way
+        cv2.resize(INTER_AREA, 0.5) rounds it, floor((sum + 2) / 4) - bit-identical (tests/test_gpu_sprites.py), so the
+        whole-screen search sees the picture it always saw, without a CPU resize and a second upload."""
+        h, w = u8.shape[0] // 2, u8.shape[1] // 2
+        s = u8[:2 * h, :2 * w].permute(2, 0, 1).float().reshape(3, h, 2, w, 2).sum(dim=(2, 4))
+        return self.torch.floor((s + 2) / 4)
+
+    def scores(self, img_small):
+        """(K, h, w) NCC of every template at every top-left position of the (scaled) image: a BGR uint8 array
+        (h, w, 3), or a (3, h, w) float 0..255 tensor already on the device (`_half`)."""
         torch, F = self.torch, self.torch.nn.functional
-        x = torch.from_numpy(img_small).to(self.dev).permute(2, 0, 1).unsqueeze(0).float() / 255
+        if torch.is_tensor(img_small):
+            x = img_small.unsqueeze(0) / 255
+        else:
+            x = torch.from_numpy(img_small).to(self.dev).permute(2, 0, 1).unsqueeze(0).float() / 255
         x = F.pad(x, (0, self.W, 0, self.H), mode="replicate")      # templates are padded: keep the edges
         cross = F.conv2d(x, self.T)
         xc = x.transpose(0, 1)
@@ -171,15 +190,20 @@ class GpuSpriteDetector:
         r = cross / torch.sqrt(var.clamp_min(1e-6) * self.tnorm)
         # flat windows (sky, a plain wall: std < flat_std grey levels) have no shape: noise / ~0 gave scores of 32
         r = torch.where(var < 3 * self.n * (self.flat_std / 255) ** 2, torch.full_like(r, -1.0), r)[0]
-        h, w = img_small.shape[:2]
+        h, w = img_small.shape[-2:] if torch.is_tensor(img_small) else img_small.shape[:2]
         return r[:, :h, :w]
 
     def find(self, frame, refine=True, top=3) -> list:
         torch, F = self.torch, self.torch.nn.functional
         sc = self.scale
         play = frame[:PLAY_H]
-        self._dev_frame(play, fresh=True)                       # a new frame's work starts here: upload it once
-        small = cv2.resize(play, None, fx=sc, fy=sc, interpolation=cv2.INTER_AREA)
+        self.frame_u8 = self.upload(frame)                      # a new frame's work starts here: upload it once
+        u8 = self.frame_u8[:PLAY_H]
+        self._dev_frame(play, fresh=True, u8=u8)
+        if sc == 0.5 and play.shape[0] % 2 == 0 and play.shape[1] % 2 == 0:
+            small = self._half(u8)                               # = cv2 INTER_AREA at 0.5, on the GPU
+        else:
+            small = cv2.resize(play, None, fx=sc, fy=sc, interpolation=cv2.INTER_AREA)
         r = self.scores(small)                                   # (K, h, w)
         # per mob: best pose per position, local maxima only - all mobs in one go (their poses are contiguous)
         best = torch.stack([r[a:b].max(dim=0).values for a, b in self.spans])          # (n_mobs, h, w)

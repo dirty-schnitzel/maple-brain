@@ -54,10 +54,12 @@ class LieDetector:
         s, _ = self.score(frame)
         return s >= self.min_score
 
-    def check(self, frame, t: float) -> tuple[bool, float, tuple | None]:
+    def check(self, frame, t: float, gray=None) -> tuple[bool, float, tuple | None]:
         """Throttled: matches at most every `every_s`; in between the last answer stands. `t` is the hunt's clock,
         which restarts at 0 each hunt while this object lives on in `serve`: a clock behind the last look means a
-        new hunt -> look now (2026-11-04: the cached 'on screen' from the hunt it stopped ended every restart)."""
+        new hunt -> look now (2026-11-04: the cached 'on screen' from the hunt it stopped ended every restart).
+        `gray`: the frame's grey, made fresh for this frame and never written to (the Perceiver's) - the thread
+        reads it as it is instead of a copy of the colour frame."""
         if self.pending is not None and self.pending.done():
             s, loc = self.pending.result()
             self.last, self.pending = (s >= self.min_score, s, loc), None
@@ -70,8 +72,8 @@ class LieDetector:
         if (t >= self.next_t or new_hunt) and self.pending is None:
             self.next_t = t + self.every_s
             if self.pool is None:
-                s, loc = self.score(frame)
+                s, loc = self.score(frame if gray is None else gray)
                 self.last = (s >= self.min_score, s, loc)
             else:
-                self.pending = self.pool.submit(self.score, frame.copy())
+                self.pending = self.pool.submit(self.score, frame.copy() if gray is None else gray)
         return self.last

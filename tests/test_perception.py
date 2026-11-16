@@ -327,15 +327,14 @@ def test_a_mob_up_a_gentle_slope_far_away_is_reachable():
     assert reachable_level((100, feet + 50 - 34, 35, 34), *args, -10, z.climb_slope, z.climb_max)  # step down: as before
 
 
-def test_a_new_max_needs_two_reads_and_a_covered_hud_keeps_the_last(monkeypatch):
+def test_a_new_max_needs_two_reads_and_a_covered_hud_keeps_the_last():
     from maplebrain.perception.perceiver import Perceiver
     p = Perceiver.__new__(Perceiver)
     p.new_max = {}
-    reads = iter([(700, 783), (701, 7831), (700, 783), None, (650, 800), (650, 800)])
-    monkeypatch.setattr(hud, "read_pair", lambda frame, span: next(reads))
+    reads = [(700, 783), (701, 7831), (700, 783), None, (650, 800), (650, 800)]   # FrameFacts.hp per frame
     last = None
     seen = []
-    for _ in range(6):
-        last = p._pair(None, "hp", hud.HP_TEXT, last)
+    for r in reads:
+        last = p._pair(r, "hp", last)
         seen.append(last)
     assert seen == [(700, 783), (700, 783), (700, 783), (700, 783), (700, 783), (650, 800)]

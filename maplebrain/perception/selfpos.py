@@ -33,16 +33,20 @@ def _match(h, t):
     return r
 
 
-def find_self(frame, template, near=None, radius=220, min_score=0.66, edges=True):
+def find_self(frame, template, near=None, radius=220, min_score=0.66, edges=True, gray=None):
     """Returns (x, y, w, h, score) of the tag, or None. `near` = (x, y) of the last tag centre-top. `edges`: also
-    look for a tag cut by the screen's side (costs ~50 ms when there's nothing to find)."""
-    g = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY).astype(np.float32)
-    g[ui_mask(frame.shape) == 0] = 0
+    look for a tag cut by the screen's side (costs ~50 ms when there's nothing to find). `gray`: the frame's grey
+    (cv2 BGR2GRAY) when the caller has it already (the Perceiver converts once per frame)."""
+    if gray is None:
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    ui = ui_mask(frame.shape)
     ox = oy = 0
-    if near is not None:
+    if near is not None:                             # crop first: the same pixels as masking the whole frame
         ry = min(radius, 90)                         # we can't move far vertically between frames
         ox, oy = max(0, int(near[0]) - radius), max(0, int(near[1]) - ry)
-        g = g[oy:int(near[1]) + ry, ox:int(near[0]) + radius]
+        gray, ui = (a[oy:int(near[1]) + ry, ox:int(near[0]) + radius] for a in (gray, ui))
+    g = gray.astype(np.float32)
+    g[ui == 0] = 0
     if g.shape[0] < template.shape[0] or g.shape[1] < template.shape[1]:
         return None
     h, t = _hp(g), _hp(template.astype(np.float32))

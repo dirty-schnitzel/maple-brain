@@ -5,8 +5,8 @@ import numpy as np
 from .hud import ui_mask
 
 
-def text_mask(frame) -> np.ndarray:
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+def text_mask(frame, hsv=None) -> np.ndarray:
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) if hsv is None else hsv
     return ((hsv[:, :, 2] > 180) & (hsv[:, :, 1] < 50)).astype(np.uint8)
 
 
@@ -20,10 +20,11 @@ def find_tags(frame, rows=None) -> list:
 
 
 def _find_tags(frame, world) -> list:
-    text = text_mask(frame) & world
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)                     # once: the text mask and the box brightness
+    text = text_mask(frame, hsv) & world
     line = cv2.dilate(text, np.ones((3, 7), np.uint8))
     n, _, st, _ = cv2.connectedComponentsWithStats(line)
-    v = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)[:, :, 2].astype(np.float32)
+    v = hsv[:, :, 2].astype(np.float32)
     tags = []
     for i in range(1, n):
         x, y, w, h, _ = (int(c) for c in st[i])

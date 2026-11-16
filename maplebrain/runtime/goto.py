@@ -153,7 +153,8 @@ def _tour(rig, rec, t0, say, seconds, to, seed) -> str:
                                        "phase": tr.move.phase if tr.move else None} if tr is not None else None)}
                 if getattr(perceiver, "parts", None):
                     timings["parts"] = perceiver.parts
-                rec.tick(frame, obs, [], "TRAVEL" if tr is not None else "IDLE", timings)
+                rec.tick(frame, obs, [], "TRAVEL" if tr is not None else "IDLE", timings,
+                         facts=getattr(perceiver, "facts", None))
             except FocusLost as e:
                 driver.release_all()
                 say(window.pause_line(e, foreground_title))

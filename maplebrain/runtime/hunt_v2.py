@@ -84,7 +84,7 @@ def hunt_v2(rig, rec, t0: float, until, area=None) -> str:
                 if hasattr(rig.sprites, "all_hits"):
                     timings["gpu_ms"] = round(rig.sprites.last_ms, 1)
                 speed.append((1000 * (tb - tick0), dict(getattr(perceiver, "parts", None) or {})))
-                rec.tick(frame, obs, [], brain.mode, timings)
+                rec.tick(frame, obs, [], brain.mode, timings, facts=getattr(perceiver, "facts", None))
                 if stop:
                     driver.release_all()
                     status = f"STOPPED: {stop}"
