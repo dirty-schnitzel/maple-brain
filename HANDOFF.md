@@ -57,7 +57,7 @@ The user supervises every run at the PC. Botting is against Nexon's ToS (ban ris
 Step 2 is done and live-checked (below). Step 3's order is in PLAN-perception.md ("Step 3") and "Step 3 state"
 (after "Step 2 state"): 3.0a labels -> 3.0b synthetic frames -> 3.1 D in shadow -> 3.2 the fit -> 3.3 FrameFacts v2
 in shadow -> 3.4 the switch on clean maps. **3.0a + 3.0b DONE (labels, synthetic frames, "before" numbers on both in
-"Step 3 state"); NEXT = 3.1 (D in shadow), proposed, waiting for the user's OK.** `watch` is RUNNING again (restarted
+"Step 3 state"); NEXT = 3.1 (D in shadow), OK'd by the user 2026-11-16 (proposal at the end of the 3.0b entry in "Step 3 state").** `watch` is RUNNING again (restarted
 by the user): never stop it.
 
 ### TASK (the user, 2026-11-16): improve the gate test by taking NEW footage
