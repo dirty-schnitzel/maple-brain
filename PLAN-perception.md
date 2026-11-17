@@ -154,6 +154,9 @@ bench needs the game running (GPU P-state: 40-43 ms idle vs 27-30 with the game)
   whole-screen search + refine) and track predictions (voted types + die poses; replaces find_near), packed by
   area, D-pruned positions; target <= 5 ms p90. Gate: synth recall >= 99 %, 0 false mobs on mob-free synth and on
   the native ghost set, every label class >= today.
+  **DONE 2026-11-17** (PLAN-fit-speed.md: exact-colour vote + stage 2, fades, frozen tint, flyer layers; HANDOFF
+  "Step 3 state"): synth 100 %, 0 false; labels 95.6 % (every class >= before / LS); clips vs tracks 96-100 %; steam
+  ghosts 0; fit 3.9-4.6 ms p50 / 4.6-5.5 p90 (p90 > 5 on 4 clips accepted; fade-pass CUDA graphs for later).
 - 3.3 FrameFacts v2 in shadow (both detectors run, the tracker uses today's), compared frame by frame.
 - 3.4 the switch on clean maps (scene camera found this tick): SEEN -> Hit, COVERED / ABSENT -> None (timeouts stay
   until step 4: step 3 changes the evidence, step 4 the tracker); search / refine / find_near / cover probes /

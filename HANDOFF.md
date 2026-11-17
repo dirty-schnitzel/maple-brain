@@ -65,8 +65,9 @@ votes in maplebrain/ (fit 2.6 / 3.2 ms p50 / p90 on the labels frames, was 119 /
 one AS WRITTEN (its classes hold fading mobs, S4's); the user ACCEPTED it on the not-fading subset 2026-11-17 (full
 classes = S4 / S5's gate). Session 2 S4 (fades) DONE 2026-11-17 and accepted by the user (per-cell alphas, the
 1 / o tolerance, fade pass ~1.7 ms p50 kept) - see "3.2 Session 2" in "Step 3 state". S5 (tints) DONE 2026-11-17,
-every gate met ("3.2 Session 2, S5"). S6: flyer layers fixed, tracks gate met on all 6 clips, STOPPED at the ms
-gate (p90 5.13-5.47 on 4 clips) - the user's call on the levers ("3.2 Session 2, S6"), then close 3.2 + 3.3.** `watch` was NOT running on 2026-11-17 (no python process): the user's to
+every gate met ("3.2 Session 2, S5"). S6: flyer layers fixed, tracks gate met on all 6 clips, fit p90 5.13-5.47
+ms on 4 clips ACCEPTED by the user (option A = fade-pass CUDA graphs noted for later) -> **3.2 CLOSED 2026-11-17.
+NEXT = 3.3 (the fit in shadow in the Perceiver): PROPOSED in "Step 3 state" ("3.3 PROPOSED"), the user's OK first.** `watch` was NOT running on 2026-11-17 (no python process): the user's to
 restart; never stop it.
 
 ### TASK (the user, 2026-11-16): improve the gate test by taking NEW footage
@@ -781,7 +782,34 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
       of every 3rd pose found with tint "frozen", pose + feet exact). Dead LS code: none left in the fit;
       `Scene.split` (+ the behind_L planes it reads) is used only by tests/test_scene_layers.py now - scene.py is a
       live module, left for 3.3 to decide.
-    - NOT done (waiting for the ms call): close 3.2 ("Step 3 state" line in PLAN-perception.md), the 3.3 proposal.
+    - **The user's call 2026-11-17: the ms ACCEPTED as is ("note option A for later if needed, and proceed with
+      plan"). 3.2 CLOSED.** Context given: today's bench 20.1 ms (~50 fps, no fit); estimated 3.3 (both matchers)
+      ~24.5 ms ~41 fps; 3.4 (the fit replaces search + refine 9.7 + find_near 6.3 p50 / ~20 p90) ~9-11 ms p50 =
+      ~90-110 fps uncapped - the 60 fps cap is reached with the fade pass as is.
+    - **TODO LATER (only if needed): option A = CUDA graphs for the fade pass** (Voter.fade; bucketed by pairs /
+      residue like stage 2's graphs; est. 1.65 -> ~1.0-1.2 ms p50, -0.6..0.8 ms fit p90). Also open: (B) a tint flag
+      from the vote instead of trying every candidate tinted (-0.2 ms).
+  - **3.3 PROPOSED (2026-11-17, waiting for the user's OK): the fit in shadow in the Perceiver.** Nothing reads it;
+    the tracker keeps today's detector; brain / keys unchanged.
+    1. Wiring (perceiver.py, where D runs - scene camera found, `scene_diff` on): ONE `expected()` per tick shared by
+       D and the fit (`Scene.diff` takes / returns exp + known); `Fitter` built with the Scene at map load (measure
+       its build time; a thread if > ~0.5 s); ui = D's mask (the measured minimap) + the chat rect as world (memory
+       chat-minimized); `me` = our body box from obs.me; config `perception.fit` (default on).
+    2. FrameFacts v3: `fit` = [FitMob dicts] (None = not run this tick) + `fit_ms`; v1 / v2 records still read.
+    3. Hints: each live track the fit did not find gets ONE stage-2 look at its predicted feet with its type / last
+       pose (+ die poses if dying) -> SEEN / ABSENT / COVERED counts in FrameFacts `fit_hints` (step 4's evidence;
+       nothing reads it). Same CUDA-graph buckets.
+    4. Measure: bench A/B fit off / on (same state; then the user decides the re-baseline); tick p50 / p90 + the
+       fit's part; gate replay of all 7 clips: tracks the SAME (compare.py) + per clip the fit vs the tracker frame
+       by frame from the replay's own rows (tools/perc/fit/tracks.py logic: >= 95 % same type, the S6 numbers within
+       noise) + hint shares on the tracker's unseen / coasting frames (how many coasting tracks the fit calls ABSENT
+       = step 4's input).
+    5. Decide at 3.3 (proposals): drop `Scene.split` + stop loading the behind_L planes (only front alpha is used;
+       GPU memory on Line 1 / Transfer) - the planes test reads them from disk; `UI_RECTS`' top-right rect (1140-
+       1366 x 45-160) masks world where no buff icon is drawn (S6: 3 Stirges) - keep (safe) until step 5's UI work.
+    Gate: pytest + the speed line; full gate.py: tracks identical on all 7 clips; fit-vs-tracks per clip as S6; the
+    tick +<= ~5 ms p50 over the D-on state (A/B); no live behaviour change. Live: the user's optional short `serve
+    --observe` recording to read the fit's ms on live ticks.
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")

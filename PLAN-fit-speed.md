@@ -1,5 +1,6 @@
 # PLAN: the fit's speed - exact-colour voting replaces the least-squares search
-**Status: OK'd by the user 2026-11-17 (proposed by Fable, max effort; review of 3.2's speed blocker).**
+**Status: DONE 2026-11-17 (OK'd by the user 2026-11-17; proposed by Fable, max effort; review of 3.2's speed
+blocker). Open for later: S4's option A (fade-pass CUDA graphs), only if needed.**
 Executors: Opus (high), two sessions; prompts at the end. Parent plan: PLAN-perception.md step 3.2; state: HANDOFF
 "Step 3 state". Evidence: tools/perc/redesign/exp_vote.py (E9) + exp_exact.py / exp_fade_exact.py / exp_tint.py.
 
@@ -133,7 +134,8 @@ per-layer images 5.7.
   LS code and its config; propose 3.3 briefly and wait.
   **2026-11-17: flyers tried on every spawn layer (was: the lowest only; Steam 91.6 -> 98.2 %, Transfer 93.8 ->
   99.3 %), tracks >= 95 % on all 6 clips, 20 misses by eye, sweep: rule stays, tests/test_fit.py. STOPPED: fit
-  p90 5.13-5.47 ms on 4 of 6 clips (gate 5). HANDOFF "3.2 Session 2, S6".**
+  p90 5.13-5.47 ms on 4 of 6 clips (gate 5). HANDOFF "3.2 Session 2, S6".** ACCEPTED by the user the same day
+  (option A = fade-pass CUDA graphs noted for later): **3.2 CLOSED; this plan is DONE.**
 **Then 3.3** (its own OK): the fit in shadow in the Perceiver (FrameFacts v2 mobs), hints for unfound tracks, bench
 A/B; expected tick: D 2.8 + fit ~4-5 in, search ~10 + find_near 6 / 20 out at 3.4.
 
