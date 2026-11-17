@@ -131,6 +131,9 @@ per-layer images 5.7.
   on every gate clip (target <= 5 ms p90 incl. fades); thresholds by sweep; tests/test_fit.py (fixture: recall,
   0 false on mob-free, pose / feet exact); HANDOFF "Step 3 state" + one line in PLAN-perception.md; delete the dead
   LS code and its config; propose 3.3 briefly and wait.
+  **2026-11-17: flyers tried on every spawn layer (was: the lowest only; Steam 91.6 -> 98.2 %, Transfer 93.8 ->
+  99.3 %), tracks >= 95 % on all 6 clips, 20 misses by eye, sweep: rule stays, tests/test_fit.py. STOPPED: fit
+  p90 5.13-5.47 ms on 4 of 6 clips (gate 5). HANDOFF "3.2 Session 2, S6".**
 **Then 3.3** (its own OK): the fit in shadow in the Perceiver (FrameFacts v2 mobs), hints for unfound tracks, bench
 A/B; expected tick: D 2.8 + fit ~4-5 in, search ~10 + find_near 6 / 20 out at 3.4.
 

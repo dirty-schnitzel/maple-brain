@@ -10,8 +10,8 @@ shows, pixel by pixel. NOT on the live path: 3.3 runs it in shadow.
    with B = the expected scene (Scene.expected: tiles / objects of every layer + backs) and the pixel VALID when the
    scenery there is known, it is no opaque UI (`ui`) and the front scenery of the mob's layer (Scene.layers: tiles /
    objects of the layers above the mob's foothold) covers it with alpha < `front_max` (the mob is drawn under it).
-   The mob's layer = the nearest foothold's at / below its feet; flyers: the lowest of their spawns' layers (the
-   most front = the safe side). Where the mob would change the pixel a lot (o |q| > `inf` levels: informative):
+   The mob's layer = the nearest foothold's at / below its feet; flyers: each layer their type spawns on is tried
+   (a variant, like the tints). Where the mob would change the pixel a lot (o |q| > `inf` levels: informative):
        SEEN     valid and I = B + o q within tol
        ABSENT   valid, not SEEN and I = B within tol: the pixel shows the scene where the mob would be
        COVERED  the rest: not valid, or neither - something drawn over it (an effect, a player, another mob, the UI)
@@ -127,7 +127,8 @@ class Fitter:
                .get("fly")}
         self.layer_ids = sorted(scene.layers) or [0]
         self.low = self.layer_ids[0]
-        self.fly_layer = {t: min(fly_layers.get(t) or {self.low}) for t in fly}
+        pos = {L: i for i, L in enumerate(self.layer_ids)}
+        self.fly_layers = {t: sorted({pos.get(L, 0) for L in fly_layers.get(t) or {self.low}}) for t in fly}
         # front alpha per layer, with a zero row / column in front (index 0 = outside the rendered area)
         ch, cw = scene.canvas.shape[:2]
         fa = torch.zeros((len(self.layer_ids), ch + 1, cw + 1), dtype=torch.uint8, device=self.dev)
@@ -140,23 +141,27 @@ class Fitter:
         self.front_backs = any(b["front"] and b["known"] for b, _ in scene.backs)
         self.ms = {}
 
-    def _layers(self, g, fx, fy, C) -> np.ndarray:
-        """Each candidate's foothold layer (index into layer_ids)."""
-        out = np.zeros(len(g), int)
+    def _layers(self, g, fx, fy, C) -> list:
+        """Each candidate's possible foothold layers (indices into layer_ids): a ground mob the nearest foothold's at /
+        below its feet; a flyer every layer its type spawns on (stage 2 tries each: a Stirge spawned on Transfer
+        Area's layer 5 is drawn over the bricks that layer 2's front plane holds)."""
+        out = []
         pos = {L: i for i, L in enumerate(self.layer_ids)}
         X1, Y1, X2, Y2, LY = (self.fh[:, k] for k in range(5))
         for i in range(len(g)):
             t = self.poses[int(g[i])].type
-            if t in self.fly_layer:
-                out[i] = pos.get(self.fly_layer[t], 0)
+            if t in self.fly_layers:
+                out.append(self.fly_layers[t])
                 continue
+            li = 0
             mx, my = fx[i] + C[0], fy[i] + C[1]
             on = (X1 <= mx) & (X2 >= mx)
             if on.any():
                 ya = Y1[on] + (mx - X1[on]) * (Y2[on] - Y1[on]) / (X2[on] - X1[on])
                 below = ya >= my - 2
                 if below.any():
-                    out[i] = pos.get(int(LY[on][below][np.argmin(ya[below])]), 0)
+                    li = pos.get(int(LY[on][below][np.argmin(ya[below])]), 0)
+            out.append([li])
         return out
 
     def _meta(self, g, fx, fy, li, C) -> np.ndarray:
@@ -317,16 +322,24 @@ class Fitter:
                 _, cov, _ = self.scene._backs(C, SW, PLAY_H, 1, torch.zeros((*valid.shape, 3), device=self.dev), z1,
                                               torch.zeros_like(valid))
                 valid = valid & (cov < c.front_max)
-            n, K = len(g), len(self.tint_names)
-            gv = np.concatenate([np.asarray(g) + k * self.G for k in range(K)])    # every tint variant of each cell
-            meta = self._meta(gv, np.tile(fx, K), np.tile(fy, K), np.tile(li, K), C)
+            # variants: every tint x every possible layer of each cell; per cell the one with the most SEEN pixels
+            # stays (ties: the first = plain, the lowest layer)
+            rc = np.array([i for i in range(len(g)) for _ in range(len(self.tint_names)) for _ in li[i]], int)
+            rg = np.array([g[i] + k * self.G for i in range(len(g)) for k in range(len(self.tint_names))
+                           for _ in li[i]], np.int64)
+            rl = np.array([L for i in range(len(g)) for _ in range(len(self.tint_names)) for L in li[i]], int)
+            meta = self._meta(rg, fx[rc], fy[rc], rl, C)
             step = self.BUCKETS[-1]
-            parts = [self._stage2(frame, exp, valid, meta[i:i + step]) for i in range(0, len(gv), step)]
+            parts = [self._stage2(frame, exp, valid, meta[i:i + step]) for i in range(0, len(rg), step)]
             bits, cnt, o = (np.concatenate([p[k] for p in parts]) for k in range(3))
-            if K > 1:                                   # per cell the variant with the most SEEN pixels (ties: plain)
-                kb = np.argmax(cnt[:, 1].reshape(K, n), axis=0)
-                sel = kb * n + np.arange(n)
-                g, bits, cnt, o = gv[sel], bits[sel], cnt[sel], o[sel]
+            if len(rc) > len(g):
+                best = np.full(len(g), -1)
+                for j in range(len(rc)):
+                    if best[rc[j]] < 0 or cnt[j, 1] > cnt[best[rc[j]], 1]:
+                        best[rc[j]] = j
+                g, li, bits, cnt, o = rg[best], rl[best], bits[best], cnt[best], o[best]
+            else:
+                g, li = rg, rl
             t2 = time.perf_counter()
             mobs = self._pick(bits, cnt, o, g, fx, fy, ex, li)
             if keep_cands:

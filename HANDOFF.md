@@ -65,7 +65,8 @@ votes in maplebrain/ (fit 2.6 / 3.2 ms p50 / p90 on the labels frames, was 119 /
 one AS WRITTEN (its classes hold fading mobs, S4's); the user ACCEPTED it on the not-fading subset 2026-11-17 (full
 classes = S4 / S5's gate). Session 2 S4 (fades) DONE 2026-11-17 and accepted by the user (per-cell alphas, the
 1 / o tolerance, fade pass ~1.7 ms p50 kept) - see "3.2 Session 2" in "Step 3 state". S5 (tints) DONE 2026-11-17,
-every gate met ("3.2 Session 2, S5"). NEXT = S6 + close 3.2.** `watch` was NOT running on 2026-11-17 (no python process): the user's to
+every gate met ("3.2 Session 2, S5"). S6: flyer layers fixed, tracks gate met on all 6 clips, STOPPED at the ms
+gate (p90 5.13-5.47 on 4 clips) - the user's call on the levers ("3.2 Session 2, S6"), then close 3.2 + 3.3.** `watch` was NOT running on 2026-11-17 (no python process): the user's to
 restart; never stop it.
 
 ### TASK (the user, 2026-11-16): improve the gate test by taking NEW footage
@@ -744,8 +745,43 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
       other 4 merged with neighbours (wrong alignment) or were taken plain at seen 0.13. Tint ON: 0 unknown tints
       on the 297 frames.
     - Tests: test_vote.py (rounding; every pose frozen on a blank frame gets its cell), tests/test_fit.py (S6).
-      pytest green; bot speed 23.5 ms (p90 26.4; S4 read 21.1 - nothing live imports vote.py / fit.py: machine
-      state, run right after the GPU jobs).
+      pytest green; bot speed 23.5 ms (p90 26.4) - WRONG STATE: a stale tool run of mine was still running beside it
+      (found later in S6); clean re-run 20.1 ms (p90 23.0).
+  - **3.2 Session 2, S6 (2026-11-17): STOPPED at the ms gate - the user's call.** All ms pinned, game up, clean
+    state (no other job), expected() not counted (D's).
+    - **FIXED (as the plan says, "flyers: their spawn layers"): a flyer was always put on the LOWEST of its spawn
+      layers**, so a Stirge flying on a higher layer had all its pixels under that layer's front plane (Transfer
+      Area: spawns on layers 5 / 2 / 4, the bricks of layer 5 in front of layer 2; frame 126: 312 votes, SEEN 0 on
+      layers 1-4, 645 / 645 on layer 5). Now every spawn layer is a stage-2 variant (with the tints); per cell the
+      most SEEN wins, ties -> the lowest layer (SEEN only grows with the layer: this = the lowest layer that leaves
+      every matching pixel uncovered). Steam ghost spots still 0 (2 = the real Zombies); labels / synth unchanged.
+    - **Fit vs today's well-sighted tracks** (gate replays fp_08bcbe1bd1_*, live / dying, sighted, score >= 0.9;
+      `tools/perc/fit/tracks.py`): same type within 20 px | any type:
+          ant4 96.1 | 99.9 %   ant4b 96.8 | 99.8   steam 98.2 | 99.7 (was 91.6 before the flyer fix)
+          line1 (Bubbling) 99.9 | 99.9   transfer 99.3 | 99.3 (was 93.8)   darkcave 100 | 100      -> gate 95 % MET
+      **"Another type there" = the TRACKER's type wrong** in every one looked at (4 / 4: a blue spiky cap tracked as
+      Zombie, the game's own "Zombie Mushroom" label over a track typed Horny, a Horny tracked as Stirge with anim
+      "move"; steam 1668: the fit has both the Horny and the Stirge the track mixed up).
+    - **20 misses by eye** (sheets RUN/fit/misses_clip_<clip>[_other]/): tracker type wrong 6; UI mask 4 (the tool's
+      STATIC ui: `UI_RECTS`' top-right rect 1140-1366 x 45-160 masks world where no buff icon is drawn - steam 456,
+      transfer 1290 / 1383 (that one has an icon) - and the default minimap rect instead of the measured one -
+      transfer 150); flyers over ANIMATED scenery (unknown pixels -> not valid -> SEEN 0: steam 558 / 879 / 993,
+      1635 likely) 4; fades the fade path missed 4 (ant4b 6759 at o 0.955, 6873, transfer 687 / 690); dying tracks
+      with nothing / a splash under our body box 2 (line1); two overlapping Hornies under name labels beside us 1;
+      flyer layer (fixed) 2.
+    - **ms p50 / p90 per gate clip (every frame with a scene camera) - GATE <= 5 p90 FAILS on 4 of 6:**
+          ant4 4.60 / 5.47   ant4b 4.36 / 5.16   steam 4.25 / 5.13   line1 4.46 / 5.37   transfer 3.86 / 4.76
+          darkcave 4.17 / 4.64   (labels frames 4.14-4.26 / 4.78-5.06 run to run; synth 4.13 / 4.68)
+      parts p90 on ant4: vote 2.34, fade 2.27, stage 2 1.13, pick 0.43 (candidates p90 15, features p90 25.7 k).
+      Levers: (A) CUDA graphs for the fade pass (S4's option, est. -0.6..0.8 ms p90); (B) stage 2's variants: a tint
+      flag from the vote instead of trying every candidate tinted (-0.2), flyer layers in one pass; (C) accept ~5.5.
+    - Thresholds by sweep (synth loose): 100 % / 0 false on seen 0.03 x min_seen 10-60 x absent 0.1-0.2 x
+      cand_votes 12-16: the rule stays.
+    - tests/test_fit.py (fixture recall 100 %, 0 false, mob-free clean, clear mobs' pose + feet exact; a frozen mob
+      of every 3rd pose found with tint "frozen", pose + feet exact). Dead LS code: none left in the fit;
+      `Scene.split` (+ the behind_L planes it reads) is used only by tests/test_scene_layers.py now - scene.py is a
+      live module, left for 3.3 to decide.
+    - NOT done (waiting for the ms call): close 3.2 ("Step 3 state" line in PLAN-perception.md), the 3.3 proposal.
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")
