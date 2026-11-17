@@ -9,6 +9,9 @@ UI_RECTS = [(0, 0, 215, 195), (1140, 45, 1366, 160), (285, 630, 850, 768), (930,
             (285, 700, 1366, 768)]
 # the 4x2 key layout at the bottom right (its keycaps; an item in a slot covers its keycap)
 QUICKSLOT_RECT = (930, 620, 1085, 705)
+# the chat rect's part above the status bar (x0, y0, x1, y1): world at native with the chat minimized (the user's
+# setup) - the fit (step 3.3) counts it as world; its bottom = the play area's (perception/vote.py PLAY_H)
+CHAT_WORLD = (285, 630, 850, 700)
 SLOTS = {"shift": (942, 631), "insert": (977, 631), "home": (1012, 631), "pageup": (1047, 631),
          "ctrl": (942, 665), "delete": (977, 665), "end": (1012, 665), "pagedown": (1047, 665)}
 SLOT_W, SLOT_H = 28, 25

@@ -194,6 +194,8 @@ class Perception:
                                     # within this many levels - native PNG frames are exact (+-4); the bench's JPEG 30
     scene_diff: bool = True         # scene camera found: D = frame - expected scene -> FrameFacts.patches (step 3.1,
                                     # in shadow: nothing reads them yet); tolerance = scene_tol
+    fit: bool = True                # scene camera found: the fit (perception/fit.py, step 3.3, in shadow) after the
+                                    # tracker -> FrameFacts.fit / fit_hints; nothing reads them yet. Built at map load
     minimap_every_s: float = 1.0   # the scene camera holding and our tag seen: the minimap is read this often (the
                                     # camera's seed); every tick otherwise (step 2.6)
     lie_gpu: bool = True            # with the GPU detector: the Lie Detector look on the uploaded frame (liedetector.

@@ -158,6 +158,9 @@ bench needs the game running (GPU P-state: 40-43 ms idle vs 27-30 with the game)
   "Step 3 state"): synth 100 %, 0 false; labels 95.6 % (every class >= before / LS); clips vs tracks 96-100 %; steam
   ghosts 0; fit 3.9-4.6 ms p50 / 4.6-5.5 p90 (p90 > 5 on 4 clips accepted; fade-pass CUDA graphs for later).
 - 3.3 FrameFacts v2 in shadow (both detectors run, the tracker uses today's), compared frame by frame.
+  **DONE 2026-11-17** (HANDOFF "Step 3 state"): FrameFacts v3 fit / fit_ms / fit_hints; tracks the same on all 7
+  clips; fit vs tracks = S6 (96-100 %); coasting live tracks: the fit finds 33-55 %, the rest ~half ABSENT; +5.3 ms
+  p50 on the bench (fit 4.7 + hints 0.6); Scene.split / behind planes dropped.
 - 3.4 the switch on clean maps (scene camera found this tick): SEEN -> Hit, COVERED / ABSENT -> None (timeouts stay
   until step 4: step 3 changes the evidence, step 4 the tracker); search / refine / find_near / cover probes /
   edge-ghost score rule off on that path. Gate: full replay judged per clip (real tracks same or more, 0 scenery

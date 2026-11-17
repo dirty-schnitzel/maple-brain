@@ -1,5 +1,6 @@
 """The fit (PLAN-perception.md step 3.2, PLAN-fit-speed.md): which mobs - type, pose, facing, feet, opacity - the frame
-shows, pixel by pixel. NOT on the live path: 3.3 runs it in shadow.
+shows, pixel by pixel. In shadow since 3.3: the Perceiver runs it on clean maps (scene camera found) after the tracker
+-> FrameFacts.fit + fit_hints (`hints`: one stage-2 look per track it did not find); nothing reads them yet.
 
 1. Candidates = the vote (perception/vote.py): cells (pose, feet) with >= `cand_votes` exclusive votes of the frame's
    2x2 sprite-colour features, taken where the expected scene does not explain the pixel. No windows, no footholds,
@@ -60,6 +61,9 @@ class FitConfig:
                                 # faint fades o ~0.1-0.27: rounding x 1 / o; labels fade 87.2 -> 93.2 %)
     fade_report: bool = False   # list the cells' alphas in ms["alphas"] (one more sync; tools only)
     tints: bool = True          # vote.TINTS (frozen) in the LUT + every candidate tried tinted in stage 2
+    hint_o_min: float = 0.3     # hints (3.3): the opacity's floor - where the frame shows the scene instead of the
+                                # mob the estimate goes to ~0 and no pixel would be informative (no ABSENT evidence);
+                                # fades fainter than this read COVERED
 
 
 @dataclass
@@ -84,7 +88,8 @@ class FitMob:
 
 class Fitter:
     def __init__(self, scene, map_id: int, assets: Path, cfg: FitConfig | None = None, types=None):
-        """`scene`: a Scene (its layers' front planes, if built); `assets`: assets/mcw (maps/<id>/map.json, mobs/)."""
+        """`scene`: a Scene (its layers' front alphas, if built); `assets`: assets/mcw (maps/<id>/map.json, mobs/).
+        ~0.12-0.18 s on the clean maps + `warm` ~0.03-0.06 (2026-11-17): built at map load, no thread."""
         torch = scene.torch
         self.scene, self.torch, self.dev = scene, torch, scene.dev
         self.cfg = cfg or FitConfig()
@@ -134,12 +139,31 @@ class Fitter:
         fa = torch.zeros((len(self.layer_ids), ch + 1, cw + 1), dtype=torch.uint8, device=self.dev)
         for i, L in enumerate(self.layer_ids):
             if L in scene.layers:
-                fa[i, 1:, 1:] = scene.layers[L][1][..., 3]
+                fa[i, 1:, 1:] = scene.layers[L]
         self.front_a = fa
         self.ch, self.cw = ch, cw
         # front backs are drawn over every layer: their cover joins the valid mask (none on most maps)
         self.front_backs = any(b["front"] and b["known"] for b, _ in scene.backs)
         self.ms = {}
+        # the hints' poses: (type, anim, facing) -> pose indices; the die poses per (type, facing)
+        self.by_anim, self.die = {}, {}
+        for g, p in enumerate(poses):
+            anim = p.pose.rsplit("_", 1)[0]
+            self.by_anim.setdefault((p.type, anim, p.facing), []).append(g)
+            if anim.startswith("die"):
+                self.die.setdefault((p.type, p.facing), []).append(g)
+        self._last = None                               # the last fit's (frame, C, exp, valid) for `hints`
+        self.taken = None                               # ... and the pixels its accepted mobs explained
+
+    def warm(self):
+        """Capture stage 2's CUDA graphs and run the vote once (at map load: the first live fit would stall)."""
+        if self.dev == "cpu":
+            return
+        self._graphs()
+        C = (self.scene.x0, self.scene.y0)
+        exp, known = self.scene.expected(C)
+        self.fit(self.torch.zeros((PLAY_H, SW, 3), dtype=self.torch.uint8, device=self.dev), C, exp, known)
+        self.torch.cuda.synchronize()
 
     def _layers(self, g, fx, fy, C) -> list:
         """Each candidate's possible foothold layers (indices into layer_ids): a ground mob the nearest foothold's at /
@@ -164,9 +188,10 @@ class Fitter:
             out.append([li])
         return out
 
-    def _meta(self, g, fx, fy, li, C) -> np.ndarray:
+    def _meta(self, g, fx, fy, li, C, o_min: float = 0.0) -> np.ndarray:
         """The candidates' gather indices, one int64 row each: box rows / columns on screen (clamped), whether
-        each is on screen, the front planes' rows / columns (0 = outside the rendered area), pose, layer index."""
+        each is on screen, the front planes' rows / columns (0 = outside the rendered area), pose, layer index, the
+        opacity's floor in 1/1000 (the fit 0; `hints` FitConfig.hint_o_min)."""
         KH, KW = self.KH, self.KW
         R = fy[:, None] - self.T + np.arange(KH)[None]                   # screen rows / columns of the boxes
         Q = fx[:, None] - self.L + np.arange(KW)[None]
@@ -175,7 +200,8 @@ class Fitter:
         MY = np.where((MY >= 0) & (MY < self.ch), MY + 1, 0)                     # 0 = the zero border
         MX = np.where((MX >= 0) & (MX < self.cw), MX + 1, 0)
         return np.concatenate([np.clip(R, 0, PLAY_H - 1), np.clip(Q, 0, SW - 1), rok, cok, MY, MX,
-                               np.asarray(g)[:, None], li[:, None]], axis=1).astype(np.int64)
+                               np.asarray(g)[:, None], li[:, None], np.full((len(g), 1), round(1000 * o_min))],
+                              axis=1).astype(np.int64)
 
     BUCKETS = (8, 16, 32, 64)
 
@@ -187,7 +213,7 @@ class Fitter:
         self._se = torch.zeros((PLAY_H, SW, 3), device=self.dev)
         self._sv = torch.zeros((PLAY_H, SW), dtype=torch.bool, device=self.dev)
         self._g = {}
-        ncol = 3 * (self.KH + self.KW) + 2
+        ncol = 3 * (self.KH + self.KW) + 3
         for n in self.BUCKETS:
             mt = torch.zeros((n, ncol), dtype=torch.long, device=self.dev)
             s = torch.cuda.Stream()
@@ -236,7 +262,7 @@ class Fitter:
         Rt, Qt = mt[:, :KH, None], mt[:, KH:o0, None].transpose(1, 2)
         on = (mt[:, o0:o0 + KH, None] > 0) & (mt[:, o0 + KH:2 * o0, None] > 0).transpose(1, 2)
         MYt, MXt = mt[:, 2 * o0:2 * o0 + KH, None], mt[:, 2 * o0 + KH:3 * o0, None].transpose(1, 2)
-        gt, lt = mt[:, -2], mt[:, -1]
+        gt, lt = mt[:, -3], mt[:, -2]
         I = frame[Rt, Qt].float()                                        # (n, KH, KW, 3)
         B = exp[Rt, Qt]
         V = valid[Rt, Qt] & on & (self.front_a[lt[:, None, None], MYt, MXt] < 255 * c.front_max)
@@ -258,6 +284,7 @@ class Fitter:
         near = (use & (ratio - at[:, None] / nb).abs().le(1.5 / nb)).float()   # refined: least squares on the
         o = (rq.flatten(1) * near).sum(1) / (qq.flatten(1) * near).sum(1).clamp(min=1e-6)  # mode's pixels
         o = torch.where(mx > 0, o, torch.ones_like(o)).clamp_(0, 1)
+        o = torch.maximum(o, mt[:, -1].float() / 1000)                 # the hints' floor (the fit: 0)
         inf = on & (o[:, None, None] * qn > c.inf)
         iv = inf & V
         seen = iv & ((r - o[:, None, None, None] * q).abs().amax(dim=3) <= c.tol)
@@ -288,7 +315,90 @@ class Fitter:
             mobs.append(FitMob(p.type, p.pose, p.facing, (int(fx[i]), int(fy[i])), round(float(o[i]), 3),
                                round(ns / ni, 3), round(int(nab[i]) / ni, 3), round(1 - (ns + int(nab[i])) / ni, 3),
                                ni, ns, int(ex[i]), self.layer_ids[int(li[i])], self.tint_names[int(g[i]) // self.G]))
+        self.taken = taken
         return mobs
+
+    def _variants(self, g, fx, fy, C, o_min: float = 0.0):
+        """Stage-2 rows for candidates (pose g, feet fx, fy): every tint x every possible layer -> (meta, candidate
+        index per row, sprite plane per row, layer index per row)."""
+        li = self._layers(g, fx, fy, C)
+        nt = len(self.tint_names)
+        rc = np.array([i for i in range(len(g)) for _ in range(nt) for _ in li[i]], int)
+        rg = np.array([g[i] + k * self.G for i in range(len(g)) for k in range(nt) for _ in li[i]], np.int64)
+        rl = np.array([L for i in range(len(g)) for _ in range(nt) for L in li[i]], int)
+        return self._meta(rg, fx[rc], fy[rc], rl, C, o_min), rc, rg, rl
+
+    def _run(self, frame, exp, valid, meta):
+        step = self.BUCKETS[-1]
+        parts = [self._stage2(frame, exp, valid, meta[i:i + step]) for i in range(0, len(meta), step)]
+        return tuple(np.concatenate([p[k] for p in parts]) for k in range(3))
+
+    def _valid2(self, valid, C):
+        """Stage 2's valid mask: + the front backs' cover (drawn over every layer; none on most maps)."""
+        if not self.front_backs:
+            return valid
+        torch = self.torch
+        z1 = torch.zeros(valid.shape, device=self.dev)
+        _, cov, _ = self.scene._backs(C, SW, PLAY_H, 1, torch.zeros((*valid.shape, 3), device=self.dev), z1,
+                                      torch.zeros_like(valid))
+        return valid & (cov < self.cfg.front_max)
+
+    def hints(self, tracks, mobs, r: int = 20) -> list:
+        """Step 4's evidence (3.3, in shadow): each confirmed track on screen (world.Track: live / hit / hidden /
+        dying, kind mob) the last `fit` did not find (no fit mob of its type within `r` px in x and y) gets ONE
+        stage-2 look at its predicted feet: every frame of its last anim with its facing (+ the type's die poses
+        when dying), each with every tint / layer variant, the opacity floored at `hint_o_min`; the frame with the
+        most SEEN pixels (ties: the least ABSENT share) -> its counts. Pixels an accepted fit mob explained count as
+        COVERED. -> [{"id", "mob", "sx", "sy", "pose", "facing", "n_inf", "n_seen", "n_abs", "o"}] (covered =
+        n_inf - n_seen - n_abs)."""
+        if self._last is None:
+            return []
+        frame, C, exp, valid = self._last
+        todo, gs = [], []
+        for tr in tracks:
+            if tr.kind != "mob" or tr.state not in ("live", "hit", "hidden", "dying"):
+                continue
+            sx, sy = int(round(tr.sx)), int(round(tr.sy))
+            if not (-40 <= sx < SW + 40 and 0 <= sy < PLAY_H + 68):
+                continue
+            if any(m.type == tr.mob_id and abs(m.feet[0] - sx) <= r and abs(m.feet[1] - sy) <= r for m in mobs):
+                continue
+            g = list(self.by_anim.get((tr.mob_id, tr.anim, tr.facing)) or [])
+            if tr.state == "dying":
+                g += [x for x in self.die.get((tr.mob_id, tr.facing), []) if x not in g]
+            if not g:
+                continue
+            todo.append((tr, sx, sy))
+            gs.append(g)
+        if not todo:
+            return []
+        own = np.array([j for j, g in enumerate(gs) for _ in g], int)
+        g = np.array([x for gg in gs for x in gg], np.int64)
+        fx = np.array([todo[j][1] for j in own], np.int64)
+        fy = np.array([todo[j][2] for j in own], np.int64)
+        meta, rc, rg, rl = self._variants(g, fx, fy, C, self.cfg.hint_o_min)
+        bits, cnt, o = self._run(frame, exp, valid, meta)
+        P = max(self.KH, self.KW)
+        taken = self.taken if self.taken is not None else np.zeros((PLAY_H + 2 * P, SW + 2 * P), bool)
+        best = {}
+        for j in range(len(rc)):
+            i = rc[j]
+            y0, x0 = int(fy[i]) - self.T + P, int(fx[i]) - self.L + P
+            tk = np.zeros((self.KH, self.KW), bool)         # `taken` around the box (a track's feet may be past the
+            sub = taken[max(0, y0):max(0, y0 + self.KH), max(0, x0):max(0, x0 + self.KW)]   # screen side / below)
+            tk[max(0, -y0):max(0, -y0) + sub.shape[0], max(0, -x0):max(0, -x0) + sub.shape[1]] = sub
+            ns = int(((bits[j] & 2).astype(bool) & ~tk).sum())
+            key = (ns, -cnt[j, 2] / max(1, cnt[j, 0]))
+            k = own[i]
+            if k not in best or key > best[k][0]:
+                best[k] = (key, j)
+        out = []
+        for k, (tr, sx, sy) in enumerate(todo):
+            (ns, _), j = best[k]
+            p = self.poses[int(rg[j]) % self.G]
+            out.append({"id": tr.id, "mob": tr.mob_id, "sx": sx, "sy": sy, "pose": p.pose, "facing": p.facing,
+                        "n_inf": int(cnt[j, 0]), "n_seen": ns, "n_abs": int(cnt[j, 2]), "o": round(float(o[j]), 3)})
+        return out
 
     def fit(self, frame, C, exp, known, ui=None, me=None, keep_cands: bool = False):
         """`frame`: uint8 BGR (GPU tensor or array, >= PLAY_H rows); `C`: the scene camera; `exp`, `known`:
@@ -314,24 +424,14 @@ class Fitter:
         g, fx, fy, nv, ex, vc = self.voter.cells(ids, c.cand_votes)
         t1 = time.perf_counter()
         mobs, cands = [], []
+        C = (int(C[0]), int(C[1]))
+        valid = self._valid2(valid, C)
+        self._last, self.taken = (frame, C, exp, valid), None
         if len(g):
-            C = (int(C[0]), int(C[1]))
-            li = self._layers(g, fx, fy, C)
-            if self.front_backs:
-                z1 = torch.zeros(valid.shape, device=self.dev)
-                _, cov, _ = self.scene._backs(C, SW, PLAY_H, 1, torch.zeros((*valid.shape, 3), device=self.dev), z1,
-                                              torch.zeros_like(valid))
-                valid = valid & (cov < c.front_max)
             # variants: every tint x every possible layer of each cell; per cell the one with the most SEEN pixels
             # stays (ties: the first = plain, the lowest layer)
-            rc = np.array([i for i in range(len(g)) for _ in range(len(self.tint_names)) for _ in li[i]], int)
-            rg = np.array([g[i] + k * self.G for i in range(len(g)) for k in range(len(self.tint_names))
-                           for _ in li[i]], np.int64)
-            rl = np.array([L for i in range(len(g)) for _ in range(len(self.tint_names)) for L in li[i]], int)
-            meta = self._meta(rg, fx[rc], fy[rc], rl, C)
-            step = self.BUCKETS[-1]
-            parts = [self._stage2(frame, exp, valid, meta[i:i + step]) for i in range(0, len(rg), step)]
-            bits, cnt, o = (np.concatenate([p[k] for p in parts]) for k in range(3))
+            meta, rc, rg, rl = self._variants(g, fx, fy, C)
+            bits, cnt, o = self._run(frame, exp, valid, meta)
             if len(rc) > len(g):
                 best = np.full(len(g), -1)
                 for j in range(len(rc)):

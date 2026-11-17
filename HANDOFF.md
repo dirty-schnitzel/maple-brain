@@ -67,8 +67,10 @@ classes = S4 / S5's gate). Session 2 S4 (fades) DONE 2026-11-17 and accepted by 
 1 / o tolerance, fade pass ~1.7 ms p50 kept) - see "3.2 Session 2" in "Step 3 state". S5 (tints) DONE 2026-11-17,
 every gate met ("3.2 Session 2, S5"). S6: flyer layers fixed, tracks gate met on all 6 clips, fit p90 5.13-5.47
 ms on 4 clips ACCEPTED by the user (option A = fade-pass CUDA graphs noted for later) -> **3.2 CLOSED 2026-11-17.
-NEXT = 3.3 (the fit in shadow in the Perceiver): PROPOSED in "Step 3 state" ("3.3 PROPOSED"), the user's OK first.** `watch` was NOT running on 2026-11-17 (no python process): the user's to
-restart; never stop it.
+3.3 (the fit in shadow in the Perceiver) DONE 2026-11-17 ("3.3 DONE" in "Step 3 state"): tracks the same on all 7
+clips, fit vs tracks = S6, +5.3 ms p50 (the bound: ~5), test_perf fails on the 18.4 baseline - the user decides the
+re-baseline. NEXT = 3.4 (the switch), PROPOSED to the user in chat, their OK first.** `watch` was NOT running on
+2026-11-17 (no python process): the user's to restart; never stop it.
 
 ### TASK (the user, 2026-11-16): improve the gate test by taking NEW footage
 The tests on pre-native footage were deleted (d87e5b4; the Lie Detector ones kept); for now the gate = today's
@@ -789,7 +791,51 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     - **TODO LATER (only if needed): option A = CUDA graphs for the fade pass** (Voter.fade; bucketed by pairs /
       residue like stage 2's graphs; est. 1.65 -> ~1.0-1.2 ms p50, -0.6..0.8 ms fit p90). Also open: (B) a tint flag
       from the vote instead of trying every candidate tinted (-0.2 ms).
-  - **3.3 PROPOSED (2026-11-17, waiting for the user's OK): the fit in shadow in the Perceiver.** Nothing reads it;
+  - **3.3 DONE (2026-11-17, OK'd by the user the same day): the fit in shadow in the Perceiver - every gate met
+    but the speed one sits AT its bound (+5.3 ms p50 vs "+<= ~5") and test_perf fails on the old baseline: the
+    re-baseline is the user's call.** Nothing reads the fit; tracker / brain / keys unchanged.
+    - Wiring (perceiver.py `_track` -> `_fit`): ONE `Scene.expected()` a tick (`diff(..., ek=)` takes it), the fit after
+      `world.update` on `frame_u8` (scene camera found this tick), ui = hud.ui_mask (the measured minimap) with
+      `hud.CHAT_WORLD` (285-850 x 630-700) as world, `me` = the tag-based body box (run.py's me_box); parts `fit` +
+      `hints`. `Fitter` built in runner._load_map beside the scene (config `perception.fit`, default on) + `warm()`
+      (CUDA graphs + one vote): Fitter 0.12-0.18 s + warm 0.02-0.06 s on the 4 clean maps (scene load 0.28-0.51 s)
+      -> no thread. Log line `fit in shadow: N poses, built in X s`.
+    - FrameFacts v3: `fit` [FitMob dicts] / `fit_ms` / `fit_hints` (None = not run); v1 / v2 still read. The replay
+      rows carry them (tools/perc/replay/run.py); `tools/perc/fit/shadow.py` reads a gate replay's own rows.
+    - Hints (`Fitter.hints`): each live / hit / hidden / dying mob track with feet within -40..SW+40 x 0..PLAY_H+68
+      and no fit mob of its type within 20 px -> one stage-2 batch: every frame of its last anim with its facing (+ die
+      poses when dying) x tints x layers; best by SEEN (ties: least ABSENT share); pixels an accepted fit mob explained
+      = COVERED. **Detail added (data): an opacity floor `FitConfig.hint_o_min` 0.3** (an extra meta column, 0 for the
+      fit = identical fit output): where the frame shows the scene instead of the mob, stage 2's o goes to ~0 and no
+      pixel is informative = no ABSENT evidence at all (seen on the synth test before the floor); fades < 0.3 read
+      COVERED. Bug found by the gate + fixed: the `taken` lookup sliced out of range for small sprites (Transfer's
+      Stirges) past the screen side / below the play area (test with a Stirge-only Fitter fails on the old slice).
+    - Decisions of point 5 done: `Scene.split` DROPPED, behind planes no longer loaded (`Scene.layers` = L -> front
+      alpha uint8; the build still writes both, tests/test_scene_layers.py composes them from disk + checks the loaded
+      alpha); `UI_RECTS`' top-right rect KEPT (until step 5).
+    - **Bench A/B (game up, Ultimate Performance, pinned, 3 rounds alternating, nothing else of mine running): fit ON
+      26.1 / 26.5 / 26.7 ms p50 (p90 29.3-29.4), OFF (= the D-on state) 21.0 / 21.0 / 21.3 (p90 23.7-24.4) ->
+      +5.3 ms p50** = fit 4.6-4.7 + hints 0.6-0.7 (the rest identical: gpu 10.1-10.3, world 7.3-7.5, diff 1.7,
+      patches 1.3). pytest: 1092 passed, 1 failed = test_perf (bot speed 26.3 ms, p90 29.0, vs baseline 18.4 + slack
+      = 25): NOT re-baselined (the user's call). (The A/B ran before the `taken` fix: CPU slicing of edge tracks only.)
+    - **Full gate.py: SAME tracks on all 7 clips** (found 100.0 / 100.0 both ways everywhere, real / weak / sighted /
+      surface / tag identical; base HEAD = fp b7430fd18f, made via the stash procedure; work fp 547d442703).
+    - **Fit vs the tracker from the replays' own rows** (shadow.py; tracks.py's `well` rule, 20 px): same type | any
+      type: ant4 96.1 | 99.9, ant4b 96.8 | 99.8, steam 98.2 | 99.7, line1 99.9 | 99.9, transfer 99.4 | 99.4 (S6 99.3),
+      darkcave 100 | 100 = S6 (all >= 95 %). Replay fit ms p50 8.1-9.2 (unpinned, no game timing: not the bench's).
+    - **Hints on coasting track-frames (src none, step 4's input)** - the fit FOUND the mob anyway on: live 33-55 %,
+      dying 8-20 %; of the rest, one look each read (SEEN / ABSENT / COVERED, the fit's own rule; ABSENT = >= 50 % of
+      the informative pixels show the scene):
+          live:  ant4 0.4 / 39.7 / 59.9 % (267 looks)   ant4b 0.8 / 52.1 / 47.1 (119)   steam 0 / 43.0 / 57.0 (251)
+                 line1 2.5 / 52.9 / 44.6 (121)   transfer 0.4 / 37.5 / 62.1 (224)   darkcave 0 / 100 / 0 (10)
+          dying: ant4 0 / 76.6 / 23.4 (201)   ant4b 2.5 / 69.2 / 28.3 (120)   steam 3.0 / 27.3 / 69.7 (33)
+                 line1 0 / 75.6 / 24.4 (221)   transfer 4.3 / 76.8 / 18.8 (69)   darkcave 0 / 80 / 20 (5)
+      = about half the coasting live tracks show the scene where the tracker predicts them (moved / gone: step 4's
+      ABSENT), the other half something else over them; dying ones mostly gone.
+    - Tests: tests/test_fit_shadow.py (the rig with fit on vs off on 10 fixture frames: tracks identical, facts fit /
+      hints on every frame with a camera, sighted tracks found), test_fit.py hints test (found -> no look; SEEN /
+      COVERED / ABSENT cases; edge tracks), test_facts.py v3 round trip.
+  - **3.3 as PROPOSED (2026-11-17, kept for reference): the fit in shadow in the Perceiver.** Nothing reads it;
     the tracker keeps today's detector; brain / keys unchanged.
     1. Wiring (perceiver.py, where D runs - scene camera found, `scene_diff` on): ONE `expected()` per tick shared by
        D and the fit (`Scene.diff` takes / returns exp + known); `Fitter` built with the Scene at map load (measure

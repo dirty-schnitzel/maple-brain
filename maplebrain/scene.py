@@ -171,7 +171,8 @@ def mob_layers(m: dict) -> list:
 
 def build_layers(img: dict, m: dict, parts: _Parts, layers) -> dict:
     """L -> (behind, front): premultiplied BGRA uint8 canvases (scene.png's coordinates) of the tiles / objects of
-    layers <= L and of layers > L (PLAN-perception.md step 3.2: the fit's planes)."""
+    layers <= L and of layers > L (PLAN-perception.md step 3.2: the fit's planes). The bot loads only the front
+    planes' alpha (Scene.load, 3.3); tests/test_scene_layers.py checks both from disk (front over behind = scene)."""
     out = {}
     for L in layers:
         sub = [{str(k): img[str(k)] for k in ks if str(k) in img} for ks in (range(0, L + 1), range(L + 1, 8))]
@@ -238,16 +239,16 @@ class Scene:
     def __init__(self, meta: dict, canvas: np.ndarray, back_pics: list, anim: np.ndarray | None = None, device=None,
                  layers: dict | None = None):
         """`canvas`: premultiplied BGRA uint8 (tiles + objects); `back_pics`: straight-alpha BGRA per meta back;
-        `layers`: L -> (behind, front) premultiplied BGRA uint8 canvases like `canvas` (build_layers; `split`)."""
+        `layers`: L -> the alpha (h, w) uint8 of its front plane (build_layers: the tiles / objects of the layers
+        above L, in `canvas`'s coordinates) - all the fit reads of the planes (step 3.3: behind planes not loaded)."""
         import torch
         self.torch = torch
         self.dev = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.meta, self.x0, self.y0 = meta, meta["x0"], meta["y0"]
         self.woff, self.hoff = WOFF, HOFF                            # (not the build's: a constant of the client)
         self.canvas = torch.from_numpy(np.ascontiguousarray(canvas)).to(self.dev)              # (h, w, 4) uint8
-        # the fit's planes (step 3.2), kept as the stored uint8 (fp16 of them is the same numbers at twice the memory)
-        self.layers = {int(L): tuple(torch.from_numpy(np.ascontiguousarray(c)).to(self.dev) for c in pair)
-                       for L, pair in (layers or {}).items()}
+        # the fit's front alphas (step 3.2), kept as the stored uint8
+        self.layers = {int(L): torch.from_numpy(np.ascontiguousarray(a)).to(self.dev) for L, a in (layers or {}).items()}
         self.anim = None if anim is None else torch.from_numpy(anim > 0).to(self.dev)
         self.backs = []
         for b, pic in zip(meta["backs"], back_pics):
@@ -310,7 +311,7 @@ class Scene:
         canvas = cv2.imread(str(d / "scene.png"), cv2.IMREAD_UNCHANGED)
         anim = cv2.imread(str(d / "anim.png"), cv2.IMREAD_GRAYSCALE) if (d / "anim.png").exists() else None
         pics = [cv2.imread(str(Path(root) / "backs" / b["file"]), cv2.IMREAD_UNCHANGED) for b in meta["backs"]]
-        layers = {L: tuple(cv2.imread(str(d / "layers" / f"{k}_{L}.png"), cv2.IMREAD_UNCHANGED) for k in ("behind", "front"))
+        layers = {L: cv2.imread(str(d / "layers" / f"front_{L}.png"), cv2.IMREAD_UNCHANGED)[..., 3]
                   for L in meta.get("layers") or [] if (d / "layers" / f"front_{L}.png").exists()}
         return cls(meta, canvas, pics, anim, device, layers)
 
@@ -402,32 +403,6 @@ class Scene:
         if x1 > x0 and y1 > y0:
             an[y0 - ay:y1 - ay, x0 - ax:x1 - ax] = self.anim[y0:y1, x0:x1]
         return an
-
-    def split(self, C, L: int, w: int = W, h: int = PLAY_H) -> tuple:
-        """The scene split at foothold layer L (PLAN-perception.md step 3.2): what a mob on layer L is drawn over
-        and what is drawn over it, for camera C, the top `h` rows. -> (B bgr float (h, w, 3) = backs + tiles /
-        objects of layers <= L, known_B bool (h, w), F premultiplied bgr float (h, w, 3) = tiles / objects of layers
-        > L + the front backs, A float (h, w) = F's alpha). F + (1 - A) * B = expected(C) (tests/test_scene.py);
-        known_B = B is fully covered by fixed scenery and nothing animated / moving draws there (where A ~ 1 the
-        pixel shows F alone, whatever B is). Needs the build's layers (assets scene, 2026-11-16 3.2 on)."""
-        torch = self.torch
-        behind, front = self.layers[int(L)]
-        z3 = torch.zeros((h, w, 3), device=self.dev)
-        z1 = torch.zeros((h, w), device=self.dev)
-        unk = torch.zeros((h, w), dtype=torch.bool, device=self.dev)
-        B, cov, unk = self._backs(C, w, h, 0, z3, z1, unk)
-        sc = self._crop(C, w, h, behind).float()
-        a = sc[..., 3] / 255.0
-        B = B * (1 - a[..., None]) + sc[..., :3]
-        cov = cov * (1 - a) + a
-        unk = unk & (a < 0.98)
-        fc = self._crop(C, w, h, front).float()
-        F, A, unk_f = self._backs(C, w, h, 1, fc[..., :3], fc[..., 3] / 255.0, torch.zeros_like(unk))
-        known = (cov > 0.98) & ~unk & ~unk_f
-        an = self._anim(C, w, h)
-        if an is not None:
-            known &= ~an
-        return B, known, F, A
 
     def expected(self, C, w: int = W, h: int = PLAY_H, pre: bool = True) -> tuple:
         """What the frame's top `h` rows show for camera C where nothing moves: (bgr float tensor (h, w, 3), known
@@ -546,15 +521,16 @@ class Scene:
         return best if best is not None and best[1] >= min_share else None
 
     # ---- D: what the scene does not explain (PLAN-perception.md step 3.1)
-    def diff(self, frame, C, tol: int = 4, mask=None, h: int = PLAY_H) -> np.ndarray:
+    def diff(self, frame, C, tol: int = 4, mask=None, h: int = PLAY_H, ek=None) -> np.ndarray:
         """D = the frame's known-scenery pixels more than `tol` levels off the expected scene for camera C (any
         channel), outside `mask` (bool tensor, 1 = world: hud.ui_mask), as blobs: 3x3 cores grown 13x13 - the rule
         of tools/perc/labels/patches.py (cv2 erode / dilate, its borders) - on the GPU. `frame`: uint8 BGR, GPU
-        tensor or array, >= h rows. -> (h, w) uint8 array, 1 = blob (`patches` lists them)."""
+        tensor or array, >= h rows. `ek`: expected(C) if the caller has it (the Perceiver: one a tick for D and the
+        fit, step 3.3). -> (h, w) uint8 array, 1 = blob (`patches` lists them)."""
         torch = self.torch
         F = torch.nn.functional
         f = frame[:h] if torch.is_tensor(frame) else torch.from_numpy(np.ascontiguousarray(frame[:h])).to(self.dev)
-        exp, known = self.expected(C, w=f.shape[1], h=h)
+        exp, known = ek if ek is not None else self.expected(C, w=f.shape[1], h=h)
         bad = ((f.float() - exp).abs().amax(dim=2) > tol) & known
         if mask is not None:
             bad &= mask

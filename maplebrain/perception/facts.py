@@ -10,13 +10,15 @@ Versioned (`v`) and recordable: `as_dict` -> JSON (ticks.jsonl "facts") -> `from
 v1 (2026-11-16): today's readings, unchanged - own tag, HUD numbers, quickslots, minimap dot / position, the two
 camera shifts, the whole-screen detector's hits, players' name tags, the Lie Detector look.
 v2 (2026-11-16, step 3.1): + `patches` = D's blobs (scene.Scene.diff / patches). v1 records read with patches None.
+v3 (2026-11-17, step 3.3): + `fit` (fit.FitMob dicts), `fit_ms`, `fit_hints` (fit.Fitter.hints: one stage-2 look per
+track the fit did not find - the only field that depends on memory, the tracker's predictions). v1 / v2 read with None.
 """
 from dataclasses import asdict, dataclass, field, fields
 
 from .gpu_sprites import Hit
 from .sprites import Pose
 
-VERSION = 2
+VERSION = 3
 
 
 @dataclass
@@ -42,13 +44,16 @@ class FrameFacts:
     lie: tuple | None = None              # (on screen, score, top-left) of the newest finished Lie Detector look
     patches: list | None = None           # [(x, y, w, h, area)] what the scene doesn't explain (D, scene.patches);
                                           # None: no D on this frame (no clean scene / camera not found)
+    fit: list | None = None               # [FitMob.to_dict()] the fit's mobs (perception/fit.py); None: not run
+    fit_ms: float | None = None           # ... its ms (Fitter.ms["fit"]; the hints not counted)
+    fit_hints: list | None = None         # [Fitter.hints rows] tracks the fit did not find, looked at once each
 
     def as_dict(self) -> dict:
         return asdict(self)
 
     @classmethod
     def from_dict(cls, d: dict) -> "FrameFacts":
-        if d.get("v") not in (1, VERSION):
+        if d.get("v") not in (1, 2, VERSION):
             raise ValueError(f"FrameFacts v{d.get('v')} (this code reads v{VERSION})")
 
         def tup(v):

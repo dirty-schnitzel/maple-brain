@@ -108,3 +108,35 @@ def test_frozen_mob_found_with_its_tint(setup):
         assert ok, (p.type, p.pose, p.facing, [g.to_dict() for g in got])
         n += 1
     assert n >= 8
+
+
+def test_hints_look_once_at_tracks_the_fit_did_not_find(setup):
+    """Fitter.hints (3.3): a track the fit found gets no look; one at a mob-free foothold spot reads ABSENT (the scene
+    shows where its sprite would be); one at a real mob reads SEEN when nothing else explained those pixels, and
+    COVERED when an accepted fit mob did."""
+    from maplebrain.perception.world import Track
+    meta, s, ui_t, fitter = setup
+    f = next(fr for fr in meta["frames"].values() if fr["case"] == "clear" and any(t["opacity"] >= 1 for t in fr["mobs"]))
+    t = next(t for t in f["mobs"] if t["opacity"] >= 1)
+    mobs = fit(s, ui_t, fitter, full_frame(s, f), f["C"])
+    tr = Track(1, t["type"], 0, 0, 0, 0, sx=t["feet"][0], sy=t["feet"][1], facing=t["facing"],
+               anim=t["pose"].rsplit("_", 1)[0], state="live")
+    assert fitter.hints([tr], mobs) == []                       # found: no look
+    h = fitter.hints([tr], [])[0]                               # "not found": its pixels are the fit mob's
+    assert h["n_inf"] > 300 and h["n_seen"] < 0.1 * h["n_inf"] and h["n_abs"] < 0.1 * h["n_inf"], h
+    fitter.taken[:] = False                                     # nothing explained them: SEEN
+    h = fitter.hints([tr], [])[0]
+    assert h["n_seen"] > 0.8 * h["n_inf"] and h["id"] == 1 and h["mob"] == t["type"], h
+    free = min((fr for fr in meta["frames"].values() if fr["case"] == "free"), key=lambda fr: len(fr["dontcare"]))
+    fit(s, ui_t, fitter, full_frame(s, free), free["C"])
+    ghost = Track(2, t["type"], 0, 0, 0, 0, sx=700, sy=450, facing="left", anim="stand", state="dying")
+    h = fitter.hints([ghost, Track(3, t["type"], 0, 0, 0, 0, state="tentative")], [])
+    assert len(h) == 1 and h[0]["n_abs"] > 0.8 * h[0]["n_inf"] > 300, h
+    # tracks past the screen's sides / below the play area, with small sprites (Stirge: the box's padding is small;
+    # Transfer Area's replay broke on such a track, 2026-11-17)
+    small = Fitter(s, meta["map"], ROOT / "assets" / "mcw", types=[17])
+    fit(s, ui_t, small, full_frame(s, f), f["C"])
+    edge = [Track(i, 17, 0, 0, 0, 0, sx=x, sy=y, facing="left", anim="fly", state="live")
+            for i, (x, y) in enumerate(((-39, 400), (SW + 39, 400), (600, PLAY_H + 67), (-39, PLAY_H + 67)), 10)]
+    h = small.hints(edge, [])
+    assert [x["id"] for x in h] == [10, 11, 12, 13] and all(x["n_seen"] <= x["n_inf"] for x in h), h

@@ -49,6 +49,19 @@ def test_the_recorder_writes_the_facts(tmp_path):
     assert [FrameFacts.from_dict(r["facts"]).t for r in rows] == [0.0, 0.1, 0.2]
 
 
+def test_v3_fit_fields_round_trip_and_older_records_read_without_them():
+    f = FrameFacts(t=1.5, fit=[{"type": 19, "pose": "move_1", "facing": "left", "feet": [300, 480], "opacity": 1.0,
+                                "seen": 0.91, "absent": 0.01, "covered": 0.08, "n_inf": 1800, "n_seen": 1638,
+                                "votes": 410, "layer": 1, "tint": ""}], fit_ms=4.31,
+                   fit_hints=[{"id": 7, "mob": 21, "sx": 540, "sy": 274, "pose": "move_0", "facing": "right",
+                               "n_inf": 1898, "n_seen": 0, "n_abs": 39, "o": 0.992}])
+    assert f.v == VERSION == 3
+    assert FrameFacts.from_dict(json.loads(json.dumps(f.as_dict()))) == f
+    for v in (1, 2):
+        old = FrameFacts.from_dict({"t": 0.0, "v": v})
+        assert old.fit is None and old.fit_ms is None and old.fit_hints is None
+
+
 def test_another_version_is_refused():
     with pytest.raises(ValueError):
         FrameFacts.from_dict({"t": 0.0, "v": VERSION + 1})

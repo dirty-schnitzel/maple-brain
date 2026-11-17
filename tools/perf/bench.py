@@ -40,10 +40,10 @@ def machine() -> str:
     return f"{platform.node()} | {gpu}"
 
 
-def build(map_id: int, mob_score: float = 0.70, scene_tol: int = 4):
+def build(map_id: int, mob_score: float = 0.70, scene_tol: int = 4, fit: bool = True):
     """The live rig for `map_id` (runner._load_map with --gpu --tracker), a Perceiver, SelfTracker and BrainV2.
     `mob_score` = the run's --mob-score (tools/perc/replay passes the recorded run's). `scene_tol`: the scene
-    camera's tolerance (native PNG frames: 4; the JPEG fixture: 30)."""
+    camera's tolerance (native PNG frames: 4; the JPEG fixture: 30). `fit`: config perception.fit (A/B, 3.3)."""
     from maplebrain.brain.brain_v2 import BrainV2
     from maplebrain.config import Config
     from maplebrain.humanize import Humanizer
@@ -55,6 +55,7 @@ def build(map_id: int, mob_score: float = 0.70, scene_tol: int = 4):
     cfg.perception.gpu = cfg.perception.tracker = True
     cfg.perception.sprite_score = mob_score
     cfg.perception.scene_tol = scene_tol
+    cfg.perception.fit = fit
     cfg.brain = "v2"
     hz = Humanizer(cfg.humanize.jitter, 1)
     rig = Rig(cfg, hz, None, None, None, LieDetector.load(ASSETS), np.load(ASSETS / "self_tag_gray.npy"))
@@ -65,14 +66,14 @@ def build(map_id: int, mob_score: float = 0.70, scene_tol: int = 4):
     return per, SelfTracker(nav, cfg.nav), BrainV2(cfg, nav, hz), rig
 
 
-def bench(frames: list, map_id: int = ANT4) -> dict:
+def bench(frames: list, map_id: int = ANT4, fit: bool = True) -> dict:
     """Median / p90 ms per part over `frames` (paths, in order), and the tick total -> fps."""
     from maplebrain.capture import normalize
     from maplebrain.nav.sim import SimDriver
     sys.path.insert(0, str(ROOT / "tools" / "perc"))
     import frames as rec                                           # a recording's 1 px capture error undone
     jpeg = bool(frames) and Path(frames[0]).suffix.lower() == ".jpg"
-    per, me, brain, rig = build(map_id, scene_tol=30 if jpeg else 4)   # JPEG runs: the scene camera at +-30
+    per, me, brain, rig = build(map_id, scene_tol=30 if jpeg else 4, fit=fit)   # JPEG runs: the scene camera at +-30
     drv = SimDriver()
     shift = rec.xshift(Path(frames[0]).parent) if frames else 0    # a recording's xshift.txt beside its frames
     imgs = [rec.unshift(cv2.imread(str(p)), shift) for p in frames]
@@ -125,6 +126,7 @@ def main():
     ap.add_argument("--n", type=int, default=200)
     ap.add_argument("--baseline", action="store_true", help="write the result as this machine's baseline")
     ap.add_argument("--json", action="store_true", help="print only the result as JSON (tests/test_perf.py)")
+    ap.add_argument("--no-fit", action="store_true", help="config perception.fit off (the A/B of step 3.3)")
     a = ap.parse_args()
     from maplebrain.procperf import prefer_performance
     note = prefer_performance()                      # as the bot does (__main__): the bench measures what it gets
@@ -132,7 +134,7 @@ def main():
         print(note)
     frames = (sorted(p for p in a.frames.iterdir() if p.suffix.lower() in (".jpg", ".png", ".webp"))[:a.n]
               if a.frames else fixture_frames())
-    r = bench(frames, a.map)
+    r = bench(frames, a.map, fit=not a.no_fit)
     if a.json:
         print(json.dumps(r))
         return

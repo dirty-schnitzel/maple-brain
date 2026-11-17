@@ -163,6 +163,13 @@ def _load_map(rig: "Rig", map_id: int, say) -> bool:
                 for i in g.mob_ids}, TrackCfg.for_mob_score(cfg.perception.sprite_score),
                 Cover.for_map(map_id, ASSETS / "mcw"))
             sprites.scene = _load_scene(map_id, say)
+            sprites.fitter = None
+            if sprites.scene is not None and cfg.perception.fit:   # the fit in shadow (step 3.3): ~0.2 s, no thread
+                from ..perception.fit import Fitter
+                t = time.perf_counter()
+                sprites.fitter = Fitter(sprites.scene, map_id, ASSETS / "mcw")
+                sprites.fitter.warm()
+                say(f"fit in shadow: {sprites.fitter.G} poses, built in {time.perf_counter() - t:.2f} s")
         locator = MinimapLocator.for_map(map_id, ASSETS / "mcw", cfg.nav, navmap)
         rig.maps[map_id] = (sprites, locator)
         say(f"map {map_id} {_map_name(map_id)}: sprites for "

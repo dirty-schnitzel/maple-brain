@@ -124,7 +124,9 @@ class Perceiver:
         if self.world is not None and getattr(sprites, "scene", None) is not None:
             from ..scene import SceneCamera
             self.scene_cam = SceneCamera(sprites.scene, tol=cfg.perception.scene_tol)
-        self.scene_next_t = -1e9                        # the scene camera failing again and again: next look then
+        self.fitter = getattr(sprites, "fitter", None) if self.scene_cam is not None and cfg.perception.fit else None
+        self._fit_ui = (None, None)                     # (hud.ui_mask array, the fit's GPU mask of it)
+        self.scene_next_t = -1e9                       # the scene camera failing again and again: next look then
         self.minimap_t = -1e9                           # last minimap read (only ~1 / s while the scene camera holds)
         self.use_tracks = bool(cfg.perception.tracker and self.world is not None)
         self.target_id = None                           # --tracker: the target is this track
@@ -428,7 +430,7 @@ class Perceiver:
         me_s = (me[0] + me[2] / 2, me[1]) if me is not None else None
         exact = None
         sc = self.scene_cam
-        d_list = None
+        d_list = ek = None
         if sc is not None and (sc.found or sc.misses < 10 or obs.t >= self.scene_next_t):
             # the camera registered on the scene model (step 2.6), on the frame the detector uploaded. Seed: the last
             # camera; at the start (or lost long) the minimap's (our map position - our screen position)
@@ -446,10 +448,12 @@ class Perceiver:
             elif sc.misses >= 10:                       # failing again and again (no such scenery, other frames):
                 self.scene_next_t = obs.t + 1.0         # one look a second, today's camera meanwhile
             self._mark("scenecam")
+            if exact is not None and (self.cfg.perception.scene_diff or self.fitter is not None):
+                ek = sc.scene.expected(exact)           # ONE expected scene a tick: D and the fit (step 3.3)
             if exact is not None and self.cfg.perception.scene_diff:
                 # D (step 3.1, in shadow: nothing reads it yet): the unexplained pixels' blobs on the GPU, their
                 # list from a reader thread while the tracker runs
-                blob = sc.scene.diff(band.gpu.frame_u8, exact, tol=sc.tol, mask=sc._mask_t(ui))
+                blob = sc.scene.diff(band.gpu.frame_u8, exact, tol=sc.tol, mask=sc._mask_t(ui), ek=ek)
                 d_list = self.readers.submit(_patches, blob)
                 self._mark("diff")
         if not self.use_tracks:
@@ -470,12 +474,33 @@ class Perceiver:
                                 near=lambda spots, pad=24, vis=None: band.gpu.find_near(frame, spots, pad=pad, vis=vis),
                                 tags=f.tags, cam=exact)
         self._mark("world")
+        if ek is not None and self.fitter is not None and sc.found:
+            self._fit(band.gpu.frame_u8, sc.C, ek, me_s, trs, frame.shape)
         if d_list is not None:
             f.patches, self.parts["patches"] = d_list.result()
         obs.mobs = [tr.as_dict(obs.t) for tr in trs]
         obs.cam = tuple(round(v, 1) for v in self.world.cam.C) if self.world.cam.C else None
         if me_s is not None and obs.cam is not None:   # our feet on the map, exact px (the tag's screen x + camera)
             obs.me_map = (round(me_s[0] + obs.cam[0], 1), round(me_s[1] + obs.cam[1], 1))
+
+    def _fit(self, frame_u8, C, ek, me_s, trs, shape):
+        """The fit in shadow (step 3.3; nothing reads it): on the uploaded frame with this tick's expected scene `ek`
+        (D's), ui = D's mask (the measured minimap) with the chat rect as world (the user keeps the chat minimized),
+        our body box kept out of the fade search -> facts.fit / fit_ms, then one look per track it did not find ->
+        facts.fit_hints. Parts `fit` / `hints`."""
+        f, fz = self.facts, self.fitter
+        ui = hud.ui_mask(shape, self.minimap)
+        if self._fit_ui[0] is not ui:
+            m = ui[:hud.CHAT_WORLD[3]] > 0
+            x0, y0, x1, y1 = hud.CHAT_WORLD
+            m[y0:y1, x0:x1] = True
+            self._fit_ui = (ui, fz.torch.from_numpy(np.ascontiguousarray(m)).to(fz.dev))
+        me = None if me_s is None else (me_s[0] - 40, me_s[1] - 85, me_s[0] + 40, me_s[1] + 30)
+        mobs = fz.fit(frame_u8, C, ek[0], ek[1], self._fit_ui[1], me)
+        f.fit, f.fit_ms = [m.to_dict() for m in mobs], round(fz.ms["fit"], 2)
+        self._mark("fit")
+        f.fit_hints = fz.hints(trs, mobs)
+        self._mark("hints")
 
     def look(self, frames, obs: Observation, cursor=None) -> Observation:
         """Motion look: moving things on our ground line that aren't characters, drops, ghosts or the cursor."""
