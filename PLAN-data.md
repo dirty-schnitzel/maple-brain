@@ -6,8 +6,9 @@ is built yet.
 
 ## 1. Why
 Every rework so far was designed and tuned on a few minutes of play:
-- The native recordings hold **7 maps**. 5 of them are maps perception hunts on; together they show **12 of the 57
-  mob types** and **3 of the 13 background sets** those maps have (`tools/data/map_cover.py`).
+- The native recordings hold **7 maps**. 5 of them are maps perception hunts on; together they show **11 of the 51
+  mob types** and **3 of the 13 background sets** those maps have (`tools/data/map_cover.py`; a mob type counts
+  on a map with 3+ spawn points of it).
 - The by-eye reference is ~300 labelled frames. 0 misses in 300 only shows an error rate under ~1 %; the targets
   (>= 99 % of mobs found, <= 1 false mob per 1000 frames) cannot be shown on it.
 - Thresholds (the 0.75 match score and others) were tuned on the same frames they are graded on.
@@ -23,7 +24,7 @@ never tune on; a validation pass of perception (not a redo); the loot rework con
 pass later; record before the tracker redesign (step 4).
 
 **Edits (each from a measurement in section 3):**
-1. **Pick the maps from the game data, not by feel.** 11 more maps add every mob type and background set our
+1. **Pick the maps from the game data, not by feel.** 10 more maps add every mob type and background set our
    character can reach (list in section 4). "About 20 maps" is replaced by that list + 5 hold-out maps.
 2. **Record a few maps perception refuses today.** 95 of the 205 maps with mobs (46 %) have moving backgrounds
    (clouds, scrolling layers), and hunts are refused there - Perion Street Corner and Land of Wild Boar among them.
@@ -63,7 +64,7 @@ pass later; record before the tracker redesign (step 4).
 | D2 | A keyframe every 2 s (`-g 120`), and is jumping to a frame exact? (`video_safety.py`, 600 frames) | 5.7x smaller than PNG (5 % cost); OpenCV reads 600 / 600 frames identical; 60 random jumps: 60 exact, 0.25 s each (reading in order: ~400 frames a second) |
 | D3 | What if the recording is killed? | The bot (python) killed: ffmpeg finishes the file by itself, 200 / 200 frames. ffmpeg itself killed: the last ~0.5 s is lost (373 of 400 read back, all exact), and jumping in that file is wrong until it is repaired (`ffmpeg -i x.mkv -c copy fixed.mkv`) |
 | D4 | Does recording slow the bot? (`paced_enc.py` at a real-time 60 fps beside `tools/perf/bench.py`, the game running, 4 alternating pairs) | tick p50 14.3-14.9 ms alone, 14.5-15.4 while encoding: **+0.3 ms** (2 %), 0 late frames. In-process cost (the copy + the pipe) is Session 1's live gate |
-| D5 | Which maps? (`map_cover.py`, from assets/mcw + assets/scene) | 205 maps with mobs: 110 clean, 95 moving backgrounds. 82 mob types (57 on clean maps), 20 background sets (13). Recorded: 12 / 57 and 3 / 13. 11 more clean maps (strongest mob <= lv 45) add 26 of the missing ones; all levels: 20 maps |
+| D5 | Which maps? (`map_cover.py`, from assets/mcw + assets/scene) | 205 maps with mobs: 110 clean, 95 moving backgrounds. Mob types with 3+ spawn points on some map: 72 (51 on clean maps); background sets 20 (13). Recorded: 11 / 51 and 3 / 13. 10 more clean maps (strongest mob <= lv 45) add 25 of the missing ones; the rest need a stronger character |
 | D6 | Disk | C: 60 GB free (runs/: 15.6 GB native PNG + 25.8 GB old JPEG frames). E: Mammoth 3.0 TB free |
 
 **Not measured: the size at 60 fps** (the frames above are every 3rd = 20 fps). Neighbouring frames are closer, so
@@ -78,8 +79,8 @@ native 1366x768 window, chat minimized. A map is played in two ways, so it is re
   trip into its maps afterwards.
 - **Farm:** about 5 minutes of farming for EXP exactly as you would, wherever the situation puts you: the whole
   map, one platform, the part the others leave you. Start a new recording when you switch from travelling to
-  farming. **One rule on top: kill at least 5 of every mob type the map has** (the tool lists them), also the
-  ones you would not farm. A map's worth to the corpus is its mob types being hit and dying in front of its own
+  farming. **One rule on top: kill at least 5 of every mob type the map has several of** (the table and the tool
+  list them; a type with one or two spawn points: only if it comes your way), also the ones you would not farm. A map's worth to the corpus is its mob types being hit and dying in front of its own
   scenery, and its drops; a farmer's favourite mob alone leaves the others unseen.
 - **What this run is not for:** how a human farms. That differs by class, level and build (one hit or two, ranged
   or melee) and is collected later, per character, when the brain needs it. This run collects what is true for
@@ -97,22 +98,21 @@ Crowded is welcome (it is the hard case). Per recording, three facts: how many o
 **The key log holds whatever is typed while the game is focused, chat included.** It stays on this PC (the corpus
 is never in git). Start a recording only after logging in.
 
-**Group A - dev, the 11 maps that complete the coverage** (`python tools/data/map_cover.py --max-level 45`; a
+**Group A - dev, the 10 maps that complete the coverage** (`python tools/data/map_cover.py --max-level 45`; a
 different level cap gives a different list - the user says what the character survives):
 
-| # | Map | Adds |
-|---|---|---|
-| 1 | Victoria Road: L Forest II (10003030) | Blue / Green / Orange Mushroom, Lupin, Pig, Ribbon Pig, Shroom, Slime; mid-forest background |
-| 2 | Dungeon: Hunting Ground in the Deep Forest (10005011) | Curse Eye, Jr. Necki, Octopus; dark-wood background |
-| 3 | Victoria Road: Tree Dungeon, Forest Up North VII (10002081) | Cold Eye, Fairy; shining-wood 2 background |
-| 4 | Warning Street: The Swamp of Despair II (10003091) | Ligator; dark-swamp background |
-| 5 | Victoria Road: The Forest North of Ellinia (10002070) | Axe Stump; shining-wood background |
-| 6 | Kerning City Subway: Line 2 <Area 1> (10003066) | Jr. Wraith |
-| 7 | Victoria Road: L Forest I (10003020) | Iron Hog |
-| 8 | Dungeon: Deep Ant Tunnel I (10005066) | Evil Eye |
-| 9 | Victoria Road: Sunset Sky (10003070) | sunset-city background |
-| 10 | Hidden Street: Monkey Swamp III (10003097) | Zombie Lupin |
-| 11 | Dungeon: Another Path (10005100) | blue-cave background |
+| # | Map | Adds | Its mobs (spawn points) |
+|---|---|---|---|
+| 1 | Victoria Road: L Forest III (10003040) | Slime, Pig, Ribbon Pig, Shroom, Blue Snail, Green + Blue Mushroom; mid-forest background | Slime 23, Red Snail 14, Green Mushroom 10, Ribbon Pig 7, Pig 7, Blue Snail 6, Shroom 5, Blue Mushroom 4, Snail 4, Stump 3 |
+| 2 | Hidden Street: Monkey Swamp II (10003096) | Lupin, Zombie Lupin, Jr. Necki; dark-swamp background | Zombie Lupin 13, Lupin 10, Jr. Necki 3 |
+| 3 | Victoria Road: Tree Dungeon, Forest Up North VII (10002081) | Curse Eye, Cold Eye; shining-wood 2 background | Curse Eye 13, Cold Eye 4, Fairy 2 |
+| 4 | Victoria Road: The Forest North of Ellinia (10002070) | Axe Stump; shining-wood background | Slime 26, Stump 21, Axe Stump 13, Snail 9 |
+| 5 | Dungeon: Damp Tree-Forest (10005030) | Octopus; dark-wood background | Octopus 19, Slime 13, Jr. Necki 8, Dark Axe Stump 6 |
+| 6 | Victoria Road: Sunset Sky (10003070) | Orange Mushroom; sunset-city background | Stump 15, Orange Mushroom 8, Green Mushroom 7, Dark Stump 7, Blue Snail 7 |
+| 7 | Kerning City Subway: Line 2 <Area 1> (10003066) | Jr. Wraith | Jr. Wraith 83, Jr. Necki 14 |
+| 8 | Warning Street: The Swamp of Despair II (10003091) | Ligator | Ligator 36, Horny Mushroom 20, Jr. Necki 17, Slime 6 |
+| 9 | Dungeon: Deep Ant Tunnel I (10005066) | Evil Eye | Zombie Mushroom 29, Evil Eye 21, Horny Mushroom 16, Jr. Boogie 2 |
+| 10 | Dungeon: Another Path (10005100) | blue-cave background | Cold Eye 23 |
 
 Each of these gets one farm recording; the trips between them are the traverse recordings. Any map with the same
 mobs and background set is as good (the tool lists what each map adds); swap freely, and prefer a map people
@@ -139,8 +139,8 @@ into the corpus: they happen when they happen. Estimated 20-40 GB an hour on E: 
 user's 1 TB holds 25-50 hours. No pass of this plan depends on group E.
 
 **The few-hours run, in order of worth (stop anywhere; everything before the stop is complete):**
-1. Group A's maps 1-5 (they add 20 of the 26 missing mob types and backgrounds), the trips recorded: ~1 hour.
-2. Group A's maps 6-11: ~1 hour.
+1. Group A's maps 1-5 (they add 19 of the 25 missing mob types and backgrounds), the trips recorded: ~1 hour.
+2. Group A's maps 6-10: ~1 hour.
 3. Group B, the 5 hold-out maps: ~45 minutes. Without them there is no honest number, only a dev number.
 4. Group D, the staged recording: 5 minutes.
 Groups C and E are not part of the run (C comes free with the trips; E is whenever).

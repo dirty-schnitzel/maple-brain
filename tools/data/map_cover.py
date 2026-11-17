@@ -4,7 +4,8 @@ From the client data only (assets/mcw + assets/scene): every map with mob spawns
 set(s), and whether its scene is clean (no moving backgrounds: the only maps perception hunts on today).
 Prints (1) what the maps already recorded cover, (2) the shortest list of further clean maps that adds every
 remaining mob type and background set (greedy; ties -> more spawns), (3) one map per background family that only
-moving-background maps have.
+moving-background maps have. A map counts for a mob type only with `--min-spawns` (3) spawn points of it: one
+spawn point is a mob met a few times in 5 minutes, or never on a crowded map.
 
     python tools/data/map_cover.py [--have ID ...] [--max-level N]
 `--have`: maps already recorded natively (default: the 7 of 2026-11-17). `--max-level`: skip maps whose strongest
@@ -12,6 +13,7 @@ mob is above this (what our character survives).
 """
 import argparse
 import json
+from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -19,7 +21,7 @@ MCW, SCENE = ROOT / "assets" / "mcw", ROOT / "assets" / "scene"
 HAVE = [10003061, 10003062, 10004040, 10004041, 10005063, 10005064, 10005065]
 
 
-def load():
+def load(min_spawns: int = 3):
     mobs = {}
     for p in (MCW / "mobs").glob("*/mob.json"):
         d = json.loads(p.read_text(encoding="utf-8"))
@@ -29,10 +31,11 @@ def load():
         mid = int(p.parent.name)
         s = json.loads(p.read_text())
         m = json.loads((MCW / "maps" / str(mid) / "map.json").read_text(encoding="utf-8"))
-        ids = sorted({int(x["id"]) for x in m.get("mobs") or []})
+        count = Counter(int(x["id"]) for x in m.get("mobs") or [])
+        ids = sorted(i for i, c in count.items() if c >= min_spawns)
         maps[mid] = dict(id=mid, name=m["name"] or "", street=m["streetName"] or "", mobs=ids,
                          sets=sorted({b["set"] for b in s["backs"]}), clean=all(b["known"] for b in s["backs"]),
-                         anim=s["animated"], spawns=len(m.get("mobs") or []),
+                         anim=s["animated"], spawns=len(m.get("mobs") or []), count=dict(count),
                          lv=[mobs[i]["info"]["level"] for i in ids if i in mobs and mobs[i]["info"].get("level")])
     return maps, mobs
 
@@ -45,8 +48,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--have", type=int, nargs="*", default=HAVE)
     ap.add_argument("--max-level", type=int, default=999)
+    ap.add_argument("--min-spawns", type=int, default=3)
     a = ap.parse_args()
-    maps, mobs = load()
+    maps, mobs = load(a.min_spawns)
     name = lambda k, i: mobs[i]["name"] if k == "mob" else i
     line = lambda m: f"{m['id']:>9} {m['street'][:20]:20s} | {m['name'][:34]:34s}"
     clean = [m for m in maps.values() if m["clean"]]
@@ -75,6 +79,8 @@ def main():
         k += 1
         print(f"  {k:2d}. {line(best)} lv {min(best['lv'])}-{max(best['lv'])}, {best['spawns']} spawns"
               f"{', animated objects' if best['anim'] else ''}\n        adds: {', '.join(sorted(name(*x) for x in g))}")
+        on_map = sorted(best["count"].items(), key=lambda kv: -kv[1])
+        print("        its mobs (spawn points): " + ", ".join(f"{mobs[i]['name']} x{c}" for i, c in on_map if i in mobs))
     out_of_reach = all_clean - got - set().union(*[items(m) for m in pool]) if pool else set()
     if out_of_reach:
         print(f"  not reachable under lv {a.max_level}: {', '.join(sorted(name(*x) for x in out_of_reach))}")
