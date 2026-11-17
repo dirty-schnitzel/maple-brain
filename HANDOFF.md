@@ -69,9 +69,11 @@ every gate met ("3.2 Session 2, S5"). S6: flyer layers fixed, tracks gate met on
 ms on 4 clips ACCEPTED by the user (option A = fade-pass CUDA graphs noted for later) -> **3.2 CLOSED 2026-11-17.
 3.3 (the fit in shadow in the Perceiver) DONE 2026-11-17 ("3.3 DONE" in "Step 3 state"): tracks the same on all 7
 clips, fit vs tracks = S6, +5.3 ms p50 (the bound: ~5), test_perf fails on the 18.4 baseline - the user decides the
-re-baseline (not done: 3.4's gate is the old 18.4). NEXT = 3.4 (the switch), OK'd by the user 2026-11-17: "3.4 OK'd" in
-"Step 3 state".** `watch` was NOT running on
-2026-11-17 (no python process): the user's to restart; never stop it.
+re-baseline (not done: 3.4's gate is the old 18.4). 3.4 (the switch) DONE OFFLINE 2026-11-17 ("3.4 DONE" in "Step 3
+state"): bench 13.6 ms (test_perf passes on 18.4), labels 94.2 % (every class >= before), real track-frames up on
+every clip, 0 scenery ghosts among the 97 new-only tracks. OPEN: the user's live check + their word on line1's
+track count (64 -> 59 = fewer false deaths); then step 4 (proposal in the session's report).** `watch` was NOT
+running on 2026-11-17 (no python process): the user's to restart; never stop it.
 
 ### TASK (the user, 2026-11-16): improve the gate test by taking NEW footage
 The tests on pre-native footage were deleted (d87e5b4; the Lie Detector ones kept); for now the gate = today's
@@ -836,7 +838,60 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     - Tests: tests/test_fit_shadow.py (the rig with fit on vs off on 10 fixture frames: tracks identical, facts fit /
       hints on every frame with a camera, sighted tracks found), test_fit.py hints test (found -> no look; SEEN /
       COVERED / ABSENT cases; edge tracks), test_facts.py v3 round trip.
-  - **3.4 OK'd by the user 2026-11-17 (the switch on clean maps; NEXT).** On ticks where the scene camera is found:
+  - **3.4 DONE offline 2026-11-17 (the switch on clean maps) - every gate met; open: the user's live check (proposed
+    in the session's report) and the user's word on line1's track COUNT (below).**
+    - Pet check first (3.3 replays, 6 native clips): no pet tracks exist (`kind="pet"` is never set since the pet
+      code went 11-03); 0 tracks living near us except ant4 #39 = a real Zombie fighting us; the Snail pet (out in
+      ant4 / ant4b / line1) gets no fit mob in the sampled crops; the fit's extra mobs near us = real mobs under our
+      body / effects / digits (hit / die / stand poses, seen 0.07-0.46). Nothing built for it.
+    - Built: config `perception.fit_tracks` (default on; off = 3.3's shadow). Perceiver: `observe` skips the old
+      search when the scene camera held LAST tick; `_track`: camera found THIS tick -> `_fit_mobs` before the
+      tracker, each FitMob -> `Fitter.hit` (gpu_sprites.Hit, the pose's box, score 1.0), `f.hits` = [], world.update
+      gets `look` = `Perceiver._look` -> `Fitter.look` (one stage-2 look per unseen track at its predicted feet;
+      `Fitter.seen` = the fit's own rule -> a Hit there, else None; rows -> `fit_hints`; part `hints`); camera lost
+      this tick -> the old search runs late, find_near + probes whole. world.update(look=): no probes (cover +
+      edge), no edge-ghost score rule (`new_onscreen` 60 % for a NEW track stays); `Fitter.hints` (shadow) = `look`
+      filtered. **Detail added (data): a die-pose sighting no track claims starts no track** (the old search had
+      live poses only, probes skip die poses; the fit path made 11 tracks born "live" in a die pose, 16 of ~19 k
+      track-frames; the fallback path can't reach the rule). Tests: tests/test_world_look.py (2),
+      test_fit_shadow.py (+ the fit-path test; the shadow test runs with fit_tracks off).
+    - **Bench A/B (game up, Ultimate Performance, pinned, 3 rounds alternating, nothing else of mine running): new
+      13.4 / 13.7 / 13.3 ms p50 (p90 14.7 / 15.2 / 14.3) vs old path (`--no-fit`) 20.1 / 21.7 / 29.2 (round 3 =
+      machine noise) vs 3.3's shadow (`--no-fit-tracks`) 25.9 / 25.4 / 25.6.** New parts p50: fit 6.3-6.5 (4.5 in
+      shadow: it now runs right after D's queued GPU work + beside the reader threads), diff 2.2-2.4, scene 1.6
+      (the wait for our tag + grey thread, hidden behind the old 9.8 ms search before), patches 1.4 (thread),
+      scenecam 0.9, hints 0.6, world 0.5. pytest: 1096 passed; **bot speed 13.6 ms (p90 15.2), test_perf passes on
+      the 18.4 baseline (NOT re-baselined: the user's call; 26 % faster).**
+    - **Full gate.py (base HEAD = fp 547d442703, work fp 746dfeb114; VERDICT CHANGED, judged):** real track-frames
+      base -> new (sighted share): ant4 3805 -> 4270 (79.6 -> 88.2 %), ant4b 2360 -> 2760 (85.0 -> 90.8), steam 3334
+      -> 3533 (86.1 -> 91.8), line1 2279 -> 2443 (81.3 -> 89.0), transfer 2383 -> 2538 (82.4 -> 88.2), darkcave 326
+      -> 353 (91.4 -> 95.8); fhd (fallback) identical. Real tracks 127>163, 66>87, 98>131, **64>59**, 46>59, 6>6.
+      Weak 0 everywhere = by construction (score 1.0): compare.py's WEAK class can't flag ghosts on this path ->
+      `tools/perc/replay/new_tracks.py RUN A B` (every B track A doesn't find on > 50 % of its frames, drawn).
+      **Every one of the 97 new-only tracks looked at (sheets RUN/replay/new_fp_746dfeb114_<clip>.png): 0 scenery
+      ghosts** - real mobs in fights, under the quickslots (gaps) / behind the minimap edge / behind players,
+      respawn waves fading in (ant4 35.2 s: 9 mobs at o 0.17 -> 0.66 in 0.4 s), flyers (feet below the body), and
+      tracks the old path typed differently. Steam: no geyser-spot track.
+      **line1 64 -> 59 real tracks:** the 13 line1 tracks only the base has are all ones the old near search turned
+      "dying" on a live Bubbling (die1 match), coasted, and replaced by a new track; the new path keeps that mob on
+      one track (sheet checked). Base real track-frames the new path doesn't find (ant4 15 %, ant4b 8, steam 7, line1
+      15, transfer 7, darkcave 2.5): type disagreements (the old tracker's type wrong, S6), coasting frames / dying
+      bookkeeping, 20-45 px offsets; base-SIGHTED live frames with nothing in the new replay: ant4 116 = 113 of
+      **base #51 = an old-path GHOST on the quickslot keycaps** (a Zombie walked under the quickslots, find_near held
+      0.574 on Shift / Ctrl for ~20 s; the new look reads ABSENT) + 2 frames; ant4b 1, line1 4, transfer 7, steam 0.
+    - **Labels (012059_1, 300 frames; replay of every saved frame, RUN/replay/fit34b.jsonl, mob score 0.70) vs 3.0a's
+      before:** found 86.2 -> **94.2 %** (r 40 / 30: 86.9 -> 95.4); clear 94.0 -> 96.0, player 75.8 -> 88.1, effect
+      86.4 -> 96.0, fade 51.1 -> 92.5, dying 90.2 -> 93.9, ui 66.7 -> 88.9, edge 71.7 -> 85.0, scenery 90.2 -> 96.1,
+      hit 81.8 -> 90.9 (every class >= before); wrong type 74 -> 41. False tracks 145 -> 216 (acq 5 -> 97, coast 134
+      -> 118): the 81 acq at r 40 / 30 all sit on an exact fit mob (n_seen 61-3127); by eye (43 without a label of
+      their type near): unlabelled real mobs - behind players, under the minimap / quickslots / tooltips, faint
+      respawn fades (o 0.15-0.37), a frozen Zombie, n6060 (3.1's "label to re-check"); the rest label offsets /
+      other-type labels 16-113 px away, 8 under the HUD (y > 700). No scenery ghost.
+    - Evidence: shadow.py --fp 746dfeb114 (well-sighted vs fit 97.7-100 % same type - partly circular now; coasting
+      LIVE track-frames looked at: SEEN 0-0.9 %, ABSENT 26-40 %, COVERED 59-74 %; dying: ABSENT 45-69 %);
+      coast_sheet.py ant4 / steam / line1 -> RUN/fit/coasting_<clip>.png (seen there: ant4 #16 knocked back ~100 px,
+      the fit sees it, the gate (30 + vmax t) doesn't reach = step 4's knockback model).
+  - **3.4 OK'd by the user 2026-11-17 (the switch on clean maps; DONE above).** On ticks where the scene camera is found:
     1. the tracker's sightings come from the fit: each FitMob -> a detector Hit (type, feet, pose, box from the pose),
        score 1.0 (the fit's rule already decided); the whole-screen search + refine (`sprites._all`) skipped; the fit
        runs BEFORE world.update.

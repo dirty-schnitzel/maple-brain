@@ -125,7 +125,11 @@ class Perceiver:
             from ..scene import SceneCamera
             self.scene_cam = SceneCamera(sprites.scene, tol=cfg.perception.scene_tol)
         self.fitter = getattr(sprites, "fitter", None) if self.scene_cam is not None and cfg.perception.fit else None
+        # step 3.4: on ticks with the scene camera the fit's mobs are the tracker's sightings (the old whole-screen
+        # search + find_near not run); off = 3.3's shadow (the fit after the tracker, nothing reads it)
+        self.fit_tracks = self.fitter is not None and cfg.perception.fit_tracks
         self._fit_ui = (None, None)                     # (hud.ui_mask array, the fit's GPU mask of it)
+        self._look_ms = 0.0                             # this tick's looks (the fit path's search around tracks)
         self.scene_next_t = -1e9                       # the scene camera failing again and again: next look then
         self.minimap_t = -1e9                           # last minimap read (only ~1 / s while the scene camera holds)
         self.use_tracks = bool(cfg.perception.tracker and self.world is not None)
@@ -289,7 +293,9 @@ class Perceiver:
             obs.lie_detector = f.lie[0]
         self._mark("lie")
         hits = None
-        if self.world is not None:                      # the mob detector on the GPU, the readers run meanwhile
+        if self.world is not None and not (self.fit_tracks and exact):
+            # the old mob detector on the GPU, the readers run meanwhile - not when the scene camera held last tick
+            # (step 3.4: the fit is expected; `_track` runs this late if the camera is lost on this tick after all)
             hits = f.hits = self.sprites._all(frame)
             self._mark("gpu")
         # the frame's grey, once (PLAN-perception.md step 2): our tag, the Lie Detector, the scene shift, camshift.
@@ -348,7 +354,7 @@ class Perceiver:
         if self.sprites is None:            # sprite mode (--map) doesn't use mob HP bars at all: Perion's fog washes
             bars = [hud.bar_mob_box(b) for b in hud.find_mob_bars(frame)]       # them out (perion2/3)
             obs.bar_mobs = [b for b in bars if reachable_level(b, feet, z.same_level + 15, z.step_down)]
-        if self.sprites is not None:          # no body exclusion: a snail at our feet is still a snail
+        if self.sprites is not None and not self.use_tracks:   # (no body exclusion: a snail at our feet is a snail)
             above = int(z.climb_max + getattr(self.sprites, "max_h", 60) + 5)   # up a slope: the whole sprite
             obs.sprite_mobs = [s for s in self.sprites.find(frame, feet, below=z.step_down, above=above,
                                                             exclude=obs.bar_mobs)
@@ -423,8 +429,9 @@ class Perceiver:
         self._t0 = now
 
     def _track(self, frame, obs, me, hits, tags):
-        """The tracker's tick: `hits` = the mob detector's on this frame, `tags` = the players' tags reader (a
-        future: players' bodies hide mobs, drawn over them)."""
+        """The tracker's tick: `hits` = the old mob detector's on this frame (None: not run - `observe` expected the
+        fit path), `tags` = the players' tags reader (a future: players' bodies hide mobs, drawn over them). Scene
+        camera found on this tick + perception.fit_tracks: the fit's mobs are the sightings (step 3.4)."""
         band = self.sprites
         f = self.facts
         me_s = (me[0] + me[2] / 2, me[1]) if me is not None else None
@@ -469,13 +476,29 @@ class Perceiver:
             self._mark("camshift")
         if exact is None and shift is None and obs.scene_dx is not None:
             shift = (obs.scene_dx, obs.scene_dy)
+        # step 3.4: the scene camera found on THIS tick -> the fit's mobs are the sightings and its look at each
+        # unseen track's predicted feet is the search around tracks; else today's detector (late if `observe`
+        # expected the fit) + find_near + probes, whole
+        fit_now = exact is not None and self.fit_tracks and ek is not None
+        look = None
+        if fit_now:
+            mobs = self._fit_mobs(band.gpu.frame_u8, exact, ek, me_s, frame.shape)
+            hits, f.hits, f.fit_hints = [self.fitter.hit(m.type, m.pose, m.facing, m.feet) for m in mobs], [], []
+            look, self._look_ms = self._look, 0.0
+        elif hits is None:
+            hits = f.hits = band._all(frame)
+            self._mark("gpu")
         f.tags = tags.result()
         trs = self.world.update(obs.t, hits, me_s, obs.map_pos, shift,
-                                near=lambda spots, pad=24, vis=None: band.gpu.find_near(frame, spots, pad=pad, vis=vis),
-                                tags=f.tags, cam=exact)
+                                near=None if fit_now else
+                                lambda spots, pad=24, vis=None: band.gpu.find_near(frame, spots, pad=pad, vis=vis),
+                                tags=f.tags, cam=exact, look=look)
         self._mark("world")
-        if ek is not None and self.fitter is not None and sc.found:
-            self._fit(band.gpu.frame_u8, sc.C, ek, me_s, trs, frame.shape)
+        if fit_now:                                     # the looks ran inside the tracker: their own part
+            self.parts["world"] = round(self.parts["world"] - self._look_ms, 1)
+            self.parts["hints"] = round(self._look_ms, 1)
+        elif ek is not None and self.fitter is not None and sc.found:
+            self._fit(band.gpu.frame_u8, sc.C, ek, me_s, trs, frame.shape)    # 3.3: in shadow
         if d_list is not None:
             f.patches, self.parts["patches"] = d_list.result()
         obs.mobs = [tr.as_dict(obs.t) for tr in trs]
@@ -484,10 +507,28 @@ class Perceiver:
             obs.me_map = (round(me_s[0] + obs.cam[0], 1), round(me_s[1] + obs.cam[1], 1))
 
     def _fit(self, frame_u8, C, ek, me_s, trs, shape):
-        """The fit in shadow (step 3.3; nothing reads it): on the uploaded frame with this tick's expected scene `ek`
-        (D's), ui = D's mask (the measured minimap) with the chat rect as world (the user keeps the chat minimized),
-        our body box kept out of the fade search -> facts.fit / fit_ms, then one look per track it did not find ->
-        facts.fit_hints. Parts `fit` / `hints`."""
+        """The fit in shadow (step 3.3, config perception.fit_tracks off; nothing reads it): after the tracker,
+        `_fit_mobs`, then one look per track it did not find -> facts.fit_hints. Parts `fit` / `hints`."""
+        mobs = self._fit_mobs(frame_u8, C, ek, me_s, shape)
+        self.facts.fit_hints = self.fitter.hints(trs, mobs)
+        self._mark("hints")
+
+    def _look(self, trs) -> list:
+        """The fit path's search around tracks (step 3.4; world.update's `look`): the fit's look at each track's
+        predicted feet; SEEN by the fit's own rule -> a Hit there (score 1.0), ABSENT / COVERED -> None (the
+        tracker's timeouts stay until step 4). The rows -> facts.fit_hints."""
+        t0, fz = time.perf_counter(), self.fitter
+        rows = fz.look(trs)
+        self.facts.fit_hints += [r for r in rows if r is not None]
+        out = [fz.hit(r["mob"], r["pose"], r["facing"], (r["sx"], r["sy"])) if r is not None and fz.seen(r) else None
+               for r in rows]
+        self._look_ms += 1000 * (time.perf_counter() - t0)
+        return out
+
+    def _fit_mobs(self, frame_u8, C, ek, me_s, shape) -> list:
+        """The fit (perception/fit.py) on the uploaded frame with this tick's expected scene `ek` (D's), ui = D's mask
+        (the measured minimap) with the chat rect as world (the user keeps the chat minimized), our body box kept out
+        of the fade search -> [FitMob], facts.fit / fit_ms. Part `fit`."""
         f, fz = self.facts, self.fitter
         ui = hud.ui_mask(shape, self.minimap)
         if self._fit_ui[0] is not ui:
@@ -499,8 +540,7 @@ class Perceiver:
         mobs = fz.fit(frame_u8, C, ek[0], ek[1], self._fit_ui[1], me)
         f.fit, f.fit_ms = [m.to_dict() for m in mobs], round(fz.ms["fit"], 2)
         self._mark("fit")
-        f.fit_hints = fz.hints(trs, mobs)
-        self._mark("hints")
+        return mobs
 
     def look(self, frames, obs: Observation, cursor=None) -> Observation:
         """Motion look: moving things on our ground line that aren't characters, drops, ghosts or the cursor."""

@@ -1,6 +1,9 @@
 """The fit (PLAN-perception.md step 3.2, PLAN-fit-speed.md): which mobs - type, pose, facing, feet, opacity - the frame
-shows, pixel by pixel. In shadow since 3.3: the Perceiver runs it on clean maps (scene camera found) after the tracker
--> FrameFacts.fit + fit_hints (`hints`: one stage-2 look per track it did not find); nothing reads them yet.
+shows, pixel by pixel. Since 3.4 the tracker's sightings on clean maps (scene camera found this tick): the Perceiver
+runs it before the tracker, each FitMob -> a detector Hit (`hit`, score 1.0: the rule below already decided), and
+the tracker's search around the tracks it did not see is `look` (one stage-2 look at each track's predicted feet;
+SEEN by the same rule -> a sighting there, ABSENT / COVERED -> none). FrameFacts.fit + fit_hints (the looks).
+`hints` = 3.3's shadow form of the looks (config perception.fit_tracks off).
 
 1. Candidates = the vote (perception/vote.py): cells (pose, feet) with >= `cand_votes` exclusive votes of the frame's
    2x2 sprite-colour features, taken where the expected scene does not explain the pixel. No windows, no footholds,
@@ -146,12 +149,13 @@ class Fitter:
         self.front_backs = any(b["front"] and b["known"] for b, _ in scene.backs)
         self.ms = {}
         # the hints' poses: (type, anim, facing) -> pose indices; the die poses per (type, facing)
-        self.by_anim, self.die = {}, {}
+        self.by_anim, self.die, self.pose_ix = {}, {}, {}
         for g, p in enumerate(poses):
             anim = p.pose.rsplit("_", 1)[0]
             self.by_anim.setdefault((p.type, anim, p.facing), []).append(g)
             if anim.startswith("die"):
                 self.die.setdefault((p.type, p.facing), []).append(g)
+            self.pose_ix[(p.type, p.pose, p.facing)] = g
         self._last = None                               # the last fit's (frame, C, exp, valid) for `hints`
         self.taken = None                               # ... and the pixels its accepted mobs explained
 
@@ -353,29 +357,48 @@ class Fitter:
         n_inf - n_seen - n_abs)."""
         if self._last is None:
             return []
-        frame, C, exp, valid = self._last
-        todo, gs = [], []
+        todo = []
         for tr in tracks:
             if tr.kind != "mob" or tr.state not in ("live", "hit", "hidden", "dying"):
                 continue
             sx, sy = int(round(tr.sx)), int(round(tr.sy))
-            if not (-40 <= sx < SW + 40 and 0 <= sy < PLAY_H + 68):
-                continue
             if any(m.type == tr.mob_id and abs(m.feet[0] - sx) <= r and abs(m.feet[1] - sy) <= r for m in mobs):
+                continue
+            todo.append(tr)
+        return [x for x in self.look(todo) if x is not None]
+
+    def look(self, tracks) -> list:
+        """The tracker's search around tracks (3.4; `hints` in shadow): ONE stage-2 look per track at its predicted
+        feet (Track.sx / sy) - every frame of its last anim with its facing (+ the type's die poses when dying), each
+        with every tint / layer variant, the opacity floored at `hint_o_min`; the frame with the most SEEN pixels
+        (ties: the least ABSENT share) -> its row {"id", "mob", "sx", "sy", "pose", "facing", "n_inf", "n_seen",
+        "n_abs", "o"} (covered = n_inf - n_seen - n_abs). Pixels the last `fit`'s accepted mobs explained count as
+        COVERED. None per track not looked at: not a mob track, feet outside -40..SW+40 x 0..PLAY_H+68, no pose of its
+        anim. Needs this tick's `fit` first (its frame / expected scene / valid mask)."""
+        out = [None] * len(tracks)
+        if self._last is None:
+            return out
+        frame, C, exp, valid = self._last
+        todo, gs = [], []
+        for k, tr in enumerate(tracks):
+            if tr.kind != "mob":
+                continue
+            sx, sy = int(round(tr.sx)), int(round(tr.sy))
+            if not (-40 <= sx < SW + 40 and 0 <= sy < PLAY_H + 68):
                 continue
             g = list(self.by_anim.get((tr.mob_id, tr.anim, tr.facing)) or [])
             if tr.state == "dying":
                 g += [x for x in self.die.get((tr.mob_id, tr.facing), []) if x not in g]
             if not g:
                 continue
-            todo.append((tr, sx, sy))
+            todo.append((k, tr, sx, sy))
             gs.append(g)
         if not todo:
-            return []
+            return out
         own = np.array([j for j, g in enumerate(gs) for _ in g], int)
         g = np.array([x for gg in gs for x in gg], np.int64)
-        fx = np.array([todo[j][1] for j in own], np.int64)
-        fy = np.array([todo[j][2] for j in own], np.int64)
+        fx = np.array([todo[j][2] for j in own], np.int64)
+        fy = np.array([todo[j][3] for j in own], np.int64)
         meta, rc, rg, rl = self._variants(g, fx, fy, C, self.cfg.hint_o_min)
         bits, cnt, o = self._run(frame, exp, valid, meta)
         P = max(self.KH, self.KW)
@@ -392,13 +415,28 @@ class Fitter:
             k = own[i]
             if k not in best or key > best[k][0]:
                 best[k] = (key, j)
-        out = []
-        for k, (tr, sx, sy) in enumerate(todo):
+        for k, (i, tr, sx, sy) in enumerate(todo):
             (ns, _), j = best[k]
             p = self.poses[int(rg[j]) % self.G]
-            out.append({"id": tr.id, "mob": tr.mob_id, "sx": sx, "sy": sy, "pose": p.pose, "facing": p.facing,
-                        "n_inf": int(cnt[j, 0]), "n_seen": ns, "n_abs": int(cnt[j, 2]), "o": round(float(o[j]), 3)})
+            out[i] = {"id": tr.id, "mob": tr.mob_id, "sx": sx, "sy": sy, "pose": p.pose, "facing": p.facing,
+                      "n_inf": int(cnt[j, 0]), "n_seen": ns, "n_abs": int(cnt[j, 2]), "o": round(float(o[j]), 3)}
         return out
+
+    def seen(self, row) -> bool:
+        """A look's row (`look`) is a sighting: the fit's own mob rule (min_seen, seen_min, absent_max)."""
+        c, n = self.cfg, row["n_inf"]
+        return n > 0 and row["n_seen"] >= c.min_seen and row["n_seen"] >= c.seen_min * n and row["n_abs"] <= c.absent_max * n
+
+    def hit(self, mob_type: int, pose: str, facing: str, feet):
+        """A fit mob / a SEEN look as the tracker's detector Hit (gpu_sprites.Hit): the pose's box at the feet, score
+        1.0 (the fit's rule decided; the old detector's score thresholds do not apply)."""
+        from maplebrain.perception.gpu_sprites import Hit
+        from maplebrain.perception.sprites import Pose
+        p = self.poses[self.pose_ix[(mob_type, pose, facing)]]
+        anim, n = pose.rsplit("_", 1)
+        fx, fy = int(feet[0]), int(feet[1])
+        h, w = p.pic.shape[:2]
+        return Hit(mob_type, (fx - p.ox, fy - p.oy, w, h), (fx, fy), Pose(anim, int(n), facing, p.ox, p.oy), 1.0)
 
     def fit(self, frame, C, exp, known, ui=None, me=None, keep_cands: bool = False):
         """`frame`: uint8 BGR (GPU tensor or array, >= PLAY_H rows); `C`: the scene camera; `exp`, `known`:

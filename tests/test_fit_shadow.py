@@ -20,13 +20,13 @@ bench = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(bench)
 
 
-def _run(fit: bool, n: int = 10):
+def _run(fit: bool, n: int = 10, fit_tracks: bool = False):
     from maplebrain.scene import Scene
     if not Scene.have(bench.ANT4):
         pytest.skip(f"needs python -m maplebrain assets scene {bench.ANT4}")
     sys.path.insert(0, str(ROOT / "tools" / "perc"))
     import frames as rec
-    per = bench.build(bench.ANT4, fit=fit)[0]
+    per = bench.build(bench.ANT4, fit=fit, fit_tracks=fit_tracks)[0]
     fs = bench.fixture_frames()[:n]
     shift = rec.xshift(fs[0].parent)
     out = []
@@ -57,3 +57,31 @@ def test_the_fit_runs_in_shadow_and_the_tracks_stay_the_same():
             looked = {h["id"] for h in f1.fit_hints}
             assert looked <= {m["id"] for m in m1}
     assert n_fit >= len(on) - 1                                         # the first frame may have no camera yet
+
+
+def test_the_fit_feeds_the_tracker_where_the_scene_camera_is_found():
+    """Step 3.4: on ticks with the scene camera the old search (part `gpu`) and find_near don't run; every track
+    sighted this tick is a fit mob (acq) or a SEEN look (near), at score 1.0; a tick without the camera runs the old
+    detector whole."""
+    per, on = _run(True, fit_tracks=True)
+    assert per.fit_tracks
+    n_fit, prev = 0, False
+    for mobs, f, parts in on:
+        if f.scene_cam is None:
+            assert "gpu" in parts and f.fit is None
+            prev = False
+            continue
+        n_fit += 1
+        # the old search runs only when the camera was not found on the tick before (decided before it's known)
+        assert ("gpu" in parts) == (not prev) and "fit" in parts and "hints" in parts and f.hits == []
+        prev = True
+        json.dumps(f.as_dict())
+        looked = {h["id"]: h for h in f.fit_hints}
+        for m in mobs:
+            if m["src"] == "acq":
+                assert m["score"] == 1.0 and any(x["type"] == m["mob"] and tuple(x["feet"]) == (m["sx"], m["sy"])
+                                                 for x in f.fit), (f.t, m)
+            elif m["src"] == "near":
+                h = looked[m["id"]]
+                assert m["score"] == 1.0 and (h["sx"], h["sy"]) == (m["sx"], m["sy"]) and per.fitter.seen(h)
+    assert n_fit >= len(on) - 1

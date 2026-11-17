@@ -165,6 +165,9 @@ bench needs the game running (GPU P-state: 40-43 ms idle vs 27-30 with the game)
   until step 4: step 3 changes the evidence, step 4 the tracker); search / refine / find_near / cover probes /
   edge-ghost score rule off on that path. Gate: full replay judged per clip (real tracks same or more, 0 scenery
   ghosts among the weak ones), labels, bench <= 18.4 ms, the user's live check.
+  **DONE 2026-11-17 offline (HANDOFF "Step 3 state"; the user's live check open):** bench 13.3-13.7 ms p50 (old
+  path 20.1-21.7, same state); labels 86.2 -> 94.2 % (every class >= before); real track-frames +6..+17 % on the 6
+  native clips, every one of the 97 new-only tracks looked at: 0 scenery ghosts; the old path's keycap ghost gone.
 - Maps without a clean scene (moving / animated backs, a lost scene camera, non-native windows): today's path
   whole and untouched, per tick; no FFT for it now (the clouds task decides its future: then the measured 7.7 ->
   4.4 ms FFT is the option). The old search code is deleted only when no map needs it (the user's call then).
