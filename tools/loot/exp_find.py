@@ -17,7 +17,7 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lootlib import frame, map_of, run_ticks, world_mask, PLAY_H, ROOT  # noqa: E402
+from lootlib import Footholds, frame, map_of, run_ticks, world_mask, PLAY_H, ROOT  # noqa: E402
 from dropvote import DropFinder  # noqa: E402
 
 ap = argparse.ArgumentParser()
@@ -42,6 +42,7 @@ run = Path(a.run)
 ticks = [k for k in run_ticks(run) if a.t0 <= (k["t"] or 0) <= a.t1][::a.every]
 mid = map_of(run)
 scene = Scene.load(mid)
+fhs = Footholds(mid)
 fitter = None
 if a.fit:
     from maplebrain.perception.fit import Fitter
@@ -95,7 +96,21 @@ with open(out / f"find_{a.out}.jsonl", "w", encoding="utf-8") as fo:
         boxes += [(tg[0] + tg[2] / 2, tg[1]) for tg in (k.get("facts") or {}).get("tags") or []]
         for cx, fy_ in boxes:
             chars[max(0, int(fy_) - 90):max(0, int(fy_) + 22), max(0, int(cx) - 42):max(0, int(cx) + 42)] = True
-        r = fz.find(ft, exp, known, ui, keep_cands=a.cands, mob_taken=taken, chars=chars)
+        # front scenery per foothold layer for this camera (Scene.layers: the tiles / objects of the layers above)
+        front = {}
+        ax, ay = int(C[0]) - scene.x0, int(C[1]) - scene.y0
+        for L, pl in scene.layers.items():
+            m = np.zeros((PLAY_H, ft.shape[1]), bool)
+            y0_, x0_, y1_, x1_ = max(0, ay), max(0, ax), min(pl.shape[0], ay + PLAY_H), min(pl.shape[1], ax + ft.shape[1])
+            if y1_ > y0_ and x1_ > x0_:
+                m[y0_ - ay:y1_ - ay, x0_ - ax:x1_ - ax] = (pl[y0_:y1_, x0_:x1_] >= 128).cpu().numpy()
+            front[L] = m
+
+        def layer_of(sx, sy, C=C):
+            u = fhs.under(sx + C[0], sy + C[1])
+            return u[1] if u is not None else None
+
+        r = fz.find(ft, exp, known, ui, keep_cands=a.cands, mob_taken=taken, chars=chars, front=front, layer_of=layer_of)
         drops, cands = r if a.cands else (r, None)
         ms_v.append(fz.ms["vote"])
         ms_c.append(fz.ms["check"])

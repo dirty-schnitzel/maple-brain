@@ -21,7 +21,7 @@ import cv2
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lootlib import frame, map_of, run_ticks, sheet, PLAY_H, SW  # noqa: E402
+from lootlib import frame, map_of, run_ticks, sheet, world_mask, PLAY_H, SW  # noqa: E402
 
 ap = argparse.ArgumentParser()
 ap.add_argument("run")
@@ -32,6 +32,7 @@ ap.add_argument("--t1", type=float, default=1e9)
 ap.add_argument("--min-frames", type=int, default=12)
 ap.add_argument("--sheet", type=int, default=40)
 ap.add_argument("--out", default="")
+ap.add_argument("--no-chat", action="store_true", help="leave out the rows from 40 px above the chat rect down (chat text scrolls)")
 a = ap.parse_args()
 
 import torch  # noqa: E402
@@ -50,9 +51,8 @@ for ri, r in enumerate(rows):
     f = frame(run, r["frame"])
     ft = torch.from_numpy(np.ascontiguousarray(f[:PLAY_H])).to(scene.dev)
     if ui is None:
-        m = hud.ui_mask(f.shape, None)[:PLAY_H] > 0
-        x0, y0, x1, y1 = hud.CHAT_WORLD
-        m[y0:min(y1, PLAY_H), x0:x1] = True
+        m = world_mask(map_of(run), f.shape)
+        m[max(0, hud.CHAT_WORLD[1] - 40):, :] &= False if a.no_chat else True     # --no-chat: the chat lines' rows out
         ui = torch.from_numpy(np.ascontiguousarray(m)).to(scene.dev)
     C = r["cam"]
     exp, known = scene.expected(C)

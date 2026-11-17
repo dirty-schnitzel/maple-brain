@@ -69,7 +69,7 @@ for run in [r for r in RUNS if not a.runs or any(x in r for x in a.runs.split(",
         cam, t = r["cam"], r["t"]
         for d in r["drops"]:
             n = max(1, d["n_op"])
-            u = 1 - (d["n_seen"] + d["n_abs"] + d.get("n_cd", 0)) / n
+            u = 1 - (d["n_seen"] + d["n_abs"] + d.get("n_cd", 0) + d.get("n_front", 0)) / n
             bx = d["box"][0] + d["box"][2] / 2 + cam[0]
             by = d["box"][1] + d["box"][3] + cam[1]
             mx = d["pos"][0] + cam[0]

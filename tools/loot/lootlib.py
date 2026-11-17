@@ -61,6 +61,33 @@ def world_mask(map_id: int, shape) -> np.ndarray:
     return np.ascontiguousarray(m)
 
 
+class Footholds:
+    """A map's footholds (assets/mcw/maps/<id>/map.json): `under(mx, my)` -> (y, layer, id) of the nearest foothold
+    at / below map (mx, my - 14) (a drop's bottom bobs a few px around its foothold), or None."""
+
+    def __init__(self, map_id: int):
+        mp = json.loads((ROOT / "assets" / "mcw" / "maps" / str(map_id) / "map.json").read_text(encoding="utf-8"))
+        rows = []
+        for k, f in (mp.get("footholds") or {}).items():
+            if f["x1"] == f["x2"]:
+                continue
+            a = (f["x1"], f["y1"], f["x2"], f["y2"]) if f["x1"] < f["x2"] else (f["x2"], f["y2"], f["x1"], f["y1"])
+            rows.append(a + (int(f.get("layerId", 0)), int(k)))
+        self.fh = np.array(rows, float).reshape(-1, 6)
+
+    def under(self, mx, my):
+        F = self.fh
+        on = np.flatnonzero((F[:, 0] <= mx) & (F[:, 2] >= mx))
+        if not len(on):
+            return None
+        ya = F[on, 1] + (mx - F[on, 0]) * (F[on, 3] - F[on, 1]) / (F[on, 2] - F[on, 0])
+        below = ya >= my - 14
+        if not below.any():
+            return None
+        i = on[below][np.argmin(ya[below])]
+        return float(ya[below].min()), int(F[i, 4]), int(F[i, 5])
+
+
 class Items:
     """id (int) -> the drop pictures. `raw(id)` / `icon(id)` -> (BGRA uint8, (ox, oy)); mesos: `meso(n)` -> [(BGRA,
     (ox, oy), delay)] of size n (0 bronze, 1 gold, 2 bundle, 3 sack)."""

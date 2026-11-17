@@ -99,7 +99,8 @@ class DropFinder:
         self.min_seen, self.seen_min, self.absent_max = min_seen, seen_min, absent_max
         self.ms = {}
 
-    def find(self, frame, exp=None, known=None, mask=None, keep_cands: bool = False, mob_taken=None, chars=None):
+    def find(self, frame, exp=None, known=None, mask=None, keep_cands: bool = False, mob_taken=None, chars=None,
+             front=None, layer_of=None):
         """`frame`: uint8 BGR tensor (>= PLAY_H rows) on the voter's device; `exp`, `known`: Scene.expected(C) (None:
         every pixel may vote, no ABSENT evidence); `mask`: bool (PLAY_H, SW), False = not world (the UI).
         -> [Drop] (+ every checked cell when keep_cands)."""
@@ -137,6 +138,13 @@ class DropFinder:
                     absent = op & ~seen & (np.abs(I - enp[b0:b1, a0:a1]).max(axis=2) <= self.tol)
                 else:
                     absent = np.zeros_like(seen)
+                # front scenery of the drop's layer (`front`: layer -> bool plane of this camera, the tiles / objects
+                # of the layers above; `layer_of(screen x, y of the box's bottom-centre)`): a picture pixel under it
+                # shows the scene because the scene is IN FRONT - explained cover, not ABSENT (a ladder's top post)
+                lay = layer_of(x0 + w / 2, y0 + h) if layer_of is not None else None
+                fr = front[lay][b0:b1, a0:a1] if front is not None and lay in front else np.zeros_like(seen)
+                under_front = op & ~seen & fr
+                absent &= ~fr
                 fm = self.fmask[int(g[i])][b0 - y0:b1 - y0 - 1, a0 - x0:a1 - x0 - 1]
                 fs = fm & seen[:-1, :-1] & seen[:-1, 1:] & seen[1:, :-1] & seen[1:, 1:]
                 # the ring: the pixels around the picture (its box + M px, minus what it draws): what is behind it
@@ -149,14 +157,16 @@ class DropFinder:
                 else:
                     kn = ex_ = np.zeros_like(ring)
                 rows.append((int(seen.sum()), i, (a0, b0, a1, b1), seen, int(op.sum()), int(absent.sum()), (x0, y0, w, h),
-                             int(fm.sum()), int(fs.sum()), op, pic[..., 3] > 0, (ra0, rb0, ra1, rb1), ring, kn, ex_))
+                             int(fm.sum()), int(fs.sum()), op, pic[..., 3] > 0, (ra0, rb0, ra1, rb1), ring, kn, ex_,
+                             under_front, lay))
             for (ns, i, (a0, b0, a1, b1), seen, n_op, n_abs, box, nf, nfs, op, dr, (ra0, rb0, ra1, rb1), ring, kn,
-                 ex_) in sorted(rows, key=lambda r: -r[0]):
+                 ex_, under_front, lay) in sorted(rows, key=lambda r: -r[0]):
                 it, fr, org = self.meta[int(g[i])]
                 n_cd = int((op & ~seen & drawn[b0:b1, a0:a1]).sum())         # unseen, under an accepted drop
                 dk = drawn[rb0:rb1, ra0:ra1]
                 ring_n, ring_e = int((ring & (kn | dk)).sum()), int((ring & (ex_ | dk)).sum())
-                extra = {"n_cd": n_cd, "ring_n": ring_n, "ring_e": ring_e, "ring": int(ring.sum())}
+                extra = {"n_cd": n_cd, "ring_n": ring_n, "ring_e": ring_e, "ring": int(ring.sum()),
+                         "n_front": int((under_front & ~drawn[b0:b1, a0:a1]).sum()), "layer": lay}
                 if mob_taken is not None:       # SEEN pixels the mob fit's accepted mobs explained (it IS the mob)
                     extra["n_mob"] = int((seen & mob_taken[b0:b1, a0:a1]).sum())
                 # the ring again, with what else is known to be drawn there: the fit's mobs, characters' body boxes

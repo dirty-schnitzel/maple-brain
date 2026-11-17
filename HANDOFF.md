@@ -119,6 +119,37 @@ Fitter.look feeding world.py. ~8,000 lines out.
   frames), the speed line (3.4: 16 ms p50). Optional: F7 on a Perion map -> `NOT STARTED: ... no clean scene`.
   Then step 4 (the tracker redesign) as a Fable-max plan session (PLAN-perception.md step 4).
 
+## Loot rework part 1: PERCEIVE drops - PLAN-loot.md PROPOSED 2026-11-17 (branch `loot`; waits for the user's OK)
+Plan session (Fable max; in parallel with the tracker plan session). **Nothing built in maplebrain/; nothing reads
+drops.** Branch `loot` off `perception-only`, checked out in its own worktree `C:\Users\Yoav\dev\maple-loot`
+(the tracker session was working in `maple-work`; `assets\scene` and `runs` there are junctions to maple-work's).
+Read PLAN-loot.md; the experiments are tools/loot/ (E-L0 .. E-L13), the tables runs/loot_plan/*_v4.txt, the
+per-frame results RUN/loot/find_v4.jsonl. In short (9 native PNG recordings, 14,962 frames, 5 maps):
+- **A resting drop is pixel-exact** (`info/iconRaw`, 1:1, opaque): the mob fit's vote with item pictures as poses
+  finds it. All 4,597 distinct pictures (Etc / Use / Setup / equips / meso frames) in one table: 0 wrong identity
+  with every picture pasted on real frames (99.45 % found; the misses = 28 see-through pictures); ~0.2 ms more
+  than a list of 11 items -> search every picture, no per-map list. Item pictures are NOT in the export yet
+  (tools/loot/export_items.ps1 is the draft: cw-data\export\Item; 257 items are links the draft skips).
+- A drop: x fixed, picture bottom 1..5 px below its foothold's y at the lowest point, bob 5-6 px with a 2.00 s
+  period; flight in 0.99 s (apex ~100 px; items spin, mesos don't), mob death -> rests 1.25 s p50; pickup = a
+  ~33 px hop toward the looter in ~0.4 s, then a short fade; drops are drawn OVER mobs and players, UNDER damage
+  digits, front scenery, windows / tooltips / chat bars. Expiry not seen (longest 122 s).
+- **Look-alikes** and the rule that drops them (0 of 3,893 sightings kept; 97.9 % of 51,016 resting-drop
+  sightings kept): worn equipment (icon = part of the worn sprite, SEEN <= 0.64) -> unexplained cover <= 0.2;
+  window icons (inventory, quickslots) -> the resting height (box bottom - foothold in -7..+5) / the ring around
+  the picture; an item that is part of a mob (Stirge Wing on a Stirge) -> the mob fit's explained pixels.
+  Scenery in FRONT of a drop is cover, not absence (a ladder post hid two drops for 123 frames: found by the
+  independent residue check, now a term). Kinds: REST (what a tracker starts from) / AIR (flight, pickup: hints) /
+  weak.
+- **Cost beside the fit** (pinned, only `watch` running): the whole pass as one fixed-size CUDA graph on its own
+  stream, launched before the fit and read after it: +0.6 .. +1.05 ms p90, same drops as the reference on 450 /
+  450 frames (tools/loot/dropgraph.py). A plain second vote: +3.4 ms; numpy on a reader thread: +3.7 ms.
+- FrameFacts v5 `drops` (proposed, in shadow): item class, box, feet, kind, the counts (seen / absent / under a
+  drop / under front scenery / mob), ring, foothold. first-seen = the tracker's.
+- **Open for the user:** the OK; what the capsule of PLAN-loot.md section 12 is; three recordings (section 13:
+  expiry with the pet off, own pickups, windows over drops).
+- 3 Opus sessions in the plan (data + synthetic truth; by-eye labels; the product in shadow), prompts inside.
+
 ## Earlier START HERE: DELETE THE OLD PERCEPTION (the user, 2026-11-17, after 3.4's live hunt)
 The user: "completely delete the old perception from code, no fallbacks, we continue with new perception
 exclusively"; no retest of 3.4 wanted ("perception is on the right path, we fix issues as we go"). Decisions:
