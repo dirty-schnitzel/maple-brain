@@ -69,7 +69,8 @@ every gate met ("3.2 Session 2, S5"). S6: flyer layers fixed, tracks gate met on
 ms on 4 clips ACCEPTED by the user (option A = fade-pass CUDA graphs noted for later) -> **3.2 CLOSED 2026-11-17.
 3.3 (the fit in shadow in the Perceiver) DONE 2026-11-17 ("3.3 DONE" in "Step 3 state"): tracks the same on all 7
 clips, fit vs tracks = S6, +5.3 ms p50 (the bound: ~5), test_perf fails on the 18.4 baseline - the user decides the
-re-baseline. NEXT = 3.4 (the switch), PROPOSED to the user in chat, their OK first.** `watch` was NOT running on
+re-baseline (not done: 3.4's gate is the old 18.4). NEXT = 3.4 (the switch), OK'd by the user 2026-11-17: "3.4 OK'd" in
+"Step 3 state".** `watch` was NOT running on
 2026-11-17 (no python process): the user's to restart; never stop it.
 
 ### TASK (the user, 2026-11-16): improve the gate test by taking NEW footage
@@ -835,6 +836,23 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     - Tests: tests/test_fit_shadow.py (the rig with fit on vs off on 10 fixture frames: tracks identical, facts fit /
       hints on every frame with a camera, sighted tracks found), test_fit.py hints test (found -> no look; SEEN /
       COVERED / ABSENT cases; edge tracks), test_facts.py v3 round trip.
+  - **3.4 OK'd by the user 2026-11-17 (the switch on clean maps; NEXT).** On ticks where the scene camera is found:
+    1. the tracker's sightings come from the fit: each FitMob -> a detector Hit (type, feet, pose, box from the pose),
+       score 1.0 (the fit's rule already decided); the whole-screen search + refine (`sprites._all`) skipped; the fit
+       runs BEFORE world.update.
+    2. `find_near` replaced by the hint look: world.update's `near` callback = Fitter.hints-style looks at the
+       tracker's predicted spots; SEEN -> a near sighting, ABSENT / COVERED -> none (the timeouts stay until step 4).
+    3. off on that path: the cover probes and the edge-ghost score rule; the fallback path (no camera / unclean map /
+       FHD) untouched, per tick. To check first: pet tracks (the fit knows mob poses only).
+    4. Gate: full replay judged per clip (real tracks same or more, 0 scenery ghosts among the weak ones), labels
+       (label_eval vs 3.0a's before), bench <= 18.4 ms p50 (test_perf then passes on the old baseline), the user's
+       live check. Evidence tools: tools/perc/fit/shadow.py, coast_sheet.py (pictures of coasting tracks + the fit).
+    - **The 3.3 tick broken down (bench fixture, fit on, pinned, synced timers, p50; tick 25.4):** main thread: gpu 9.8
+      = today's whole-screen search (convolutions of every pose 7.3 + refine 1.2 + peaks ~1.3) | world 7.05 = tracker
+      6.9 of which `find_near` 6.1 | fit 4.5 = vote 1.65 + fade pass 1.76 + stage 2 0.76 + pick 0.27 | diff 1.7
+      (expected() 1.2) | scenecam 0.7 | hints 0.6 | upload 0.3 | hud 0.1 | lie 0 (p90 2.5: a look ~1 tick in 16).
+      Hidden on threads: players' tags 6.7, own tag + grey 1.7, HUD 0.2, D's patches 1.3. 3.4 removes gpu 9.8 and
+      find_near 6.1 on the fit path -> est. ~10 ms p50 (the players' tags thread, 6.7 ms, may become the wait).
   - **3.3 as PROPOSED (2026-11-17, kept for reference): the fit in shadow in the Perceiver.** Nothing reads it;
     the tracker keeps today's detector; brain / keys unchanged.
     1. Wiring (perceiver.py, where D runs - scene camera found, `scene_diff` on): ONE `expected()` per tick shared by
