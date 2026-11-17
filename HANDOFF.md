@@ -53,7 +53,18 @@ find mobs, fight them like a player, pick up loot, use potions, and **navigate p
 later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never reads memory or packets.
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
-## START HERE NEXT SESSION: step 3 (the mob matcher), order AGREED 2026-11-16 - see "Step 3 state" below
+## START HERE NEXT SESSION: DELETE THE OLD PERCEPTION (the user, 2026-11-17, after 3.4's live hunt)
+The user: "completely delete the old perception from code, no fallbacks, we continue with new perception
+exclusively"; no retest of 3.4 wanted ("perception is on the right path, we fix issues as we go"). Decisions:
+1. Brain v1 (brain/brain.py) goes too; `--tracker` goes (always on: scene camera + fit path).
+2. Maps without a clean scene (Perion clouds, non-native window): REFUSE to start the hunt, with a clear message.
+3. Scene camera lost mid-hunt: PAUSE (release keys, no presses) until it is found again; log it. TODO note: address
+   this properly as it comes up in live runs.
+Scope found 2026-11-17: ~2,600 lines in perception/{sprites, gpu_sprites, mobs, motion, camshift}.py, cover.py,
+brain/brain.py; ~50 referencing files (runner, perceiver, world, config, CLI, ~25 tests, ~20 tools). Work on a NEW
+branch off `perception` (= last good). After it: the tracker redesign (step 4) as a Fable-max plan session.
+
+## Earlier START HERE: step 3 (the mob matcher), order AGREED 2026-11-16 - see "Step 3 state" below
 Step 2 is done and live-checked (below). Step 3's order is in PLAN-perception.md ("Step 3") and "Step 3 state"
 (after "Step 2 state"): 3.0a labels -> 3.0b synthetic frames -> 3.1 D in shadow -> 3.2 the fit -> 3.3 FrameFacts v2
 in shadow -> 3.4 the switch on clean maps. **3.0a + 3.0b DONE (labels, synthetic frames, "before" numbers on both in
