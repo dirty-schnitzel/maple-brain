@@ -1,6 +1,7 @@
 # PLAN: the recording corpus - many maps recorded cheaply, then every rework tested on all of it
-**Status: PROPOSED 2026-11-17 (by Fable, xhigh: a review of the proposal made in the session "data" the same day).
-Not started; needs the user's OK.** Executors: Opus, 3 sessions (prompts at the end) + about 2 hours of the user's
+**Status: OK'd by the user 2026-11-17** (by Fable, xhigh: a review of the proposal made in the session "data" the
+same day; sections 4-5 then redone to the user's three concerns: nobody looks at recordings to file them, no fixed
+list of maps, short stops). Not started. Executors: Opus, 3 sessions (prompts at the end) + about 2 hours of the user's
 own play. Evidence scripts: `tools/data/` (each file's docstring says what it measures). Nothing in `maplebrain/`
 is built yet.
 
@@ -19,13 +20,13 @@ pictures), so they are expected to hold. What is untested is the tuned layer on 
 and situation we never recorded. This plan builds the data to test that, once, and keeps it as the permanent check.
 
 ## 2. The review: what stays, what changes
-**Approved as proposed:** lossless video instead of PNG; about 5 minutes per map (how: edit 8); hold-out maps we
-never tune on; a validation pass of perception (not a redo); the loot rework continues and gets the same
+**Approved as proposed:** lossless video instead of PNG; hold-out maps we never tune on; a validation pass of perception (not a redo); the loot rework continues and gets the same
 pass later; record before the tracker redesign (step 4).
 
 **Edits (each from a measurement in section 3):**
-1. **Pick the maps from the game data, not by feel.** 10 more maps add every mob type and background set our
-   character can reach (list in section 4). "About 20 maps" is replaced by that list + 5 hold-out maps.
+1. **Measure coverage from the game data.** The game has 51 mob types and 13 background sets on the maps
+   perception hunts on; the corpus is judged by how many it holds, not by a count of maps. (First written as a
+   list of 10 maps to record; the user wants no list, so it is a report after each recording: edit 8.)
 2. **Record a few maps perception refuses today.** 95 of the 205 maps with mobs (46 %) have moving backgrounds
    (clouds, scrolling layers), and hunts are refused there - Perion Street Corner and Land of Wild Boar among them.
    More data on the other maps says nothing about these. A few recordings now are the data for that later step.
@@ -38,24 +39,27 @@ pass later; record before the tracker redesign (step 4).
    drop) is put on a sheet and looked at by eye. Plus synthetic frames per map and by-eye labels on picked frames.
 5. **The corpus lives on E: (Mammoth, 3 TB free), not in `runs/`.** C: has 60 GB free; `runs/` is 49 GB and is
    wiped by habit. The corpus is read-only, has a manifest, and the tools refuse the hold-out part unless asked.
-6. **One staged recording of "odd moments".** Farming never shows a death, a level-up, a pile of drops, or the
-   inventory / skill / world-map windows open. Seconds each, one 5-minute recording for all.
+6. **The odd moments, once each somewhere in the walk:** a rope, a pile of drops, the inventory / skill /
+   world-map windows open. Fighting alone never shows them.
 7. **Do not convert the existing PNG recordings yet.** The loot worktree reads them through junctions. They are
    copied into the corpus as video; the PNG originals go only after loot part 1 is merged (frees ~12 GB on C:).
-8. **Record a map the two ways it is played** (the user, 2026-11-17): **traversal** (cross it as fast as possible)
-   and **farming** (once there, the most EXP; some maps are farmed from one platform or a restricted area). The
-   proposal's "visit every platform, hit mobs as they come" is neither: it shows perception places no player
-   stands in, and it spoils the recordings as a record of human play. Each recording is one mode, tagged; nothing
-   staged happens inside them. They then double as the **human baseline**: travel time per map and kills per
-   minute per map, with the keys, to grade the bot's travel and farming against.
+8. **Record the user's walk, not a list** (the user, 2026-11-17). A map is played two ways - traversal (cross it
+   fast) and farming (the most EXP, where the other players let you) - and how one farms differs by class, level
+   and build. So this corpus does not try to hold "human play": it holds what is true for every character. The
+   user walks the maps and paths they choose, stops briefly where it is worth it, and the tool works out the
+   rest: which maps, where the fighting was, what is covered (section 4). The two modes stay the frame for the
+   brain later.
 9. **Capture now the one thing no later tool can recover: why the player did something** (the user, 2026-11-17).
    Where one farms is not a fixed property of a map. It moves with the other players: sharing a map platform by
    platform, being kill-stolen until one leaves, party members dividing the map ("I take bottom"), kill-stealing
    on purpose. Modelling that is far down the road (after perception, the model and execution). But where the
    other players stand and who kills what stays in the pictures and can be read out whenever perception learns to;
-   the player's reason is nowhere in them. So: a **marker key** during recording + one line per mark afterwards,
-   and real play recorded beyond the 5-minute sessions, because these situations cannot be staged. Nothing else
-   of the social layer is built or labelled now.
+   the player's reason is nowhere in them. So, both optional: a **marker key** during recording (a key the game
+   does not use; keys are logged with their times already) with one line per mark in `RUN/notes.txt` afterwards
+   ("2:10 kill-stolen by a mage, moved to the bottom"), and real play recorded whenever (group E), because these
+   situations cannot be staged. Nothing else of the social layer is built or labelled now.
+   **The key log holds whatever is typed while the game is focused, chat included.** It stays on this PC (the
+   corpus is never in git). Start a recording only after logging in.
 
 ## 3. What was measured (2026-11-17)
 | # | Question | Result |
@@ -66,121 +70,94 @@ pass later; record before the tracker redesign (step 4).
 | D4 | Does recording slow the bot? (`paced_enc.py` at a real-time 60 fps beside `tools/perf/bench.py`, the game running, 4 alternating pairs) | tick p50 14.3-14.9 ms alone, 14.5-15.4 while encoding: **+0.3 ms** (2 %), 0 late frames. In-process cost (the copy + the pipe) is Session 1's live gate |
 | D5 | Which maps? (`map_cover.py`, from assets/mcw + assets/scene) | 205 maps with mobs: 110 clean, 95 moving backgrounds. Mob types with 3+ spawn points on some map: 72 (51 on clean maps); background sets 20 (13). Recorded: 11 / 51 and 3 / 13. 10 more clean maps (strongest mob <= lv 45) add 25 of the missing ones; the rest need a stronger character |
 | D6 | Disk | C: 60 GB free (runs/: 15.6 GB native PNG + 25.8 GB old JPEG frames). E: Mammoth 3.0 TB free |
+| D7 | Can a walk be cut into its maps with nobody looking? (`map_along.py`: the bot's map recogniser on single frames, 60 along each of 10 recordings of 7 maps) | 600 looks: **538 right, 62 "can't tell", 0 wrong**; 48 ms a look (a 2-hour walk at one look a second: ~6 minutes). "Can't tell" = the minimap closed (8), or dragged partly off the screen (51, one recording): never a wrong map. Real map changes (loading frames) are not in today's recordings: gate (f) |
+| D8 | A long recording as chunk files? (ffmpeg's segment writer, a chunk every 120 frames, 600 frames) | 5 files of exactly 120 frames, 600 / 600 read back in order bit-identical, the same size as one file |
 
 **Not measured: the size at 60 fps** (the frames above are every 3rd = 20 fps). Neighbouring frames are closer, so
 the estimate is 0.3-0.7 GB a minute; the whole corpus then 40-100 GB. Session 1 reports the real number.
 
-## 4. What to record
-**How (every recording):** `serve --observe --video` (the bot presses nothing; your keys are logged as today). The
-native 1366x768 window, chat minimized. A map is played in two ways, so it is recorded in two modes (edit 8):
-- **Traverse:** cross the map as you do when travelling, as fast as you can, along the routes players really take.
-  Easiest: leave the recorder on for the whole trip to a farming map. Every map on the way becomes a traversal
-  recording (towns and moving-background maps too), and the map changes are recorded for real. The tool cuts the
-  trip into its maps afterwards.
-- **Farm:** about 5 minutes of farming for EXP exactly as you would, wherever the situation puts you: the whole
-  map, one platform, the part the others leave you. Start a new recording when you switch from travelling to
-  farming. **One rule on top: kill at least 5 of every mob type the map has several of** (the table and the tool
-  list them; a type with one or two spawn points: only if it comes your way), also the ones you would not farm. A map's worth to the corpus is its mob types being hit and dying in front of its own
-  scenery, and its drops; a farmer's favourite mob alone leaves the others unseen.
-- **What this run is not for:** how a human farms. That differs by class, level and build (one hit or two, ranged
-  or melee) and is collected later, per character, when the brain needs it. This run collects what is true for
-  every character: what the game draws on each map and how the game moves things. So **more maps beat more
-  minutes**: a second 5 minutes on a map adds mostly the player's style, the least reusable part.
-- **The marker (edit 9), optional - skip it if it distracts:** whenever another player changes what you do (you leave a platform, you take one, you
-  split the map with a party, you kill-steal or are kill-stolen), press the marker key: a key the game does not
-  use, the user's choice. Your keys are logged with their times already, so the recorder needs nothing new. After
-  the recording, one line per mark in `RUN/notes.txt` ("2:10 kill-stolen by a mage, moved to the bottom").
-- **Staged** (tagged apart, never counted as human play): anything done for the camera only - group D, and a short
-  tour of a map's unseen parts when the tool reports that traversal + farming showed too little of it
-  (`corpus.py list` prints the share of each map the camera saw).
-Crowded is welcome (it is the hard case). Per recording, three facts: how many other players were on the map
-(none / 1-2 / more), solo or party (and your part of the map, if agreed), anything odd.
-**The key log holds whatever is typed while the game is focused, chat included.** It stays on this PC (the corpus
-is never in git). Start a recording only after logging in.
+## 4. What to record: the user's walk
+**No list of maps.** The user walks the popular and iconic maps on the paths they choose, with the recorder on:
+one recording per play session, as long as it runs. The native 1366x768 window, chat minimized, **the minimap
+open in its usual place** (the tool cuts the walk into maps by it, D7). Nothing is tagged or noted by hand.
+- **On a map worth a stop (2-3 minutes):** kill each mob type a few times - about 5 each where the map has
+  several of them - and stand on as many platforms as comes naturally, then move on. A death lasts under a
+  second, so 5 give a few hundred frames of it; the common mobs come back on other maps anyway.
+- **Maps only crossed** are data too: travelling at full speed is the harder picture (fast camera, mobs passed).
+- **Somewhere along the walk, once each:** hang on a rope; open and close the inventory, the skill window, the
+  world map and the full chat; let a few drops lie before picking them up, once near a ladder or post.
+- **Optional, skip it if it distracts:** the marker key (edit 9) when another player changes what you do.
+- Crowded is welcome: it is the hard case, and on popular maps it is the normal one.
 
-**Group A - dev, the 10 maps that complete the coverage** (`python tools/data/map_cover.py --max-level 45`; a
-different level cap gives a different list - the user says what the character survives):
+**What this walk is for:** what is true for every character - what the game draws on each map, where its
+platforms are, how the game moves things. More maps beat more minutes. **What it is not for:** how a human
+farms (class, level and build decide that) and a human's farming rate; those are recorded later, per character,
+when the brain needs them (group E below is the place).
 
-| # | Map | Adds | Its mobs (spawn points) |
-|---|---|---|---|
-| 1 | Victoria Road: L Forest III (10003040) | Slime, Pig, Ribbon Pig, Shroom, Blue Snail, Green + Blue Mushroom; mid-forest background | Slime 23, Red Snail 14, Green Mushroom 10, Ribbon Pig 7, Pig 7, Blue Snail 6, Shroom 5, Blue Mushroom 4, Snail 4, Stump 3 |
-| 2 | Hidden Street: Monkey Swamp II (10003096) | Lupin, Zombie Lupin, Jr. Necki; dark-swamp background | Zombie Lupin 13, Lupin 10, Jr. Necki 3 |
-| 3 | Victoria Road: Tree Dungeon, Forest Up North VII (10002081) | Curse Eye, Cold Eye; shining-wood 2 background | Curse Eye 13, Cold Eye 4, Fairy 2 |
-| 4 | Victoria Road: The Forest North of Ellinia (10002070) | Axe Stump; shining-wood background | Slime 26, Stump 21, Axe Stump 13, Snail 9 |
-| 5 | Dungeon: Damp Tree-Forest (10005030) | Octopus; dark-wood background | Octopus 19, Slime 13, Jr. Necki 8, Dark Axe Stump 6 |
-| 6 | Victoria Road: Sunset Sky (10003070) | Orange Mushroom; sunset-city background | Stump 15, Orange Mushroom 8, Green Mushroom 7, Dark Stump 7, Blue Snail 7 |
-| 7 | Kerning City Subway: Line 2 <Area 1> (10003066) | Jr. Wraith | Jr. Wraith 83, Jr. Necki 14 |
-| 8 | Warning Street: The Swamp of Despair II (10003091) | Ligator | Ligator 36, Horny Mushroom 20, Jr. Necki 17, Slime 6 |
-| 9 | Dungeon: Deep Ant Tunnel I (10005066) | Evil Eye | Zombie Mushroom 29, Evil Eye 21, Horny Mushroom 16, Jr. Boogie 2 |
-| 10 | Dungeon: Another Path (10005100) | blue-cave background | Cold Eye 23 |
+**The to-do list is replaced by a report.** After every `corpus.py add` the tool prints what the corpus holds:
+per map its minutes and attack presses, and after Session 2's replay also the deaths seen per mob type, the
+platforms stood on out of all, and the share of the map the camera saw; in total the mob types and background
+sets covered out of those the game has (map_cover), and for each one not seen yet the maps it lives on. That is
+information for the next walk, not a task. For reference, today's corpus (7 maps) holds 11 of the 51 mob types
+that clean maps have and 3 of their 13 background sets; 10 well-chosen maps would add the rest a level-45
+character can reach (`python tools/data/map_cover.py --max-level 45`).
 
-Each of these gets one farm recording; the trips between them are the traverse recordings. Any map with the same
-mobs and background set is as good (the tool lists what each map adds); swap freely, and prefer a map people
-really farm over one nobody does. The 5 clean maps already recorded (Ant Tunnel IV, Dark Cave, Dangerous Steam,
-Line 1 Area 1, Transfer Area) join the dev group as they are (the hunts as farm, the bot's as "bot").
+**Hold-out maps are chosen by the tool, not by anyone:** a map new to the corpus goes to the hold-out group when
+`crc32(map id) % 4 == 0` (about every 4th map), with every later recording of it; the 7 maps already used stay
+dev. Nobody tunes on hold-out maps; they run only at gates (section 6). `corpus.py add --dev MAP` moves a map to
+dev before its first gate, for a map the user wants worked on.
 
-**Group B - hold-out, 5 maps:** clean maps the user picks freely, not in group A, at least 3 not in the Ant Tunnel
-/ subway family, popular ones welcome. Recorded the same way (farm + the trip). Nobody looks at them or tunes on
-them; they are run only at gates (section 6).
+**Group E - real play, open-ended (edit 9):** whenever the user farms for real, the same recorder can stay on.
+Sharing a map, kill-stealing and party play get into the corpus this way; they cannot be staged. Estimated
+20-40 GB an hour on E: (measured in Session 1). No pass of this plan depends on it.
 
-**Group C - moving backgrounds (lower priority):** mostly free: the trips of groups A and B cross such maps. For
-farming there, one per background family that only such maps have: Excavation Site II (dry rock 2), The Field West
-of Amherst (grassy soil), Construction Site North of Kerning (metro city), 3-Way Road-Split (Lith Harbor town), A
-Look-Out Shed Around the Beach (sand beach, lv 37-38). Dry rock is covered by the two Perion recordings. Observe
-records there without mobs, as today.
-
-**Group D - staged, one recording:** climb and hang on a rope; open and close the inventory, the skill window, the
-world map and the full chat; let 5+ drops pile up before picking them up, once near a ladder or post; if it
-happens: a level-up, a death. Each once.
-
-**Group E - real play, open-ended (edit 9):** whenever the user farms for real, the recorder stays on (`--group
-dev --mode farm`, any map, any length), with the marker. This is where sharing, kill-stealing and party play get
-into the corpus: they happen when they happen. Estimated 20-40 GB an hour on E: (measured in Session 1); the
-user's 1 TB holds 25-50 hours. No pass of this plan depends on group E.
-
-**The few-hours run, in order of worth (stop anywhere; everything before the stop is complete):**
-1. Group A's maps 1-5 (they add 19 of the 25 missing mob types and backgrounds), the trips recorded: ~1 hour.
-2. Group A's maps 6-10: ~1 hour.
-3. Group B, the 5 hold-out maps: ~45 minutes. Without them there is no honest number, only a dev number.
-4. Group D, the staged recording: 5 minutes.
-Groups C and E are not part of the run (C comes free with the trips; E is whenever).
-
-**When to record more:** a second farm recording on a map only when the validation pass shows a failure there, or
-a scenario has too few cases (section 6); a staged tour only where the camera saw too little of a map.
+**When to record more:** the report says what is missing; the validation pass says where perception fails
+(section 6). Both are reasons to walk a map again, never obligations.
 
 ## 5. The recorder and the corpus (Session 1)
-- **Recorder:** a new `--video` flag on `run` / `serve`: every frame goes to `RUN/frames.mkv` through one ffmpeg
-  process (`-f rawvideo -pix_fmt bgr24 -s 1366x768 -r 60 -i - -c:v hevc_nvenc -tune lossless -preset p4 -pix_fmt
-  gbrp -g 120`), fed by the recorder's writer thread (the frame's buffer written straight to the pipe, no extra
-  copy). `RUN/frames.idx`: one tick number per video frame, in order. `ticks.jsonl` keeps `"frame": "000123.png"`
-  names as today (the name = the tick), so old readers and labels keep working. A full queue drops the frame and
-  the tick says `null`, as today: the bot never waits for the encoder. `--frames-png` stays until Session 3 is done.
+- **`python -m maplebrain record [OUT]`** (default `E:\maple-corpus\incoming`; start / stop keys as `serve`): the
+  user plays, nothing is pressed. Every frame the game draws -> video; the player's keys -> keys.jsonl (the
+  observe key logger); per frame its number, time and the cursor -> frames.jsonl. **No perception runs**: the
+  bot's perception is tied to one map, a walk crosses many, and the corpus replays perception offline anyway.
+  One look a second for the Lie Detector stays (the siren, as `watch`).
+- **Video:** one ffmpeg process fed by a writer thread (`-f rawvideo -pix_fmt bgr24 -s 1366x768 -r 60 -i - -c:v
+  hevc_nvenc -tune lossless -preset p4 -pix_fmt gbrp -g 120 -forced-idr 1 -f segment -segment_time 300
+  -reset_timestamps 1 frames_%04d.mkv`): 5-minute chunk files of 18,000 frames (D8), so a crash costs the tail
+  of one chunk and a long walk is not one 60 GB file. The frame's buffer goes straight to the pipe; a full queue
+  drops the frame (recorded in frames.jsonl), the game loop never waits. The same writer serves `run` / `serve`
+  as `--video` (the bot's hunts: `ticks.jsonl` keeps `"frame": "000123.png"` names = the tick, so old readers
+  and labels keep working). `--frames-png` stays until Session 3 is done.
 - **Reader:** `tools/perc/frames.py` `read(run, name)` returns the PNG file if `frames/<name>` exists, else the
-  video frame through the index (reads forward when the frame is near, jumps otherwise). Port only the tools the
-  validation pass uses (`replay/run.py`, `label_eval.py`, labels, synth); the rest get PNGs on demand from
+  video frame (chunk = n // 18000; reads forward when the frame is near, jumps otherwise). Port only the tools
+  the validation pass uses (`replay/run.py`, `label_eval.py`, labels, synth); the rest get PNGs on demand from
   `tools/data/unpack.py RUN [names]`.
-- **Corpus:** `E:\maple-corpus\{dev,holdout}\<run>` + `manifest.jsonl`: one line per **segment** = one map inside
-  one recording (group, mode traverse / farm / staged / bot, map, frame range, date, minutes, client data build,
-  native check, other players none / 1-2 / more, solo / party, the user's note, the marks = marker-key times from
-  keys.jsonl with their lines from `RUN/notes.txt`). `tools/data/corpus.py add RUN --group G --mode M --others N
-  [--party AREA] [--note ...]` prints the marks that have no line yet, checks the
-  recording (video reads end to end, frames = index = ticks, the window is native), finds its maps by recognising
-  the minimap along the recording (a trip crosses several; today a recording knows only its first map) and writes
-  the segments - nothing is re-encoded. `list` prints per map: its modes and minutes, the mob types and background
-  sets covered (map_cover), and the share of the map the camera saw. Tools take segments from the manifest and
-  refuse `holdout` without `--holdout`, logging each use.
-- **Existing native PNG recordings:** copied into `dev` / `moving` as video (bit-exact check per recording). The
+- **`tools/data/corpus.py add RUN`** - nobody looks at a recording to file it:
+  1. checks it (every chunk reads, frames = frames.jsonl, the window is native);
+  2. **cuts it into maps**: the bot's map recogniser (nav/identify.py) on one frame a second; the map changes
+     only when a look names a different map - "can't tell" (minimap closed, covered, moved) keeps the map before
+     it; each change is then narrowed frame by frame to the loading frames between the two maps. A stretch never
+     named is settled by the portals (the map between two known maps must connect them) or stays "unknown":
+     kept, listed in the report, out of the per-map numbers;
+  3. per map segment, from keys.jsonl: the attack presses and the time of the first one (a map with none was
+     crossed, the others visited), the marks;
+  4. writes one line per segment to `E:\maple-corpus\manifest.jsonl` (recording, frame range, map, group dev /
+     holdout by the rule of section 4, minutes, attack presses, crossed / visited, date, client data build, marks)
+     and moves the recording to `E:\maple-corpus\recordings\`. Nothing is re-encoded.
+  `corpus.py list` prints the report of section 4. Tools take segments from the manifest and refuse hold-out
+  segments without `--holdout`, logging each use.
+- **Existing native PNG recordings:** added as copies in video form (bit-exact check per recording), as dev. The
   originals stay until loot part 1 is merged (edit 7).
 
-**Gates (Session 1):** (a) a recording's video frames are bit-identical to PNGs of the same frames (unit test on
-fixture frames + one existing recording converted and compared in full); (b) live, the user's 5-minute observe
-recording to E:: 0 dropped frames, tick p50 / p90 within 1 ms of the same run without `--video`, ~60 frames a
-second in the file; (c) the measured GB per minute at 60 fps, reported; (d) the bot killed mid-recording leaves a
-readable file; (e) pytest green, the bot-speed line unchanged; (f) the user's recorded trip through 3+ maps is
-cut at the right frames (the frame before and after each cut looked at by eye). **Stop rules:** drops or a tick
-cost over 1 ms -> stop with numbers (fallbacks to weigh then: the faster preset p1, every 2nd frame, the CPU
-encoder on spare cores). Cuts wrong and not fixable in an hour -> one recording per map instead (the user restarts
-the recording after each portal); say so and go on.
+**Gates (Session 1):** (a) video frames are bit-identical to PNGs of the same frames (unit test on fixture frames
++ one existing recording converted and compared in full, across a chunk border); (b) live, the user's first
+recorded walk of 10+ minutes through 3+ maps to E:: 0 dropped frames, ~60 frames a second in the file, the game
+as smooth as without it (the user's word), and a `serve --video` hunt's tick p50 / p90 within 1 ms of one without;
+(c) the measured GB per minute at 60 fps, reported; (d) the recorder killed mid-recording leaves readable chunks;
+(e) pytest green, the bot-speed line unchanged; (f) that walk is cut at the right frames, every map named right
+(the frames before and after each cut looked at by eye, once: the proof that nobody has to look afterwards).
+**Stop rules:** drops or a tick cost over 1 ms -> stop with numbers (fallbacks to weigh then: the faster preset
+p1, every 2nd frame, the CPU encoder on spare cores). A cut or a map name wrong -> stop with the frames: wrong
+names poison everything after; "unknown" stretches are fine.
 
 ## 6. The validation pass (Sessions 2 and 3)
 Perception runs **unchanged** over the dev group; this pass measures and lists, it fixes nothing.
@@ -192,12 +169,9 @@ Perception runs **unchanged** over the dev group; this pass measures and lists, 
    exact found / false counts per mob type - the check of every mob type's pictures.
 4. **By-eye labels:** ~30 picked frames per new map (even + hard), `label_eval.py`. Claude's labels stay the
    reference.
-5. **Report:** per-map table, farm and traverse apart (travelling at full speed is the harder picture: fast
-   camera, mobs passed and never fought); pooled found / false rates with 95 % intervals; the failure kinds, each
-   with its count, its maps and example frames, split into "a threshold or a missing case" and "a structural
-   assumption". Plus the **human baseline** per map, from the ticks and keys: crossing time per route, and for
-   farming kills and EXP per minute and where the player stood - always next to how many other players were on
-   the map (a farming rate without its competition compares nothing), with the marks listed.
+5. **Report:** per-map table, visited and crossed maps apart; pooled found / false rates with 95 % intervals;
+   the failure kinds, each with its count, its maps and example frames, split into "a threshold or a missing
+   case" and "a structural assumption"; the coverage numbers of section 4 written back to the manifest.
 6. Only then the hold-out group runs once (`--holdout`), as the honest number. Fixes are planned in a review
    session after the report, checked on dev, confirmed on the hold-out.
 
@@ -213,24 +187,25 @@ than ~300 separate cases across the corpus is reported as "too few", with the ma
 - A new mob type, background family or failure seen live -> a recording of it joins the corpus.
 
 ## 8. Order
-1. Session 1 (recorder + corpus tools), then the user records groups A, B, D (C when convenient): about 2 hours.
+1. Session 1 (the recorder + corpus tools; its gates need one short walk by the user), then the user walks: a few
+   hours, in as many sittings as they like; `corpus.py add` after each.
 2. Sessions 2-3 (validation pass + labels), then a review session: the fixes, and **step 4 (the tracker plan) on
    the corpus** - it is about crowds, respawns and mobs hidden under effects, exactly what 7 maps show worst.
 3. The loot rework continues in its worktree throughout; its tools get the same pass after its merge. Its
    independent-look tool is reused in Session 2 (merge first, or copy the one file).
 
 ## 9. Open decisions (the user)
-1. The level cap for group A: which listed maps can the character reach and survive? (changes the list, not the plan)
-2. Step 4's plan session: wait for the corpus (recommended), or start now on the 7 maps and re-check later?
-3. The old JPEG frames in `runs/` (25.8 GB, from before the native window; the deleted perception's inputs): move
+1. Step 4's plan session: wait for the corpus (recommended), or start now on the 7 maps and re-check later?
+2. The old JPEG frames in `runs/` (25.8 GB, from before the native window; the deleted perception's inputs): move
    them to E: or delete them?
 
 ## 10. Session prompts
 **Session 1 (Opus, high):** "Read PLAN-data.md (sections 3 and 5) and HANDOFF's START HERE. Branch `data` off
-`dev`. Build the `--video` recorder, the frame reader in tools/perc/frames.py, tools/data/unpack.py and
-tools/data/corpus.py exactly as section 5 says; port only the tools section 5 names. Run gates (a), (d), (e)
-yourself; for (b), (c) and (f) give me the exact command for a 5-minute observe recording and for a trip through
-3+ maps to E:\maple-corpus\incoming and wait for my runs, then report the numbers. Follow the stop rule. Convert the existing native PNG recordings
+`dev`. Build `maplebrain record`, the video writer (also `--video` on run / serve), the frame reader in
+tools/perc/frames.py, tools/data/unpack.py and tools/data/corpus.py exactly as section 5 says; port only the tools
+section 5 names. Run gates (a), (d), (e) yourself; for (b), (c) and (f) give me the exact commands for a recorded
+walk of 10+ minutes through 3+ maps and for a short `serve --video` hunt, wait for my runs, then report the
+numbers in plain words. Follow the stop rule. Convert the existing native PNG recordings
 into the corpus as copies; delete nothing. Update HANDOFF."
 
 **Session 2 (Opus, high):** "Read PLAN-data.md section 6. The corpus is recorded (`python tools/data/corpus.py
