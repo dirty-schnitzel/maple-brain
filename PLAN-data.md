@@ -78,8 +78,14 @@ native 1366x768 window, chat minimized. A map is played in two ways, so it is re
   trip into its maps afterwards.
 - **Farm:** about 5 minutes of farming for EXP exactly as you would, wherever the situation puts you: the whole
   map, one platform, the part the others leave you. Start a new recording when you switch from travelling to
-  farming.
-- **The marker (edit 9):** whenever another player changes what you do (you leave a platform, you take one, you
+  farming. **One rule on top: kill at least 5 of every mob type the map has** (the tool lists them), also the
+  ones you would not farm. A map's worth to the corpus is its mob types being hit and dying in front of its own
+  scenery, and its drops; a farmer's favourite mob alone leaves the others unseen.
+- **What this run is not for:** how a human farms. That differs by class, level and build (one hit or two, ranged
+  or melee) and is collected later, per character, when the brain needs it. This run collects what is true for
+  every character: what the game draws on each map and how the game moves things. So **more maps beat more
+  minutes**: a second 5 minutes on a map adds mostly the player's style, the least reusable part.
+- **The marker (edit 9), optional - skip it if it distracts:** whenever another player changes what you do (you leave a platform, you take one, you
   split the map with a party, you kill-steal or are kill-stolen), press the marker key: a key the game does not
   use, the user's choice. Your keys are logged with their times already, so the recorder needs nothing new. After
   the recording, one line per mark in `RUN/notes.txt` ("2:10 kill-stolen by a mage, moved to the bottom").
@@ -131,6 +137,13 @@ happens: a level-up, a death. Each once.
 dev --mode farm`, any map, any length), with the marker. This is where sharing, kill-stealing and party play get
 into the corpus: they happen when they happen. Estimated 20-40 GB an hour on E: (measured in Session 1); the
 user's 1 TB holds 25-50 hours. No pass of this plan depends on group E.
+
+**The few-hours run, in order of worth (stop anywhere; everything before the stop is complete):**
+1. Group A's maps 1-5 (they add 20 of the 26 missing mob types and backgrounds), the trips recorded: ~1 hour.
+2. Group A's maps 6-11: ~1 hour.
+3. Group B, the 5 hold-out maps: ~45 minutes. Without them there is no honest number, only a dev number.
+4. Group D, the staged recording: 5 minutes.
+Groups C and E are not part of the run (C comes free with the trips; E is whenever).
 
 **When to record more:** a second farm recording on a map only when the validation pass shows a failure there, or
 a scenario has too few cases (section 6); a staged tour only where the camera saw too little of a map.
