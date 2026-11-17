@@ -6,6 +6,9 @@ camera registers it on the map's scene model (scene.SceneCamera, clean maps only
 (perception/fit.py) explains the frame's mobs -> the tracker's sightings; the fit's look at every track it did not
 find is the tracker's search around tracks (world.py). No scene camera on a tick (not found / no clean scene): no
 camera, no mobs that tick (obs.scene_cam None) - the hunt pauses on it (runtime/hunt_v2.py).
+Drops (PLAN-loot.md, in shadow - nothing reads them): with the camera found, the drop pass (perception/drops.py, ONE
+DropFinder per process, MapKit.drops) is launched on its own CUDA stream right after the expected scene and read after
+the fit and the tracker (it needs the fit's explained pixels and the characters' tags) -> FrameFacts.drops.
 """
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor
@@ -21,6 +24,7 @@ from . import hud
 from .facts import FrameFacts
 from .selfpos import find_self
 from .tags import find_tags
+from .vote import PLAY_H, SW
 
 
 @dataclass
@@ -58,6 +62,7 @@ class MapKit:
     scene: object = None                    # scene.Scene (clean maps only; None: see `why`)
     fitter: object = None                   # fit.Fitter on that scene
     cover: object = None                    # cover.Cover (world.py's `hidden` state; until step 4)
+    drops: object = None                    # drops.DropFinder: ONE per process, shared by every map's kit (None: off)
     why: str = ""                           # no scene camera on this map: why (the hunt refuses to start)
 
     @property
@@ -109,13 +114,16 @@ class Perceiver:
             self.tag_gpu = GpuTagLook(self_template, self.dev)
             if lie_detector is not None and cfg.perception.lie_gpu:     # its look on the uploaded frame (step 2.8)
                 lie_detector.use_gpu(self.dev)
-        self.world = self.scene_cam = self.fitter = None
+        self.world = self.scene_cam = self.fitter = self.drops = None
         if kit is not None and kit.clean and self.dev is not None:
             from ..scene import SceneCamera
             from .world import World
             self.world = World(kit.nav, kit.mobs, cover=kit.cover)
             self.scene_cam = SceneCamera(kit.scene, tol=cfg.perception.scene_tol)
             self.fitter = kit.fitter
+            if kit.drops is not None:                   # drops (PLAN-loot.md, in shadow): this map's footholds and
+                self.drops = kit.drops                  # front planes
+                self.drops.set_map(kit.map_id, kit.scene)
         self._fit_ui = (None, None)                     # (hud.ui_mask array, the fit's GPU mask of it)
         self._look_ms = 0.0                             # this tick's looks (the search around tracks)
         self.minimap_t = -1e9                           # last minimap read (only ~1 / s while the scene camera holds)
@@ -298,7 +306,12 @@ class Perceiver:
             return
         f.scene_cam, f.scene_share = exact, round(sc.share, 3)
         obs.scene_cam, obs.cam_src = exact, "exact"
-        ek = sc.scene.expected(exact)                   # ONE expected scene a tick: D and the fit (step 3.3)
+        ek = sc.scene.expected(exact)                   # ONE expected scene a tick: D, the fit and the drops (3.3)
+        drops = self.drops is not None and self.cfg.perception.drops
+        if drops:                                       # the drop pass starts on its own CUDA stream; read after the
+            t = time.perf_counter()                     # fit and the tracker (part `drops` = its main-thread ms)
+            self.drops.launch(self.frame_u8, exact, ek[0], ek[1], self._world_ui(frame.shape))
+            self._aside("drops", t)
         d_list = None
         if self.cfg.perception.scene_diff:
             # D (step 3.1): the unexplained pixels' blobs on the GPU, their list from a reader thread while the
@@ -316,6 +329,10 @@ class Perceiver:
         self._mark("world")
         self.parts["world"] = round(self.parts["world"] - self._look_ms, 1)     # the looks: their own part
         self.parts["hints"] = round(self._look_ms, 1)
+        if drops:
+            f.drops = self._fetch_drops(me_s, f.tags, [h.box for h in hits])
+            f.drops_ms = self.drops.ms
+            self._mark("drops")
         if d_list is not None:
             f.patches, self.parts["patches"] = d_list.result()
         obs.mobs = [tr.as_dict(obs.t) for tr in trs]
@@ -335,19 +352,40 @@ class Perceiver:
         self._look_ms += 1000 * (time.perf_counter() - t0)
         return out
 
-    def _fit_mobs(self, frame_u8, C, ek, me_s, shape) -> list:
-        """The fit (perception/fit.py) on the uploaded frame with this tick's expected scene `ek` (D's), ui = D's mask
-        (the measured minimap) with the chat rect as world (the user keeps the chat minimized), our body box kept out
-        of the fade search -> [FitMob], facts.fit / fit_ms. Part `fit`."""
-        f, fz = self.facts, self.fitter
+    def _aside(self, name, t):
+        """The time since `t` -> part `name`, left out of the next `_mark`'s part."""
+        dt = time.perf_counter() - t
+        self.parts[name] = round(self.parts.get(name, 0) + 1000 * dt, 1)
+        self._t0 += dt
+
+    def _world_ui(self, shape):
+        """The world mask on the GPU (bool (PLAY_H, SW), True = may show a mob / drop): D's UI mask (the measured
+        minimap) with the chat rect as world (the user keeps the chat minimized); remade when the UI mask changes."""
         ui = hud.ui_mask(shape, self.minimap)
         if self._fit_ui[0] is not ui:
             m = ui[:hud.CHAT_WORLD[3]] > 0
             x0, y0, x1, y1 = hud.CHAT_WORLD
             m[y0:y1, x0:x1] = True
-            self._fit_ui = (ui, fz.torch.from_numpy(np.ascontiguousarray(m)).to(fz.dev))
+            self._fit_ui = (ui, self.torch.from_numpy(np.ascontiguousarray(m)).to(self.dev))
+        return self._fit_ui[1]
+
+    def _fetch_drops(self, me_s, tags, mob_boxes) -> list:
+        """The drop pass' sightings (drops.DropFinder.fetch) with what the tick knows by now: the pixels the fit's
+        accepted mobs explained (+ their boxes), the characters' body boxes (our tag's, the players' tags')."""
+        fz = self.fitter
+        mob = None
+        if fz.taken is not None:
+            P = max(fz.KH, fz.KW)
+            mob = fz.taken[P:P + PLAY_H, P:P + SW]
+        feet = ([me_s] if me_s is not None else []) + [(x + w / 2, y) for x, y, w, h in tags or []]
+        return self.drops.fetch(mob, [(cx - 42, fy - 90, cx + 42, fy + 22) for cx, fy in feet], mob_boxes)
+
+    def _fit_mobs(self, frame_u8, C, ek, me_s, shape) -> list:
+        """The fit (perception/fit.py) on the uploaded frame with this tick's expected scene `ek` (D's), ui =
+        `_world_ui`, our body box kept out of the fade search -> [FitMob], facts.fit / fit_ms. Part `fit`."""
+        f, fz = self.facts, self.fitter
         me = None if me_s is None else (me_s[0] - 40, me_s[1] - 85, me_s[0] + 40, me_s[1] + 30)
-        mobs = fz.fit(frame_u8, C, ek[0], ek[1], self._fit_ui[1], me)
+        mobs = fz.fit(frame_u8, C, ek[0], ek[1], self._world_ui(shape), me)
         f.fit, f.fit_ms = [m.to_dict() for m in mobs], round(fz.ms["fit"], 2)
         self._mark("fit")
         return mobs

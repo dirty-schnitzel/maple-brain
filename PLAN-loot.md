@@ -16,6 +16,10 @@ identical opaque pixels) - numbers, pictures and options in HANDOFF "Session 1 s
 **Session 2 (2026-11-17): S5-S6 DONE, gate MET on Claude's labels (201 frames, 9 recordings): REST 629 / 631 =
 99.68 % of the visible resting drops, 0 false REST, 0 wrong identity, 0 of 36 flights / hops REST - HANDOFF
 "Session 2 result". NEXT = Session 3.**
+**Session 3 (2026-11-17): S7-S9 built (perception/drops.py, FrameFacts v5, in shadow); gates met (tracks SAME, synth,
+labels = Session 2's, the 9 recordings = the reference's REST sets on 14,962 / 14,962 frames) except the cost gate:
+NOT RUN (game down). Section 9's table "keys in <= 8 places" proved wrong (4 pictures unfindable alone): a second
+pool for keys in more places, in the same graph - HANDOFF "Session 3 result".**
 Executors: Opus (high), three sessions; prompts at the end. Parent plan: PLAN-perception.md (the table's row "Drops:
 item icons from the client (later, with loot)"). Branch `loot` off `perception-only`.
 Evidence: tools/loot/ (E-L0 .. E-L13, each file's docstring says what it measures) on the 9 native PNG recordings;

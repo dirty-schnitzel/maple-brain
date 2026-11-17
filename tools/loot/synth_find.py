@@ -93,6 +93,8 @@ def main():
     ap.add_argument("--out", default="before")
     ap.add_argument("--votes", type=int, default=16)
     ap.add_argument("--no-fit", action="store_true")
+    ap.add_argument("--product", action="store_true", help="S9: maplebrain/perception/drops.py (the CUDA graph) "
+                    "instead of the reference, the same inputs")
     a = ap.parse_args()
     import torch
     from maplebrain.scene import Scene
@@ -111,9 +113,16 @@ def main():
     for ft in fitters.values():
         ft.warm()
     fhs = {m: Footholds(m) for m in maps}
-    fz = DropFinder(cand_votes=a.votes)
-    print(f"finder: {len(fz.poses)} pictures, built in {fz.build_s:.1f} s; {fz.voter.stats()}")
-    dev = fz.dev
+    if a.product:
+        from maplebrain.perception.drops import DropConfig, DropFinder as Product
+        pz = Product(cfg=DropConfig(cand_votes=a.votes))
+        pz.warm()
+        print(pz.describe())
+        dev = pz.dev
+    else:
+        fz = DropFinder(cand_votes=a.votes)
+        print(f"finder: {len(fz.poses)} pictures, built in {fz.build_s:.1f} s; {fz.voter.stats()}")
+        dev = fz.dev
     fit_bits, ms_v, ms_c, t0 = {}, [], [], time.time()
     with open(set_dir / f"finder_{a.out}.jsonl", "w", encoding="utf-8") as fo:
         for name, f in meta["frames"].items():
@@ -145,6 +154,14 @@ def main():
                 u = fh.under(sx + C[0], sy + C[1])
                 return u[1] if u is not None else None
 
+            if a.product:
+                pz.set_map(f["map"])
+                pz.launch(ft, C, et, kt, wt, front={L: torch.from_numpy(p).to(dev) for L, p in front.items()})
+                rows = pz.fetch(taken, f.get("chars") or [])
+                ms_v.append(pz.ms["launch"])
+                ms_c.append(pz.ms["fetch"] + pz.ms["pick"])
+                fo.write(json.dumps({"frame": name, "drops": rows, "ms": pz.ms}) + "\n")
+                continue
             drops = fz.find(ft, et, kt, wt, mob_taken=taken, chars=chars, front=front, layer_of=layer_of)
             ms_v.append(fz.ms["vote"])
             ms_c.append(fz.ms["check"])

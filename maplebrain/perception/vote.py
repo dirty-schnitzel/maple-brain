@@ -112,10 +112,11 @@ def _key24(bgr):
 class Voter:
     FADE_TOLS = (2, 3, 4, 6)    # un-blend tolerance levels (one LUT each); opacity o needs >= 1.5 + 0.5 / o
 
-    def __init__(self, poses: list, max_entries: int = 64, device=None, max_cells: int = 512, tints=None):
+    def __init__(self, poses: list, max_entries: int = 64, device=None, max_cells: int = 512, tints=None,
+                 fades: bool = True):
         """`poses`: load_poses(...) (the cell's g = the index in it). `max_cells`: the most cells `cells` returns
         (the best by exclusive votes). `tints`: {name: BGR multiplier} whose colours join the LUT (default TINTS;
-        {} = none)."""
+        {} = none). `fades` False: no fade tables (`fade` unusable; ~170 MB less GPU memory: the drop finder)."""
         import torch
         self.torch = torch
         self.dev = device or ("cuda" if torch.cuda.is_available() else "cpu")
@@ -148,7 +149,7 @@ class Voter:
         cb, cg, cr = cols & 255, (cols >> 8) & 255, cols >> 16
         idn = np.arange(1, len(cols) + 1, dtype=np.int16)
         luts = []
-        for t in self.FADE_TOLS:
+        for t in self.FADE_TOLS if fades else ():
             lt = np.zeros((258, 258, 258), np.int16)
             d = np.arange(-t, t + 1)
             offs = np.stack(np.meshgrid(d, d, d, indexing="ij"), -1).reshape(-1, 3)
@@ -157,7 +158,7 @@ class Voter:
                 free = lt[rr, gg, bb] == 0
                 lt[rr[free], gg[free], bb[free]] = idn[free]
             luts.append(lt.reshape(-1))
-        self.lut_tol = torch.from_numpy(np.concatenate(luts)).to(self.dev)
+        self.lut_tol = torch.from_numpy(np.concatenate(luts)).to(self.dev) if luts else None
         self.k258 = torch.tensor([1, 258, 258 * 258], dtype=torch.int32, device=self.dev)   # integers: the key
                                                                        # passes 2^24 (fp32 would round it)
         pal = np.zeros((len(cols) + 1, 3), np.float32)
@@ -173,12 +174,13 @@ class Voter:
         cdt = np.int32 if self.G * self.CW < 2 ** 31 - 1 else np.int64
         # features: 2x2 blocks of ids, all opaque, not one flat colour
         ks, offs, gs, self.n_feat = [], [], [], []
-        pair = np.zeros((r, r), bool)
+        pair = np.zeros((r, r) if fades else (1, 1), bool)
         for g, p in enumerate(poses):
             ids = np.where(p.pic[..., 3] == 255, lut[_key24(p.pic[..., :3])], 0).astype(np.int64)
-            lp, rp = ids[:, :-1], ids[:, 1:]
-            mm = (lp > 0) & (rp > 0) & (lp != rp)
-            pair[lp[mm], rp[mm]] = True
+            if fades:
+                lp, rp = ids[:, :-1], ids[:, 1:]
+                mm = (lp > 0) & (rp > 0) & (lp != rp)
+                pair[lp[mm], rp[mm]] = True
             a, bb, c, d = ids[:-1, :-1], ids[:-1, 1:], ids[1:, :-1], ids[1:, 1:]
             ok = (a > 0) & (bb > 0) & (c > 0) & (d > 0) & ~((a == bb) & (a == c) & (a == d))
             yy, xx = np.nonzero(ok)

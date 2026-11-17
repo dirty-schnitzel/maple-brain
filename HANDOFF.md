@@ -120,9 +120,59 @@ Fitter.look feeding world.py. ~8,000 lines out.
   Then step 4 (the tracker redesign) as a Fable-max plan session (PLAN-perception.md step 4).
 
 ## Loot rework part 1: PERCEIVE drops - PLAN-loot.md OK'd by the user 2026-11-17 (branch `loot`)
-**START HERE for loot work: Sessions 1 + 2 DONE (every gate met) -> NEXT = Session 3 (the product in shadow,
-S7-S9; prompt in PLAN-loot.md section 14 - read its "AMENDED" block first).** Worktree
+**START HERE for loot work: Sessions 1-3 built; Session 3's cost gate (bench A/B) still to run with the game up,
+then the user's live minute (`serve --observe --frames-png`, the user runs it).** Worktree
 `C:\Users\Yoav\dev\maple-loot`, branch `loot`.
+### Session 3 result (2026-11-17): the product in shadow, S7-S9 - every gate met except the cost gate (NOT RUN: game down)
+- **S7** `maplebrain/perception/drops.py` DropFinder: items.npz (1,920 pictures: not weak, not cash) -> vote.Voter
+  (tints off, new `fades=False`: no fade / pair tables); the pass = ONE CUDA graph on its own stream: `launch` copies
+  frame / expected / known / world mask / the front planes (Scene.layers >= 128, stacked per map, cropped at C) on the
+  side stream and replays; `fetch` waits, downloads one tensor, picks on the CPU (the reference's pick: greedy by
+  SEEN, under / front / mob / ring with fit mobs + character boxes, lootlib's foothold rule, kinds as amended). ABSENT
+  is counted without front and per layer slot (8) in the graph, front bits per pixel. Build 0.5 s + capture.
+- **A design point proved wrong on the data (S7's "every catalogue picture found alone"), fixed - the user may veto:**
+  the plan's graph table (keys in <= 8 places only) left 4 pictures unfindable even alone (Tobi / Mokbi Throwing
+  Stars 3 votable features of the reference's 54 / 44, Black Gomushin 4 / 64, Black Cloth Vest 15 / 68; p1 over all
+  pictures 26). MAXP 16: 1 still missed, +0.57 ms GPU. Cutting those keys' rows to 8 places (neediest pictures
+  first): a hat read as its near-twin (wrong identity) -> reverted. **Kept: a second pool in the same graph** - the
+  features whose key is in > 8 places (7,481 keys, <= 64 places = the reference's table) get NF2 = 4,096 slots x 64
+  places (cells sorted a frame 393 k -> 655 k). -> 1,920 / 1,920 found alone, REST, class + box exact. No rule changed.
+- tests/test_drops.py (3): fixture (40 frames) = the reference's facts on every frame (votes aside), REST 50 / 50,
+  0 false, 0 wrong, feet exact 73 / 73, drop-free frames empty; the catalogue alone 1,920 / 1,920.
+- **S8** one DropFinder per process (`Rig.drops`, built + `warm()` in runner._load_map at the first clean map; every
+  kit's `MapKit.drops`); `set_map` per Perceiver (footholds + front planes, cached per map); launched right after
+  `expected()`, fetched after world.update (needs fit.taken + the tags); part `drops` = launch + fetch + pick (the
+  launch kept out of the next part); `_world_ui` now shared by the fit and the drops; FrameFacts **v5** `drops` +
+  `drops_ms` {launch, fetch, pick, feat, feat2, cands}; config `perception.drops` (default on); replay rows carry both.
+  Nothing reads them.
+- **S9 gates:**
+      gate.py, 6 clips (drops on)                 SAME tracks (100.0 / 100.0 found everywhere, camera exact)  MET
+      synth drops_s1 (385 frames), product        REST 2,053 / 2,057 = 99.81 %, 0 false, 0 wrong of 2,508,     MET
+                                                  feet exact 2,508 / 2,508 - drop_eval's output = the reference's
+                                                  line by line; fixture 50 / 50, 0 false, 0 wrong, 73 / 73
+      labels, rows made by the Perceiver itself   REST 629 / 631 = 99.68 %, 0 false REST, 0 wrong of 789,      MET
+      (tools/loot/drops_replay.py)                0 of 36 flights / hops REST = Session 2's; same 2 misses
+      the 9 recordings (14,962 frames; the        facts identical on 14,962 / 14,962 (votes aside), REST sets  MET
+      reference run on each tick's own inputs)    equal on all (70,610 REST sightings each); differences: none
+      cost: bench A/B off / on, +<= 1.0 ms p90    NOT RUN - the game was not running (tools/loot/bench_drops.py
+                                                  is ready: busy 094333_1 t 100-140, steam, line1, ant4)
+  Main-thread parts (NOT the gate: unpinned, game down, 1 round, busy stretch 094333_1 t 100-140, 12 drops a frame):
+  launch 0.28 / 0.35, fetch 0.12 / 0.13, pick 0.43 / 0.49 ms p50 / p90 (part `drops` 0.90 / 1.00). The first pick
+  was 0.86 / 1.05 (per-drop numpy on two padded planes): now an accepted drop's taken / drawn pixels are laid out only
+  for a later candidate whose box + ring meets its box, the ring bits come as "ring and not known / not explained",
+  the mob window is read only where a fit mob's box touches it (Perceiver passes the hits' boxes) - same numbers.
+  Fixed sizes on the 14,962 frames: features p50 13,307 / p99 27,377 / max 33,844 (NF 49,152: 0 over); second pool
+  p50 1,255 / p99 2,670 / max 4,164 (NF2 4,096: 1 frame over, 092718_1 006306 - its facts still = the reference's);
+  cells >= 16 votes p50 6 / p99 21 / max 35 (NC 64).
+- Open points, reported, rule NOT changed (the user's word): the pick order for "under an accepted drop" (012059_1
+  002895), the ring bar vs a skill effect (111248_1 005613), the foothold lookup on stairs (synth: 1 clear miss).
+- Outputs: runs/loot_labels/replay_product/ (per frame product + reference), finder_product.jsonl, eval_product.log,
+  gate_s3.log; runs/synth/drops_s1/eval_product.log.
+- pytest green (+ tests/test_drops.py 3, test_facts v5); bot speed 15.4 ms (p90 17.4; part `drops` 0.7; Session 2:
+  13.0 - unpinned, machine state; baseline 18.4, not re-baselined).
+- **NEXT:** with the game running, pinned, nothing else of ours: `python tools/loot/bench_drops.py` (3 rounds, 4 clips)
+  -> the cost gate (+<= 1.0 ms p90 on - off); fails -> stop with the parts + section 9's levers (cadence = the user's).
+  Then the user's live minute.
 ### Session 2 result (2026-11-17): by-eye labels, S5-S6 - GATE MET
 - **S5** tools/loot/labels/pick.py (pick / sheets / legend / build / zoom / check; README = its docstring): 201 frames
   over all 9 native recordings (84 even + 26 kill + 22 pickup + 23 pile + 19 covered + 16 drop-free + 8 player + 3

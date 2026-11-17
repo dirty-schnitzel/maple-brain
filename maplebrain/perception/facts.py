@@ -15,10 +15,12 @@ did not find).
 v4 (2026-11-17, the old perception deleted): - `scene_shift`, `plat_shift` (phase correlation / camshift.py) and
 `hits` (the old whole-screen detector): the camera is the scene camera's, the mobs are `fit`. Older records read
 (those keys ignored; missing new ones None).
+v5 (2026-11-17, PLAN-loot.md S8, in shadow: nothing reads them): + `drops` (perception/drops.py: one dict a sighting -
+item class, meso frame, box, feet, kind rest / weak, the pixel counts, ring, foothold) and `drops_ms`.
 """
 from dataclasses import asdict, dataclass, field, fields
 
-VERSION = 4
+VERSION = 5
 
 
 @dataclass
@@ -45,13 +47,16 @@ class FrameFacts:
     fit: list | None = None               # [FitMob.to_dict()] the fit's mobs (perception/fit.py); None: not run
     fit_ms: float | None = None           # ... its ms (Fitter.ms["fit"]; the looks not counted)
     fit_hints: list | None = None         # [Fitter.look rows] tracks the fit did not find, looked at once each
+    drops: list | None = None             # [drops.DropFinder.fetch dicts] item pictures on screen; None: not run
+                                          # (no scene camera / perception.drops off)
+    drops_ms: dict | None = None          # ... the main thread's ms (launch / fetch / pick) + feature counts
 
     def as_dict(self) -> dict:
         return asdict(self)
 
     @classmethod
     def from_dict(cls, d: dict) -> "FrameFacts":
-        if d.get("v") not in (1, 2, 3, VERSION):
+        if d.get("v") not in (1, 2, 3, 4, VERSION):
             raise ValueError(f"FrameFacts v{d.get('v')} (this code reads v1-v{VERSION})")
 
         def tup(v):
