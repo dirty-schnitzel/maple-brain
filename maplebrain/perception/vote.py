@@ -19,7 +19,13 @@ Exact by construction: the cells are the prototype's (tests/test_vote.py). GPU, 
 the vote count, the result), int32 keys (mixed radix: (colours + 1)^4 < 2^31, i.e. <= 214 colours) and cells
 where the map allows, else int64.
 Fading mobs (`fade`, PLAN S4): the residue (unexplained, no palette colour) un-blended at each 48 px cell's own
-alpha -> palette ids into the same picture, so opaque and fading mobs go through ONE vote. Tints (S5): not yet.
+alpha -> palette ids into the same picture, so opaque and fading mobs go through ONE vote.
+Tints (PLAN S5): a frozen mob is drawn with every channel MULTIPLIED, frame = round(s m / 255) per channel, m = (B 255,
+G 168, R 10) (exact on 8299 of 8299 opaque pixels of 3 mobs, tools/perc/redesign/exp_tint.py). The tinted palette
+colours are extra LUT entries mapping to the SAME ids, so a frozen mob votes for its own cells; colours the tint
+merges (R x 10 / 255: 40 groups of 2 on Ant Tunnel IV, 38 % of its opaque pixels) map to the group's most frequent
+id - a block of such pixels may key wrong, the rest still give hundreds of votes. Which cells are tinted: stage 2
+(fit.py) tries every candidate with the plain and each tinted sprite.
 """
 import json
 import logging
@@ -31,6 +37,13 @@ import numpy as np
 log = logging.getLogger(__name__)
 
 PLAY_H, SW = 700, 1366
+TINTS = {"frozen": (255, 168, 10)}      # BGR multipliers: frame = round(s m / 255) per channel (exp_tint.py)
+
+
+def tinted(bgr, m) -> np.ndarray:
+    """Sprite colours (..., 3) uint8 BGR under tint m -> uint8 (the client's rounding: round half up; s m / 255 is
+    never a tie, 255 is odd)."""
+    return np.floor(bgr.astype(np.float64) * np.asarray(m, np.float64) / 255 + 0.5).astype(np.uint8)
 
 
 @dataclass
@@ -99,21 +112,34 @@ def _key24(bgr):
 class Voter:
     FADE_TOLS = (2, 3, 4, 6)    # un-blend tolerance levels (one LUT each); opacity o needs >= 1.5 + 0.5 / o
 
-    def __init__(self, poses: list, max_entries: int = 64, device=None, max_cells: int = 512):
+    def __init__(self, poses: list, max_entries: int = 64, device=None, max_cells: int = 512, tints=None):
         """`poses`: load_poses(...) (the cell's g = the index in it). `max_cells`: the most cells `cells` returns
-        (the best by exclusive votes)."""
+        (the best by exclusive votes). `tints`: {name: BGR multiplier} whose colours join the LUT (default TINTS;
+        {} = none)."""
         import torch
         self.torch = torch
         self.dev = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.poses, self.G, self.max_cells = poses, len(poses), max_cells
         self.type_g = np.array([p.type for p in poses])
         # palette: every colour of an opaque sprite pixel -> id 1.. (0 = none)
-        cols = np.unique(np.concatenate([_key24(p.pic[..., :3])[p.pic[..., 3] == 255] for p in poses]))
+        allk = np.concatenate([_key24(p.pic[..., :3])[p.pic[..., 3] == 255] for p in poses])
+        cols, freq = np.unique(allk, return_counts=True)
         assert len(cols) < 32767
         self.n_colors = len(cols)
         lut = np.zeros(1 << 24, np.int16)
         lut[cols] = np.arange(1, len(cols) + 1)
-        self.lut = torch.from_numpy(lut).to(self.dev)
+        vote_lut = lut.copy()       # `lut` stays the plain palette (the sprites' own ids below)
+        # tints: each tinted colour -> the id of its most frequent source colour; a plain colour keeps its own id
+        self.tints = dict(TINTS if tints is None else tints)
+        self.tint_merged = {}
+        bgr = np.stack([cols & 255, (cols >> 8) & 255, cols >> 16], 1).astype(np.uint8)
+        for name, m in self.tints.items():
+            tk = _key24(tinted(bgr, m))
+            for i in np.argsort(-freq, kind="stable"):
+                if vote_lut[tk[i]] == 0:
+                    vote_lut[tk[i]] = i + 1
+            self.tint_merged[name] = len(cols) - len(np.unique(tk))
+        self.lut = torch.from_numpy(vote_lut).to(self.dev)
         # fades: LUTs with +-t levels around every palette colour (an un-blended pixel is off by ~(0.5 + the scene's
         # error) / opacity, and by the alpha grid's step), the nearest colour claiming a shared cell first; one LUT
         # per level of FADE_TOLS (the opacity picks it). Indexed by (b + 1) + 258 (g + 1) + 258^2 (r + 1) with each
@@ -186,7 +212,8 @@ class Voter:
         c = self.count.cpu().numpy()
         return (f"{self.G} poses (both facings), palette {self.n_colors} colours (keys "
                 f"{str(self.kdt).split('.')[-1]}), features {self.raw_entries} with {self.raw_keys} keys -> kept "
-                f"{self.entries} entries, {len(self.uk)} keys; places per key p50 {np.median(c):.0f} max {c.max()}")
+                f"{self.entries} entries, {len(self.uk)} keys; places per key p50 {np.median(c):.0f} max {c.max()}; "
+                f"tints {', '.join(f'{k} (merges {v} colours)' for k, v in self.tint_merged.items()) or 'none'}")
 
     # ---- per frame
     def ids(self, frame, exp=None, known=None, tol: float = 4.0, resid: bool = False):

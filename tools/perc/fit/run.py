@@ -15,6 +15,8 @@ process is pinned to the performance cores (procperf, as the bench): ms are only
 Out rows = label_eval's track format ({"n", "mobs": [{"sx", "sy", "mob", "state", "src", "anim", "score",
 "unseen"}]}) + per mob the fit's numbers ("fit") + "ms". --loose: permissive thresholds (seen 0.02, absent 1.0,
 min_seen 10, cand_votes 8): the accepted set for tools/perc/fit/sweep.py to fit the rule and cand_votes on.
+--tint-log: mob-shaped residue blobs no fit mob explains (unknown tints, tintlog.py) -> crops + tint_log.jsonl in
+OUT's folder (tint_log_<OUT stem>/), done after each frame's timing.
 """
 import argparse
 import json
@@ -60,7 +62,7 @@ def me_of(run: Path, want=None) -> dict:
     return out
 
 
-def run_frame(scene, ui_t, fitter, frame, C, me=None):
+def run_frame(scene, ui_t, fitter, frame, C, me=None, tlog=None, n=0):
     import torch
     t0 = time.perf_counter()
     f = torch.from_numpy(np.ascontiguousarray(frame[:PLAY_H])).to(scene.dev)
@@ -71,7 +73,10 @@ def run_frame(scene, ui_t, fitter, frame, C, me=None):
     mobs = fitter.fit(f, C, exp, known, ui_t, me_box(me))
     rows = [{"sx": m.feet[0], "sy": m.feet[1], "mob": m.type, "state": "live", "src": "fit", "anim": m.pose,
              "score": m.seen, "unseen": 0, "fit": m.to_dict()} for m in mobs]
-    return rows, {"exp": (t1 - t0) * 1000, **fitter.ms}
+    ms = {"exp": (t1 - t0) * 1000, **fitter.ms}
+    if tlog is not None:                                         # after the timing: offline only
+        tlog.frame(n, frame, exp.cpu().numpy(), (known & ui_t).cpu().numpy(), mobs, me_box(me))
+    return rows, ms
 
 
 def cfg_of(a):
@@ -97,6 +102,8 @@ def main():
     ap.add_argument("--every", type=int, default=1, help="clip: every N-th frame")
     ap.add_argument("--out")
     ap.add_argument("--n", type=int, default=0, help="only the first N frames")
+    ap.add_argument("--tint-log", action="store_true", help="log mob-shaped unexplained blobs (unknown tints, "
+                    "tintlog.py) -> OUT's folder / tint_log/")
     a = ap.parse_args()
     from maplebrain import procperf
     print(procperf.prefer_performance())
@@ -146,15 +153,21 @@ def main():
     print(fitter.voter.stats())
     out = Path(a.out) if a.out else path / "fit" / f"{a.mode}{'_loose' if a.loose else ''}.jsonl"
     out.parent.mkdir(parents=True, exist_ok=True)
+    tlog = None
+    if a.tint_log:
+        from tintlog import TintLog
+        tlog = TintLog(fitter, out.parent / f"tint_log_{out.stem}")
     ms = []
     with open(out, "w", encoding="utf-8") as fo:
         for n, load, C, spots, me in jobs:
             frame = load()
             if frame is None:
                 continue
-            rows, m = run_frame(scene, ui_t, fitter, frame, C, me)
+            rows, m = run_frame(scene, ui_t, fitter, frame, C, me, tlog, n)
             ms.append(m)
             fo.write(json.dumps({"n": n, "mobs": rows, "ms": m, "spots": [list(s) for s in spots]}) + "\n")
+    if tlog is not None:
+        print(tlog.close())
     ms = ms[3:] or ms                                            # the first calls warm up
     pc = lambda k: (round(float(np.median([m[k] for m in ms])), 2),  # noqa: E731
                     round(float(np.percentile([m[k] for m in ms], 90)), 2))

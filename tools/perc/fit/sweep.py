@@ -99,9 +99,8 @@ def grid(truth, fits, synth):
             for ab in (0.02, 0.05, 0.1, 0.15, 0.2, 0.3):
                 for v in (8, 12, 16, 24, 32, 48):
                     per, fp, _, wrong = score(truth, fits, (s, px, ab, v), synth)
-                    # the worst case among the opaque ones (fades: PLAN-fit-speed S4)
-                    cases = {k: v_[1] / v_[0] for k, v_ in per.items()
-                             if (k.startswith("case:") and k != "case:fade") or not synth}
+                    # the worst case (synth: every case, fades included since S4; labels: every class)
+                    cases = {k: v_[1] / v_[0] for k, v_ in per.items() if k.startswith("case:") or not synth}
                     worst = min(cases.values()) if cases else 0
                     rows.append(((s, px, ab, v), per["all"][1] / max(per["all"][0], 1), worst, sum(fp.values()), fp,
                                  wrong))
@@ -158,7 +157,7 @@ def main():
         show(per, fp, wrong, synth)
         return
     rows = grid(truth, fits, synth)
-    print("rule (seen_min, min_seen, absent_max, cand_votes): recall all, worst case (synth: opaque cases), false")
+    print("rule (seen_min, min_seen, absent_max, cand_votes): recall all, worst case / class, false")
     zero = [r for r in rows if r[3] == 0]
     for r in sorted(zero, key=lambda r: (-r[2], -r[1]))[:12]:
         print(f"  {r[0]}  {100 * r[1]:.2f} %  worst {100 * r[2]:.2f} %  false 0")

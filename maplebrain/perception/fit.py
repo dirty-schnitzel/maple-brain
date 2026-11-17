@@ -17,6 +17,8 @@ shows, pixel by pixel. NOT on the live path: 3.3 runs it in shadow.
        COVERED  the rest: not valid, or neither - something drawn over it (an effect, a player, another mob, the UI)
    o = the mode of the per-pixel ratios r.q / q.q over the informative valid pixels, refined by least squares on the
    mode's pixels (1 for the opaque vote's mobs up to rounding; a fading mob's own o).
+   Tints (vote.TINTS, frozen): every candidate is tried with its plain sprite and each tinted one (s -> round(s m /
+   255)); the variant with the most SEEN pixels stays (FitMob.tint).
 3. A mob = SEEN share >= seen_min and ABSENT share <= absent_max (shares of the informative pixels) and >= min_seen
    SEEN pixels; accepted greedily by SEEN count, every accepted mob's SEEN pixels count as COVERED for the others
    (Zombie Mushroom stand_1 = move_2: the same picture 4 px apart - the second one finds its pixels taken).
@@ -30,7 +32,7 @@ from pathlib import Path
 
 import numpy as np
 
-from maplebrain.perception.vote import PLAY_H, SW, Voter, load_poses
+from maplebrain.perception.vote import PLAY_H, SW, TINTS, Voter, load_poses, tinted
 
 
 @dataclass
@@ -57,6 +59,7 @@ class FitConfig:
     fade_scale: bool = True     # the un-blend tolerance grows with 1 / o (Voter.FADE_TOLS), else +-2 (misses the
                                 # faint fades o ~0.1-0.27: rounding x 1 / o; labels fade 87.2 -> 93.2 %)
     fade_report: bool = False   # list the cells' alphas in ms["alphas"] (one more sync; tools only)
+    tints: bool = True          # vote.TINTS (frozen) in the LUT + every candidate tried tinted in stage 2
 
 
 @dataclass
@@ -73,6 +76,7 @@ class FitMob:
     n_seen: int
     votes: int                  # exclusive votes of its cell
     layer: int
+    tint: str = ""              # "" = drawn plain, else a vote.TINTS name ("frozen")
 
     def to_dict(self) -> dict:
         return {k: (list(v) if isinstance(v, tuple) else v) for k, v in self.__dict__.items()}
@@ -86,8 +90,10 @@ class Fitter:
         self.cfg = cfg or FitConfig()
         assets = Path(assets)
         poses = load_poses(map_id, assets, types)
-        self.voter = Voter(poses, self.cfg.max_entries, self.dev)
-        self.poses = poses
+        tints = TINTS if self.cfg.tints else {}
+        self.voter = Voter(poses, self.cfg.max_entries, self.dev, tints=tints)
+        self.poses, self.G = poses, len(poses)
+        self.tint_names = [""] + list(tints)            # variant k: sprite plane k * G + g
         # one common box around the feet for every pose: column L / row T = the feet
         self.L = max(p.ox for p in poses)
         self.T = max(p.oy for p in poses)
@@ -99,7 +105,12 @@ class Fitter:
             y0, x0 = self.T - p.oy, self.L - p.ox
             sa[g, y0:y0 + h, x0:x0 + w, :3] = p.pic[..., :3]
             sa[g, y0:y0 + h, x0:x0 + w, 3] = p.pic[..., 3] / 255.0
-        self.sa = torch.from_numpy(sa).to(self.dev)
+        planes = [sa]
+        for m in tints.values():                        # the tinted sprites: same alpha, colours round(s m / 255)
+            st = sa.copy()
+            st[..., :3] = tinted(sa[..., :3].astype(np.uint8), m)
+            planes.append(st)
+        self.sa = torch.from_numpy(np.concatenate(planes)).to(self.dev)
         # layers: footholds per layer (map coordinates, x1 < x2), flyers' spawn layers, the front alpha planes
         m = json.loads((assets / "maps" / str(map_id) / "map.json").read_text(encoding="utf-8"))
         fh = {int(k): f for k, f in (m.get("footholds") or {}).items()}
@@ -268,10 +279,10 @@ class Fitter:
             if ns < c.min_seen or ns < c.seen_min * ni:
                 continue
             taken[sl] |= px
-            p = self.poses[int(g[i])]
+            p = self.poses[int(g[i]) % self.G]
             mobs.append(FitMob(p.type, p.pose, p.facing, (int(fx[i]), int(fy[i])), round(float(o[i]), 3),
                                round(ns / ni, 3), round(int(nab[i]) / ni, 3), round(1 - (ns + int(nab[i])) / ni, 3),
-                               ni, ns, int(ex[i]), self.layer_ids[int(li[i])]))
+                               ni, ns, int(ex[i]), self.layer_ids[int(li[i])], self.tint_names[int(g[i]) // self.G]))
         return mobs
 
     def fit(self, frame, C, exp, known, ui=None, me=None, keep_cands: bool = False):
@@ -306,18 +317,25 @@ class Fitter:
                 _, cov, _ = self.scene._backs(C, SW, PLAY_H, 1, torch.zeros((*valid.shape, 3), device=self.dev), z1,
                                               torch.zeros_like(valid))
                 valid = valid & (cov < c.front_max)
-            meta = self._meta(g, fx, fy, li, C)
+            n, K = len(g), len(self.tint_names)
+            gv = np.concatenate([np.asarray(g) + k * self.G for k in range(K)])    # every tint variant of each cell
+            meta = self._meta(gv, np.tile(fx, K), np.tile(fy, K), np.tile(li, K), C)
             step = self.BUCKETS[-1]
-            parts = [self._stage2(frame, exp, valid, meta[i:i + step]) for i in range(0, len(g), step)]
+            parts = [self._stage2(frame, exp, valid, meta[i:i + step]) for i in range(0, len(gv), step)]
             bits, cnt, o = (np.concatenate([p[k] for p in parts]) for k in range(3))
+            if K > 1:                                   # per cell the variant with the most SEEN pixels (ties: plain)
+                kb = np.argmax(cnt[:, 1].reshape(K, n), axis=0)
+                sel = kb * n + np.arange(n)
+                g, bits, cnt, o = gv[sel], bits[sel], cnt[sel], o[sel]
             t2 = time.perf_counter()
             mobs = self._pick(bits, cnt, o, g, fx, fy, ex, li)
             if keep_cands:
                 for i in range(len(g)):
-                    p = self.poses[int(g[i])]
+                    p = self.poses[int(g[i]) % self.G]
                     cands.append({"type": p.type, "pose": p.pose, "facing": p.facing, "feet": [int(fx[i]), int(fy[i])],
                                   "votes": int(ex[i]), "raw": int(nv[i]), "o": round(float(o[i]), 3),
-                                  "n_inf": int(cnt[i, 0]), "n_seen": int(cnt[i, 1]), "n_abs": int(cnt[i, 2])})
+                                  "n_inf": int(cnt[i, 0]), "n_seen": int(cnt[i, 1]), "n_abs": int(cnt[i, 2]),
+                                  "tint": self.tint_names[int(g[i]) // self.G]})
         else:
             t2 = t1
         t3 = time.perf_counter()

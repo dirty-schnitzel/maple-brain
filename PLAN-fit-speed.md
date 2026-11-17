@@ -123,6 +123,9 @@ per-layer images 5.7.
   entries of the same ids, stage 2 with the tinted sprite; FitMob gets `tint`. Gate: labels hit >= 84.8, effect >=
   88.7 (before's). Log, don't guess, other tints: a mob-shaped residue blob no cell explains -> saved crop for
   exp_tint.py.
+  **DONE 2026-11-17: round(s m / 255) (exact on 8299 / 8299 px), same ids, stage 2 tries plain + tinted per
+  candidate; labels hit 90.9 / effect 88.7, synth 100 %, fit 4.26 / 4.78 ms; tools/perc/fit/tintlog.py. HANDOFF
+  "3.2 Session 2, S5".**
 - S6 other maps + close: Line 1 (Bubbling: opaque-part features, stage 2 with its alpha), Dangerous Steam / Transfer
   / Dark Cave (flyers) vs today's well-sighted tracks >= 95 % and by eye on 20 misses; steam ghost spots 0; fit ms
   on every gate clip (target <= 5 ms p90 incl. fades); thresholds by sweep; tests/test_fit.py (fixture: recall,

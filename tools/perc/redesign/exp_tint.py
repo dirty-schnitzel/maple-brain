@@ -90,6 +90,18 @@ for arg in sys.argv[1:]:
         coef, res, *_ = np.linalg.lstsq(A, f[cons, ch], rcond=None)
         err = np.abs(A @ coef - f[cons, ch])
         print(f'    {nm}: frame = {coef[0]:.4f} * sprite + {coef[1]:.2f}   |err| mean {err.mean():.2f} max {err.max():.1f}')
+    # the rounding (S5): which integer formula maps sprite -> frame on every consistent pixel, per channel
+    si, fi = s[cons].astype(np.int64), f[cons].astype(np.int64)
+    forms = {'round(s m / 255)': lambda v, m: np.floor(v * m / 255 + 0.5), 'floor(s m / 255)': lambda v, m: v * m // 255,
+             '(s m) >> 8': lambda v, m: (v * m) >> 8, '(s (m + 1)) >> 8': lambda v, m: (v * (m + 1)) >> 8,
+             '(s m + 128) >> 8': lambda v, m: (v * m + 128) >> 8, 'ceil(s m / 255)': lambda v, m: -(-v * m // 255)}
+    for ch, nm in enumerate('bgr'):
+        res = []
+        for fn, fun in forms.items():
+            hits = [(int((fun(si[:, ch], m) == fi[:, ch]).sum()), m) for m in range(257)]
+            h, m = max(hits)
+            res.append(f'{fn} m={m}: {h}/{len(si)}')
+        print(f'    {nm} rounding: ' + ' | '.join(res))
     # cross-channel? print a few colour pairs
     top = sorted(maps.items(), key=lambda kv: -sum(kv[1].values()))[:8]
     for a, cnt in top:

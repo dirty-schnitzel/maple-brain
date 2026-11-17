@@ -64,8 +64,8 @@ opaque cases 100 %, labels 94.3 %). OK'd by the user 2026-11-17. Session 1 (S1-S
 votes in maplebrain/ (fit 2.6 / 3.2 ms p50 / p90 on the labels frames, was 119 / 160); every gate met but the labels
 one AS WRITTEN (its classes hold fading mobs, S4's); the user ACCEPTED it on the not-fading subset 2026-11-17 (full
 classes = S4 / S5's gate). Session 2 S4 (fades) DONE 2026-11-17 and accepted by the user (per-cell alphas, the
-1 / o tolerance, fade pass ~1.7 ms p50 kept) - see "3.2 Session 2" in "Step 3 state". NEXT = S5 (tints), then S6 +
-close 3.2.** `watch` was NOT running on 2026-11-17 (no python process): the user's to
+1 / o tolerance, fade pass ~1.7 ms p50 kept) - see "3.2 Session 2" in "Step 3 state". S5 (tints) DONE 2026-11-17,
+every gate met ("3.2 Session 2, S5"). NEXT = S6 + close 3.2.** `watch` was NOT running on 2026-11-17 (no python process): the user's to
 restart; never stop it.
 
 ### TASK (the user, 2026-11-16): improve the gate test by taking NEW footage
@@ -721,6 +721,31 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
     - Tools: run.py passes `me` (ticks.jsonl obs.me; synth: the base frame's), prints fade ms / pairs; `--set
       fade_report=1` lists the cells' alphas; `Voter.prof` = synced per-part ms (fade_ms).
     - pytest green; bot speed 21.1 ms (p90 24.0; Session 1 read 21.8; nothing live imports vote.py / fit.py).
+  - **3.2 Session 2, S5 tints (2026-11-17): DONE, every gate met.** All ms pinned, game up, expected() not counted.
+    - **Rounding measured** (exp_tint.py now prints it): frame = round(s m / 255) per channel, m = (B 255, G 168, R 10),
+      on 8299 / 8299 opaque pixels of the 3 measured mobs (floor 81-93 %, >> 8 67-87 %). `vote.TINTS` + `vote.tinted`.
+    - **Built as the plan says:** tinted palette colours = extra LUT entries of the SAME ids. The tint merges colours
+      (R x 10 / 255): Ant Tunnel IV 198 -> 158 (40 groups of 2, 38 % of the opaque pixels), Line 1 9 groups,
+      Stirge none; a merged colour maps to the group's most frequent id (a block of such pixels may key wrong; a
+      frozen mob still gets 800-1700 exclusive votes). Stage 2 tries every candidate with the plain AND the tinted
+      sprite, the variant with the most SEEN stays -> `FitMob.tint` ("" / "frozen"); `FitConfig.tints`.
+    - **labels at 40 / 30, FULL classes, vote vs LS:** all 95.6 / 93.8, clear 97.6 / 96.8, player 90.3 / 85.0,
+      **effect 88.7** / 81.4 (gate 88.7), ui 87.5 / 84.7, edge 96.7 / 96.7, scenery 98.0 / 96.1, **hit 90.9** / 84.8
+      (gate 84.8), dying 93.9 / 93.9, fade 93.2 / 93.2; false (unjudged) 158 (S4 156), wrong type 16. 8 frozen mobs
+      found (seen 0.91-1.0), the 3 measured ones among them, feet within 1 px.
+    - synth ant4_500 786 / 786, 0 false, 0 on the mob-free frames; Dangerous Steam ghost spots 0 at the 264 scenery
+      spots (2 = the real Zombies behind the geyser).
+    - **ms p50 / p90: labels fit 4.26 / 4.78** (S4 4.12 / 4.63; stage 2 0.65 / 0.89 was 0.56 / 0.80: twice the
+      candidates), synth 4.13 / 4.68, steam ghost frames 4.27 / 4.85.
+    - **Unknown tints are logged, not guessed:** `tools/perc/fit/tintlog.py` (`run.py ... --tint-log`): residue
+      blobs no fit mob explains whose silhouette matches a pose (IoU >= 0.6) -> crop + row (colour-map share, per-
+      channel a / b). Check with the tint OFF: 4 of the 8 frozen mobs logged with the exact multiplier (1.00 / 0.659
+      / 0.039), 0 of the other 361 blobs look like a colour map (share p90 0.25: players, effects, covered mobs); the
+      other 4 merged with neighbours (wrong alignment) or were taken plain at seen 0.13. Tint ON: 0 unknown tints
+      on the 297 frames.
+    - Tests: test_vote.py (rounding; every pose frozen on a blank frame gets its cell), tests/test_fit.py (S6).
+      pytest green; bot speed 23.5 ms (p90 26.4; S4 read 21.1 - nothing live imports vote.py / fit.py: machine
+      state, run right after the GPU jobs).
 - Still open from 2026-11-15: merge `dev` (v3 steps 1-3 + the F9 fix) into `main` (the user merges).
 
 ### ROADMAP (agreed 2026-11-15, the user: "lets start with perception improvement (and then data model)")

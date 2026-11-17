@@ -13,7 +13,7 @@ torch = pytest.importorskip("torch")
 if not torch.cuda.is_available():
     pytest.skip("no GPU", allow_module_level=True)
 
-from maplebrain.perception.vote import PLAY_H, SW, Voter, load_poses  # noqa: E402
+from maplebrain.perception.vote import PLAY_H, SW, TINTS, Voter, load_poses, tinted  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 FIX = ROOT / "tests" / "fixtures" / "synth_ant4"
@@ -67,3 +67,29 @@ def test_opaque_mobs_have_their_cell(setup):
             assert best >= CAND, (f["frame"], m["type"], m["pose"], m["facing"], m["feet"], m["vis"], best)
             n += 1
     assert n >= 30
+
+
+def test_tint_rounding():
+    """frame = round(s m / 255) per channel (exp_tint.py: exact on 8299 of 8299 opaque pixels of 3 frozen mobs;
+    floor / >> 8 variants miss 8-35 % of them)."""
+    s = np.array([[0, 0, 0], [255, 255, 255], [40, 100, 230], [13, 64, 191]], np.uint8)
+    m = TINTS["frozen"]
+    assert tinted(s, m).tolist() == [[0, 0, 0], [255, 168, 10], [40, 66, 9], [13, 42, 7]]
+
+
+def test_frozen_mob_has_its_cell(setup):
+    """A frozen mob (every pose of the map, both facings, tinted, alone on a blank frame) gets its own cell: the
+    tinted colours map to the plain ids."""
+    _, v = setup
+    for g, p in enumerate(v.poses):
+        out = np.empty((PLAY_H, SW, 3), np.uint8)
+        out[:] = (1, 2, 3)
+        h, w = p.pic.shape[:2]
+        fx, fy = 600, 450
+        box = out[fy - p.oy:fy - p.oy + h, fx - p.ox:fx - p.ox + w]
+        op = p.pic[..., 3] == 255
+        box[op] = tinted(p.pic[..., :3], TINTS["frozen"])[op]
+        gg, x, y, nv, ex, c = v.cells(v.ids(torch.from_numpy(out).cuda()), CAND)
+        got = {(int(a), int(b), int(d)): int(e) for a, b, d, e in zip(gg, x, y, ex)}
+        best = max((got.get((k, fx + dx, fy + dy), 0) for k, dx, dy in aliases(v, g)), default=0)
+        assert best >= CAND, (p.type, p.pose, p.facing, best)
