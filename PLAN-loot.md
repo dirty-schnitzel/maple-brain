@@ -1,6 +1,7 @@
 # PLAN: loot, part 1 - PERCEIVE drops
-**Status: PROPOSED 2026-11-17 (Fable, max effort; plan session: measure + prototype). Nothing of it is built in
-maplebrain/; nothing reads drops until the tracker / loot-behaviour sessions.**
+**Status: OK'd by the user 2026-11-17 (proposed the same day by Fable, max effort; plan session: measure +
+prototype). NEXT = Session 1. Nothing of it is built in maplebrain/ yet; nothing reads drops until the tracker /
+loot-behaviour sessions. The three recordings of section 13 are still to come (the user: soon).**
 Executors: Opus (high), three sessions; prompts at the end. Parent plan: PLAN-perception.md (the table's row "Drops:
 item icons from the client (later, with loot)"). Branch `loot` off `perception-only`.
 Evidence: tools/loot/ (E-L0 .. E-L13, each file's docstring says what it measures) on the 9 native PNG recordings;
@@ -22,8 +23,7 @@ per-frame results in RUN/loot/find_v4.jsonl (v4 = the rule of section 5; v3 = be
   frames): found by the independent look, now a term of the rule.
 - **Cost: +0.6 .. +1.05 ms p90 beside the mob fit** as one fixed-size GPU graph on its own CUDA stream (prototype,
   same drops as the reference on 450 / 450 frames). A plain second vote costs 3.4 ms, a numpy reader thread 3.7 ms.
-- Not answered by today's footage: how a drop EXPIRES (the longest one lay 122 s), what the capsule in section 12
-  is. New footage: section 13.
+- Not answered by today's footage: how a drop EXPIRES (the longest one lay 122 s). New footage: section 13.
 
 ## 2. What was measured (2026-11-17; 9 recordings, 14,962 saved frames with a scene camera, 5 maps)
 Ant Tunnel IV (154819_1, 092718_1, 012059_1 = the user playing; 094333_1, 111248_1 = hunts), Dangerous Steam, Line 1
@@ -33,7 +33,7 @@ Ant Tunnel IV (154819_1, 092718_1, 012059_1 = the user playing; 094333_1, 111248
 | E-L1 | The client's item pictures as vote material (exp_palette.py) | 4,771 pictures (358 Etc, 202 Use, 240 Setup, 3,955 equips, 16 meso frames); 29x29 px p50 (max 44x44), 506 opaque px p50, soft-alpha px 5.7 % of the drawn ones; **6,103 colours in all**; 401 two-by-two features a picture p50, 954 k distinct keys, **1 place per key p50** (p99 14). 174 pictures are pixel-identical to another (4,597 distinct); 24 have < 16 usable features (see-through: glasses, nymph wings, Piece of Ice, Arwen's Glass Shoe, "Transparent ..." cash items). `icon` = `iconRaw` + 1-5 shadow rows (545 of 560 Etc + Use differ) |
 | E-L2 | Do frames show them exactly? (exp_find.py: the vote + a per-pixel check, every picture) | Yes. Resting drops: SEEN share of the opaque pixels p50 1.00; junk candidates sit at 0.1-0.2. 79,079 loose sightings, 322 resting drops |
 | E-L4 | Identity over ALL pictures (exp_synth.py, pasted on real frames) | alone: 5,106 / 5,134 = 99.45 %, **0 wrong identity** (the 28 misses = see-through pictures); piles of 3: 99.13 % of 15,400, >= 97.8 % from 40 % visible; under an unknown cover: >= 97 % from 30 % visible |
-| E-L5 | Independent look: what stays in one map place and is NOT named? (exp_residue.py: scene residue minus drops / mobs / characters, joined over time; run on all 9 recordings, sheets looked at for 154819_1, Dangerous Steam, 111248_1, 012059_1) | **One miss class: drops behind front scenery** (a ladder's top post, 111248_1, 123 frames) -> the FRONT term of section 5. One capsule-like object nothing names (154819_1, section 12). The rest: the game's own text lines, the cursor, a UI icon, the pet, held weapons, damage digits |
+| E-L5 | Independent look: what stays in one map place and is NOT named? (exp_residue.py: scene residue minus drops / mobs / characters, joined over time; run on all 9 recordings, sheets looked at for 154819_1, Dangerous Steam, 111248_1, 012059_1) | **One miss class: drops behind front scenery** (a ladder's top post, 111248_1, 123 frames) -> the FRONT term of section 5. One capsule-like object nothing names (154819_1) = another player's NX cosmetic, not loot (the user; section 12). The rest: the game's own text lines, the cursor, a UI icon, the pet, held weapons, damage digits |
 | E-L8 | Which facts tell a drop from a look-alike? (exp_rules2.py, classes by behaviour only) | section 6 |
 | E-L9 | A drop's life (exp_life.py) | section 3 |
 | E-L10 | By eye, whole frames (exp_eye.py) | 3 frames (Ant Tunnel IV hunt, Dangerous Steam, Line 1): 26 drops, all boxed, 0 wrong boxes; the open inventory (012059_1 t 85.4): 17 window icons all dropped, the 11 ground drops kept |
@@ -296,10 +296,12 @@ pickup worked). Out of scope here.
   **The cost gate fails -> stop with the parts' ms and section 9's levers; cadence is the user's call.**
 
 ## 12. Risks and open points
-- **An object the catalogue does not name**: 154819_1 t 54.5-64.2, map (2319, 1594): a white capsule with an
-  Orange-Mushroom face, ~44 px, bobbing like a drop, 10 s in view (runs/play/20261116_154819_1/loot/
-  strip_capsule.png). No exact or shape match in Etc / Use / Setup / equips / Special / Cash / Pet icons. What is
-  it? Until known: tools/loot/exp_residue.py logs such things (as tintlog does for tints); nothing is guessed.
+- **The capsule is not loot** (the user, 2026-11-17: "an NX cosmetic item from another player, it's not loot
+  100%"): 154819_1 t 54.5-64.2, map (2319, 1594), a white capsule with an Orange-Mushroom face, ~44 px, staying in
+  one map place and bobbing like a drop for 10 s (runs/play/20261116_154819_1/loot/strip_capsule.png); no item
+  icon matches it, so the finder rightly says nothing. Lesson kept: "stays put and bobs" alone is not a drop -
+  other players' cosmetics do it too; a drop is a NAMED picture at the resting height. Session 2 labels such
+  things as not-drops; tools/loot/exp_residue.py stays the tool that lists what is unnamed.
 - See-through pictures (24 of 4,597) cannot vote: listed at build (`weak`), reported, not searched. If one matters
   (Piece of Ice is a mob drop elsewhere): the fade machinery's un-blend with the picture's alpha - later.
 - Drop effects exist (Effect/DropItemEff.img: sparkles in front of / rings behind special drops; the Fragment of
@@ -325,20 +327,23 @@ pickup worked). Out of scope here.
    session; also the first pet-off frames with drops left lying.)
 3. **Windows over the world, ~1 min, standing in a spot with drops on screen:** open and close in turn - inventory
    (each tab), equipment, the skill window, a shop NPC if one is near, hover an item for its tooltip.
-4. Tell me what the capsule of section 12 is (and where such things drop), or record one.
+None of the three blocks Session 1 (data + synthetic truth). Session 2 (labels) takes them into its picked frames
+when they exist (3 = its window-icon class); 1 and 2 feed the tracker and the loot-behaviour sessions.
 
 ## 14. Prompts
 **Session 1 (Opus, high):**
 ```
-Loot rework part 1 (perceive drops), branch `loot`. Read HANDOFF.md top to bottom, then PLAN-loot.md (OK'd by the
-user): execute its "Session 1" (S1-S4) exactly. tools/loot/export_items.ps1, dropvote.py, exp_synth.py, lootlib.py
-are the working drafts / reference; the memory cw-client-data-harepacker has the export procedure (BMS key,
-DOTNET_ReadyToRun=0). No code in maplebrain/perception, nothing on the live path. Budget matters: be terse.
+Loot rework part 1 (perceive drops), Session 1. Work in the git worktree C:\Users\Yoav\dev\maple-loot (branch
+`loot`, pushed; its assets\scene and runs are junctions to maple-work's) - NOT in maple-work. Read its HANDOFF.md
+top to bottom, then PLAN-loot.md (I OK'd it on 2026-11-17): execute its "Session 1" (S1-S4) exactly.
+tools/loot/export_items.ps1, dropvote.py, exp_synth.py, lootlib.py are the working drafts / reference; the memory
+cw-client-data-harepacker has the export procedure (BMS key, DOTNET_ReadyToRun=0). No code in
+maplebrain/perception, nothing on the live path. Budget matters: be terse.
 Gates as written (S2's counts; S4: section 7.3 on synth). A gate fails or a design point proves wrong on the data ->
 stop and tell me with numbers; no change of course without my word.
 Rules: Python = ../auto-maple/.venv; `watch` is running - never stop it; no live / scripted input; no sed on repo
-files (CRLF: Edit, or byte-safe Python); scripts via the Write tool, not heredocs; long jobs with
-run_in_background; pytest + the 'bot speed' line; commit + push on this branch; numbers into HANDOFF.
+files (CRLF: Edit, or byte-safe Python); long jobs with run_in_background; pytest + the 'bot speed' line; commit +
+push on this branch; numbers into HANDOFF.
 ```
 **Session 2 (Opus, high):** the same header with "Session 2 (S5-S6): the by-eye labels (you judge the sheets; the
 reference is your labels, never the finder's output) and drop_eval on them", + "stop at the session gate with every

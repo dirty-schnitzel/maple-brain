@@ -119,7 +119,11 @@ Fitter.look feeding world.py. ~8,000 lines out.
   frames), the speed line (3.4: 16 ms p50). Optional: F7 on a Perion map -> `NOT STARTED: ... no clean scene`.
   Then step 4 (the tracker redesign) as a Fable-max plan session (PLAN-perception.md step 4).
 
-## Loot rework part 1: PERCEIVE drops - PLAN-loot.md PROPOSED 2026-11-17 (branch `loot`; waits for the user's OK)
+## Loot rework part 1: PERCEIVE drops - PLAN-loot.md OK'd by the user 2026-11-17 (branch `loot`); NEXT = its Session 1
+**START HERE for loot work: PLAN-loot.md "Session 1" (S1-S4: item pictures into the export + `assets build`,
+synthetic truth, drop_eval, the prototype's "before"); the prompt is in its section 14.** The user's answers
+(2026-11-17): the plan is OK; the capsule of its section 12 is another player's NX cosmetic, not loot; the three
+recordings of section 13 will come soon (none blocks Session 1).
 Plan session (Fable max; in parallel with the tracker plan session). **Nothing built in maplebrain/; nothing reads
 drops.** Branch `loot` off `perception-only`, checked out in its own worktree `C:\Users\Yoav\dev\maple-loot`
 (the tracker session was working in `maple-work`; `assets\scene` and `runs` there are junctions to maple-work's).
@@ -146,8 +150,8 @@ per-frame results RUN/loot/find_v4.jsonl. In short (9 native PNG recordings, 14,
   450 frames (tools/loot/dropgraph.py). A plain second vote: +3.4 ms; numpy on a reader thread: +3.7 ms.
 - FrameFacts v5 `drops` (proposed, in shadow): item class, box, feet, kind, the counts (seen / absent / under a
   drop / under front scenery / mob), ring, foothold. first-seen = the tracker's.
-- **Open for the user:** the OK; what the capsule of PLAN-loot.md section 12 is; three recordings (section 13:
-  expiry with the pet off, own pickups, windows over drops).
+- **Open for the user:** three recordings (section 13: expiry with the pet off, own pickups, windows over
+  drops).
 - 3 Opus sessions in the plan (data + synthetic truth; by-eye labels; the product in shadow), prompts inside.
 
 ## Earlier START HERE: DELETE THE OLD PERCEPTION (the user, 2026-11-17, after 3.4's live hunt)
