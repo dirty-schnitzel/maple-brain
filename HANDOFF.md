@@ -51,7 +51,14 @@ find mobs, fight them like a player, pick up loot, use potions, and **navigate p
 later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never reads memory or packets.
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
-## START HERE NEXT SESSION: the user's live check of the deletion, then the tracker redesign (step 4) plan
+## START HERE NEXT SESSION: the tracker redesign (step 4) as a Fable-max plan session (PLAN-perception.md step 4)
+**Live check of the deletion PASSED (the user, 2026-11-17, `runs/v2/20261117_111248_1`, `serve runs\v2
+--frames-png`, Ant Tunnel IV, platform mode 262 / 454 / 463, 2.2 min; the user OK'd the merge):** scene camera on
+8010 / 8010 ticks (the first too: 0 pauses), tick p50 16 / p90 18 / p99 32 ms, 59.8 fps; 42 last-hit kills =
+18.8 / min, 1.8 swings / kill, EXP 1,819 = 48.9 k/hour, TRAVEL 21 % of ticks (3.4's hunt 52 %) - not a clean A/B
+(competition differs). No error, stopped by F8, keys released.
+
+### The deletion (DONE 2026-11-17)
 **DONE 2026-11-17: the old perception is deleted** (branch `perception-only` off `perception` 58d266e; `perception`
 = last good; the user merges). The user's words: "completely delete the old perception from code, no fallbacks, we
 continue with new perception exclusively". The only mob perception now: the scene camera + D + the fit +
