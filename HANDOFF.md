@@ -71,8 +71,10 @@ ms on 4 clips ACCEPTED by the user (option A = fade-pass CUDA graphs noted for l
 clips, fit vs tracks = S6, +5.3 ms p50 (the bound: ~5), test_perf fails on the 18.4 baseline - the user decides the
 re-baseline (not done: 3.4's gate is the old 18.4). 3.4 (the switch) DONE OFFLINE 2026-11-17 ("3.4 DONE" in "Step 3
 state"): bench 13.6 ms (test_perf passes on 18.4), labels 94.2 % (every class >= before), real track-frames up on
-every clip, 0 scenery ghosts among the 97 new-only tracks. OPEN: the user's live check + their word on line1's
-track count (64 -> 59 = fewer false deaths); then step 4 (proposal in the session's report).** `watch` was NOT
+every clip, 0 scenery ghosts among the 97 new-only tracks. Live observe check PASSED (16 ms p50, 59.6 fps); the
+live HUNT check must be re-run WITH `--gpu --tracker` (without it no brain v2 hunt ever used the scene camera /
+the fit path - "Live check 2"). OPEN: that hunt, the user's word on line1's track count (64 -> 59 = fewer false
+deaths); step 4 ON HOLD for the user's instructions.** `watch` was NOT
 running on 2026-11-17 (no python process): the user's to restart; never stop it.
 
 ### TASK (the user, 2026-11-16): improve the gate test by taking NEW footage
@@ -891,6 +893,21 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
       LIVE track-frames looked at: SEEN 0-0.9 %, ABSENT 26-40 %, COVERED 59-74 %; dying: ABSENT 45-69 %);
       coast_sheet.py ant4 / steam / line1 -> RUN/fit/coasting_<clip>.png (seen there: ant4 #16 knocked back ~100 px,
       the fit sees it, the gate (30 + vmax t) doesn't reach = step 4's knockback model).
+    - **Live check 1 (the user, 2026-11-17, `runs/play/20261117_092718_1`, serve --observe --gpu --tracker
+      --frames-png, Ant Tunnel IV, 110 s, the user playing): PASSED.** 6380 / 6381 ticks on the fit path (tick 1:
+      the old search late), camera exact on all; **tick p50 16 / p90 18 / p99 32 ms, 59.6 fps**; parts p50 fit 6.5,
+      diff 2.9, scene 1.7, scenecam 1.1, world 0.5. Replays of its 2123 saved frames, old path (`--old d3bddab`) vs
+      new: real track-frames 12078 -> 13682 (+13 %), sighted 82.2 -> 91.6 %; the live tracks = the new replay
+      96.9 / 95.8 % both ways (the replay runs at 1/3 rate). 58 new-only tracks looked at (RUN/replay/new_new.png):
+      0 ghosts; 10 are respawn waves seen from their FIRST frame (opacity 0.16-0.20, +0.06 a tick; the old path saw
+      them at ~0.5) -> live tracks ~0.3 s earlier: whether a spawning mob can be hit = step 4's opacity states.
+    - **Live check 2 (`runs/v2/20261117_093228_1`, `serve runs\v2 --brain v2 --mob-score 0.70 --frames`) did NOT
+      run 3.4: my proposed command lacked `--gpu --tracker`.** Without `--tracker` (`use_tracks`) the Perceiver
+      never takes the scene camera (camera = platforms on 4302 / 4303 ticks), so the old search ran and the fit only
+      in shadow - true of EVERY brain v2 hunt since step 2.6 (brain v2 reads obs.mobs either way; it uses none of
+      the v1-only parts `--tracker` also switches: sprite_mobs, Track / Untrack). Kept as the "before": 2.2 min, 21
+      kills (9.6 / min), bot_presses 59: solid 47 (80 %), stale 10, nothing 2; tick p50 30 / p90 33 ms. Re-run
+      with: `serve runs\v2 --brain v2 --mob-score 0.70 --gpu --tracker --frames`.
   - **3.4 OK'd by the user 2026-11-17 (the switch on clean maps; DONE above).** On ticks where the scene camera is found:
     1. the tracker's sightings come from the fit: each FitMob -> a detector Hit (type, feet, pose, box from the pose),
        score 1.0 (the fit's rule already decided); the whole-screen search + refine (`sprites._all`) skipped; the fit
@@ -1448,7 +1465,7 @@ ticks + keys.jsonl + every 3rd frame; in a party). Tools: `tools/play/analyze.py
 ..\auto-maple\.venv\Scripts\python -m pytest                    # ~1100 tests, no game needed; ends with "bot speed"
 Get-Process python | ? Path -like '*auto-maple*'                 # running bot processes (never stop `watch`)
 ..\auto-maple\.venv\Scripts\python -m maplebrain watch runs\watch --seconds 14400            # LD siren, no hunt
-..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\v2 --brain v2 [--mob-score 0.70] [--frames]   # F7 / F8
+..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\v2 --brain v2 [--mob-score 0.70] --gpu --tracker [--frames]   # F7 / F8 (--tracker: scene camera + fit path)
 ..\auto-maple\.venv\Scripts\python -m maplebrain run runs\v2\NAME --brain v2 --seconds 180 --frames-every 3
 ..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\play --observe --gpu --tracker --frames   # record the user
 ..\auto-maple\.venv\Scripts\python -m maplebrain goto OUT [--to P [X]] [--seconds S]     # movement test
