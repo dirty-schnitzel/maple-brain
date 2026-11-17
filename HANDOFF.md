@@ -4,7 +4,7 @@
 camera + the fit are the only mob perception, clean maps + the native window only, a lost camera pauses the
 hunt. Before it: the perception redesign (**PLAN-perception.md**) steps 0-3 DONE and live-checked (3.4's hunt:
 "absolutely MASSIVE difference in bot behavior"); brain v3 (**PLAN-v3.md**) steps 1-3 DONE, Platform mode live.
-NEXT: the user's live check of the deletion, then step 4 (the tracker) as a plan session.
+NEXT (the user, 2026-11-17): **the recording corpus first (PLAN-data.md, OK'd), step 4 (the tracker) waits for it.**
 Sessions 6-23, the old brain (v1), and superseded plans moved verbatim to **HISTORY.md** on 2026-11-08: grep it for
 old runs, numbers and decisions.
 Latest: 2026-11-15 Platform mode live (runs below), F9 mark fix; the hybrid BT + imitation-learning proposal reviewed
@@ -51,7 +51,29 @@ find mobs, fight them like a player, pick up loot, use potions, and **navigate p
 later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never reads memory or packets.
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
-## START HERE NEXT SESSION: the tracker redesign (step 4) as a Fable-max plan session (PLAN-perception.md step 4)
+## START HERE NEXT SESSION: the recording corpus, PLAN-data.md Session 1 (the recorder + the corpus tool)
+**Decided 2026-11-17 (the user, session "data"):** the reworks were tuned on too little - 7 maps, 11 of the 51 mob
+types the hunted maps have, ~300 labelled frames. **PLAN-data.md** (OK'd) builds a recording corpus on
+`E:\maple-corpus` and tests every rework on it. **The tracker redesign (step 4, the section below) waits for the
+corpus**; the loot rework goes on in its worktree.
+- **Session 1 (Opus, next):** branch `data` off `dev`; `maplebrain record` (lossless GPU video in 5-minute chunk
+  files, no perception while recording), `--video` on run / serve, the frame reader, `tools/data/corpus.py` (cuts
+  a recording into its maps by the minimap, files it, prints coverage). Gates and stop rules: PLAN-data.md
+  section 5; the prompt is at its end. The live gates need one recorded walk by the user (10+ minutes, 3+ maps)
+  and a short `serve --video` hunt.
+- **Then the user walks** the maps they choose (no list; 2-3 minute stops, each mob type killed a few times, many
+  platforms; the minimap open in its usual place), `corpus.py add` after each sitting.
+- **Then Sessions 2-3** (perception unchanged over the corpus: per-map numbers, the failure kinds, labels, the
+  hold-out maps once), a review session for the fixes, and only then step 4 on the corpus.
+- Evidence for the plan: `tools/data/` (codec_bench, video_safety, paced_enc, map_cover, map_along).
+- **Deleted 2026-11-17 (the user's call):** every JPEG frame under `runs/` (73,871 files, 25.8 GB; lossy, most
+  from before the native window; nothing read them). Each run's log / ticks / saved pictures stay. The native PNG
+  recordings (15.7 GB) are untouched - the loot worktree reads them; they go only after loot part 1 is merged and
+  they sit in the corpus as video.
+- `tools/perc/track/` (untracked on dev) = the experiments a step-4 session started on the 9 PNG recordings: left
+  as they are for that session.
+
+## AFTER THE CORPUS: the tracker redesign (step 4) as a Fable-max plan session (PLAN-perception.md step 4)
 **Live check of the deletion PASSED (the user, 2026-11-17, `runs/v2/20261117_111248_1`, `serve runs\v2
 --frames-png`, Ant Tunnel IV, platform mode 262 / 454 / 463, 2.2 min; the user OK'd the merge):** scene camera on
 8010 / 8010 ticks (the first too: 0 pauses), tick p50 16 / p90 18 / p99 32 ms, 59.8 fps; 42 last-hit kills =

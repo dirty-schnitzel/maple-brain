@@ -194,19 +194,22 @@ than ~300 separate cases across the corpus is reported as "too few", with the ma
 3. The loot rework continues in its worktree throughout; its tools get the same pass after its merge. Its
    independent-look tool is reused in Session 2 (merge first, or copy the one file).
 
-## 9. Open decisions (the user)
-1. Step 4's plan session: wait for the corpus (recommended), or start now on the 7 maps and re-check later?
-2. The old JPEG frames in `runs/` (25.8 GB, from before the native window; the deleted perception's inputs): move
-   them to E: or delete them?
+## 9. Decided (the user, 2026-11-17)
+1. Step 4 (the tracker plan) waits for the corpus.
+2. The old JPEG frames in `runs/` were deleted the same day (73,871 files, 25.8 GB: lossy, most from before the
+   native window, read by nothing). Logs, ticks and saved pictures of those runs stay; the PNG recordings stay.
 
 ## 10. Session prompts
-**Session 1 (Opus, high):** "Read PLAN-data.md (sections 3 and 5) and HANDOFF's START HERE. Branch `data` off
-`dev`. Build `maplebrain record`, the video writer (also `--video` on run / serve), the frame reader in
-tools/perc/frames.py, tools/data/unpack.py and tools/data/corpus.py exactly as section 5 says; port only the tools
-section 5 names. Run gates (a), (d), (e) yourself; for (b), (c) and (f) give me the exact commands for a recorded
-walk of 10+ minutes through 3+ maps and for a short `serve --video` hunt, wait for my runs, then report the
-numbers in plain words. Follow the stop rule. Convert the existing native PNG recordings
-into the corpus as copies; delete nothing. Update HANDOFF."
+**Session 1 (Opus, high):** "You are the executor of PLAN-data.md, Session 1. Read PLAN-data.md top to bottom
+(the work is section 5; sections 3 and 4 say what was measured and what the recordings will be) and HANDOFF's
+START HERE. Branch `data` off `dev`. Build exactly what section 5 says: `python -m maplebrain record`, the video
+writer (also `--video` on run / serve), the frame reader in tools/perc/frames.py, tools/data/unpack.py and
+tools/data/corpus.py. Port only the tools section 5 names; build nothing of section 6. Run gates (a), (d), (e)
+yourself. For (b), (c) and (f) give me the exact commands for a recorded walk of 10+ minutes through 3+ maps and
+for a short `serve --video` hunt, wait for my runs, then report the numbers in plain words. Follow the stop
+rules: stop with numbers, no workarounds. Leave alone: the native PNG recordings in runs/ (the loot worktree
+reads them; they enter the corpus as copies only), tools/perc/track/ (another session's work), the `loot`
+branch. At the end update HANDOFF, commit and push `data`."
 
 **Session 2 (Opus, high):** "Read PLAN-data.md section 6. The corpus is recorded (`python tools/data/corpus.py
 list`). Build tools/data/replay_all.py and run items 1-3 on the dev group only; pick the frames for item 4. Do not
