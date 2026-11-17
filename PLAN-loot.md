@@ -13,6 +13,9 @@ identical opaque pixels) - numbers, pictures and options in HANDOFF "Session 1 s
 3. **REST needs a ring:** ring >= 0.1 (share of the known pixels around the picture that show scenery / a drop / a
    fit mob / a character box; < 60 known ring px = pass) - a window icon at a foothold's height has the panel
    around it (27 such on synth passed REST without it).
+**Session 2 (2026-11-17): S5-S6 DONE, gate MET on Claude's labels (201 frames, 9 recordings): REST 629 / 631 =
+99.68 % of the visible resting drops, 0 false REST, 0 wrong identity, 0 of 36 flights / hops REST - HANDOFF
+"Session 2 result". NEXT = Session 3.**
 Executors: Opus (high), three sessions; prompts at the end. Parent plan: PLAN-perception.md (the table's row "Drops:
 item icons from the client (later, with loot)"). Branch `loot` off `perception-only`.
 Evidence: tools/loot/ (E-L0 .. E-L13, each file's docstring says what it measures) on the 9 native PNG recordings;

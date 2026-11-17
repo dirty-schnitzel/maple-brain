@@ -120,9 +120,48 @@ Fitter.look feeding world.py. ~8,000 lines out.
   Then step 4 (the tracker redesign) as a Fable-max plan session (PLAN-perception.md step 4).
 
 ## Loot rework part 1: PERCEIVE drops - PLAN-loot.md OK'd by the user 2026-11-17 (branch `loot`)
-**START HERE for loot work: Session 1 DONE (every gate met after the user's amendments) -> NEXT = Session 2
-(by-eye labels, S5-S6; prompt in PLAN-loot.md section 14 - read its "AMENDED" block first).** Worktree
+**START HERE for loot work: Sessions 1 + 2 DONE (every gate met) -> NEXT = Session 3 (the product in shadow,
+S7-S9; prompt in PLAN-loot.md section 14 - read its "AMENDED" block first).** Worktree
 `C:\Users\Yoav\dev\maple-loot`, branch `loot`.
+### Session 2 result (2026-11-17): by-eye labels, S5-S6 - GATE MET
+- **S5** tools/loot/labels/pick.py (pick / sheets / legend / build / zoom / check; README = its docstring): 201 frames
+  over all 9 native recordings (84 even + 26 kill + 22 pickup + 23 pile + 19 covered + 16 drop-free + 8 player + 3
+  open inventory; find_v4 only to FIND hard moments). Sheets = the scene's residue blobs (frame vs expected, minus the
+  mob fit's explained pixels; never the finder's boxes), 3,231 lettered, 93 pages (runs/loot_labels/pages). My
+  judgments: tools/loot/labels/judgments.txt; built -> RUN/loot/labels.json + tools/loot/labels/<run>.json: **757
+  drops** (613 clear, 18 pile >= 50 %, 12 pile < 50 %, 19 front, 6 effect, 5 ui, 5 covered, 3 edge, 1 cover, 1
+  mob over it, 28 flight, 8 pickup, 38 unsure) + **746 not-drop regions** (509 worn = characters, 96 mob parts, 53
+  windows incl. the open inventory / quickslots / chat window / a pet tooltip, 88 other); 46 drop-free frames (every
+  map). No section-13 recording exists yet (none in runs/play after 092718_1).
+  Position = my named item snapped to its exact place in my blob (share of its opaque pixels = `vis`); motion = the
+  same map place in >= 2 of the frames +-0.3 / 0.6 s (a single frame cannot show it).
+- **S6** synth_find.py `labels` (the prototype with the live inputs on the labelled frames: find_v4's registered
+  camera, expected scene, world mask, the mob fit, our + players' tag boxes, front planes, footholds) ->
+  runs/loot_labels/finder_labels.jsonl; drop_eval.py `labels` (feet within 3 / 8 px, own class first; identity by
+  items.json `same`); drop_sheet.py `labels`. **Gate (section 7.3 as amended):**
+      gated visible resting (clear + pile >= 50 %)   REST 629 / 631 = 99.68 %    MET (>= 99 %)
+      FALSE REST                                     0                           MET (509 worn, 96 mob-part, 53
+                                                                                 window, 88 other regions; 46
+                                                                                 drop-free frames)
+      identity                                       0 wrong of 789 found        MET
+      flights / pickup hops read REST                0 of 36                     MET
+  Look-alike sightings the finder made, all weak: 44 window icons, 17 worn, 3 on drop-free frames, 18 elsewhere.
+  Not gated: pile < 50 % 12/12 REST, front 17/19, effect 4/6, ui 1/5, covered 2/5, edge 1/3, unsure 7/38 REST (the
+  7 are at the resting height: landing / pickup instants), flight 0/28, pickup 0/8.
+- **The 2 gated misses** (runs/loot_labels/sheet_miss_final.png): a Charm in front of a player's white skill effect
+  (111248_1 005613: ring 4 / 507 < 0.1 -> weak: the user's ring bar), a Charm under an edge-on gold coin (012059_1
+  002895: SEEN 282 / 393, u 0.26 -> weak: "under an accepted drop" depends on the pick order - Session 1's open point).
+- **Label errors found and fixed on the way (honest count):** the first eval read 66 FALSE REST; every one looked at
+  (runs/loot_labels/sheet_false_first_eval.png): **all 66 are real resting drops my blind labels missed** (edge-on
+  coins 5 px wide, items at characters' feet / beside the quickslots that I marked as worn / window regions, pile
+  members) -> tools/loot/labels/adjudicated.json, graded as `added` (not false, never in recall; 65 / 66 REST). Also
+  fixed by the snap / motion checks: edge-on coin colours (bronze <-> gold) in 5 frames, rest / flight calls after
+  tracing (52E, 69J, 94F, 190J, 190K, 169L move; 169N rests), 3 items that were not there (101B, 168F = a Zombie
+  Mushroom's talisman, 169A). 38 "clear" by eye turned
+  out to move between frames (31 of them 24-252 px above the foothold) -> `unsure`, not graded.
+- Open for Session 3 (unchanged): pick order for "under an accepted drop" (1 gated miss), the ring bar vs skill
+  effects (1 gated miss), foothold lookup on stairs.
+- pytest green (tools only: nothing in maplebrain/ changed); bot speed 13.0 ms (p90 14.5; baseline 18.4).
 ### Session 1 result after the user's amendments (2026-11-17; PLAN-loot.md "AMENDED")
 The user, on the stop report: the 3 confused hat / shades pairs are NX items ("no way they are floating on the
 floor"), AIR isn't needed -> (1) cash-shop items not searched (info/cash: 2,750 equips, 2,675 cash-only pictures;

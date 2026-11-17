@@ -1,7 +1,9 @@
 """PLAN-loot.md section 7: grade drop sightings against truth - recall per class, false per class, identity, position.
 
     python tools/loot/drop_eval.py SET --finder finder_before.jsonl [--list] [--misses misses.json]
-        SET = a synth_drops.py OUT (synth.json: exact truth) or, later, a run with labels.json (S6, matched by feet)
+        SET = a synth_drops.py OUT (synth.json: exact truth) or `labels` (S6: every recording's RUN/loot/labels.json,
+              Claude's by-eye labels; finder rows from runs/loot_labels/FINDER, keyed "<run key>/<frame>"; matched by
+              feet - evaluate_labels / report_labels)
 
 Kinds (the user, 2026-11-17): REST / weak only - no AIR kind; a drop in the air must read weak.
 Truth drops (synth.json `drops`): kind rest / air, cls clear / pile / mob / player / effect / ui / edge / flight, vis
@@ -186,6 +188,150 @@ def report(ev: dict, items, list_all: bool = False, log=print) -> bool:
     return ok
 
 
+# ------------------------------------------------------------------ S6: the by-eye labels (tools/loot/labels)
+LGATED = ("clear", "pile >= 50 %")
+MOVING = ("flight", "pickup")
+
+
+def label_class(d: dict) -> str:
+    if d["cls"] == "pile":
+        return "pile >= 50 %" if (d["vis"] or 0) >= 0.5 else "pile < 50 %"
+    return d["cls"]
+
+
+def evaluate_labels(labels: dict, rows: dict, items) -> dict:
+    """labels: "<run key>/<frame>" -> a labels.json frame (drops: cls, item, box, feet, snap, vis; notdrops: cls,
+    box); rows: the same keys -> finder rows. A labelled drop is FOUND by the sighting whose feet lie within 3 px in
+    x and 8 in y of its feet (its own picture class first, then any; an unreadable / unsnapped label: the sighting
+    box overlapping its box >= 30 %); another readable class there = WRONG identity. A REST sighting matched to no
+    labelled drop = FALSE, classed by the not-drop region holding >= 50 % of its box (worn / window / mobpart /
+    other), else 'drop-free frame' or 'unlabelled'."""
+    rec = defaultdict(Counter)
+    false, n = Counter(), Counter()
+    wrong, misses, falses, moving_rest = [], [], [], []
+    same = lambda i: int((items.meta.get(str(int(i))) or {}).get("same", i))  # noqa: E731
+    for key, L in labels.items():
+        r = rows.get(key)
+        if r is None:
+            n["frames without a finder row"] += 1
+            continue
+        n["frames"] += 1
+        S = r["drops"]
+        used = set()
+        free = not L["drops"]
+        n["drop-free frames"] += free
+        pairs = []
+        for j, d in enumerate(L["drops"]):
+            for i, s in enumerate(S):
+                if d["snap"] is not None:
+                    ex, ey = s["feet"][0] - d["feet"][0], s["feet"][1] - d["feet"][1]
+                    if abs(ex) <= 3 and abs(ey) <= 8:
+                        own = d["item"] is not None and same(s["item"]) == same(d["item"])
+                        pairs.append((0 if own else 1, abs(ex) + abs(ey), j, i, own))
+                elif overlap(s["box"], d["box"]) >= 0.3 or overlap(d["box"], s["box"]) >= 0.3:
+                    pairs.append((1, 0, j, i, d["item"] is None))
+        got = {}
+        for _, _, j, i, own in sorted(pairs):
+            if j not in got and i not in used:
+                got[j] = (i, own)
+                used.add(i)
+        for j, d in enumerate(L["drops"]):
+            c = label_class(d)
+            rec[c]["n"] += 1
+            if j not in got:
+                rec[c]["none"] += 1
+                misses.append({"frame": key, "class": c, "drop": d, "got": None})
+                continue
+            i, own = got[j]
+            s = S[i]
+            if not own and d["item"] is not None:
+                rec[c]["wrong"] += 1
+                wrong.append({"frame": key, "class": c, "drop": d, "got": s})
+                continue
+            rec[c][s["kind"]] += 1
+            if c in LGATED and s["kind"] != "rest":
+                misses.append({"frame": key, "class": c, "drop": d, "got": s})
+            if c in MOVING and s["kind"] == "rest":
+                moving_rest.append({"frame": key, "class": c, "drop": d, "got": s})
+        for i, s in enumerate(S):
+            if i in used or s["kind"] != "rest":
+                continue
+            on = [nd for nd in L["notdrops"] if overlap(s["box"], nd["box"]) >= 0.5]
+            cls = on[0]["cls"] if on else ("drop-free frame" if free else "unlabelled")
+            false[cls] += 1
+            falses.append({"frame": key, "class": cls, "got": s})
+        for nd in L["notdrops"]:
+            n[f"not-drop {nd['cls']}"] += 1
+        n["weak sightings"] += sum(1 for i, s in enumerate(S) if i not in used and s["kind"] == "weak")
+    return {"recall": rec, "false": false, "wrong": wrong, "misses": misses, "falses": falses,
+            "moving_rest": moving_rest, "n": n}
+
+
+def report_labels(ev: dict, items, log=print) -> bool:
+    rec = ev["recall"]
+    log("recall on the labels (REST / weak / wrong identity / not seen), by class:")
+    order = ["clear", "pile >= 50 %", "pile < 50 %", "covered", "front", "effect", "ui", "edge", "cover", "mobover",
+             "unsure", "flight", "pickup"]
+    for c in order + sorted(set(rec) - set(order)):
+        if c in rec:
+            r = rec[c]
+            log(f"  {c:13s} n {r['n']:4d} | REST {r['rest']:4d} = {100 * r['rest'] / max(1, r['n']):6.2f} % | weak "
+                f"{r['weak']} wrong {r['wrong']} none {r['none']}" + ("   [gated]" if c in LGATED else "")
+                + ("   [must not be REST]" if c in MOVING else ""))
+    gn = sum(rec[c]["n"] for c in LGATED)
+    gr = sum(rec[c]["rest"] for c in LGATED)
+    log(f"GATED visible resting drops (clear + pile >= 50 %): REST {gr} / {gn} = {100 * gr / max(1, gn):.2f} % "
+        f"(gate >= 99 %)")
+    nf = sum(ev["false"].values())
+    log(f"FALSE REST: {nf} (gate 0)" + (": " + ", ".join(f"{c} {v}" for c, v in sorted(ev["false"].items())) if nf else ""))
+    log("  graded: " + ", ".join(f"{k[9:]} {v}" for k, v in sorted(ev["n"].items()) if k.startswith("not-drop"))
+        + f"; drop-free frames {ev['n']['drop-free frames']}; frames {ev['n']['frames']}; weak sightings (allowed) "
+          f"{ev['n']['weak sightings']}")
+    nw = len(ev["wrong"])
+    found = sum(rec[c][k] for c in rec for k in ("rest", "weak"))
+    log(f"IDENTITY: wrong {nw} of {found + nw} found readable-or-not (gate 0)")
+    log(f"flights / pickup hops read REST: {len(ev['moving_rest'])} (must be 0)")
+    ok = gr >= 0.99 * gn and nf == 0 and nw == 0
+    log(f"S6 GATE (section 7.3 on labels): {'MET' if ok else 'NOT MET'}")
+    for m in ev["misses"]:
+        if m["class"] in LGATED:
+            d, s = m["drop"], m["got"]
+            log(f"  miss {m['frame']} {m['class']} {d['src']} {items.name(d['item'] or 0)[:22]} feet {d['feet']} vis "
+                f"{d['vis']} -> " + (f"{s['kind']} seen {s['seen']}/{s['n_op']} abs {s['absent']} under {s['under']} "
+                                    f"front {s['front']} mob {s['mob']} ring {s['ring']} dy {s['dy']}" if s else "nothing"))
+    for m in ev["falses"]:
+        s = m["got"]
+        log(f"  false {m['frame']} on {m['class']} {s['item']} {items.name(s['item'])[:24]} box {s['box']} seen "
+            f"{s['seen']}/{s['n_op']} dy {s['dy']} ring {s['ring']}")
+    for m in ev["wrong"]:
+        log(f"  wrong {m['frame']} {m['class']} {m['drop']['src']} {items.name(m['drop']['item'])[:22]} -> "
+            f"{m['got']['item']} {items.name(m['got']['item'])[:22]} ({m['got']['kind']})")
+    for m in ev["moving_rest"]:
+        log(f"  moving read REST {m['frame']} {m['class']} {m['drop']['src']} {items.name(m['drop']['item'] or 0)[:22]} "
+            f"dy {m['got']['dy']}")
+    return ok
+
+
+def load_labels() -> dict:
+    sys.path.insert(0, str(HERE / "labels"))
+    from pick import RUNS
+    out = {}
+    for key, rp in RUNS.items():
+        p = HERE.parents[1] / rp / "loot" / "labels.json"
+        for name, L in json.loads(p.read_text(encoding="utf-8"))["frames"].items():
+            out[f"{key}/{name}"] = L
+    # drops the blind labels missed, found by looking at the first eval's FALSE sheet: they are drops (not false)
+    # but never graded for recall (class "added", item None: matched by box overlap)
+    adj = HERE / "labels" / "adjudicated.json"
+    if adj.exists():
+        for c in json.loads(adj.read_text(encoding="utf-8"))["cases"]:
+            if c["verdict"] == "drop" and c["frame"] in out:
+                x, y, w, h = c["box"]
+                out[c["frame"]]["drops"].append({"cls": "added", "item": None, "box": c["box"], "feet": [x + w // 2, y + h],
+                                                 "snap": None, "vis": None, "src": "adjudicated"})
+    return out
+
+
 def load_rows(path: Path) -> dict:
     return {r["frame"]: r for r in (json.loads(l) for l in open(path, encoding="utf-8"))}
 
@@ -199,6 +345,14 @@ def main():
     a = ap.parse_args()
     from maplebrain.gamedata import load_items
     items = load_items()
+    if a.set == "labels":                       # S6: RUN/loot/labels.json of every recording
+        sd = HERE.parents[1] / "runs" / "loot_labels"
+        ev = evaluate_labels(load_labels(), load_rows(sd / a.finder), items)
+        report_labels(ev, items)
+        if a.misses:
+            (sd / a.misses).write_text(json.dumps({k: ev[k] for k in ("misses", "falses", "wrong", "moving_rest")},
+                                                  indent=0), encoding="utf-8")
+        return
     sd = Path(a.set)
     truth = json.loads((sd / "synth.json").read_text(encoding="utf-8"))
     ev = evaluate(truth, load_rows(sd / a.finder), items, sd / "frames")

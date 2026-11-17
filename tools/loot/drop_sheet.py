@@ -1,6 +1,7 @@
 """Pictures of drop_eval's cases: each miss / false / wrong identity as a 3x crop of its frame (+ the item's picture).
 
     python tools/loot/drop_sheet.py SET [--misses misses_before.json] [--what false,wrong,miss] [--gated] [--out NAME]
+        SET = a synth set, or `labels` (S6: runs/loot_labels; frames read from the recordings; what may add `moving`)
 
 Per case: the frame around the box (48 px margin, 3x), the box drawn (green = the truth drop, red = the sighting),
 the client's picture beside it, a label (frame, class, item, kind / numbers). -> SET/sheet_<what>_<NAME>.png
@@ -54,27 +55,42 @@ def main():
     a = ap.parse_args()
     from maplebrain.gamedata import load_items
     items = load_items()
-    sd = Path(a.set)
-    truth = json.loads((sd / "synth.json").read_text(encoding="utf-8"))["frames"]
+    labels = a.set == "labels"
+    if labels:
+        from drop_eval import LGATED
+        from lootlib import frame as read_frame
+        sys.path.insert(0, str(HERE / "labels"))
+        from pick import RUNS
+        sd = HERE.parents[1] / "runs" / "loot_labels"
+        truth = None
+    else:
+        sd = Path(a.set)
+        truth = json.loads((sd / "synth.json").read_text(encoding="utf-8"))["frames"]
     ev = json.loads((sd / a.misses).read_text(encoding="utf-8"))
     for what in a.what.split(","):
-        cases = {"false": ev["falses"], "wrong": ev["wrong"], "miss": ev["misses"]}[what]
+        cases = {"false": ev["falses"], "wrong": ev["wrong"], "miss": ev["misses"],
+                 "moving": ev.get("moving_rest", [])}[what]
         if what == "miss" and a.gated:
-            cases = [m for m in cases if m["class"] in GATED]
+            cases = [m for m in cases if m["class"] in (LGATED if labels else GATED)]
         tiles = []
         for m in cases[:a.max]:
-            f = truth[m["frame"]]
-            img = cv2.imread(str(sd / "frames" / f["frame"]))
+            if labels:
+                key, name = m["frame"].split("/")
+                f = {"frame": name}
+                img = read_frame(HERE.parents[1] / RUNS[key], name)
+            else:
+                f = truth[m["frame"]]
+                img = cv2.imread(str(sd / "frames" / f["frame"]))
             d, s = m.get("drop"), m.get("got")
             boxes = ([(d["box"], (0, 255, 0))] if d else []) + ([(s["box"], (0, 0, 255))] if s else [])
             c = crop(img, (d or s)["box"], f.get("window"), boxes)
-            p = pic_tile(items, (d or s)["item"], (d or s)["f"])
+            p = pic_tile(items, (d or s)["item"] or 0, (d or s).get("f", 0))
             h = max(c.shape[0], p.shape[0]) + 30
             t = np.zeros((h, c.shape[1] + p.shape[1] + 6, 3), np.uint8)
             t[:c.shape[0], :c.shape[1]] = c
             t[:p.shape[0], c.shape[1] + 6:] = p
-            lab = (f"{m['frame']} {m.get('class', '')} {items.name((d or s)['item'])[:22]}" +
-                   (f" -> {s['kind']} {s['seen']}/{s['n_op']} dy {s['dy']} ring {s['ring']}" if s else " -> nothing"))
+            lab = (f"{m['frame'][-14:]} {m.get('class', '')} {items.name((d or s)['item'] or 0)[:18]}" +
+                   (f" -> {s['kind']} {s['seen']}/{s['n_op']} dy {s['dy']}" if s else " -> nothing"))
             if what == "wrong":
                 lab = f"{m['frame']} {items.name(d['item'])[:18]} -> {items.name(s['item'])[:18]} ({s['kind']})"
             cv2.putText(t, lab[:70], (2, h - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1)

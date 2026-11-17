@@ -1,0 +1,205 @@
+# PLAN-loot.md S5: by-eye judgments of the residue sheets (runs/loot_labels/pages), format in pick.py's docstring.
+# Claude, 2026-11-17 (corrected after the snap / stillness check: 52E, 69J, 190J/K flights; 101B, 168F, 169A;
+# after the eval's sheets: edge-on coin colours 162G 163I 171A 172E 183K, 169N rests (traced), 169L a pickup hop; 94F flies (traced), 172E both gold).
+# Letters not named = nothing drop-like (characters without a call, digits, effects, text, cursor).
+0: D=n:worn E=n:worn K=n:worn H=n:other I=n:other   # H, I: star marks on the platform's face (transient), not on a foothold
+1: D=d:clear:hmc+d:clear:m0 E=n:worn G=n:worn I=n:worn
+2: B=d:clear:hmc+d:clear:m0 A=n:worn E=n:worn       # B: the coin edge-on in front of a Zombie Mushroom
+3: A=d:edge:m0 G=n:worn
+4: E=d:flight:m1 C=n:worn F=n:worn                  # E: over the dark gap, digits fading (kill)
+5: G=d:clear:m1 A=n:worn D=n:worn E=n:worn I=n:worn K=n:other   # G in front of a Horny Mushroom; K: a round thing behind a ladder
+6: E=d:clear:m1 B=n:mobpart A=n:worn D=n:worn H=n:worn          # E: gold edge-on; B: a Zombie Mushroom's talisman
+7: G=d:clear:m1 A=n:worn F=n:worn H=n:worn
+8: O=d:clear:m1 B=n:worn F=n:worn I=n:worn
+9: K=d:clear:m1 J=n:other E=n:worn F=n:worn
+10: E=n:other A=n:worn F=n:worn                     # E: Ahogo + the NX capsule above him (section 12)
+11: A=n:worn E=n:other F=n:worn
+12: A=n:worn G=n:other H=n:worn
+13: A=d:clear:m1 E=d:clear:m1+d:clear:cu F=d:clear:m0 B=n:other G=n:worn J=n:worn
+14: A=d:clear:m1+d:clear:cu D=n:worn E=n:worn
+15: D=d:clear:m1 I=n:worn J=n:worn M=n:other N=n:worn
+16: D=d:clear:m1 J=n:mobpart I=n:worn L=n:worn M=n:other   # J: Zombie Mushroom's talisman under a poison cloud
+17: E=d:clear:m1 F=n:mobpart K=n:worn P=n:other
+18: F=d:clear:m1 H=n:mobpart J=n:mobpart N=n:worn R=n:other
+19: A=d:clear:m1+d:clear:cu P=d:clear:fm+d:pile.85:cu+d:clear:pb E=n:worn O=n:worn
+20: A=d:clear:m1+d:clear:cu F=n:worn                # A: in front of a Zombie Mushroom
+21: G=n:worn H=n:worn I=n:other D=n:worn
+22: A=d:clear:m1+d:clear:cu C=d:clear:m1 B=n:worn D=n:worn E=n:other G=n:worn
+23: I=n:worn J=n:worn K=n:worn L=n:worn F=n:worn H=n:worn P=n:worn T=n:other   # I-L: a wizard hat behind a ladder
+24: C=n:worn D=n:worn J=n:other
+25: D=d:clear:m1+n:worn I=d:clear:hmc L=d:clear:hmc A=n:worn B=n:worn H=n:worn M=n:worn   # D: the coin beside a pet, over a Zombie Mushroom
+26: I=n:worn L=n:other                              # L: a buff icon (UI) top right
+27: D=n:worn B=n:worn E=n:other
+28: D=n:worn E=n:other
+29: G=n:worn I=n:other
+30: N=d:pile.9:io+d:pile.8:sw+d:clear:m0 I=n:mobpart C=n:worn R=n:other   # I: Stirges around the pet
+31: M=d:pile.9:io+d:pile.8:sw+d:clear:m0 H=n:worn W=n:other
+32: K=d:pile.9:io+d:pile.8:sw+d:clear:m0 J=d:clear:m0 E=d:flight:m0+d:flight:sw+n:worn L=n:mobpart X=n:other
+33: J=d:clear:m0 K=d:clear:m0 F=n:worn Z=n:other
+34: L=d:clear:m0 M=d:clear:m0 N=d:pile.9:io+d:pile.8:sw+d:clear:m0 H=n:worn Y=n:other
+35: P=d:clear:m0 Q=d:clear:m0 G=n:worn e=n:other
+36: N=d:flight:sw Q=d:clear:m0 K=n:worn a=n:other   # N: the wing spinning in the air
+37: C=n:worn D=n:worn K=n:other
+38: B=d:auto:m0 D=n:worn G=n:other                  # auto = clear if it is still 0.3 s before and after, else flight
+39: B=d:clear:m0 @14,574=d:clear:m0 C=n:worn I=n:other   # @: a coin inside the left-edge scenery strip A
+40: C=d:clear:m0 D=d:clear:m0 G=n:worn H=n:worn P=n:other
+41: W=d:auto:sw c=d:mobover.7:m0 M=n:worn d=n:other   # W: a wing with no ground drawn under it; c: a flying Stirge drawn OVER the coin
+42: M=d:auto:sw F=n:worn S=n:other
+43: H=d:auto:sw E=n:worn G=n:mobpart Q=n:other
+44: I=d:pile.9:m0+d:clear:fm J=d:clear:m0 K=d:auto:sw G=n:worn
+45: @740,488=d:pile.85:m0 @821,495=d:auto:m0 @761,481=d:clear:fm @733,459=d:pickup:sw D=d:pickup:m1 E=n:worn F=n:mobpart M=n:other   # the user looting: wing + gold coin hopping
+46: D=d:pile.85:m0+d:front.8:fm E=n:worn G=n:mobpart N=n:other   # fm: a ladder drawn over it
+47: G=d:auto:sw I=d:clear:m0 U=d:clear:m0 H=n:mobpart F=n:worn V=n:other
+48: C=d:front.8:m1 F=d:edge:sw G=d:ui.4:sw N=d:edge:m0 D=n:worn M=n:other   # C: a stalagmite tip over it; G: under the quickslots
+49: @626,392=d:flight:m1 @607,394=d:flight:cu G=d:auto:sw D=n:worn M=n:other   # coin + charm in the air above us (kill)
+50: F=n:worn G=n:worn N=n:worn Q=n:other
+51: C=d:clear:m0 D=n:worn L=n:worn O=n:other
+52: C=d:front.9:m0 D=d:clear:m0 E=d:flight:m0 H=n:worn M=n:worn P=n:other   # C: a railing post's hook over its bottom
+53: C=d:clear:m0 A=n:worn H=n:worn Q=n:worn V=n:worn W=n:other
+54: B=n:worn L=n:worn N=n:worn O=n:worn P=n:other
+55: D=n:worn E=n:worn J=n:other
+56: C=n:worn F=n:worn G=n:worn I=n:worn J=n:other
+57: A=n:worn D=n:worn E=n:worn I=n:worn K=n:other
+58: N=d:clear:m0+d:clear:bub B=n:worn H=n:worn O=n:worn P=n:worn V=n:other
+59: E=d:clear:m0+d:clear:bub O=n:window F=n:worn H=n:worn K=n:worn R=n:worn P=n:other   # O: a coin icon on a white panel (a balloon / sign)
+60: D=d:clear:m0+d:clear:bub H=d:auto:m0 P=n:window B=n:worn E=n:worn F=n:worn K=n:worn S=n:worn R=n:other
+61: B=d:clear:m0+d:clear:bub E=d:clear:m0 F=d:auto:m0+n:worn M=n:window D=n:worn H=n:worn O=n:worn P=n:other
+62: B=d:clear:m0+d:clear:bub K=d:auto:m0 M=n:window A=n:worn E=n:worn I=n:worn O=n:worn S=n:other
+63: C=d:clear:m0+d:clear:bub K=n:window B=n:worn E=n:worn G=n:worn M=n:worn P=n:other
+64: D=d:front.55:m0 H=n:window A=n:worn F=n:worn J=n:worn L=n:other   # D: behind a cart wheel + lever (front scenery)
+65: F=d:front.55:m0 J=n:window B=n:worn C=n:worn G=n:worn L=n:worn N=n:other
+66: H=n:window B=n:worn C=n:worn D=n:worn F=n:worn J=n:worn L=n:other
+67: J=n:window B=n:worn C=n:worn E=n:worn G=n:worn L=n:worn N=n:other
+68: I=d:auto:m0+n:worn L=n:window B=n:worn H=n:worn N=n:worn P=n:other
+69: B=d:clear:m0+d:clear:bub J=d:flight:m0 N=d:clear:pr+d:clear:bub O=n:window A=n:worn C=n:worn I=n:worn L=n:worn Q=n:worn S=n:other
+70: A=d:clear:m0+d:clear:bub L=d:clear:m0+d:pile.8:bub P=d:clear:pr+d:clear:bub Q=n:window B=n:worn D=n:worn K=n:worn N=n:worn S=n:worn U=n:other
+71: G=d:clear:bub+d:clear:m0 J=d:auto:pr+d:auto:bub+n:worn L=n:window C=n:worn H=n:worn N=n:worn P=n:other   # J: the user standing on the potion + bubble
+72: F=n:worn H=n:worn K=n:other
+73: F=n:worn L=n:worn
+74: F=d:auto:m0 G=d:flight:m0+n:worn               # G: a coin in the air above us
+75: G=d:flight:sw I=d:clear:m0 H=n:worn J=n:worn   # G: the wing standing on end (spinning) by a ladder
+76: M=d:clear:m0 N=d:clear:m0 L=n:worn
+77: G=d:flight:m0 H=d:clear:m0 F=n:worn J=n:mobpart
+78: H=d:auto:m0+n:worn I=d:clear:m0
+79: I=d:auto:m0+n:worn J=d:clear:m0
+80: G=d:auto:m0 H=d:auto:m0+n:worn
+81: H=d:clear:m0 J=n:mobpart M=n:worn R=n:worn U=n:other
+82: B=n:mobpart C=n:worn D=n:worn F=n:other
+83: D=n:worn J=n:worn M=n:worn N=n:other
+84: D=n:worn H=n:worn I=n:worn J=n:other
+85: C=n:worn F=n:worn H=n:other
+86: B=n:worn D=n:worn F=n:worn G=n:other
+87: B=n:worn F=n:worn H=n:worn K=n:other
+88: A=n:worn C=n:other
+89: A=n:worn C=n:mobpart E=n:other
+90: A=n:worn D=n:other
+91: A=n:worn E=n:other
+92: E=n:worn F=n:worn G=n:worn I=n:other
+93: D=n:worn G=n:other
+94: F=d:flight:m0 A=n:worn D=n:worn J=n:other
+95: F=d:auto:m0 A=n:worn D=n:worn K=n:other
+96: C=d:clear:hmc+d:clear:m0+d:clear:ab+n:worn D=d:clear:hmc+d:clear:m1 A=n:worn J=n:worn M=n:worn
+97: F=d:clear:hmc+d:clear:m1 C=n:mobpart+n:worn B=n:worn M=n:worn
+98: D=d:clear:m1 F=d:pile.4:hmc+d:clear:m1+n:worn G=d:clear:hmc+d:clear:m1 R=d:clear:cu+d:clear:po C=n:worn Q=n:worn S=n:worn W=n:worn
+99: G=d:clear:m1 H=d:clear:hmc+d:clear:m1 I=d:clear:m1 C=d:clear:hmc+d:clear:m1+n:worn U=d:clear:cu+d:clear:po O=n:mobpart+n:worn V=n:worn X=n:worn
+100: C=d:clear:m1 D=d:clear:hmc+d:clear:m1 F=d:pile.8:hmc+d:clear:m1+n:worn G=d:clear:m1 T=d:clear:cu+d:clear:po A=n:mobpart J=n:mobpart+n:worn U=n:worn
+101: A=d:clear:m1 C=d:clear:hmc+d:clear:m1 D=d:clear:m1 H=d:clear:m1 K=d:clear:cu+d:clear:po B=d:clear:hmc+d:clear:m1+n:worn I=n:worn L=n:worn O=n:worn
+102: B=d:clear:m1 C=d:clear:hmc+d:clear:m1 D=d:clear:hmc+d:clear:m1+n:worn E=d:clear:m1+n:worn P=d:clear:cu+d:clear:po R=n:worn
+103: E=d:clear:hmc+d:clear:m1 G=d:clear:m0 D=d:clear:m1+n:worn K=d:effect:cu+d:effect:po+n:worn A=n:worn M=n:worn
+104: D=d:clear:m1 G=d:clear:hmc+d:clear:m1 I=d:clear:m0+d:clear:cu L=d:clear:m0 Q=d:clear:cu+d:clear:po+n:worn H=n:mobpart C=n:worn N=n:worn S=n:worn
+105: C=d:clear:m1 D=d:clear:m0+d:clear:cu M=d:clear:cu+d:clear:po B=d:clear:hmc+d:clear:m1+n:worn H=n:worn I=n:worn
+106: C=d:clear:m1 F=d:clear:m0+d:clear:cu E=d:clear:hmc+d:clear:m1+n:worn M=d:clear:cu+d:clear:po+n:worn A=n:worn K=n:worn N=n:worn
+107: C=d:clear:hmc+d:clear:m1 D=d:clear:m0+d:clear:cu M=d:clear:cu+d:clear:po+n:worn O=n:worn
+108: A=d:clear:hmc+d:clear:m1 B=d:clear:m0+d:clear:cu E=d:clear:cu+d:clear:po+n:worn J=n:worn
+109: B=d:clear:m1 C=d:clear:m0+d:clear:cu H=d:clear:cu+d:clear:po M=d:clear:m0 F=n:mobpart+n:worn I=n:worn
+110: A=d:clear:m0+d:clear:cu F=d:clear:cu+d:clear:po H=d:clear:m0 D=n:mobpart+n:worn G=n:worn
+111: C=d:clear:cu+d:clear:po I=d:clear:m0 D=d:clear:hmc+d:front.75:m0+n:worn A=n:worn F=n:worn K=n:worn
+112: I=d:clear:m0 B=n:worn M=n:mobpart+n:worn D=n:worn
+113: K=d:clear:m0 @614,466=d:flight:m1 @598,462=d:flight:? O=n:mobpart+n:worn B=n:worn D=n:worn   # coin + a spinning item over a Zombie Mushroom's head (its HP bar behind)
+114: C=d:clear:hmc+d:front.6:m0 F=d:clear:m0 J=d:clear:hmc+d:clear:po+d:front.85:m1+n:mobpart+n:worn B=n:worn D=n:worn
+115: A=n:worn B=n:worn D=n:worn E=n:worn G=n:worn H=n:worn
+116: G=n:mobpart A=n:worn C=n:worn J=n:worn K=n:worn
+117: A=n:worn B=n:worn C=n:worn G=n:worn
+118: A=n:worn B=n:worn C=n:worn D=n:worn
+119: G=d:flight:hmc A=n:worn F=n:worn          # G: a cap spinning in the air
+120: D=d:pickup:m0 C=n:worn E=n:worn F=n:worn G=n:worn   # D: a coin fading out (semi-transparent)
+121: H=d:clear:hmc U=n:worn
+122: C=n:worn G=n:worn H=n:worn
+123: F=n:worn I=n:worn
+124: B=n:worn G=n:worn H=n:worn
+125: B=d:auto:pd C=n:worn K=n:worn+n:window P=n:mobpart T=n:worn   # B: an orange vial (Dexterity Potion?) - the snap decides
+126: A=d:auto:pd I=d:pickup:m0 B=n:worn J=n:worn     # I: a coin fading out
+127: C=d:auto:pd A=n:worn D=n:worn I=n:worn+n:mobpart L=n:worn G=n:other   # G: a thrown star (a player's skill)
+128: B=d:auto:pd A=n:worn C=n:worn K=n:worn V=n:worn W=n:worn Y=n:mobpart
+129: A=d:auto:pd I=d:flight:hmc M=d:clear:m0+d:clear:hmc F=n:worn G=n:worn L=n:mobpart
+130: A=d:auto:pd E=d:auto:m1 B=n:worn C=n:worn F=n:worn K=n:worn
+131: B=d:auto:pd D=d:clear:m1 G=d:clear:m1 E=n:worn I=n:worn J=n:worn+n:mobpart   # G: in front of a Horny Mushroom
+132: C=d:auto:pd D=d:clear:m1 E=d:auto:m0 J=d:clear:m0+d:clear:hmc M=d:clear:m0+d:clear:hmc @545,268=d:flight:m0 A=n:worn K=n:worn+n:mobpart   # @: a coin in the air over a Zombie Mushroom's cap
+133: D=d:auto:pd E=d:clear:m1+d:clear:m0 L=d:clear:m0+d:clear:hmc P=d:clear:m0+d:clear:hmc I=d:clear:m0+d:cover.8:po+n:worn+n:mobpart A=n:worn N=n:worn O=n:worn   # I: our spear's shaft over the potion
+134: B=d:clear:m1 C=d:auto:m0 J=d:clear:m0+d:clear:hmc K=d:clear:m1+d:clear:cu+d:clear:m0 Q=d:clear:m0+d:clear:hmc G=n:other I=n:other A=n:worn M=n:worn N=n:worn   # G, I: thrown stars in the air
+135: A=d:clear:m1+d:clear:m0 C=d:auto:m0+d:clear:hmc D=d:clear:m1+d:clear:cu+d:clear:m0 J=d:front.85:m0+n:mobpart L=d:clear:m0+d:clear:hmc+n:worn+n:mobpart
+136: A=d:auto:pd B=d:clear:m1+d:clear:m0 G=d:clear:m0+d:clear:hmc H=d:clear:m1+d:clear:cu+d:pile.4:m0 O=d:clear:m0+d:clear:hmc P=d:auto:m0 J=n:other L=n:other I=n:worn K=n:worn
+137: A=d:auto:pd B=d:ui.6:m1 D=d:clear:m0+d:clear:hmc E=d:clear:m1+d:clear:cu+d:clear:m0 M=d:clear:m0+d:clear:hmc O=d:clear:m0 I=n:worn K=n:worn   # B: under the minimap window's edge
+138: A=d:auto:pd B=d:clear:m1 C=d:auto:m0 H=d:clear:m0+d:clear:hmc I=d:clear:m1+d:clear:cu+d:clear:m0 N=d:clear:m0+d:clear:hmc O=d:clear:m0 J=n:worn L=n:worn M=n:worn
+139: B=d:auto:pd C=d:auto:m1+n:mobpart D=d:clear:m0+n:mobpart H=d:clear:m0+d:clear:hmc+n:mobpart M=d:clear:cu+d:clear:m1 P=d:auto:m0+d:clear:hmc+d:clear:m0 K=d:clear:m1+d:clear:cu+n:worn O=n:mobpart Q=n:mobpart R=n:mobpart
+140: B=d:auto:pd C=d:clear:m1+d:clear:m0 H=d:auto:m0+d:clear:hmc I=d:auto:m1+d:pile.7:po+d:clear:cu+d:pile.6:m0+n:worn L=d:clear:cu+d:clear:m1 M=d:clear:m0+d:clear:hmc N=d:clear:m0 A=n:worn
+141: B=d:auto:pd C=d:clear:m1+d:clear:m0 H=d:clear:m0+d:clear:hmc I=d:auto:m1+d:pile.7:po+d:clear:cu+d:pile.6:m0 M=d:clear:cu+d:clear:m1 N=d:clear:m0+d:clear:hmc O=d:auto:m0 A=n:worn K=n:worn+n:mobpart L=n:worn
+142: E=d:auto:pd F=d:auto:m1 G=d:clear:m0 K=d:pickup:po+n:worn L=d:auto:m0+d:clear:hmc N=d:clear:cu+d:clear:m1 O=d:auto:m0+d:clear:hmc R=d:clear:m0 B=n:worn C=n:worn D=n:worn I=n:worn P=n:worn   # K: the pet's pickup hop
+143: C=d:auto:pd D=d:clear:m1+n:worn F=d:clear:m0+d:clear:hmc H=d:clear:m1 B=n:worn E=n:worn G=n:worn I=n:worn
+144: B=d:clear:m1 D=d:effect:m0+d:effect:hmc E=d:clear:m1 H=d:auto:cu A=n:worn C=n:worn F=n:worn G=n:worn I=n:worn   # D: a '10' digit over its bottom
+145: B=d:auto:m1 C=d:clear:m0 L=d:auto:m1 Q=d:auto:m1+n:mobpart U=d:clear:cu+d:clear:m1 Y=d:auto:m0+d:clear:hmc b=d:clear:m0 I=n:mobpart R=n:mobpart c=n:mobpart A=n:worn J=n:worn V=n:worn a=n:worn
+146: D=d:auto:pd E=d:clear:m1+d:clear:m0 V=d:clear:cu+d:clear:m1 W=d:clear:m0+d:clear:hmc X=d:clear:m0 L=d:auto:m1+n:worn B=n:mobpart C=n:mobpart I=n:mobpart A=n:worn N=n:worn
+147: H=d:auto:m1 I=d:clear:m0 R=d:clear:cu+d:clear:m1 S=d:clear:m0+d:clear:hmc T=d:clear:m0 C=n:other L=n:worn+n:mobpart N=n:worn A=n:worn
+148: A=n:window B=n:other C=n:worn E=n:worn       # A: the chat window (open in this recording)
+149: B=n:window D=n:worn F=n:worn+n:mobpart
+150: A=n:window B=n:worn D=n:worn
+151: C=n:window D=n:worn+n:mobpart
+152: C=d:auto:m1+d:clear:hmc+d:clear:m1 D=d:clear:m1 F=d:auto:m1+d:clear:hmc B=n:window E=n:worn K=n:worn M=n:worn O=n:worn
+153: F=d:clear:m1 G=d:clear:m1+d:clear:hmc+d:auto:m1 J=d:auto:m0 L=d:clear:m1 O=d:auto:cu+n:mobpart P=d:clear:m1+d:clear:hmc Q=d:clear:hmc+n:mobpart I=n:other B=n:window H=n:worn M=n:worn
+154: D=d:clear:m1+d:clear:hmc+d:clear:m1 E=d:clear:m1 F=d:clear:hmc+d:pile.6:m1 A=n:worn B=n:worn G=n:worn C=n:window
+155: B=d:clear:m1+d:clear:hmc C=d:auto:m1 F=d:auto:m1+n:worn E=n:mobpart A=n:window
+156: G=d:clear:hmc+d:clear:m0+n:worn H=d:clear:m1+d:clear:hmc+n:worn+n:mobpart K=d:clear:po L=d:clear:hmc+d:clear:m0 A=n:worn B=n:worn F=n:window
+157: B=d:clear:hmc+d:clear:m0 C=d:clear:m1+d:clear:m1+d:clear:hmc+n:worn F=d:clear:po+d:clear:hmc+d:clear:m0+n:worn H=n:other A=n:window E=n:worn
+158: D=d:clear:hmc+d:clear:m0+n:worn+n:mobpart E=d:clear:m1+d:clear:hmc J=d:clear:po+n:mobpart K=d:clear:hmc+d:clear:m0 B=n:worn+n:mobpart C=n:window
+159: D=d:auto:m0+d:clear:hmc E=d:clear:m1+n:worn H=d:clear:m1 I=d:clear:po K=d:auto:m0+d:clear:hmc C=n:window L=n:worn
+160: D=d:clear:hmc+d:clear:m0 E=d:clear:m1+d:clear:m1+d:auto:po+n:worn G=d:auto:m1 H=d:clear:po I=d:clear:hmc+d:clear:m0 A=n:worn L=n:worn C=n:window
+161: G=d:clear:hmc+d:clear:m0 H=d:clear:m1+d:clear:m1+d:auto:po+n:worn I=d:auto:m0 J=d:auto:m1 K=d:clear:po L=d:clear:hmc+d:clear:m0 F=n:window
+162: C=d:clear:hmc+d:clear:m0 D=d:clear:m1+d:clear:m1+n:worn F=d:auto:m0 G=d:auto:m1+d:auto:m0 H=d:clear:po I=d:clear:hmc+d:clear:m0 J=n:worn B=n:window
+163: E=d:clear:hmc+d:clear:m0 F=d:clear:m1+d:clear:m1+d:clear:hmc H=d:auto:m0 I=d:auto:m1+d:auto:m0 K=d:clear:po L=d:clear:hmc+d:clear:m0 C=n:mobpart G=n:worn J=n:window D=n:window
+164: G=d:clear:hmc+d:clear:m0+n:mobpart I=d:clear:m1+d:clear:m1+d:clear:hmc M=d:clear:m1 N=d:clear:po+d:clear:m0 O=d:clear:hmc+d:clear:m0 H=n:mobpart L=n:worn C=n:worn F=n:window
+165: B=d:clear:hmc+d:clear:m0 C=d:clear:m1+d:clear:hmc F=d:clear:m1 H=d:clear:po I=d:clear:hmc+d:clear:m0 D=d:auto:cu+d:auto:hmc+n:worn+n:mobpart L=n:mobpart A=n:window
+166: B=d:clear:hmc+d:clear:m0 C=d:clear:m1+d:clear:hmc D=d:clear:m1 F=d:flight:hmc I=d:auto:cu J=d:clear:m0+d:clear:hmc L=d:clear:po N=d:clear:hmc+d:clear:m0 E=n:worn K=n:worn A=n:window   # F: a cap falling behind the ladder
+167: B=d:clear:hmc+d:auto:m0 C=d:clear:m1+d:clear:m1+d:clear:hmc H=d:clear:po+d:clear:m0 I=d:clear:hmc+d:auto:m0 D=n:worn+n:mobpart A=n:window
+168: B=d:clear:hmc+d:clear:m0 C=d:clear:m1+d:clear:m1+d:clear:hmc H=d:clear:po+d:clear:m0 I=d:clear:hmc+d:clear:m0 F=n:mobpart G=d:auto:m1+n:worn E=n:worn A=n:window
+169: B=d:clear:m1+d:clear:m1+d:clear:hmc L=d:pickup:hmc+d:pickup:m0 M=d:flight:m1+d:flight:pb N=d:clear:cu A=d:clear:hmc+d:clear:m0+n:worn+n:mobpart F=n:worn E=n:window   # L, M, N: a kill's drops falling past the platform
+170: A=d:clear:m1+d:clear:m1+d:clear:hmc G=d:clear:hmc+d:auto:m0 H=d:auto:m1+d:auto:pb M=d:flight:hmc K=n:mobpart L=n:mobpart B=n:worn I=n:worn E=n:window
+171: A=d:auto:m1+d:auto:m1+d:clear:hmc F=d:clear:m0+d:clear:hmc G=d:clear:m1+d:clear:cu+d:clear:pb I=d:flight:m0+d:flight:hmc C=d:auto:cu+n:worn H=n:worn D=n:window
+172: E=d:auto:m1+d:auto:m1+d:auto:hmc G=d:clear:m1+d:clear:pb D=d:auto:hmc+d:auto:m0+n:worn A=n:other B=n:worn C=n:window
+173: D=d:clear:hmc+d:clear:m1 F=d:auto:m1 I=d:clear:m1+d:clear:cu+d:clear:pb E=d:auto:m1+d:auto:m1+n:worn B=n:worn C=n:window
+174: B=n:window C=n:worn               # the Options window open
+175: E=n:window C=n:worn F=n:worn
+176: Q=n:window C=n:worn D=n:worn J=n:worn O=n:worn     # Q: the Pet Food tooltip (its icon)
+177: O=n:window C=n:worn J=n:worn+n:mobpart
+178: H=d:flight:m0 E=n:worn+n:mobpart M=n:window
+179: D=d:clear:m0+d:clear:hmc+d:auto:po H=d:auto:pb G=d:effect:hmc E=n:worn J=n:worn K=n:worn O=n:window
+180: F=d:auto:m0 I=d:auto:m1 M=d:clear:cu N=d:clear:hmc+d:auto:m0 G=n:worn J=n:worn O=n:window
+181: G=d:auto:m0+d:clear:cu I=d:clear:m1 K=d:clear:m0 O=d:clear:cu R=d:auto:m1+d:clear:hmc+d:clear:m0 M=d:clear:m1+d:clear:hmc+d:clear:hmc+n:worn+n:mobpart L=d:front.7:m1+n:worn D=n:worn T=n:window
+182: F=n:window H=d:clear:m0+d:clear:cu J=d:clear:m1 M=d:clear:m0+d:clear:m1+d:clear:hmc+d:clear:hmc+n:worn+n:mobpart O=d:clear:m1+n:mobpart S=d:clear:cu X=d:clear:cu+d:auto:m1 Y=d:clear:hmc+d:clear:m0 W=n:mobpart E=n:worn   # F: the open inventory (17 item icons)
+183: E=n:window G=d:clear:m0+d:clear:cu I=d:auto:m1 J=d:clear:m0 K=d:auto:m1 L=d:clear:m1+d:clear:hmc O=d:clear:hmc+n:worn+n:mobpart P=d:effect:cu R=d:clear:cu+d:clear:m1+d:clear:hmc+d:clear:m0 S=n:mobpart D=n:worn
+184: C=n:window B=d:clear:m0+d:clear:cu F=d:ui.7:cu H=d:clear:hmc+d:clear:m0 I=d:clear:m1+d:clear:hmc+d:auto:m0 G=n:worn   # BIG: the inventory + a pet tooltip
+185: H=n:window F=d:clear:m0+d:clear:cu I=d:clear:m1 J=d:auto:m0 K=d:front.8:m1 M=d:auto:m1 N=d:clear:hmc+d:clear:hmc+d:auto:m0 O=d:clear:hmc P=d:clear:cu T=d:clear:hmc+d:clear:m0+d:clear:m1+d:clear:hmc G=n:mobpart C=n:worn Q=n:worn
+186: G=d:clear:m0+n:mobpart H=d:clear:hmc J=d:auto:m0+n:worn+n:mobpart A=n:worn I=n:worn S=n:worn
+187: M=d:clear:hmc+d:clear:m0 O=d:auto:m1+d:clear:hmc S=d:pickup:cu B=n:worn C=n:worn P=n:worn R=n:worn+n:mobpart
+188: C=d:clear:m1 N=d:clear:hmc F=n:worn+n:mobpart
+189: D=d:clear:m1 Q=d:ui.6:m1+d:ui.3:hmc L=d:flight:cu+n:worn+n:mobpart G=n:worn
+190: H=d:clear:cu I=d:clear:m0+d:auto:m1+d:auto:m1+n:mobpart+n:worn J=d:flight:m0+d:flight:po K=d:flight:po N=d:clear:m0 O=d:clear:m1+d:clear:cu D=n:worn G=n:worn Q=n:worn
+191: D=d:front.8:hmc E=d:auto:m1 K=d:clear:m1+n:mobpart J=n:other B=n:worn F=n:worn+n:mobpart L=n:worn
+192: C=d:front.7:hmc D=d:clear:m1 H=d:clear:m0+d:clear:hmc K=d:auto:m1 L=d:auto:hmc+d:front.8:m1 J=n:worn+n:mobpart F=n:worn M=n:worn R=n:worn P=n:mobpart
+193: I=d:clear:hmc M=d:clear:cu D=n:worn O=n:worn P=n:worn
+194: C=d:front.7:hmc D=d:clear:m1 F=d:clear:m0+d:clear:hmc B=n:worn G=n:worn+n:mobpart J=n:mobpart L=n:worn
+195: K=d:auto:m1+n:worn F=n:worn L=n:worn J=n:mobpart
+196: F=d:clear:m1 S=d:clear:hmc T=d:front.8:m1 U=d:front.8:cu I=d:auto:cu+n:worn N=d:auto:hmc+d:auto:m0+n:worn G=n:worn   # T, U: a ladder post over them
+197: C=d:auto:m1+d:auto:cu+n:worn I=d:clear:hmc K=d:clear:m0+d:clear:hmc M=d:front.8:m1 O=d:front.8:cu D=n:worn B=n:worn
+198: J=d:clear:cu K=d:clear:m1 P=d:clear:m0+d:clear:hmc+d:clear:m1 R=d:clear:m0 B=n:mobpart H=n:mobpart C=n:mobpart E=n:mobpart F=n:worn M=n:worn
+199: H=d:clear:cu I=d:clear:m1 O=d:clear:m0 M=d:auto:m1+n:worn F=n:worn
+200: G=d:auto:m1 J=d:clear:hmc L=d:clear:m0 B=n:worn K=n:worn+n:mobpart

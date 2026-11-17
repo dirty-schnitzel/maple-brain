@@ -2,6 +2,9 @@
 
     python tools/loot/synth_find.py SET [--out NAME] [--votes 16] [--no-fit]
         SET = an OUT of synth_drops.py (full frames) or tests/fixtures/synth_drops (crops; --fixture is detected)
+              or `labels` (S6: the by-eye labelled frames of tools/loot/labels/picks.json, real recordings: the
+              camera = find_v4's registered one, characters = our tag + the players' tags of FrameFacts, as
+              exp_find.py) -> runs/loot_labels/finder_<NAME>.jsonl, rows keyed "<run key>/<frame>"
 
 Per frame, the inputs the live tick would have: the expected scene at the frame's camera (Scene.expected; the
 fixture: its stored crop, outside the window frame = expected = 0), the world mask (lootlib.world_mask), the mob
@@ -22,15 +25,16 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from lootlib import Footholds, world_mask, PLAY_H, SW, ROOT  # noqa: E402
+from lootlib import Footholds, frame, map_of, run_ticks, world_mask, PLAY_H, SW, ROOT  # noqa: E402
 from dropvote import DropFinder, facts  # noqa: E402
 
 
-def frame_inputs(set_dir: Path, name: str, f: dict, fixture: bool, scenes: dict, masks):
+def frame_inputs(set_dir: Path, name: str, f: dict, fixture: bool, scenes: dict, masks, img=None):
     """-> frame (768, SW, 3) uint8, exp (PLAY_H, SW, 3) float32 or None, known, world, front {L: bool plane}."""
     import torch
     if not fixture:
-        img = cv2.imread(str(set_dir / "frames" / f["frame"]))
+        if img is None:
+            img = cv2.imread(str(set_dir / "frames" / f["frame"]))
         sc = scenes[f["map"]]
         exp, known = sc.expected(tuple(f["C"]))
         exp, known = exp.float().cpu().numpy(), known.cpu().numpy()
@@ -64,6 +68,25 @@ def frame_inputs(set_dir: Path, name: str, f: dict, fixture: bool, scenes: dict,
     return img, exp, known, world, front
 
 
+def label_frames() -> dict:
+    """tools/loot/labels/picks.json -> {"<run key>/<frame>": {run, frame, map, C, me, chars}} (the live inputs)."""
+    sys.path.insert(0, str(HERE / "labels"))
+    from pick import RUNS
+    picks = json.loads((HERE / "labels" / "picks.json").read_text(encoding="utf-8"))
+    out, tks = {}, {}
+    for p in picks:
+        run = ROOT / RUNS[p["run"]]
+        if p["run"] not in tks:
+            tks[p["run"]] = {k["frame"]: k for k in run_ticks(run)}
+        k = tks[p["run"]].get(p["frame"]) or {}
+        boxes = [(k["me"][0], k["me"][1])] if k.get("me") else []
+        boxes += [(tg[0] + tg[2] / 2, tg[1]) for tg in (k.get("facts") or {}).get("tags") or []]
+        chars = [(cx - 42, fy - 90, cx + 42, fy + 22) for cx, fy in boxes]
+        out[f"{p['run']}/{p['frame']}"] = {"run": run, "frame": p["frame"], "map": map_of(run), "C": p["cam"],
+                                           "me": k.get("me"), "chars": chars}
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("set")
@@ -74,8 +97,12 @@ def main():
     import torch
     from maplebrain.scene import Scene
     from maplebrain.perception.fit import Fitter
-    set_dir = Path(a.set)
-    meta = json.loads((set_dir / "synth.json").read_text(encoding="utf-8"))
+    labels = a.set == "labels"
+    set_dir = ROOT / "runs" / "loot_labels" if labels else Path(a.set)
+    if labels:
+        meta = {"frames": label_frames()}
+    else:
+        meta = json.loads((set_dir / "synth.json").read_text(encoding="utf-8"))
     fixture = bool(meta.get("fixture"))
     masks = np.load(set_dir / "masks.npz") if fixture else None
     maps = sorted({f["map"] for f in meta["frames"].values()})
@@ -90,7 +117,8 @@ def main():
     fit_bits, ms_v, ms_c, t0 = {}, [], [], time.time()
     with open(set_dir / f"finder_{a.out}.jsonl", "w", encoding="utf-8") as fo:
         for name, f in meta["frames"].items():
-            img, exp, known, world, front = frame_inputs(set_dir, name, f, fixture, scenes, masks)
+            img, exp, known, world, front = frame_inputs(set_dir, name, f, fixture, scenes, masks,
+                                                         frame(f["run"], f["frame"]) if labels else None)
             C = tuple(f["C"])
             ft = torch.from_numpy(np.ascontiguousarray(img)).to(dev)
             et = torch.from_numpy(exp).to(dev)
