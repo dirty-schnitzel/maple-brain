@@ -2,7 +2,9 @@
 
     run_ticks(RUN)        -> the ticks that saved a frame, each with its camera (obs.scene_cam / facts.scene_cam / cam)
     frame(RUN, name)      -> the frame (BGR uint8), the capture's 1 px column error undone (tools/perc/frames.py)
-    Items                 -> the client's item pictures (tools/loot/export_items.ps1 -> cw-data/export/Item)
+    Items                 -> the client's item pictures as the plan session exported them (tools/loot/export_items.ps1
+                             -> cw-data/export/ItemDraft: iconRaw + icon, links NOT followed); the product's pictures are
+                             tools/cwdata/export.ps1 -> `assets build` -> assets/mcw/items (gamedata.load_items)
 """
 import json
 import sys
@@ -16,7 +18,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tools" / "perc"))
 import frames as _frames  # noqa: E402  (tools/perc/frames.py)
 
-EXPORT = Path(r"C:\Users\Yoav\dev\cw-data\export\Item")
+EXPORT = Path(r"C:\Users\Yoav\dev\cw-data\export\ItemDraft")
 PLAY_H, SW = 700, 1366
 
 

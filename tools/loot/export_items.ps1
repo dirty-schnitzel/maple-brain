@@ -5,7 +5,8 @@
 #   <Out>\png\0900000<n>_raw_<f>.png                   the meso pictures: Item\Special\0900.img, 4 sizes x 4 frames
 #   <Out>\items.json   id -> {kind, name, raw: [w, h, ox, oy], icon: [w, h, ox, oy], frames: [[w, h, ox, oy, delay]..]}
 # Run (R2R off): $env:DOTNET_ReadyToRun=0; pwsh -NoProfile -File tools\loot\export_items.ps1
-param([string]$Out = 'C:\Users\Yoav\dev\cw-data\export\Item')
+param([string]$Out = 'C:\Users\Yoav\dev\cw-data\export\ItemDraft')   # (export.ps1 owns Item\ since PLAN-loot S1;
+                                                                    #  this one stays for `icon`: synth window icons)
 $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot\..\cwdata\load.ps1"
 

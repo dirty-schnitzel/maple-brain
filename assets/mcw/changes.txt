@@ -1,2 +1,2 @@
-assets/mcw rebuilt 2026-11-08T21:23:55+00:00 from C:\Users\Yoav\dev\cw-data\export: changes vs the previous build
-no changes
+assets/mcw rebuilt 2026-11-17T12:36:38+00:00 from C:\Users\Yoav\dev\cw-data\export: changes vs the previous build
+items: first build

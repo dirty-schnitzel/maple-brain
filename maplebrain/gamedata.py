@@ -15,6 +15,10 @@
                                 area a swing hits, relative to our feet, FACING LEFT (x < 0 = in front); brain-v2 reach.
                                 Also stance_ms (the body's attack stances, ms at speed 6), speeds (weapon type ->
                                 {attackSpeed: count}) and items (weapon id -> [type, attackSpeed]): swing lengths
+    items/items.npz             what a drop shows (PLAN-loot.md): every DISTINCT item picture (info/iconRaw of every
+                                Etc / Use / Setup item and equip + the 16 meso frames), BGRA, packed (`load_items`)
+    items/items.json            id -> name, kind, w, h, origin, `g` (its picture in items.npz), `same` (the picture
+                                class's id: the meso's if a meso frame shows it, else the lowest id), `weak`, `link`
 Ids are the client's without the zero padding (map 000000042 -> 42, mob 0000002 -> 2). map.json's field names
 (footholds / ladderRopes / mobs / miniMap ...) are the ones the bot has always read (the layout of the maplestory.io
 copy this replaced on 2026-11-03).
@@ -27,7 +31,9 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1] / "assets" / "mcw"
+import numpy as np
+
+ROOT =Path(__file__).resolve().parents[1] / "assets" / "mcw"
 EXPORT = Path(r"C:\Users\Yoav\dev\cw-data\export")       # tools/cwdata/export.ps1's default output
 
 
@@ -251,6 +257,159 @@ def build_mob(img: dict, mob_id: int, name: str | None, png_dir: Path, out_dir: 
             "frames": sum(books.values()), "link": m["link"]}
 
 
+# ------------------------------------------------------------------ items (what a drop shows; PLAN-loot.md)
+MESO_NAMES = {9000000: "Meso (bronze)", 9000001: "Meso (gold)", 9000002: "Meso (bundle)", 9000003: "Meso (sack)"}
+WEAK_FEATURES = 16      # a picture with fewer usable features than this cannot reach the vote's candidate bar
+WEAK_PLACES = 64        # usable feature = its key occurs in <= this many places of all pictures (Voter max_entries)
+
+
+def _key24(bgr):
+    return bgr[..., 0].astype(np.int64) | (bgr[..., 1].astype(np.int64) << 8) | (bgr[..., 2].astype(np.int64) << 16)
+
+
+def item_features(pics: list) -> tuple:
+    """The vote's material per picture (perception/vote.py Voter's rule): features = 2x2 blocks of opaque pixels
+    (alpha 255) that are not one flat colour; usable = its colour key occurs in <= WEAK_PLACES places over all `pics`.
+    -> (n_feat, kept) int arrays."""
+    cols = np.unique(np.concatenate([_key24(p[..., :3])[p[..., 3] == 255] for p in pics]))
+    r = len(cols) + 1
+    keys, owner = [], []
+    for g, p in enumerate(pics):
+        ids = np.where(p[..., 3] == 255, np.searchsorted(cols, _key24(p[..., :3])) + 1, 0).astype(np.int64)
+        a, b, c, d = ids[:-1, :-1], ids[:-1, 1:], ids[1:, :-1], ids[1:, 1:]
+        ok = (a > 0) & (b > 0) & (c > 0) & (d > 0) & ~((a == b) & (a == c) & (a == d))
+        keys.append(((a[ok] * r + b[ok]) * r + c[ok]) * r + d[ok])
+        owner.append(np.full(int(ok.sum()), g))
+    k, own = np.concatenate(keys), np.concatenate(owner)
+    _, inv, cnt = np.unique(k, return_inverse=True, return_counts=True)
+    return (np.bincount(own, minlength=len(pics)),
+            np.bincount(own[cnt[inv] <= WEAK_PLACES], minlength=len(pics)))
+
+
+def _item_pictures(export: Path) -> tuple:
+    """Item/items.json + png of the export -> ([(id, frame, BGRA, (ox, oy), delay)] mesos first, then items by id,
+    the export's items.json)."""
+    import cv2
+    d = Path(export) / "Item"
+    meta = json.loads((d / "items.json").read_text(encoding="utf-8-sig"))
+    out = []
+    for sid in sorted(meta, key=lambda s: (meta[s]["kind"] != "Meso", int(s))):
+        e = meta[sid]
+        files = ([(f"{sid}_raw_{k}.png", fr[2:4], fr[4]) for k, fr in enumerate(e["frames"])] if e["kind"] == "Meso"
+                 else [(f"{sid}_raw.png", e["raw"][2:4], 0)])
+        for k, (fn, org, delay) in enumerate(files):
+            pic = cv2.imread(str(d / "png" / fn), cv2.IMREAD_UNCHANGED)
+            if pic is None:
+                raise FileNotFoundError(f"item {sid}: no picture {d / 'png' / fn}")
+            if pic.ndim == 2:
+                pic = cv2.cvtColor(pic, cv2.COLOR_GRAY2BGRA)
+            elif pic.shape[2] == 3:
+                pic = cv2.cvtColor(pic, cv2.COLOR_BGR2BGRA)
+            out.append((int(sid), k, np.ascontiguousarray(pic), tuple(org), int(delay)))
+    return out, meta
+
+
+def item_classes(entries: list) -> tuple:
+    """Pixel-identical pictures are ONE class (a drop of such a picture can't be told apart by sight). `entries`:
+    [(id, frame, BGRA, ...)]. The class's id = the meso's if a meso frame is in it (mesos are what drops most), else
+    the lowest id; the class's picture = that member's. Independent of the input order.
+    -> ([(class id, frame, BGRA, member index)] in a fixed order: mesos, then by class id), {entry index: class index}."""
+    rank = lambda e: (e[0] < 9000000, e[0], e[1])                    # noqa: E731  mesos first, then the lowest id
+    groups = {}
+    for i, e in enumerate(entries):
+        groups.setdefault((e[2].shape, e[2].tobytes()), []).append(i)
+    reps = sorted((min(ix, key=lambda i: rank(entries[i])), ix) for ix in groups.values())
+    reps.sort(key=lambda r: rank(entries[r[0]]))
+    classes, of = [], {}
+    for c, (rep, ix) in enumerate(reps):
+        e = entries[rep]
+        classes.append((e[0], e[1], e[2], rep))
+        for i in ix:
+            of[i] = c
+    return classes, of
+
+
+def build_items(export: Path, out: Path, log=print) -> dict:
+    """Item pictures of the export -> out/items.npz (every distinct picture, BGRA, packed) + out/items.json.
+    Returns a summary (counts, the weak pictures' names)."""
+    entries, meta = _item_pictures(export)
+    classes, of = item_classes(entries)
+    pics = [c[2] for c in classes]
+    n_feat, kept = item_features(pics)
+    weak = kept < WEAK_FEATURES
+    out.mkdir(parents=True, exist_ok=True)
+    hw = np.array([p.shape[:2] for p in pics], np.int32)
+    size = hw[:, 0].astype(np.int64) * hw[:, 1]
+    np.savez_compressed(out / "items.npz", pix=np.concatenate([p.reshape(-1, 4) for p in pics]),
+                        start=np.concatenate([[0], np.cumsum(size)[:-1]]).astype(np.int64), hw=hw,
+                        org=np.array([entries[c[3]][3] for c in classes], np.int32),
+                        item=np.array([c[0] for c in classes], np.int32), f=np.array([c[1] for c in classes], np.int16),
+                        delay=np.array([entries[c[3]][4] for c in classes], np.int16),
+                        n_feat=n_feat.astype(np.int32), kept=kept.astype(np.int32), weak=weak)
+    items = {}
+    for i, (iid, k, pic, org, delay) in enumerate(entries):
+        g = of[i]
+        if k == 0:
+            e = meta[f"{iid:08d}"]
+            items[str(iid)] = {"name": MESO_NAMES.get(iid, e.get("name")), "kind": e["kind"], "w": int(pic.shape[1]),
+                               "h": int(pic.shape[0]), "o": list(org), "g": g, "same": classes[g][0],
+                               **({"same_f": classes[g][1]} if classes[g][1] else {}), "weak": bool(weak[g]),
+                               **({"link": int(e["link"])} if e.get("link") else {})}
+            if e["kind"] == "Meso":
+                items[str(iid)]["frames"] = []
+        if iid >= 9000000 and meta[f"{iid:08d}"]["kind"] == "Meso":
+            items[str(iid)]["frames"].append({"g": g, "w": int(pic.shape[1]), "h": int(pic.shape[0]), "o": list(org),
+                                              "delay": delay})
+    n_link = sum("link" in e for e in items.values())
+    doc = {"source": "Classic World client: info/iconRaw of every Etc / Consume / Install item and equip + the meso "
+                     "frames (tools/cwdata/export.ps1 -> assets build)",
+           "pictures": len(pics), "ids": len(items), "linked": n_link, "weak_count": int(weak.sum()), "weak_rule": f"< {WEAK_FEATURES} features "
+           f"(2x2 opaque blocks, not one flat colour) whose key occurs in <= {WEAK_PLACES} places over all pictures",
+           "items": items}
+    (out / "items.json").write_text(json.dumps(doc, indent=0, ensure_ascii=False), encoding="utf-8")
+    n_pic = sum(len(e["frames"]) if e["kind"] == "Meso" else 1 for e in items.values())
+    weak_names = sorted({(classes[g][0], items[str(classes[g][0])]["name"] or str(classes[g][0]))
+                         for g in np.flatnonzero(weak)})
+    log(f"items: {len(items)} ids ({n_link} by a link), {n_pic} pictures -> {len(pics)} distinct, "
+        f"{int(weak.sum())} weak")
+    return {"ids": len(items), "linked": n_link, "pictures": n_pic, "distinct": len(pics), "weak": weak_names}
+
+
+class ItemPictures:
+    """assets/mcw/items as built: `pics[g]` BGRA uint8 (h, w, 4) of distinct picture g; `item[g]` its class id,
+    `f[g]` meso frame, `org[g]` the file origin, `delay[g]`, `weak[g]`, `kept[g]` / `n_feat[g]` (usable / all
+    features); `meta` = items.json's items (str id -> {name, kind, w, h, o, g, same, weak, link?, frames?})."""
+
+    def __init__(self, root: Path | None = None):
+        d = Path(root or ROOT) / "items"
+        z = np.load(d / "items.npz")
+        pix, start, hw = z["pix"], z["start"], z["hw"]
+        self.pics = [pix[s:s + h * w].reshape(h, w, 4) for s, (h, w) in zip(start, hw)]
+        for k in ("item", "f", "org", "delay", "weak", "kept", "n_feat"):
+            setattr(self, k, z[k])
+        self.doc = json.loads((d / "items.json").read_text(encoding="utf-8"))
+        self.meta = self.doc["items"]
+
+    def __len__(self):
+        return len(self.pics)
+
+    def name(self, iid) -> str:
+        e = self.meta.get(str(int(iid))) or {}
+        return e.get("name") or str(int(iid))
+
+    def kind(self, iid) -> str:
+        return (self.meta.get(str(int(iid))) or {}).get("kind", "?")
+
+    def members(self, g: int) -> list:
+        """Every id whose picture is g (mesos: by any frame)."""
+        return sorted(int(i) for i, e in self.meta.items()
+                      if e.get("g") == g or any(fr["g"] == g for fr in e.get("frames") or []))
+
+
+def load_items(root: Path | None = None) -> ItemPictures:
+    return ItemPictures(root)
+
+
 # ------------------------------------------------------------------ everything
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -328,6 +487,11 @@ def build(export: Path = EXPORT, root: Path = ROOT, log=print) -> dict:
                                                                      if att["differs"] else ""))
     else:
         log("no Afterimage in the export (old export.ps1?): attacks.json not built - brain-v2 reach needs it")
+    if (export / "Item" / "items.json").exists():
+        s = build_items(export, new / "items", log)
+        man["items"] = {**{k: s[k] for k in ("ids", "linked", "pictures", "distinct")}, "weak": len(s["weak"])}
+    else:
+        log("no Item in the export (old export.ps1?): items not built - drops (PLAN-loot.md) need them")
     (new / "manifest.json").write_text(json.dumps(man, indent=1, sort_keys=True), encoding="utf-8")
     report = changes(root, new)
     head = f"assets/mcw rebuilt {man['built']} from {export}: changes vs the previous build"
@@ -389,7 +553,29 @@ def changes(old: Path, new: Path) -> list[str]:
                 what.append(f"pictures {', '.join(pics[:4])}" + (f" (+{len(pics) - 4})" if len(pics) > 4 else ""))
             if what:
                 out.append(f"{kind[:-1]} {i} {jb.get('name') or ''}: {'; '.join(what)}")
+    out += _item_changes(old, new)
     return out or ["no changes"]
+
+
+def _item_changes(old: Path, new: Path) -> list[str]:
+    """One line: item ids added / removed, ids whose picture changed (pixels) or whose name changed."""
+    have = [(r / "items" / "items.npz").exists() for r in (old, new)]
+    if not any(have):
+        return []
+    if not all(have):
+        return ["items: " + ("first build" if have[1] else "removed")]
+    a, b = ItemPictures(old), ItemPictures(new)
+
+    def pic(x, e):
+        return [x.pics[fr["g"]].tobytes() for fr in e["frames"]] if e.get("frames") else x.pics[e["g"]].tobytes()
+
+    ia, ib = set(a.meta), set(b.meta)
+    common = sorted(ia & ib, key=int)
+    pix = [i for i in common if pic(a, a.meta[i]) != pic(b, b.meta[i])]
+    nam = [i for i in common if a.meta[i].get("name") != b.meta[i].get("name")]
+    parts = [f"{lbl} {len(s)} ({' '.join(sorted(s, key=int)[:8])}{' ...' if len(s) > 8 else ''})"
+             for lbl, s in (("added", ib - ia), ("removed", ia - ib), ("picture changed", pix), ("renamed", nam)) if s]
+    return [f"items: {'; '.join(parts)}"] if parts else []
 
 
 def _rename(src: Path, dst: Path, tries: int = 20) -> None:
