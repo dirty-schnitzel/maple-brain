@@ -72,4 +72,10 @@ def test_known_facts(items):
         t = items.meta.get(str(e["link"]))
         assert t is not None and t["g"] == e["g"], e
     assert int(items.weak.sum()) == items.doc["weak_count"]
+    # cash-shop items never drop: a picture is cash-only when every id showing it is one; the mesos never are
+    assert int(items.cash.sum()) == items.doc["cash_pictures"] > 0
+    for g in range(len(items)):
+        assert bool(items.cash[g]) == all(items.meta[str(i)].get("cash") for i in items.members(g)), g
+    assert not any(items.cash[fr["g"]] for n in range(4) for fr in items.meta[str(9000000 + n)]["frames"])
+    assert items.doc["searched"] == int((~items.weak & ~items.cash).sum())
     assert all(items.kept[items.weak] < gamedata.WEAK_FEATURES)

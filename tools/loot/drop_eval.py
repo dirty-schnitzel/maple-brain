@@ -3,6 +3,7 @@
     python tools/loot/drop_eval.py SET --finder finder_before.jsonl [--list] [--misses misses.json]
         SET = a synth_drops.py OUT (synth.json: exact truth) or, later, a run with labels.json (S6, matched by feet)
 
+Kinds (the user, 2026-11-17): REST / weak only - no AIR kind; a drop in the air must read weak.
 Truth drops (synth.json `drops`): kind rest / air, cls clear / pile / mob / player / effect / ui / edge / flight, vis
 (share of its on-screen opaque pixels the frame shows), front (share under front scenery of its layer). Grading
 classes: `front` = any drop with front > 0 (out of its own class), `weak picture` = a picture the finder cannot vote for
@@ -86,7 +87,7 @@ def evaluate(truth: dict, rows: dict, items, frames_dir: Path | None = None) -> 
                 s = S[i]
                 rec[c][s["kind"]] += 1
                 pos[(dx, dy)] += 1
-                if s["kind"] != ("rest" if d["kind"] == "rest" else "air"):
+                if s["kind"] != ("rest" if d["kind"] == "rest" else "weak"):
                     misses.append({"frame": name, "class": c, "drop": d, "got": s})
                 continue
             meso = [(i, s) for i, s in enumerate(S) if i not in used and d["item"] >= 9000000 and s["item"] == d["item"]
@@ -144,8 +145,9 @@ def report(ev: dict, items, list_all: bool = False, log=print) -> bool:
             continue
         r = rec[c]
         tot = r["n"]
-        main = r["air"] if c == "flight" else r["rest"]
-        log(f"  {c:14s} n {tot:5d} | {'AIR' if c == 'flight' else 'REST'} {main:5d} = {100 * main / max(1, tot):6.2f} % | "
+        main = r["rest"]                # flight: REST on a drop in the air = wrong (it should read weak)
+        log(f"  {c:14s} n {tot:5d} | {'REST (wrong)' if c == 'flight' else 'REST'} {main:5d} = "
+            f"{100 * main / max(1, tot):6.2f} % | "
             f"rest {r['rest']} air {r['air']} weak {r['weak']} wrong {r['wrong']} twin {r['twin']} none {r['none']}"
             + ("   [gated]" if c in GATED else ""))
     gn = sum(rec[c]["n"] for c in GATED)

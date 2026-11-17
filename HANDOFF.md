@@ -120,9 +120,24 @@ Fitter.look feeding world.py. ~8,000 lines out.
   Then step 4 (the tracker redesign) as a Fable-max plan session (PLAN-perception.md step 4).
 
 ## Loot rework part 1: PERCEIVE drops - PLAN-loot.md OK'd by the user 2026-11-17 (branch `loot`)
-**START HERE for loot work: Session 1 STOPPED at its gate (S4: false + identity on synth) - THE USER'S CALL on the
-options below; then Session 2 (labels).** All in worktree `C:\Users\Yoav\dev\maple-loot`, branch `loot`.
-### Session 1 state (2026-11-17, Opus): S1-S3 DONE, S4 "before" measured, gate NOT MET
+**START HERE for loot work: Session 1 DONE (every gate met after the user's amendments) -> NEXT = Session 2
+(by-eye labels, S5-S6; prompt in PLAN-loot.md section 14 - read its "AMENDED" block first).** Worktree
+`C:\Users\Yoav\dev\maple-loot`, branch `loot`.
+### Session 1 result after the user's amendments (2026-11-17; PLAN-loot.md "AMENDED")
+The user, on the stop report: the 3 confused hat / shades pairs are NX items ("no way they are floating on the
+floor"), AIR isn't needed -> (1) cash-shop items not searched (info/cash: 2,750 equips, 2,675 cash-only pictures;
+1,920 searched instead of 4,577; export + build carry `cash`), (2) kinds REST / weak only, (3) REST needs ring >= 0.1
+(>= 60 known ring px; else pass). Synth regenerated: drops only from pictures that can drop (worn gear and window
+icons still use cash items). **S4 on synth (runs/synth/drops_s1, 385 frames): gated REST 2,053 / 2,057 = 99.81 %,
+FALSE 0 (410 window icons, 74 worn, 123 Stirges, 50 drop-free frames), identity 0 wrong of 2,508, feet exact on
+2,508 / 2,508 -> GATE MET; fixture (40 frames) MET too.** Reported: effect 0 % REST (92 none, 15 weak: digits over
+them), ui 13.6 %, edge 74 %, front 91.2 %, pile < 50 % 7 / 10, flights read REST 2 / 107 (another foothold just below
+them: dy -6 / +1), weak pictures 0 / 6. Gated misses: 1 clear on a stair (dy 11: the foothold lookup takes a step
+above), 3 pile items weak (the drop over them accepted after them). Finder build 0.7 s (1,920 pictures, 668 k table
+entries). pytest green; bot speed 14.8 ms (p90 16.9).
+Open for Session 2 / 3: the foothold lookup (topmost at / below bottom - 14 -> nearest to the bottom), the pick
+order for "under an accepted drop" - both minor, the user's call when labels show them.
+### Session 1 state BEFORE the amendments (kept for the numbers): S1-S3 DONE, S4 gate NOT MET
 - **S1 DONE** tools/cwdata/export.ps1 item section: `Item\png\<id>_raw.png` (iconRaw only), mesos 09000000-3 x 4
   frames, `Item\items.json` (kind, name, raw [w, h, ox, oy], link); 257 UOL links resolved (256 via LinkValue, 1 =
   02023002 "icon" = its own sibling, via the parent). Skipped and listed: 1 nameless cash weapon 01702302 (iconRaw

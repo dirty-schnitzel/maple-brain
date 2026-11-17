@@ -157,7 +157,8 @@ Export-Sets "$D\UI\UI_*.wz" "$Out\UI" @('AntiMacro.img', 'LieDetector.img')
 # 1:1 and opaque (info/icon = the same + a shadow, drawn in windows only: not exported)
 #   Item\png\<8-digit id>_raw.png      every Etc / Consume / Install item + every equip (Character\<slot>\<id>.img)
 #   Item\png\0900000<n>_raw_<f>.png    the meso pictures (Item\Special\0900.img: 4 sizes x 4 frames)
-#   Item\items.json  id -> {kind, name, raw: [w, h, ox, oy], link: the item whose picture it borrows} (mesos: frames
+#   Item\items.json  id -> {kind, name, raw: [w, h, ox, oy], link: the item whose picture it borrows, cash: 1 = a
+#                    cash-shop item (info/cash: never drops)} (mesos: frames
 #                    [[w, h, ox, oy, delay]..], delay 0 = none in the file); names from String Etc / Consume / Ins / Eqp
 # 257 items' iconRaw is a UOL (WzUOLProperty) to another item's (scroll families): followed to the target canvas.
 if (Test-Path "$Out\Item") { Remove-Item -Recurse -Force "$Out\Item" }
@@ -179,6 +180,8 @@ function Add-Raw([string]$kind, [string]$id, $info, $img) {
   $c = $info.GetFromPath('iconRaw')
   if (-not $c) { $script:nNoRaw++; return }
   $e = [ordered]@{ kind = $kind; name = $names[[int]$id] }
+  $cf = $info.GetFromPath('cash')                            # a cash-shop (NX) item: never drops
+  if ($cf -and [int]"$($cf.Value)" -eq 1) { $e['cash'] = 1 }
   $uol = ''
   for ($hop = 0; $c -is [MapleLib.WzLib.WzProperties.WzUOLProperty] -and $hop -lt 8; $hop++) {
     $uol = "$($c.Value)"; $par = $c.Parent; $c = $c.LinkValue

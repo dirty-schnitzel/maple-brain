@@ -337,6 +337,11 @@ def build_items(export: Path, out: Path, log=print) -> dict:
     pics = [c[2] for c in classes]
     n_feat, kept = item_features(pics)
     weak = kept < WEAK_FEATURES
+    # a cash-shop (NX) item never drops: a picture is `cash` when every id showing it is one (the finder skips it)
+    cash = np.ones(len(pics), bool)
+    for i, e in enumerate(entries):
+        if not (meta.get(f"{e[0]:08d}") or {}).get("cash"):
+            cash[of[i]] = False
     out.mkdir(parents=True, exist_ok=True)
     hw = np.array([p.shape[:2] for p in pics], np.int32)
     size = hw[:, 0].astype(np.int64) * hw[:, 1]
@@ -345,7 +350,7 @@ def build_items(export: Path, out: Path, log=print) -> dict:
                         org=np.array([entries[c[3]][3] for c in classes], np.int32),
                         item=np.array([c[0] for c in classes], np.int32), f=np.array([c[1] for c in classes], np.int16),
                         delay=np.array([entries[c[3]][4] for c in classes], np.int16),
-                        n_feat=n_feat.astype(np.int32), kept=kept.astype(np.int32), weak=weak)
+                        n_feat=n_feat.astype(np.int32), kept=kept.astype(np.int32), weak=weak, cash=cash)
     items = {}
     for i, (iid, k, pic, org, delay) in enumerate(entries):
         g = of[i]
@@ -354,7 +359,8 @@ def build_items(export: Path, out: Path, log=print) -> dict:
             items[str(iid)] = {"name": MESO_NAMES.get(iid, e.get("name")), "kind": e["kind"], "w": int(pic.shape[1]),
                                "h": int(pic.shape[0]), "o": list(org), "g": g, "same": classes[g][0],
                                **({"same_f": classes[g][1]} if classes[g][1] else {}), "weak": bool(weak[g]),
-                               **({"link": int(e["link"])} if e.get("link") else {})}
+                               **({"link": int(e["link"])} if e.get("link") else {}),
+                               **({"cash": True} if e.get("cash") else {})}
             if e["kind"] == "Meso":
                 items[str(iid)]["frames"] = []
         if iid >= 9000000 and meta[f"{iid:08d}"]["kind"] == "Meso":
@@ -363,7 +369,9 @@ def build_items(export: Path, out: Path, log=print) -> dict:
     n_link = sum("link" in e for e in items.values())
     doc = {"source": "Classic World client: info/iconRaw of every Etc / Consume / Install item and equip + the meso "
                      "frames (tools/cwdata/export.ps1 -> assets build)",
-           "pictures": len(pics), "ids": len(items), "linked": n_link, "weak_count": int(weak.sum()), "weak_rule": f"< {WEAK_FEATURES} features "
+           "pictures": len(pics), "ids": len(items), "linked": n_link, "weak_count": int(weak.sum()),
+           "cash_ids": sum(1 for e in items.values() if e.get("cash")), "cash_pictures": int(cash.sum()),
+           "searched": int((~weak & ~cash).sum()), "weak_rule": f"< {WEAK_FEATURES} features "
            f"(2x2 opaque blocks, not one flat colour) whose key occurs in <= {WEAK_PLACES} places over all pictures",
            "items": items}
     (out / "items.json").write_text(json.dumps(doc, indent=0, ensure_ascii=False), encoding="utf-8")
@@ -371,14 +379,16 @@ def build_items(export: Path, out: Path, log=print) -> dict:
     weak_names = sorted({(classes[g][0], items[str(classes[g][0])]["name"] or str(classes[g][0]))
                          for g in np.flatnonzero(weak)})
     log(f"items: {len(items)} ids ({n_link} by a link), {n_pic} pictures -> {len(pics)} distinct, "
-        f"{int(weak.sum())} weak")
-    return {"ids": len(items), "linked": n_link, "pictures": n_pic, "distinct": len(pics), "weak": weak_names}
+        f"{int(weak.sum())} weak, {int(cash.sum())} cash-only (never drop) -> {doc['searched']} searched")
+    return {"ids": len(items), "linked": n_link, "pictures": n_pic, "distinct": len(pics), "weak": weak_names,
+            "cash": int(cash.sum()), "searched": doc["searched"]}
 
 
 class ItemPictures:
     """assets/mcw/items as built: `pics[g]` BGRA uint8 (h, w, 4) of distinct picture g; `item[g]` its class id,
-    `f[g]` meso frame, `org[g]` the file origin, `delay[g]`, `weak[g]`, `kept[g]` / `n_feat[g]` (usable / all
-    features); `meta` = items.json's items (str id -> {name, kind, w, h, o, g, same, weak, link?, frames?})."""
+    `f[g]` meso frame, `org[g]` the file origin, `delay[g]`, `weak[g]`, `cash[g]` (every id showing it is a cash-shop
+    item: never drops), `kept[g]` / `n_feat[g]` (usable / all features); `meta` = items.json's items (str id ->
+    {name, kind, w, h, o, g, same, weak, link?, cash?, frames?}). The finder searches ~weak & ~cash."""
 
     def __init__(self, root: Path | None = None):
         d = Path(root or ROOT) / "items"
@@ -387,6 +397,7 @@ class ItemPictures:
         self.pics = [pix[s:s + h * w].reshape(h, w, 4) for s, (h, w) in zip(start, hw)]
         for k in ("item", "f", "org", "delay", "weak", "kept", "n_feat"):
             setattr(self, k, z[k])
+        self.cash = z["cash"] if "cash" in z.files else np.zeros(len(self.pics), bool)
         self.doc = json.loads((d / "items.json").read_text(encoding="utf-8"))
         self.meta = self.doc["items"]
 
@@ -489,7 +500,8 @@ def build(export: Path = EXPORT, root: Path = ROOT, log=print) -> dict:
         log("no Afterimage in the export (old export.ps1?): attacks.json not built - brain-v2 reach needs it")
     if (export / "Item" / "items.json").exists():
         s = build_items(export, new / "items", log)
-        man["items"] = {**{k: s[k] for k in ("ids", "linked", "pictures", "distinct")}, "weak": len(s["weak"])}
+        man["items"] = {**{k: s[k] for k in ("ids", "linked", "pictures", "distinct", "cash", "searched")},
+                        "weak": len(s["weak"])}
     else:
         log("no Item in the export (old export.ps1?): items not built - drops (PLAN-loot.md) need them")
     (new / "manifest.json").write_text(json.dumps(man, indent=1, sort_keys=True), encoding="utf-8")

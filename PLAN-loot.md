@@ -4,6 +4,15 @@ prototype). NEXT = Session 1. Nothing of it is built in maplebrain/ yet; nothing
 loot-behaviour sessions. The three recordings of section 13 are still to come (the user: soon).**
 **Session 1 (2026-11-17): S1-S3 DONE, S4 gate NOT MET on synth (false: 36 window icons; identity: 2 = pictures with
 identical opaque pixels) - numbers, pictures and options in HANDOFF "Session 1 state"; the user's call.**
+**AMENDED by the user 2026-11-17 (after S4; these override sections 4, 5, 8, 10 where they differ):**
+1. **Cash-shop (NX) items are not searched** - they never drop (2,750 of the 3,955 equips; info/cash in the
+   export, `cash` in items.npz / items.json): 1,920 pictures searched instead of 4,577. Worn NX gear can no longer
+   match at all.
+2. **No AIR kind:** kinds are REST / weak. Flights and pickup hops are not needed to perceive loot on the ground (a
+   drop is born from REST anyway; gone = the scene shows at its box; who looted = the game's pickup text).
+3. **REST needs a ring:** ring >= 0.1 (share of the known pixels around the picture that show scenery / a drop / a
+   fit mob / a character box; < 60 known ring px = pass) - a window icon at a foothold's height has the panel
+   around it (27 such on synth passed REST without it).
 Executors: Opus (high), three sessions; prompts at the end. Parent plan: PLAN-perception.md (the table's row "Drops:
 item icons from the client (later, with loot)"). Branch `loot` off `perception-only`.
 Evidence: tools/loot/ (E-L0 .. E-L13, each file's docstring says what it measures) on the 9 native PNG recordings;

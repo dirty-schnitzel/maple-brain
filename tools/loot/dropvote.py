@@ -15,7 +15,8 @@ The anchor of a cell here = the picture's bottom-centre (w // 2, h); `pos` = the
 Pictures (PLAN-loot.md S4): assets/mcw/items (gamedata.load_items: every distinct picture, its class id) by default,
 the `weak` ones (< 16 usable features: see-through) not searched; `pictures="draft"` = the plan session's export
 (lootlib.Items, links not followed). With `fhs` (lootlib.Footholds) + the camera, find() also gives each drop the
-facts and the KIND of section 5 (`facts`, `kind_of`): REST / AIR / weak.
+facts and the KIND (`facts`, `kind_of`): REST / weak (the user, 2026-11-17: no AIR kind, a ring bar on REST, cash
+items not searched).
 """
 import sys
 import time
@@ -83,10 +84,11 @@ def item_poses(items: Items, kinds=None, ids=None) -> tuple:
 
 def npz_poses(items) -> tuple:
     """assets/mcw/items -> ([Pose] anchored at the bottom-centre, [(class id, meso frame, file origin)], aliases {}).
-    The pictures are distinct already; weak ones are left out (they cannot vote)."""
+    The pictures are distinct already; weak ones are left out (they cannot vote), cash-only ones too (cash-shop items
+    never drop - the user, 2026-11-17)."""
     poses, meta = [], []
     for g, pic in enumerate(items.pics):
-        if items.weak[g]:
+        if items.weak[g] or items.cash[g]:
             continue
         it, fr = int(items.item[g]), int(items.f[g])
         poses.append(Pose(it, "raw" if it < 9000000 else f"f{fr}", "left", pic.shape[1] // 2, pic.shape[0], pic))
@@ -94,18 +96,20 @@ def npz_poses(items) -> tuple:
     return poses, meta, {}
 
 
-def kind_of(d: dict, u_max: float = 0.2, mob_max: float = 0.5, ring_min: float = 0.3) -> str:
-    """Section 5's kinds from a drop's facts: REST (u <= 0.2, mob < 0.5, dy in -7..+5), AIR (the same off the resting
-    height with ring >= 0.3 - fewer than 60 known ring pixels = pass), weak (the rest)."""
+def kind_of(d: dict, u_max: float = 0.2, mob_max: float = 0.5, ring_min: float = 0.1) -> str:
+    """The kinds (section 5 as amended by the user 2026-11-17: no AIR kind, a ring bar on REST): REST = u <= 0.2,
+    mob < 0.5, dy in -7..+5 and ring >= 0.1 (what is around the picture shows scenery / a drop / a fit mob / a
+    character; fewer than 60 known ring pixels = pass) - a window icon at a foothold's height has the panel around
+    it; weak = the rest (only ever confirms a drop already known)."""
     at_rest = d["dy"] is not None and -7 <= d["dy"] <= 5
-    n = max(1, d["n_op"])
-    u = 1 - (d["seen"] + d["absent"] + d["under"] + (d["front"] if at_rest else 0)) / n
-    if u > u_max or d["mob"] >= mob_max * max(1, d["seen"]):
+    if not at_rest:
         return "weak"
-    if at_rest:
-        return "rest"
+    n = max(1, d["n_op"])
+    u = 1 - (d["seen"] + d["absent"] + d["under"] + d["front"]) / n
     re, rn = d["ring"]
-    return "air" if rn < 60 or re / rn >= ring_min else "weak"
+    if u > u_max or d["mob"] >= mob_max * max(1, d["seen"]) or (rn >= 60 and re / rn < ring_min):
+        return "weak"
+    return "rest"
 
 
 def facts(d: "Drop", C, fhs) -> dict:

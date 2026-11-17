@@ -13,14 +13,16 @@ Drawn as the client draws it (tools/perc/synth/synth.py): a drop = the item's ic
 class's own picture), straight alpha, integer position, its bottom 1..5 px below the foothold's y at the picture's
 centre x minus a bob offset 0..6 (box bottom - foothold in -5..+5), on the foothold's layer: the tiles / objects of
 the layers above re-drawn over it; a later drop over an earlier one. Cases (one a frame):
-  cat      24 clear drops on footholds, the catalogue in order: every picture (all 4,601, weak ones too) once
+  cat      24 clear drops on footholds, the catalogue in order: every picture that can drop once (not cash-only:
+           cash-shop items never drop; weak ones too)
   pile     piles of 2-4 drops 14-30 px apart on one foothold (the later over the earlier)
   mob      drops over mobs of the map (drawn as the mob synth does), player: over players (our character cut from
            other frames of the run, D blob at obs.me)
   effect   damage digits (the client's BasicEff NoRed) over each drop, ui: drops partly under the quickslots /
            minimap (the base's own UI pixels re-drawn), edge: drops at the screen's left / right edge
-  flight   mesos and items in the air above a foothold (box bottom 12-100 px above it): truth kind "air"
-  window   NOT drops: item `icon` pictures (tools/loot/export_items.ps1's ItemDraft) on an inventory-like panel (slot
+  flight   mesos and items in the air above a foothold (box bottom 12-100 px above it): truth kind "air" (no AIR
+           kind since 2026-11-17: they must not read REST)
+  window   NOT drops: item `icon` pictures (cash items too) (tools/loot/export_items.ps1's ItemDraft) on an inventory-like panel (slot
            colours of the real one, 012059_1 t 85.4) anywhere on the play area; count digits not drawn (harder)
   worn     NOT drops: an equip picture on a player's head, a band of 35-70 % of it hidden by the player again
   mobpart  NOT drops: Stirges (their wing = the Stirge Wing item's pixels; Dangerous Steam / Transfer Area only)
@@ -551,10 +553,12 @@ def case_frame(case: str, fr: Frame, items, cat, rng, draft) -> None:
 
 # ------------------------------------------------------------------ the set
 def catalogue(items, rng) -> dict:
+    """Drops come from the pictures that can drop (not cash-only; weak ones too: reported); worn gear may be any
+    equip (players wear cash items)."""
     nmeso = [g for g in range(len(items)) if items.kind(items.item[g]) == "Meso"]
-    allg = [g for g in range(len(items)) if not items.weak[g]]
-    equip = [g for g in allg if items.kind(items.item[g]) in EQUIP]
-    order = rng.permutation(len(items))
+    allg = [g for g in range(len(items)) if not items.weak[g] and not items.cash[g]]
+    equip = [g for g in range(len(items)) if not items.weak[g] and items.kind(items.item[g]) in EQUIP]
+    order = rng.permutation(np.flatnonzero(~items.cash))
     return {"order": order, "next": 0, "round": 0, "all": allg, "meso": nmeso, "equip": equip}
 
 
@@ -668,7 +672,7 @@ def main():
     ap.add_argument("--free", type=int, default=50)
     a = ap.parse_args()
     from maplebrain.gamedata import load_items
-    n_pics = len(load_items())
+    n_pics = int((~load_items().cash).sum())        # the pictures that can drop
     cat_frames = -(-n_pics // a.cat_n) + 4          # every picture at least once (a few placements fail)
     plan = plan_for(a.fixture, cat_frames, a.per_case, a.free, np.random.default_rng(a.seed))
     meta = generate(Path(a.out), a.seed, plan, a.fixture, 8 if a.fixture else a.cat_n)

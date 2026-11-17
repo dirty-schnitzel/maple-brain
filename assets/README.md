@@ -27,14 +27,16 @@ mcw/mobs/<id>/<anim>_<n>.png  one frame, RGBA, facing LEFT (flip for right): the
 mcw/items/items.npz         what a DROP shows (PLAN-loot.md): every distinct item picture = info/iconRaw of every
                             Etc / Use / Setup item and equip + the 4 meso sizes x 4 frames (Special/0900.img
                             09000000-3), BGRA packed: pix, start, hw, org, item (class id), f (meso frame), delay,
-                            n_feat / kept (the vote's features / usable ones), weak. Read with gamedata.load_items()
+                            n_feat / kept (the vote's features / usable ones), weak, cash (every id showing it is a
+                            cash-shop item: never drops, not searched). Read with gamedata.load_items()
 mcw/items/items.json        id -> name, kind, w, h, o (file origin), g (its picture), same (+ same_f): the picture
                             class's id = the meso's if a meso frame shows it, else the lowest id; weak; link (the item
                             whose picture a UOL borrows: 257 scroll-family items); mesos: frames [{g, w, h, o, delay}]
 ```
 Items (2026-11-17 build): 5,016 ids (4,755 with their own picture + 257 by a link + 4 meso sizes), 5,028 pictures ->
 4,601 distinct; 24 `weak` (< 16 usable 2x2 features: see-through glasses / wings / "Transparent ..." items, Piece of
-Ice, 3 with no opaque pixel at all) - the finder cannot vote for those. Skipped by the export: 1 nameless cash weapon
+Ice, 3 with no opaque pixel at all) - the finder cannot vote for those; 2,750 cash-shop equips (info/cash) = 2,675
+cash-only pictures, not searched -> 1,920 pictures searched. Skipped by the export: 1 nameless cash weapon
 (01702302) whose iconRaw links to a canvas the client lacks; 0900.img's 09000004-7 (not the 4 meso sizes).
 
 Ids are the client's without the zero padding: map `000000042` -> 42, mob `0000002` -> 2 (Snail 2, Blue Snail 3,
