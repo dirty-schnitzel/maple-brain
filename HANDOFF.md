@@ -908,6 +908,18 @@ target **60 fps cap, ~100 % accuracy**, game window at **native 1366x768, window
       the v1-only parts `--tracker` also switches: sprite_mobs, Track / Untrack). Kept as the "before": 2.2 min, 21
       kills (9.6 / min), bot_presses 59: solid 47 (80 %), stale 10, nothing 2; tick p50 30 / p90 33 ms. Re-run
       with: `serve runs\v2 --brain v2 --mob-score 0.70 --gpu --tracker --frames`.
+    - **Live check 3 = the hunt on the fit path (the user, `runs/v2/20261117_094333_1`, `--gpu --tracker
+      --frames-png`, 2.6 min, same spot; the user: "absolutely MASSIVE difference in bot behavior, the improvement
+      is palpable") vs live check 2 (old path, 2.2 min):** fit path on 9164 / 9165 ticks, camera exact; tick p50 30
+      -> 16 ms (33.7 -> 62 fps). Tracker-independent (HUD EXP + key log): the SAME EXP (+1005 vs +1007) with 59 ->
+      45 presses: EXP per press 17.0 -> 22.4 (+32 %), presses per whole-mob EXP gain 2.57 -> 1.80; split-EXP gains
+      7 -> 0. Tracker-based: stale presses 10 -> 0, nothing 2 -> 1; the brain's swings / kill 2.8 -> 1.7, reach hit
+      53 -> 89 %. **NOT up: the kill rate** - EXP / min 460 -> 392, whole-mob EXP gains 10.5 -> 9.7 / min (same
+      competition: 2.8 players on screen both runs; ~25 kills each = +-20 % noise). Where the time went: TRAVEL 26
+      -> 52 % of the time (34 -> 80 s; trips p50 1.0 -> 2.1 s), LOCAL 56 -> 38 %, ROAM 11 -> 2 %: more mobs seen (live
+      on screen 5.8 vs 4.6) = always a target, often on another platform; targets dropped without our kill 62 -> 68
+      % (others kill them). The old log's "kills" undercounted (21 vs 30 EXP gains). = the brain's target choice
+      (unchanged) is now the limit, not perception; a longer same-channel A/B is needed to call the rate.
   - **3.4 OK'd by the user 2026-11-17 (the switch on clean maps; DONE above).** On ticks where the scene camera is found:
     1. the tracker's sightings come from the fit: each FitMob -> a detector Hit (type, feet, pose, box from the pose),
        score 1.0 (the fit's rule already decided); the whole-screen search + refine (`sprites._all`) skipped; the fit
