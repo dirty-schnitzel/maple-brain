@@ -11,6 +11,11 @@ absent_max; greedy by SEEN count, an accepted drop's pixels are taken (the same 
 
 The anchor of a cell here = the picture's bottom-centre (w // 2, h); `pos` = the client's own drawing position
 (anchor - (w // 2, h) + file origin): where the client says the drop is.
+
+Pictures (PLAN-loot.md S4): assets/mcw/items (gamedata.load_items: every distinct picture, its class id) by default,
+the `weak` ones (< 16 usable features: see-through) not searched; `pictures="draft"` = the plan session's export
+(lootlib.Items, links not followed). With `fhs` (lootlib.Footholds) + the camera, find() also gives each drop the
+facts and the KIND of section 5 (`facts`, `kind_of`): REST / AIR / weak.
 """
 import sys
 import time
@@ -76,6 +81,47 @@ def item_poses(items: Items, kinds=None, ids=None) -> tuple:
     return poses, meta, alias
 
 
+def npz_poses(items) -> tuple:
+    """assets/mcw/items -> ([Pose] anchored at the bottom-centre, [(class id, meso frame, file origin)], aliases {}).
+    The pictures are distinct already; weak ones are left out (they cannot vote)."""
+    poses, meta = [], []
+    for g, pic in enumerate(items.pics):
+        if items.weak[g]:
+            continue
+        it, fr = int(items.item[g]), int(items.f[g])
+        poses.append(Pose(it, "raw" if it < 9000000 else f"f{fr}", "left", pic.shape[1] // 2, pic.shape[0], pic))
+        meta.append((it, fr, tuple(int(v) for v in items.org[g])))
+    return poses, meta, {}
+
+
+def kind_of(d: dict, u_max: float = 0.2, mob_max: float = 0.5, ring_min: float = 0.3) -> str:
+    """Section 5's kinds from a drop's facts: REST (u <= 0.2, mob < 0.5, dy in -7..+5), AIR (the same off the resting
+    height with ring >= 0.3 - fewer than 60 known ring pixels = pass), weak (the rest)."""
+    at_rest = d["dy"] is not None and -7 <= d["dy"] <= 5
+    n = max(1, d["n_op"])
+    u = 1 - (d["seen"] + d["absent"] + d["under"] + (d["front"] if at_rest else 0)) / n
+    if u > u_max or d["mob"] >= mob_max * max(1, d["seen"]):
+        return "weak"
+    if at_rest:
+        return "rest"
+    re, rn = d["ring"]
+    return "air" if rn < 60 or re / rn >= ring_min else "weak"
+
+
+def facts(d: "Drop", C, fhs) -> dict:
+    """Section 8's per-sighting facts (+ `kind`) of one Drop at camera C (`fhs`: lootlib.Footholds)."""
+    x, y, w, h = d.box
+    e = d.extra or {}
+    u = fhs.under(x + w / 2 + C[0], y + h + C[1]) if fhs is not None else None
+    r = {"item": d.item, "f": d.frame, "box": list(d.box), "feet": [x + w // 2, y + h], "n_op": d.n_op,
+         "seen": d.n_seen, "absent": d.n_abs, "under": e.get("n_cd", 0), "front": e.get("n_front", 0),
+         "mob": e.get("n_mob", 0), "ring": [e.get("ring_e2", 0), e.get("ring_n2", 0)],
+         "dy": None if u is None else int(round(y + h + C[1] - u[0])), "fh": None if u is None else u[2],
+         "layer": None if u is None else u[1], "votes": d.votes, "n_fseen": d.n_fseen}
+    r["kind"] = kind_of(r)
+    return r
+
+
 def feature_mask(pic) -> np.ndarray:
     """(h - 1, w - 1) bool: the picture's 2x2 blocks that are features (all opaque, not one flat colour)."""
     k = np.where(pic[..., 3] == 255, pic[..., 0].astype(np.int64) | (pic[..., 1].astype(np.int64) << 8)
@@ -85,11 +131,16 @@ def feature_mask(pic) -> np.ndarray:
 
 
 class DropFinder:
-    def __init__(self, items: Items | None = None, kinds=None, ids=None, device=None, cand_votes: int = 12,
+    def __init__(self, items=None, kinds=None, ids=None, device=None, cand_votes: int = 12,
                  tol: int = 4, min_seen: int = 40, seen_min: float = 0.25, absent_max: float = 0.15,
-                 max_entries: int = 64):
-        self.items = items or Items()
-        self.poses, self.meta, self.alias = item_poses(self.items, kinds, ids)
+                 max_entries: int = 64, pictures: str = "npz"):
+        if pictures == "npz" and kinds is None and ids is None and not isinstance(items, Items):
+            from maplebrain.gamedata import load_items
+            self.items = items or load_items()
+            self.poses, self.meta, self.alias = npz_poses(self.items)
+        else:
+            self.items = items if isinstance(items, Items) else Items()
+            self.poses, self.meta, self.alias = item_poses(self.items, kinds, ids)
         self.fmask = [feature_mask(p.pic) for p in self.poses]
         t0 = time.perf_counter()
         self.voter = Voter(self.poses, max_entries, device, max_cells=256, tints={})

@@ -119,9 +119,72 @@ Fitter.look feeding world.py. ~8,000 lines out.
   frames), the speed line (3.4: 16 ms p50). Optional: F7 on a Perion map -> `NOT STARTED: ... no clean scene`.
   Then step 4 (the tracker redesign) as a Fable-max plan session (PLAN-perception.md step 4).
 
-## Loot rework part 1: PERCEIVE drops - PLAN-loot.md OK'd by the user 2026-11-17 (branch `loot`); NEXT = its Session 1
-**START HERE for loot work: PLAN-loot.md "Session 1" (S1-S4: item pictures into the export + `assets build`,
-synthetic truth, drop_eval, the prototype's "before"); the prompt is in its section 14.** The user's answers
+## Loot rework part 1: PERCEIVE drops - PLAN-loot.md OK'd by the user 2026-11-17 (branch `loot`)
+**START HERE for loot work: Session 1 STOPPED at its gate (S4: false + identity on synth) - THE USER'S CALL on the
+options below; then Session 2 (labels).** All in worktree `C:\Users\Yoav\dev\maple-loot`, branch `loot`.
+### Session 1 state (2026-11-17, Opus): S1-S3 DONE, S4 "before" measured, gate NOT MET
+- **S1 DONE** tools/cwdata/export.ps1 item section: `Item\png\<id>_raw.png` (iconRaw only), mesos 09000000-3 x 4
+  frames, `Item\items.json` (kind, name, raw [w, h, ox, oy], link); 257 UOL links resolved (256 via LinkValue, 1 =
+  02023002 "icon" = its own sibling, via the parent). Skipped and listed: 1 nameless cash weapon 01702302 (iconRaw
+  _inlinks to an info/icon the client lacks); 0900.img's 09000004-7 (a face coin, red glowing coins, a bronze copy:
+  not the 4 meso sizes). Also fixed: the UI section failed on 32 AntiMacro pictures (folder 'emphasis ' with a
+  trailing space; Windows drops it) - the export exits 0 again (~55 s). The plan session's draft output moved to
+  `cw-data\export\ItemDraft` (export_items.ps1's default now; lootlib.Items reads it; the synth's window icons need
+  its `icon`s).
+- **S2 DONE** `assets build` -> assets/mcw/items/items.npz (2.0 MB) + items.json (+ manifest, changes.txt "items:"
+  line, assets/README.md); `gamedata.load_items()` / `ItemPictures`, `item_classes`, `item_features`. **Gate: 5,028
+  pictures = 4,771 + 257 linked; 4,601 distinct** = the plan's 4,597 (it counted only pictures with >= 30 opaque px:
+  3 have none - 1392000, Free Spirit, Transparent Item) + 1 picture only a link has (Inkwell's Blessing). **24 weak**
+  (< 16 usable features): Transparent Hat, Transparent Face Accessory, Fu Manchu, Blue / Purple Aviator Shades,
+  Frameless Glasses, Transparent Eye Accessory, Nerdy Glasses, Round Shield Shades, Pink Aviator Sunglasses, Flat
+  Mini Glasses, Black Suit Pants, Old School Uniform Skirt, Transparent Gloves, Blue / Green / Yellow / Pink Nymph
+  Wing, 1392000, Kumbi Throwing Stars, Free Spirit, Arwen's Glass Shoe, Transparent Item, Piece of Ice.
+  tests/test_items.py (5).
+- **S3 DONE** tools/loot/synth_drops.py (README = its docstring): bases = native recordings at find_v4's camera
+  with every moving thing erased (Ant Tunnel IV 154819_1, Dangerous Steam 084844_2, Line 1 085108_3, Transfer Area
+  085215_4); cases cat (the whole catalogue, 24 a frame), pile, mob, player, effect, ui, edge, flight, window (real
+  `icon`s on a panel with the real inventory's slot colours), worn, mobpart (Stirges), free. Full set
+  runs/synth/drops_s1 (496 frames, 5,303 drops, all 4,601 pictures, 571 not-drops, 337 MB; ~95 s); fixture
+  tests/fixtures/synth_drops (40 frames, crops + exp + masks, 6.2 MB; tests/test_synth_drops.py: complete, clear
+  drops = the picture 1:1, drop_eval scores the truth 100 % / 0 false). tools/loot/drop_eval.py (two-pass matching:
+  own class within 3 / 8 px first, then overlap = wrong identity), tools/loot/synth_find.py (the prototype per frame
+  with the live inputs: expected, world mask, the mob fit's explained pixels, character boxes, front planes,
+  footholds; the fixture run also stores the fit's pixels in masks_fit.npz), tools/loot/drop_sheet.py (pictures).
+  Found + fixed in my tool on the way: real drops chained into our kept blob stayed in 15 bases (all confirmed in
+  find_v4) -> each find_v4 sighting is erased explicitly.
+- **S4 "before"** (dropvote.py now reads items.npz by default: 4,577 searchable pictures = 4,601 - 24 weak; kinds +
+  facts of sections 5 / 8 in `facts` / `kind_of`; cand_votes 16), `synth_find.py runs\synth\drops_s1` +
+  `drop_eval.py ... --list all --misses misses_before.json`:
+      gated visible resting (clear / mob / player / pile >= 50 %, nothing over them)  REST 4,333 / 4,344 = 99.75 %  MET
+      position: 5,083 / 5,083 found exactly at the box                                                     MET
+      0 REST / AIR on 119 Stirges (mob parts), 83 worn, 50 drop-free frames                                MET
+      FALSE: 36 window icons = 27 REST + 9 AIR                                                         NOT MET
+      IDENTITY: 2 wrong of 5,085 found                                                                  NOT MET
+  Reported (not gated): effect 0 % REST (87 none, 12 weak), ui 26.7 %, edge 81.3 %, front 92.5 %, flight AIR 94.9 %
+  (6 read REST), pile < 50 % 2 / 6, weak pictures 0 / 24. Fixture: gated 52 / 52, 6 window REST, 0 wrong.
+  Pictures: runs/synth/drops_s1/sheet_false_before.png, sheet_wrong_before.png, sheet_miss_before.png (gated misses).
+- **Why it fails (design points proven wrong on synth - the user's call, nothing changed):**
+  1. **Window icons at the resting height pass REST** (27): a window draws `icon`, which holds every iconRaw pixel
+     (SEEN 1.00, u 0), and a slot row at a foothold's height has dy in -7..+5; their ring is 0 (the panel) but REST
+     has no ring bar (section 5/6: "not needed on this data"; the real 1,867 window icons never sat at a foothold).
+     A REST ring bar 0.05 / 0.1 / 0.2 / 0.3 (>= 60 known ring px) costs 0 of the 4,333 gated REST on synth (their
+     ring p1 0.88) and removes 27 / 27; section 6 on the real footage: 0.1 costs 0.5 %, 0.3 1.5 % of resting
+     sightings (drops in front of mobs / players).
+     **Window icons over UNKNOWN scenery pass AIR** (9: Transfer's animated objects, Steam's animated backs): ring
+     not measurable (< 60 known px) = pass. "AIR needs a measurable ring" would cost 1 of 112 found synth flights.
+  2. **Identity: 3 pairs of pictures have identical OPAQUE pixels** and differ only in soft-alpha ones, which the
+     vote and SEEN never use (Santa Hat / Rudolph Santa Hat, Prismatic / Crystal Blue Sun Cap, Blue / Purple Aviator
+     Shades - the last pair weak): the finder can't tell them apart; S2's classes are byte-identical canvases.
+     Classes by opaque pixels = 4,598 (the 2 wrong become right). Note Prismatic's canvas is 8 rows taller (soft
+     glow below): the box / feet of the merged class would be the representative's.
+  Minor, reported, not gated: 3 clear misses on stairs read AIR (dy 13 / 14 / 13: lootlib.Footholds.under takes
+  the TOPMOST foothold at / below bottom - 14, here a step 13 px above; nearest-to-bottom would fix it); 2 thin
+  shades (Orange / Black Shades, 39 / 62 usable features) not found; 4 pile items read weak because the drop over
+  them was accepted AFTER them (greedy by SEEN: "under an accepted drop" depends on the order).
+- pytest green (+ test_items, test_synth_drops); bot speed 14.0 ms (p90 15.4; baseline 18.4, not re-baselined:
+  nothing live changed).
+### Plan session summary (2026-11-17)
+**PLAN-loot.md "Session 1" (S1-S4); the prompt is in its section 14.** The user's answers
 (2026-11-17): the plan is OK; the capsule of its section 12 is another player's NX cosmetic, not loot; the three
 recordings of section 13 will come soon (none blocks Session 1).
 Plan session (Fable max; in parallel with the tracker plan session). **Nothing built in maplebrain/; nothing reads
