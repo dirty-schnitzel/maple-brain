@@ -153,6 +153,11 @@ python -m maplebrain livemap runs\v2\press1 --replay
 
 # record yourself playing (the bot presses nothing): keylog + ticks + frames
 python -m maplebrain serve runs\play --observe --frames-png
+
+# the recording corpus: record a walk as lossless video (no perception), then file it by map
+python -m maplebrain record
+python tools\data\corpus.py add E:\maple-corpus\incoming\<recording>
+python tools\data\corpus.py list
 ```
 
 Every key the bot uses is defined in one place, `Keys` in `maplebrain/config.py`.

@@ -57,18 +57,23 @@ def parse(rec: dict, tracks: list) -> dict:
 
 
 def main():
+    import sys
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    import frames as rec
     ap = argparse.ArgumentParser()
-    ap.add_argument("run", type=Path)
+    ap.add_argument("run", help="a run folder, or a corpus segment RECORDING#K (its labels go to its work folder)")
     ap.add_argument("judged", type=Path)
+    ap.add_argument("--holdout", action="store_true", help="RUN is a hold-out segment of the corpus: only at gates (the use is logged)")
     a = ap.parse_args()
-    pj = json.loads((a.run / "labels" / "patches.json").read_text())
+    c = rec.clip(a.run, a.holdout, "labels/label.py")
+    pj = json.loads(c.find("labels/patches.json").read_text())
     frames = {}
     for line in open(a.judged, encoding="utf-8"):
         if line.strip():
             rec = json.loads(line)
             frames[str(rec["n"])] = parse(rec, pj[str(rec["n"])]["tracks"])
     out = {"v": 2, "run": str(a.run).replace("\\", "/"), "frames": frames}
-    (a.run / "labels.json").write_text(json.dumps(out, indent=0))
+    (c.out / "labels.json").write_text(json.dumps(out, indent=0))
     n = sum(len(f["mobs"]) for f in frames.values())
     by = {}
     for f in frames.values():
@@ -76,7 +81,7 @@ def main():
             for c in m["cls"] or "c":
                 by[c] = by.get(c, 0) + 1
     print(f"{len(frames)} frames, {n} mobs, {sum(len(f['false']) for f in frames.values())} tracks judged empty, "
-          f"{sum(len(f['unsure']) for f in frames.values())} unsure; classes {by} -> {a.run / 'labels.json'}")
+          f"{sum(len(f['unsure']) for f in frames.values())} unsure; classes {by} -> {c.out / 'labels.json'}")
 
 
 if __name__ == "__main__":

@@ -2,6 +2,9 @@
 
   python tools/perc/label_eval.py RUN [--tracks replay/before.jsonl] [--list]
 
+RUN = a run folder or a corpus segment RECORDING#K (tools/perc/frames.py `clip`; hold-out only with --holdout):
+the labels and the tracks are looked for in the segment's work folder, then in the recording's own folder.
+
 labels.json v2 (tools/perc/labels/label.py): {"v": 2, "frames": {n: {"mobs": [{"feet", "type", "cls"}], "unsure",
 "false"}}}; v1 ({tick: {"real": [[x, y]], "missed": [[x, y]]}}) is read as mobs without type or class.
 Tracks: a replay (tools/perc/replay/run.py, rows {"n", "mobs"}) or a live run's tracks.jsonl (rows {"n", "tracks"}).
@@ -16,8 +19,11 @@ coasting from an earlier frame (a dying / hit frame's prime) - and the false tra
 """
 import argparse
 import json
+import sys
 from collections import Counter
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 CLASSES = {"clear": "", "e": "effect", "p": "player", "s": "scenery", "u": "ui", "f": "fade", "d": "dying",
            "x": "edge", "h": "hit"}
@@ -46,13 +52,15 @@ def main():
     ap.add_argument("--list", action="store_true")
     ap.add_argument("--synth", action="store_true")
     ap.add_argument("--r", nargs=2, type=int, help="match radius x y (default 25 25)")
+    ap.add_argument("--holdout", action="store_true", help="RUN is a hold-out segment of the corpus: only at gates (the use is logged)")
     a = ap.parse_args()
     if a.r:
         R[:] = a.r
-    run = Path(a.run)
-    lab = load_labels(run / a.labels)
+    import frames as rec
+    run = rec.clip(a.run, a.holdout, "label_eval.py")
+    lab = load_labels(run.find(a.labels))
     tr = {}
-    for line in open(run / a.tracks, encoding="utf-8"):
+    for line in open(run.find(a.tracks), encoding="utf-8"):
         r = json.loads(line)
         if r["n"] in lab:
             tr[r["n"]] = r.get("mobs", r.get("tracks")) or []

@@ -125,21 +125,21 @@ class Base:
 
 
 class Synth:
-    def __init__(self, run: Path, export: Path | None = None):
+    def __init__(self, run, export: Path | None = None, tracks: str = "replay/work.jsonl"):
+        """`run`: a run folder, a corpus segment RECORDING#K, or a frames.Clip of either (labels.json and
+        labels/cams.json are looked for in the clip's work folder, then in the recording's own; our position per
+        frame comes from its ticks.jsonl, or - a `record` walk - from the replay `tracks`)."""
         from maplebrain.gamedata import EXPORT
         from maplebrain.scene import Scene
-        self.run = Path(run)
+        self.clip = run if isinstance(run, rec.Clip) else rec.clip(run, tool="synth")
+        self.run = self.clip.run
         self.export = Path(export or EXPORT)
-        self.map_id = rec.map_of(self.run)
+        self.map_id = self.clip.map_id
         self.scene = Scene.load(self.map_id)
-        self.cams = json.loads((self.run / "labels" / "cams.json").read_text())
-        lab = json.loads((self.run / "labels.json").read_text())
+        self.cams = json.loads(self.clip.find("labels/cams.json").read_text())
+        lab = json.loads(self.clip.find("labels.json").read_text())
         self.labels = {int(n): f for n, f in lab["frames"].items()}
-        self.me = {}
-        for line in open(self.run / "ticks.jsonl", encoding="utf-8"):
-            k = json.loads(line)
-            if k["n"] in self.labels:
-                self.me[k["n"]] = k["obs"].get("me")
+        self.me = {k["n"]: k["me"] for k in self.clip.sight(tracks) if k["n"] in self.labels}
         self.map = json.loads((MAPS / str(self.map_id) / "map.json").read_text(encoding="utf-8"))
         self.fh = [f for f in self.map["footholds"].values() if f["x1"] != f["x2"]]
         self.types = sorted({s["id"] for s in self.map["mobs"]})

@@ -14,6 +14,9 @@ class Keys:
     stop: str = "f8"          # serve: stops it
     mark: str = "f9"          # serve, platform mode, no hunt running: marks / unmarks the platform we stand on
     mode: str = "f10"         # serve, no hunt running: next mode (auto -> platform -> auto; path mode later)
+    note: str = "f12"         # record: the marker key - "something made me change what I do here" (PLAN-data.md edit 9).
+                              # Never sent and never acted on: its presses are in keys.jsonl like every key, the
+                              # corpus lists them per map, the user writes one line each in RUN/notes.txt afterwards
     old_attacks: tuple = ("space",)   # attack keys of older recordings: only the tools reading runs/ use these
 
     @property

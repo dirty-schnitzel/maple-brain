@@ -2,6 +2,10 @@
 
     python tools/perc/labels/pick.py RUN [--n 300] [--out tools/perc/labels/NAME_pick.json]
 
+RUN = a run folder or a corpus segment RECORDING#K (tools/perc/frames.py `clip`). What perception saw comes from
+the recording's ticks.jsonl; a `record` walk has none: from a replay of the segment (--tracks, default
+replay/work.jsonl: tools/perc/replay/run.py first).
+
 Half spread evenly over the run (what perception sees on average), half the hard moments, most wanted first:
 a swing of ours in the last 0.4 s with a mob within 200 px (effects, damage numbers over mobs), a live track near
 us not sighted this frame (covered or lost), a weak sighting (score < 0.8), a dying track, a track at the screen's
@@ -15,6 +19,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "tools" / "perc"))
+import frames as rec  # noqa: E402
 
 
 def reasons(o: dict, swing_ago: float) -> list:
@@ -42,24 +48,26 @@ def reasons(o: dict, swing_ago: float) -> list:
 def main():
     from maplebrain.config import Keys
     ap = argparse.ArgumentParser()
-    ap.add_argument("run", type=Path)
+    ap.add_argument("run")
     ap.add_argument("--n", type=int, default=300)
     ap.add_argument("--out", type=Path, default=None)
+    ap.add_argument("--tracks", default="replay/work.jsonl", help="a recording without ticks.jsonl: this replay of it")
+    ap.add_argument("--holdout", action="store_true", help="RUN is a hold-out segment of the corpus: only at gates (the use is logged)")
     a = ap.parse_args()
-    ticks = [json.loads(l) for l in open(a.run / "ticks.jsonl", encoding="utf-8")]
-    saved = [k for k in ticks if k.get("frame")]
+    c = rec.clip(a.run, a.holdout, "labels/pick.py")
+    saved = c.sight(a.tracks)
     swings = []
-    if (a.run / "keys.jsonl").exists():
+    if (c.run / "keys.jsonl").exists():
         attack = {Keys.attack, Keys.basic_attack}
-        swings = [k["t"] for k in map(json.loads, open(a.run / "keys.jsonl", encoding="utf-8"))
+        swings = [k["t"] for k in map(json.loads, open(c.run / "keys.jsonl", encoding="utf-8"))
                   if k.get("down") and k.get("key") in attack]
     rows, j = [], 0
     for k in saved:
-        t = k["obs"]["t"]
+        t = k["t"]
         while j < len(swings) and swings[j] <= t:
             j += 1
         ago = t - swings[j - 1] if j else 1e9
-        rows.append({"n": k["n"], "frame": k["frame"], "t": round(t, 2), "why": reasons(k["obs"], ago)})
+        rows.append({"n": k["n"], "frame": k["frame"], "t": round(t, 2), "why": reasons(k, ago)})
     even = [rows[int(i * (len(rows) - 1) / (a.n // 2 - 1))] for i in range(a.n // 2)]
     for r in even:
         r["why"] = ["even"] + r["why"]
@@ -81,8 +89,8 @@ def main():
             break
         hard.append(r)
     frames = sorted(even + hard, key=lambda r: r["n"])
-    out = a.out or ROOT / "tools" / "perc" / "labels" / f"{a.run.name}_pick.json"
-    out.write_text(json.dumps({"run": a.run.as_posix(), "frames": frames}, indent=0), encoding="utf-8")
+    out = a.out or ROOT / "tools" / "perc" / "labels" / f"{c.name}_pick.json"
+    out.write_text(json.dumps({"run": str(a.run).replace("\\", "/"), "frames": frames}, indent=0), encoding="utf-8")
     from collections import Counter
     c = Counter(w for r in frames for w in r["why"])
     print(f"{len(frames)} frames of {len(rows)} saved -> {out}")

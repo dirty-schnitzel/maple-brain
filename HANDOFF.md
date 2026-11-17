@@ -5,6 +5,8 @@ camera + the fit are the only mob perception, clean maps + the native window onl
 hunt. Before it: the perception redesign (**PLAN-perception.md**) steps 0-3 DONE and live-checked (3.4's hunt:
 "absolutely MASSIVE difference in bot behavior"); brain v3 (**PLAN-v3.md**) steps 1-3 DONE, Platform mode live.
 NEXT (the user, 2026-11-17): **the recording corpus first (PLAN-data.md, OK'd), step 4 (the tracker) waits for it.**
+2026-11-17 PLAN-data.md **Session 1 BUILT on branch `data`** (the recorder, lossless video, the corpus tool; gates
+a / d / e passed): its live gates wait for the user's recorded walk + a `serve --video` hunt (START HERE).
 Sessions 6-23, the old brain (v1), and superseded plans moved verbatim to **HISTORY.md** on 2026-11-08: grep it for
 old runs, numbers and decisions.
 Latest: 2026-11-15 Platform mode live (runs below), F9 mark fix; the hybrid BT + imitation-learning proposal reviewed
@@ -51,27 +53,149 @@ find mobs, fight them like a player, pick up loot, use potions, and **navigate p
 later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never reads memory or packets.
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
-## START HERE NEXT SESSION: the recording corpus, PLAN-data.md Session 1 (the recorder + the corpus tool)
-**Decided 2026-11-17 (the user, session "data"):** the reworks were tuned on too little - 7 maps, 11 of the 51 mob
-types the hunted maps have, ~300 labelled frames. **PLAN-data.md** (OK'd) builds a recording corpus on
-`E:\maple-corpus` and tests every rework on it. **The tracker redesign (step 4, the section below) waits for the
-corpus**; the loot rework goes on in its worktree.
-- **Session 1 (Opus, next):** branch `data` off `dev`; `maplebrain record` (lossless GPU video in 5-minute chunk
-  files, no perception while recording), `--video` on run / serve, the frame reader, `tools/data/corpus.py` (cuts
-  a recording into its maps by the minimap, files it, prints coverage). Gates and stop rules: PLAN-data.md
-  section 5; the prompt is at its end. The live gates need one recorded walk by the user (10+ minutes, 3+ maps)
-  and a short `serve --video` hunt.
-- **Then the user walks** the maps they choose (no list; 2-3 minute stops, each mob type killed a few times, many
-  platforms; the minimap open in its usual place), `corpus.py add` after each sitting.
-- **Then Sessions 2-3** (perception unchanged over the corpus: per-map numbers, the failure kinds, labels, the
-  hold-out maps once), a review session for the fixes, and only then step 4 on the corpus.
-- Evidence for the plan: `tools/data/` (codec_bench, video_safety, paced_enc, map_cover, map_along).
-- **Deleted 2026-11-17 (the user's call):** every JPEG frame under `runs/` (73,871 files, 25.8 GB; lossy, most
-  from before the native window; nothing read them). Each run's log / ticks / saved pictures stay. The native PNG
-  recordings (15.7 GB) are untouched - the loot worktree reads them; they go only after loot part 1 is merged and
-  they sit in the corpus as video.
-- `tools/perc/track/` (untracked on dev) = the experiments a step-4 session started on the 9 PNG recordings: left
-  as they are for that session.
+## START HERE NEXT SESSION: PLAN-data.md Session 1 is BUILT (branch `data`); its live gates wait for the user's walk
+**State 2026-11-17 (branch `data` off `dev`, pushed; the user merges):** the recorder, the video writer / reader,
+the corpus tool and the ported tools are built and tested; gates (a), (d), (e) PASSED; gates (b), (c), (f) need
+the user's runs (commands below). The corpus exists: `E:\maple-corpus` holds the 11 old native PNG recordings as
+video copies (the PNG folders in `runs/` are untouched - the loot worktree reads them).
+**The tracker redesign (step 4, the section below) still waits for the corpus**; the loot rework goes on in its
+worktree.
+
+### What the user runs (gates b, c, f) - an elevated PowerShell in `C:\Users\Yoav\dev\maple-work`, branch `data`
+`watch` running as always; no `serve` / `run` of an older branch left open. Game windowed 1366x768, logged in,
+chat minimized, **the minimap open in its usual place**.
+1. **The walk** (10+ minutes, 3+ maps; fight on at least one, only cross at least one):
+   `.venv\Scripts\python -m maplebrain record`
+   F7 in the game = start (rising chirp), F8 = stop (falling chirp), Ctrl+C in the console = quit. It writes
+   `E:\maple-corpus\incoming\<date_time>_1\` and prints the numbers. Say whether the game felt as smooth as
+   without it. Optional: F12 (the marker key) when another player changes what you do.
+2. **Two short hunts on the same map and spot, ~2 minutes each** (Ant Tunnel IV as usual), one with the video:
+   `.venv\Scripts\python -m maplebrain serve E:\maple-corpus\incoming --video`  (F7 ... F8, Ctrl+C)
+   `.venv\Scripts\python -m maplebrain serve runs\v2`                              (F7 ... F8, Ctrl+C)
+3. Claude then: `python tools\data\corpus.py add --dry E:\maple-corpus\incoming\<walk>` -> looks at every cut
+   sheet in `E:\maple-corpus\work\cuts\<walk>\` by eye (gate f) -> `add` for real; reads the numbers out of the
+   logs (frames a second in the file, dropped frames, GB a minute; the two hunts' `speed:` lines and the video
+   line's "handing a frame over cost the loop ..."). **Stop rules:** drops, or a tick cost over 1 ms -> stop with
+   the numbers (fallbacks to weigh then: preset p1, every 2nd frame, the CPU encoder); a cut or a map name wrong
+   -> stop with the frames.
+
+### What was built (PLAN-data.md section 5; each file's docstring is the detail)
+- **`maplebrain/runtime/video.py` `VideoWriter`**: one ffmpeg (the plan's command: lossless HEVC on the GPU
+  encoder, a keyframe every 120 frames, 5-minute chunk files `RUN\frames_0000.mkv` ...) fed by a writer thread.
+  `put` only queues the frame (its own buffer: the capture hands out a fresh array per frame) - a full queue
+  (120 frames = 2 s) drops the frame. `RUN\frames.jsonl`: one line per frame handed over (number, time, mouse,
+  `"drop"`); `RUN\video.json`: the stream + the totals; `RUN\ffmpeg.log`.
+- **`python -m maplebrain record [OUT]`** (`runtime/record.py`; default `E:\maple-corpus\incoming`): F7 / F8 as
+  serve. No perception, no key sent, ever. Frames -> the video, the player's keys -> `keys.jsonl` (same clock).
+  Paused while the game is not focused / the window moved (never another window's picture in the video). Refuses
+  to start on a window that is not native 1366x768 or a drive with under 30 GB free; stops under 5 GB. The Lie
+  Detector look once a second on its own thread (`LieWatch`: siren + the frame saved; the recording goes on),
+  between recordings too. The log's last lines are the gate's numbers.
+- **`--video` on `run` / `serve`** (`runtime/recorder.py`): every tick's frame into the hunt's video; ticks.jsonl
+  keeps `"frame": "000123.png"` = the tick, so every old reader works. No JPEG files beside a video; with
+  `--frames-png` the PNG files of every Nth tick are written too (same names, same pixels). `--frames-png` stays
+  until Session 3 is done. (The hunt's `speed:` line now has one decimal.)
+- **`tools/perc/frames.py`**: `read(run, name)` = the PNG file if it exists, else the video frame (`Video`: reads
+  on when the frame is within 100 ahead, jumps otherwise). `clip(arg)` = what the ported tools take: a run folder
+  or a corpus segment `RECORDING#K` (outputs then go to `E:\maple-corpus\work\RECORDING#K\`); a hold-out segment
+  only with `--holdout`, each use logged. `Clip.sight()` = what perception saw per frame: the recording's own
+  ticks.jsonl, or (a `record` walk has none) a replay of the segment.
+- **Ported** (frames from PNG or video, RUN or `RECORDING#K`, `--holdout`): `tools/perc/replay/run.py`,
+  `label_eval.py`, `labels/{pick,patches,label}.py`, `synth/{synth,make}.py`. Every other tool: PNG files on
+  demand from `python tools\data\unpack.py RUN [numbers | names | A-B] [--every N] [--out DIR]`.
+- **`tools/data/corpus.py add RUN`**: check -> cut into maps -> the keys per segment -> manifest lines + the
+  recording moved to `E:\maple-corpus\recordings\` (files read-only). `--dry` stops before writing. A cut sheet
+  per cut in `work\cuts\NAME\`. `add --dev MAP` moves a map to dev (refused once it was used as hold-out).
+  `corpus.py list [--segments]` = the report of section 4. An old PNG recording given to `add` is copied in as
+  video and every frame compared with its PNG.
+- `tools/data/gate_video.py`: gates (a) and (d) without the game (re-runnable).
+
+### Decisions made while building (not in the plan's text - the user's word changes them)
+1. **The cut, beyond "can't tell keeps the map"** (found in the data): 35 of the client's 336 maps have no
+   minimap at all (weapon stores, salons, job halls, the Subway Ticketing Booth), so "town -> shop -> town" would
+   have been filed as the town. Rule now: frames nobody can name for more than **2 s** (`KEEP_S`, a guess until
+   the walk shows how long a loading screen takes) are their own segment - "unknown", or named by the portals
+   only when the maps before and after do not connect directly and exactly one no-minimap map connects them
+   (Kerning City -> Subway Ticketing Booth -> Line 1 <Area 1>). Shorter = a loading screen / a covered minimap.
+2. **A frame the recogniser can't measure is confirmed with the window measured beside it** (`Namer`): on 77
+   frames of 3 old recordings the recogniser found no minimap window for 1-2 s while the minimap was in plain
+   sight (something drawn over its frame). Such a frame is the same map when that map is still the clear winner
+   inside the window measured on the nearest named frame (77 of 77; on the 737 frames of the dragged-window Dark
+   Cave recording: 0, where other maps reach 0.6-0.76 with the stale window - it only ever confirms, never names).
+3. A look that names a NEW map counts only when the next 2 frames AND the look a second later name it too (no map
+   is visited for under a second; a minimap drawn wrong for a moment while a map loads names nothing).
+4. **Old recordings**: one segment = the whole recording, the map from its log; the minimap is still looked at
+   and must not name another map (it never did).
+5. Chunk files sit flat in the run folder; frame numbers of a `record` recording start at 0 (a hunt's = the tick,
+   from 1); the marker key is **F12** (`Keys.note`, `--note-key`) - pick another if the game uses it.
+6. A bot hunt's "attack presses" for the corpus = the swings in its ticks (`timings.v2.swing`; the hunts of
+   2026-11-17: 75 and 45 = their logs).
+
+### Gates run by Claude (2026-11-17)
+- **(a) video = PNG, bit for bit: PASSED.** Unit test (150 fixture frames in 3 chunk files: in order, by name,
+  jumps over the borders). The real chunk size: 18,240 frames through the recorder's writer -> chunk 0 holds
+  exactly 18,000; frames 17,700..18,239 across the border 0 differ; 200 random jumps 0 wrong (0.29 s each); every
+  frame decoded. Hard cuts (a map change) do not move the keyframes (600 frames with 11 cuts: 5 chunks of exactly
+  120). And every old recording in full: the 11 old recordings copied into the corpus, 16,410 frames, every one identical to its PNG (3.5 GB of video for 14.9 GB of PNG files: 4.2x smaller).
+- **(d) killed mid-recording: PASSED, after one fix.** The recorder's python killed (taskkill /F) in the second
+  chunk: ffmpeg finished the file by itself 0.6 s later; 18,488 of 18,609 listed frames in the files, all
+  identical, jumps exact - the 121 lost are the queue (full in this flat-out test; a live recording has 0-2
+  queued). ffmpeg itself killed: 18,405 of 18,586, all identical after the repair (`add` rewrites the cut chunk
+  as a finished file, a stream copy) - **found:** the killed encoder leaves ONE frame at the file's end that is
+  the picture of 4 frames later (it writes a frame others lean on ahead of the ones shown before it); `add` now
+  counts only the frames before a hole in the times. (video_safety.py's "373 of 400, all exact" had not hit it.)
+- **(e) pytest green: 339 tests; bot speed 14.0 ms a tick (p90 15.3; the baseline is 18.4) - and `dev` alternated with this branch, three pairs: 13.9 / 14.2 / 14.0 vs 14.0 / 13.9 / 14.0 ms = unchanged.** The perception gate (`gate.py --quick`): SAME tracks on ant4 / line1 /
+  transfer (the ported reader changes nothing).
+- **The port, end to end:** the same recording replayed from its PNG files and from its corpus video: 541 of 541
+  rows identical. As a `record`-style recording (no ticks, no log, named by the minimap alone -> Line 1
+  <Area 1>, told from <Area 2> on all 57 looks): the same tracks on 541 of 541 frames; pick / patches / unpack run
+  on the segment (picks equal to the PNG run's; an unpacked PNG = the original).
+
+### The corpus today (`python tools\data\corpus.py list`)
+```
+E:\maple-corpus: 11 recording(s), 11 segment(s), 20.7 minutes, 3.5 GB
+
+      map  name                                         group   stays crossed minutes attacks marks
+ 10005063  Dungeon / Ant Tunnel IV                      dev         5       0    14.0     357     0
+ 10005065  Dungeon / Dangerous Steam                    dev         1       0     1.6      21     0
+ 10005064  Dungeon / Dark Cave                          dev         1       0     1.3       9     0
+ 10004041  Hidden Street / Land of Wild Boar            dev         1       0     1.2      42     0
+ 10004040  Victoria Road / Perion Street Corner         dev         1       0     1.1      14     0
+ 10003061  Kerning City Subway / Line 1 <Area 1>        dev         1       0     0.9      22     0
+ 10003062  Kerning City Subway / Transfer Area          dev         1       0     0.7      17     0
+
+coverage (7 maps: 7 fought on, 0 only crossed; 0 hold-out):
+  mob types: 11 of 51 on clean maps (the ones perception hunts on), 12 of 72 in all
+  background sets: 3 of 13 on clean maps (the ones perception hunts on), 4 of 20 in all
+  not seen yet on a clean map -> the clean maps it lives on:
+    ... (50 lines: every mob type / background set not seen yet, with the clean maps it lives on)
+```
+
+### Not done / open
+- Gates (b), (c), (f): the user's runs above. **Nobody has seen a real map change yet** - the cut's rules were
+  built on recordings of single maps; the first walk is their test (every cut sheet looked at once).
+- `KEEP_S` (2 s) and the portal rule's narrow scope are decisions 1-2 above: confirm or change after the walk.
+- `add` looks at one frame a second in one process: ~0.2 s per recorded second (a 2-hour walk: ~25 minutes).
+  Split over the chunk files in parallel if that is too slow.
+- Session 2 writes the coverage of its replays (deaths per mob type, platforms stood on, the camera's share) back
+  to the manifest; `list` prints only what Session 1 knows (minutes, attack presses, mob types / background sets
+  by map).
+- The Dark Cave recording (20261116_084719_1) is clean only for its first 16.3 s (the window was dragged): its
+  segment is the whole recording; `gate.CLIPS` knows.
+- `tools/perc/track/` (untracked) = a step-4 session's experiments: left as they are.
+
+## Earlier START HERE: the recording corpus decided (2026-11-17, session "data")
+The reworks were tuned on too little - 7 maps, 11 of the 51 mob types the hunted maps have, ~300 labelled frames.
+**PLAN-data.md** (OK'd) builds a recording corpus on `E:\maple-corpus` and tests every rework on it; step 4 waits
+for it. Then the user walks the maps they choose (no list; 2-3 minute stops, each mob type killed a few times, many
+platforms; the minimap open in its usual place), `corpus.py add` after each sitting; then Sessions 2-3 (perception
+unchanged over the corpus: per-map numbers, the failure kinds, labels, the hold-out maps once), a review session
+for the fixes, and only then step 4 on the corpus. Evidence for the plan: `tools/data/` (codec_bench,
+video_safety, paced_enc, map_cover, map_along).
+**Deleted 2026-11-17 (the user's call):** every JPEG frame under `runs/` (73,871 files, 25.8 GB; lossy, most from
+before the native window; nothing read them). Each run's log / ticks / saved pictures stay. The native PNG
+recordings (15.7 GB) are untouched - the loot worktree reads them; they go only after loot part 1 is merged (they
+sit in the corpus as video since Session 1).
 
 ## AFTER THE CORPUS: the tracker redesign (step 4) as a Fable-max plan session (PLAN-perception.md step 4)
 **Loot part 2 is part of this rework (the user, 2026-11-18):** the tracker redone from scratch also tracks drops
@@ -1815,11 +1939,16 @@ Get-Process python | ? Path -like '*maple-work*'                 # running bot p
 .venv\Scripts\python -m maplebrain serve runs\v2 [--frames | --frames-png]   # F7 / F8 (scene camera + fit: clean maps, native window only)
 .venv\Scripts\python -m maplebrain run runs\v2\NAME --seconds 180 --frames-every 3
 .venv\Scripts\python -m maplebrain serve runs\play --observe --frames-png   # record the user (records on any map)
+.venv\Scripts\python -m maplebrain record                                   # the corpus walk: F7 / F8, lossless video + keys -> E:\maple-corpus\incoming (no perception)
+.venv\Scripts\python -m maplebrain serve OUT --video                        # a hunt with every frame in a lossless video (frames_0000.mkv ...)
+.venv\Scripts\python tools\data\corpus.py add [--dry] RUN                   # file a recording: check, cut into maps, manifest
+.venv\Scripts\python tools\data\corpus.py list [--segments]                 # what the corpus holds + coverage
+.venv\Scripts\python tools\data\unpack.py RUN [frames] [--out DIR]          # PNG files out of a video
 .venv\Scripts\python -m maplebrain goto OUT [--to P [X]] [--seconds S]     # movement test
 .venv\Scripts\python -m maplebrain livemap [runs\v2]                         # console map of the hunt
 .venv\Scripts\python -m maplebrain assets build                              # client export -> assets/mcw
 .venv\Scripts\python tools\perf\bench.py [--baseline]                     # tick speed vs the baseline
-.venv\Scripts\python tools\perc\replay\run.py RUN [--old HEAD]              # tracker replay -> RUN\replay\
+.venv\Scripts\python tools\perc\replay\run.py RUN [--old HEAD]              # tracker replay -> RUN\replay\ (RUN = a run folder or a corpus segment RECORDING#K)
 .venv\Scripts\python tools\perc\replay\compare.py RUN HEAD work             # old vs new tracks (the gate)
 .venv\Scripts\python tools\perc\replay\gate.py [--quick]                  # the perception gate (6 native clips)
 ```
@@ -1856,7 +1985,7 @@ Analysis: `tools/combat/probe/` (README: bot_presses, turning, human_swings, aft
 | `perception/` | `perceiver.py` frame -> Observation (+ `MapKit`: what a map gives perception); `../scene.py` the scene model + scene camera + D; `vote.py` + `fit.py` the mobs (the fit) and the looks around tracks; `sighting.py` Hit / Pose; `world.py` tracker (tracks in map coordinates); `facts.py` FrameFacts v4; `selfpos.py` own name tag; `tags.py` players' tags; `hud.py` HP/MP/EXP digits, quickslots; `liedetector.py`; `mapascii.py`; `../cover.py` cover masks (the tracker's `hidden`, until step 4) |
 | `nav/` | `navmap.py` platforms / ropes / links / `route()`; `localize.py` minimap window + our map position; `identify.py` which map; `selfstate.py`; `sim.py` |
 | `brain/` | `brain_v2.py` + `v2/` (above) + `v3/`, `reach.py`, `moves.py`, `travel.py` (brain v1 deleted 2026-11-17: git 58d266e / HISTORY.md) |
-| `runtime/` | `runner.py` (run / serve / watch, setup, map init at F7, `refuse`, the observe loop), `hunt_v2.py` (the hunt loop), `keys.py` KeyDriver, `keylog.py`, `recorder.py`, `exp_meter.py`, `goto.py` |
+| `runtime/` | `runner.py` (run / serve / watch, setup, map init at F7, `refuse`, the observe loop), `hunt_v2.py` (the hunt loop), `keys.py` KeyDriver, `keylog.py`, `recorder.py`, `exp_meter.py`, `goto.py`, `record.py` (`record`: the corpus walk, no perception), `video.py` (the lossless video writer) |
 | `gamedata.py`, `livemap.py` | `assets build`; the console map |
 
 Measured game facts that still hold (the user's rules): a mob shows its HP bar + name **only after being hit**; loot

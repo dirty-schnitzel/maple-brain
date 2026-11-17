@@ -1,9 +1,10 @@
 # PLAN: the recording corpus - many maps recorded cheaply, then every rework tested on all of it
 **Status: OK'd by the user 2026-11-17** (by Fable, xhigh: a review of the proposal made in the session "data" the
 same day; sections 4-5 then redone to the user's three concerns: nobody looks at recordings to file them, no fixed
-list of maps, short stops). Not started. Executors: Opus, 3 sessions (prompts at the end) + about 2 hours of the user's
-own play. Evidence scripts: `tools/data/` (each file's docstring says what it measures). Nothing in `maplebrain/`
-is built yet.
+list of maps, short stops). **Session 1 BUILT 2026-11-17 on branch `data`** (gates a, d, e passed; b, c, f wait
+for the user's walk + a `serve --video` hunt; what was decided while building: "Session 1 as built" after section
+5, details in HANDOFF's START HERE). Executors: Opus, 3 sessions (prompts at the end) + about 2 hours of the user's
+own play. Evidence scripts: `tools/data/` (each file's docstring says what it measures).
 
 ## 1. Why
 Every rework so far was designed and tuned on a few minutes of play:
@@ -158,6 +159,21 @@ as smooth as without it (the user's word), and a `serve --video` hunt's tick p50
 **Stop rules:** drops or a tick cost over 1 ms -> stop with numbers (fallbacks to weigh then: the faster preset
 p1, every 2nd frame, the CPU encoder on spare cores). A cut or a map name wrong -> stop with the frames: wrong
 names poison everything after; "unknown" stretches are fine.
+
+**Session 1 as built (2026-11-17; the executor's additions, the user's word changes them):**
+- The cut keeps the map over frames it can't name only up to 2 s (`KEEP_S`, a guess until a real loading screen
+  is measured): 35 of the 336 maps have no minimap (shops, salons, job halls), so "town -> shop -> town" would
+  have been filed as the town. A longer unnamed stretch is its own segment: named by the portals only when the
+  maps before and after do not connect directly and exactly one no-minimap map connects them, else "unknown".
+- A frame where the recogniser finds no minimap window (something drawn over its frame: 77 frames in 3 of the old
+  recordings) is the same map when that map is still the clear winner inside the window measured on the nearest
+  named frame. It only confirms a map already named beside it.
+- A look names a new map only when the next 2 frames and the look a second later name it too.
+- Gate (d) found: a killed ENCODER leaves one out-of-order frame at the end of the cut chunk (the picture of 4
+  frames later); `corpus.py add` keeps only the frames before a hole in the times. Killing the recorder itself
+  loses only the queued frames.
+- The marker key is F12 (`Keys.note`); a `record` recording numbers its frames from 0; chunk files sit flat in
+  the run folder; an old PNG recording is one segment with the map of its log.
 
 ## 6. The validation pass (Sessions 2 and 3)
 Perception runs **unchanged** over the dev group; this pass measures and lists, it fixes nothing.

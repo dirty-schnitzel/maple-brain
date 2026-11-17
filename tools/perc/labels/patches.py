@@ -2,6 +2,10 @@
 
     python tools/perc/labels/patches.py RUN PICK.json [--only N,N] [--crop-zoom 2]
 
+RUN = a run folder or a corpus segment RECORDING#K (tools/perc/frames.py `clip`: frames from PNG files or the
+video; a segment's outputs go to its work folder, RUN/ below = that folder). The tracker's camera / tracks come
+from the recording's ticks.jsonl, or - a `record` walk has none - from a replay of the segment (--tracks).
+
 The candidates come from D = frame - expected scene (scene.py), never from a mob detector, so the labels stay
 independent of what they grade. Per picked frame:
 - the camera: followed over EVERY saved frame of the run (Scene.locate from the frame before, the recording's tracker
@@ -15,7 +19,6 @@ Labels go to RUN/labels.json (v2, labelfmt.py) by tools/perc/labels/label.py.
 """
 import argparse
 import json
-import re
 import sys
 from pathlib import Path
 
@@ -28,30 +31,26 @@ sys.path.insert(0, str(ROOT / "tools" / "perc"))
 import frames as rec  # noqa: E402
 
 GREEN, BOX, UNK = (0, 220, 0), (0, 0, 255), (160, 0, 160)
+map_of = rec.map_of             # (tools/perc/dcheck.py imports it from here)
 
 
-def map_of(run: Path) -> int:
-    log = (run / "log.txt").read_text(encoding="utf-8", errors="replace")
-    m = re.search(r"map recognised: (\d+)", log) or re.search(r"\bmap (\d+) ", log)
-    return int(m.group(1))
-
-
-def follow(run: Path, scene, tol: int, ui_t) -> dict:
-    """Saved frame name -> camera (x, y) or None, every saved frame registered from the one before."""
+def follow(c, sight: list, scene, tol: int, ui_t) -> dict:
+    """Saved frame name -> camera (x, y) or None, every saved frame of the clip registered from the one before
+    (`sight`: Clip.sight rows, their tracker camera = the seed)."""
     import torch
-    cache = run / "labels" / "cams.json"
+    cache = c.find("labels/cams.json")
     if cache.exists():
         return json.loads(cache.read_text())
-    ticks = [json.loads(l) for l in open(run / "ticks.jsonl", encoding="utf-8")]
+    cache = c.out / "labels" / "cams.json"
     prev, last, cams = None, None, {}
-    for k in ticks:
-        if not k.get("frame") or not k["obs"].get("cam"):
+    for k in sight:
+        if not k.get("frame") or not k.get("cam"):
             continue
-        f = rec.read(run, k["frame"])
+        f = c.read(k["frame"])
         if f is None:
             continue
         ft = torch.from_numpy(np.ascontiguousarray(f[:700])).to(scene.dev)
-        reg = scene.locate(ft, C_guess=prev, seed=k["obs"]["cam"], tol=tol, mask=ui_t, min_share=0.2, last_share=last)
+        reg = scene.locate(ft, C_guess=prev, seed=k["cam"], tol=tol, mask=ui_t, min_share=0.2, last_share=last)
         prev, last = (reg[0], reg[1]) if reg is not None else (prev, None)
         cams[k["frame"]] = list(reg[0]) if reg is not None else None
     cache.parent.mkdir(exist_ok=True)
@@ -175,40 +174,40 @@ def sheet(frame, mj, C, ps, unk, tracks, p, z=2):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("run", type=Path)
+    ap.add_argument("run")
     ap.add_argument("pick", type=Path)
     ap.add_argument("--tol", type=int, default=4)
     ap.add_argument("--only", default=None)
     ap.add_argument("--crop-zoom", type=int, default=2)
+    ap.add_argument("--tracks", default="replay/work.jsonl", help="a recording without ticks.jsonl: this replay of it")
+    ap.add_argument("--holdout", action="store_true", help="RUN is a hold-out segment of the corpus: only at gates (the use is logged)")
     a = ap.parse_args()
     import torch
     from maplebrain.perception import hud
     from maplebrain.scene import Scene
-    map_id = map_of(a.run)
+    c = rec.clip(a.run, a.holdout, "labels/patches.py")
+    map_id = c.map_id
     scene = Scene.load(map_id)
     mj = json.loads((ROOT / "assets" / "mcw" / "maps" / str(map_id) / "map.json").read_text(encoding="utf-8"))
     ui = np.ones((700, 1366), bool)
     for x0, y0, x1, y1 in hud.UI_RECTS:
         ui[y0:min(y1, 700), x0:x1] = False
     ui_t = torch.from_numpy(ui).to(scene.dev)
-    cams = follow(a.run, scene, a.tol, ui_t)
-    print(f"camera on {sum(c is not None for c in cams.values())} of {len(cams)} saved frames")
-    ticks = {}
-    for l in open(a.run / "ticks.jsonl", encoding="utf-8"):
-        k = json.loads(l)
-        if k.get("frame"):
-            ticks[k["frame"]] = k["obs"].get("mobs") or []
+    sight = c.sight(a.tracks)
+    cams = follow(c, sight, scene, a.tol, ui_t)
+    print(f"camera on {sum(v is not None for v in cams.values())} of {len(cams)} saved frames")
+    ticks = {k["frame"]: k["mobs"] for k in sight if k.get("frame")}
     pick = json.loads(a.pick.read_text(encoding="utf-8"))["frames"]
     if a.only:
         want = {int(v) for v in a.only.split(",")}
         pick = [p for p in pick if p["n"] in want]
-    out = a.run / "labels"
+    out = c.out / "labels"
     (out / "sheets").mkdir(parents=True, exist_ok=True)
     pj = out / "patches.json"
     allp = json.loads(pj.read_text()) if pj.exists() else {}
     for p in pick:
         C = cams.get(p["frame"])
-        frame = rec.read(a.run, p["frame"])
+        frame = c.read(p["frame"])
         if C is None or frame is None:
             print(f"  {p['frame']}: no camera / frame")
             continue

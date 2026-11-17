@@ -339,8 +339,8 @@ def _picture(screen, cols=None) -> str:
 
 
 def run(out: Path, seconds: float, cfg: Config, focus: bool = True, frames_every: int = 3,
-        frames_png: bool = False) -> int:
-    rec = Recorder(out, every=frames_every, png=frames_png)
+        frames_png: bool = False, video: bool = False) -> int:
+    rec = Recorder(out, every=frames_every, png=frames_png, video=video)
     t0 = time.perf_counter()
 
     def say(msg):
@@ -431,10 +431,11 @@ def _mark_here(rig: Rig, marks: Marks, say, out_root: Path):
 
 def serve(out_root: Path, cfg: Config, frames: int = 0,
           hotkeys: Hotkeys | None = None, poll_s: float = 0.03, max_hunts: int | None = None,
-          observe: bool = False, frames_png: bool = False) -> int:
+          observe: bool = False, frames_png: bool = False, video: bool = False) -> int:
     """Stay loaded: cfg.keys.start starts a hunt, cfg.keys.stop stops it; Ctrl+C in the console quits. Each hunt is
     recorded in its own folder under `out_root` (log + ticks; every `frames`-th frame, 0 = none; True = 3). `frames_png`:
-    lossless frames. `max_hunts`: for tests.
+    lossless frames. `video`: every frame of a hunt into its lossless video (runtime/video.py; --video). `max_hunts`:
+    for tests.
     `observe`: the start key starts a recording only - the player plays, the bot never touches a key."""
     out_root = Path(out_root)
     out_root.mkdir(parents=True, exist_ok=True)
@@ -507,7 +508,8 @@ def serve(out_root: Path, cfg: Config, frames: int = 0,
                     continue
             hunts += 1
             out = out_root / f"{datetime.now():%Y%m%d_%H%M%S}_{hunts}"
-            rec = Recorder(out, every=int(frames) * 3 if frames is True else int(frames), png=frames_png)
+            rec = Recorder(out, every=int(frames) * 3 if frames is True else int(frames), png=frames_png,
+                           video=video)
             say(f"hunt #{hunts} started -> {out} (map {rig.cfg.perception.map_id}, {_picture(rig.screen, cols)})")
             rec.log.write(f"map {rig.cfg.perception.map_id} {_map_name(rig.cfg.perception.map_id)}\n")  # livemap
             if area:

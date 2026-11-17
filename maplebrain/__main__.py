@@ -1,4 +1,5 @@
 """python -m maplebrain run <out_dir> [--seconds 60] [--attack KEY] [--jump shift]
+   python -m maplebrain record [OUT]                  (you play, everything is recorded as lossless video; PLAN-data.md)
    python -m maplebrain assets build [--export DIR]   (game data from the client export, see assets/README.md)
 
 Must run elevated (the game is elevated; Windows drops simulated keys from a lower-integrity process).
@@ -8,6 +9,11 @@ import sys
 from pathlib import Path
 
 from .config import Combat, Keys
+
+
+VIDEO_HELP = ("every frame into a lossless video in the run folder (frames_0000.mkv ..., ~0.2-0.7 GB a minute) "
+              "instead of frame files; with --frames-png the PNG files are written too")
+CORPUS_IN = Path("E:/maple-corpus/incoming")          # `record`'s default: the recording corpus lives on E: (never C:)
 
 
 def main(argv=None) -> int:
@@ -29,6 +35,7 @@ def main(argv=None) -> int:
     r.add_argument("--frames-every", type=int, default=3, help="save every Nth frame (1 = all, for tracker tests)")
     r.add_argument("--frames-png", action="store_true", help="save the frames lossless (PNG, ~1.1 MB each) instead "
                    "of JPEG: reference recordings")
+    r.add_argument("--video", action="store_true", help=VIDEO_HELP)
     v = sub.add_parser("serve", help=f"stay loaded; {Keys.start.upper()} starts hunting, {Keys.stop.upper()} stops (elevated, game focused); "
                                      f"between hunts {Keys.mode.upper()} = mode (auto / platform), {Keys.mark.upper()} = mark the platform you stand on")
     v.add_argument("out", type=Path, nargs="?", default=Path("runs/manual"), help="one folder per hunt in here")
@@ -46,7 +53,17 @@ def main(argv=None) -> int:
     v.add_argument("--frames-every", type=int, default=None, help="save every Nth frame (implies --frames; 1 = all)")
     v.add_argument("--frames-png", action="store_true", help="save the frames lossless (PNG, ~1.1 MB each, ~3.3 GB "
                    "per 5 min; implies --frames) instead of JPEG: reference recordings")
+    v.add_argument("--video", action="store_true", help=VIDEO_HELP)
     v.add_argument("--observe", action="store_true", help="record only: you play, the bot presses no keys")
+    c = sub.add_parser("record", help=f"you play, everything the game shows is recorded as lossless video + your keys "
+                                      f"(no perception, nothing pressed); {Keys.start.upper()} starts a recording, "
+                                      f"{Keys.stop.upper()} ends it (game focused, native 1366x768 window)")
+    c.add_argument("out", type=Path, nargs="?", default=CORPUS_IN,
+                   help="one folder per recording in here (default: the corpus' incoming folder)")
+    c.add_argument("--start-key", default=Keys.start)
+    c.add_argument("--stop-key", default=Keys.stop)
+    c.add_argument("--note-key", default=Keys.note, help="the marker key: a key the game does not use, pressed when "
+                   "something makes you change what you do (its presses are listed per map by the corpus)")
     g = sub.add_parser("goto", help="brain-v2 movement test: travel to a platform, or a tour of random goals "
                        "(elevated; clean maps, native window)")
     g.add_argument("out", type=Path)
@@ -80,7 +97,7 @@ def main(argv=None) -> int:
     s.add_argument("maps", type=int, nargs="*", help="scene: these map ids (default: every map with mob spawns)")
     s.add_argument("--export", type=Path, default=None, help="the export folder (default: export.ps1's)")
     a = ap.parse_args(argv)
-    if a.cmd in ("run", "serve", "goto", "watch"):     # beside the game: a background process, else on the slow cores
+    if a.cmd in ("run", "serve", "goto", "watch", "record"):   # beside the game: a background process, else on the slow cores
         from .procperf import prefer_performance
         print(prefer_performance())
     if a.cmd == "livemap":
@@ -91,6 +108,16 @@ def main(argv=None) -> int:
     if a.cmd == "watch":
         from .runtime.runner import watch
         return watch(a.out, a.seconds, a.every, a.gpu)
+    if a.cmd == "record":
+        from .config import Config
+        from .runtime.record import record
+        from .runtime.runner import VK
+        for k in (a.start_key, a.stop_key):
+            if k not in VK:
+                ap.error(f"hotkeys must be F1-F12, got {k!r}")
+        cfg = Config()
+        cfg.keys.start, cfg.keys.stop, cfg.keys.note = a.start_key, a.stop_key, a.note_key
+        return record(a.out, cfg)
     if a.cmd == "goto":
         from .config import Config
         from .keyboard import validate
@@ -127,13 +154,16 @@ def main(argv=None) -> int:
             ap.error(str(e))
         if a.cmd == "run":
             return run(a.out, a.seconds, cfg, focus=not a.no_focus, frames_every=a.frames_every,
-                       frames_png=a.frames_png)
+                       frames_png=a.frames_png, video=a.video)
         for k in (a.start_key, a.stop_key):
             if k not in VK:
                 ap.error(f"hotkeys must be F1-F12, got {k!r}")
         cfg.keys.start, cfg.keys.stop = a.start_key, a.stop_key
+        if a.video and (a.frames or a.frames_every is not None) and not a.frames_png:
+            ap.error("--video already holds every frame, lossless: JPEG frame files beside it are not written "
+                     "(--frames-png adds PNG files of every Nth frame)")
         every = a.frames_every if a.frames_every is not None else (3 if a.frames or a.frames_png else 0)
-        return serve(a.out, cfg, frames=every, observe=a.observe, frames_png=a.frames_png)
+        return serve(a.out, cfg, frames=every, observe=a.observe, frames_png=a.frames_png, video=a.video)
     return 2
 
 

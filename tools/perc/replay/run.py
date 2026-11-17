@@ -6,9 +6,13 @@ same frames (compare.py).
     python tools/perc/replay/run.py RUN --old HEAD                # maplebrain/ as committed at HEAD -> RUN/replay/HEAD.jsonl
     python tools/perc/replay/run.py RUN --old dev --only perception/world.py,cover.py     # only these files from `dev`
     python tools/perc/replay/run.py RUN [--map ID] [--t0 S --t1 S] [--every K] [--out NAME]
+    python tools/perc/replay/run.py RECORDING#K [--holdout]       # a segment of the recording corpus (one map of a
+                                                                  # walk) -> E:/maple-corpus/work/RECORDING#K/replay/
 
-The map is read from RUN/log.txt (`map recognised: ID`) unless given. (The mob score is gone with the old
-detector, 2026-11-17: the fit's sightings are 1.0 and no score bar applies.)
+RUN = a run folder (frames as PNG files or as the lossless video: tools/perc/frames.py reads either) or a corpus
+segment (tools/data/corpus.py list --segments; a hold-out segment only with --holdout). The map is read from
+RUN/log.txt (`map recognised: ID`) or is the segment's, unless given. (The mob score is gone with the old detector,
+2026-11-17: the fit's sightings are 1.0 and no score bar applies.)
 `--old REF` swaps modules, not files: an import hook serves maplebrain's sources from `git show REF:...` under the
 working tree's file names (so the assets are found as always); nothing is checked out or written. The rig is built
 by the working tree's tools/perf/bench.py: a REF whose Rig / _load_map differ too much won't build (then check it
@@ -82,29 +86,16 @@ def bench_module():
     return mod
 
 
-def from_log(run: Path) -> tuple:
-    """(map id, mob score) as the run's log says; None where it doesn't."""
-    log = (run / "log.txt").read_text(encoding="utf-8", errors="replace") if (run / "log.txt").exists() else ""
-    m = re.search(r"map recognised: (\d+)", log) or re.search(r"\bmap (\d+) ", log)
-    s = re.search(r"mob score ([0-9.]+)", log)
-    return (int(m.group(1)) if m else None), (float(s.group(1).rstrip(".")) if s else None)
-
-
-def saved_frames(run: Path, t0: float = 0.0, t1: float = 1e9, every: int = 1) -> list:
-    """[(n, frame file, t)] of the ticks whose frame was saved, in order."""
-    out = []
-    with open(run / "ticks.jsonl", encoding="utf-8") as f:
-        for line in f:
-            k = json.loads(line)
-            if k.get("frame") and t0 <= k["obs"]["t"] <= t1 and (run / "frames" / k["frame"]).exists():
-                out.append((k["n"], k["frame"], k["obs"]["t"]))
-    return out[::every]
+def frames_module():
+    sys.path.insert(0, str(ROOT / "tools" / "perc"))
+    import frames as rec                              # PNG or video; the 1 px capture error of two recordings undone
+    return rec
 
 
 def replay(run: Path, map_id: int, frames: list, out: Path) -> dict:
+    """`frames`: [(n, frame name, t)] of the recording in `run`, in order (frames.Clip.frames)."""
     per = bench_module().build(map_id)[0]
-    sys.path.insert(0, str(ROOT / "tools" / "perc"))
-    import frames as rec                              # the 1 px capture error of two native recordings undone
+    rec = frames_module()
     t_start = time.perf_counter()
     with open(out, "w", encoding="utf-8") as f:
         for n, name, t in frames:
@@ -122,7 +113,8 @@ def replay(run: Path, map_id: int, frames: list, out: Path) -> dict:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("run", type=Path)
+    ap.add_argument("run", help="a run folder, or a corpus segment RECORDING#K")
+    ap.add_argument("--holdout", action="store_true", help="RUN is a hold-out segment of the corpus: only at gates (the use is logged)")
     ap.add_argument("--old", default=None, metavar="REF", help="maplebrain's code from this git ref (default: the working tree)")
     ap.add_argument("--only", default=None, help="with --old: only these files from REF, comma separated (perception/world.py)")
     ap.add_argument("--map", type=int, default=None)
@@ -137,17 +129,17 @@ def main():
         sys.meta_path.insert(0, src)
     elif a.only:
         raise SystemExit("--only needs --old REF")
-    log_map, _ = from_log(a.run)
-    map_id = a.map or log_map
+    c = frames_module().clip(a.run, a.holdout, "replay/run.py")
+    map_id = a.map or c.map_id
     if map_id is None:
         raise SystemExit("no map in the run's log: --map ID")
-    frames = saved_frames(a.run, a.t0, a.t1, a.every)
+    frames = c.frames(a.t0, a.t1, a.every)
     if not frames:
         raise SystemExit(f"no saved frames in {a.run}")
     name = a.out or (re.sub(r"[^\w.-]", "_", a.old) if a.old else "work")
-    out = a.run / "replay" / f"{name}.jsonl"
+    out = c.out / "replay" / f"{name}.jsonl"
     out.parent.mkdir(exist_ok=True)
-    r = replay(a.run, map_id, frames, out)
+    r = replay(c.run, map_id, frames, out)
     code = f"{a.old} ({len(src.served)} modules{' only: ' + a.only if a.only else ''})" if src else "working tree"
     print(f"replay {a.run}: map {map_id}, code {code}; {r['frames']} frames in {r['seconds']} s "
           f"-> {out}")

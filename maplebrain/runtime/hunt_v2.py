@@ -155,4 +155,4 @@ def speed_line(speed) -> str:
     med = {k: sorted(p.get(k, 0.0) for _, p in speed)[len(speed) // 2] for k in names}
     parts = ", ".join(f"{k} {v:.1f}" for k, v in sorted(med.items(), key=lambda kv: -kv[1]) if v >= 0.05)
     p50, p90 = ticks[len(ticks) // 2], ticks[int(0.9 * (len(ticks) - 1))]
-    return f"speed: tick p50 {p50:.0f} ms ({1000 / p50:.1f} fps), p90 {p90:.0f} ms; perceive parts p50 [{parts}]"
+    return f"speed: tick p50 {p50:.1f} ms ({1000 / p50:.1f} fps), p90 {p90:.1f} ms; perceive parts p50 [{parts}]"

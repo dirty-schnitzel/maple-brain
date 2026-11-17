@@ -222,8 +222,10 @@ def make_frame(syn, base, case, rng) -> tuple:
                  "base": base.n, "C": list(base.C), "distractors": extras}
 
 
-def generate(run: Path, n: int, seed: int, out: Path, webp: bool = False, crop: bool = False, log=print):
+def generate(run, n: int, seed: int, out: Path, webp: bool = False, crop: bool = False, log=print):
+    """`run`: a run folder, a corpus segment RECORDING#K, or a frames.Clip (synth.Synth)."""
     syn = S.Synth(run)
+    run = syn.clip.name if syn.clip.seg else syn.run
     rng = np.random.default_rng(seed)
     bases = sorted(syn.labels)
     jobs = [(i, CASES[i % len(CASES)], int(bases[rng.integers(len(bases))])) for i in range(n)]
@@ -310,7 +312,8 @@ def sheet(out: Path, cases=None, w=420, h=280):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("run", nargs="?", type=Path)
+    ap.add_argument("run", nargs="?", help="a run folder, or a corpus segment RECORDING#K")
+    ap.add_argument("--holdout", action="store_true", help="RUN is a hold-out segment of the corpus: only at gates (the use is logged)")
     ap.add_argument("--n", type=int, default=500)
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--out", type=Path)
@@ -320,7 +323,9 @@ def main():
     a = ap.parse_args()
     if a.sheet:
         return sheet(a.sheet)
-    generate(a.run, a.n, a.seed, a.out, a.webp, a.crop)
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    import frames as rec
+    generate(rec.clip(a.run, a.holdout, "synth/make.py"), a.n, a.seed, a.out, a.webp, a.crop)
     if not a.crop:
         sheet(a.out)
 
