@@ -5,7 +5,7 @@
                                               one folder per F7) or DIR itself if it holds ticks.jsonl
   python -m maplebrain livemap RUN --replay     play a recorded run's ticks back at real speed (--speed 2 = faster)
 
-Reads ticks.jsonl as the bot writes it (obs.mobs / obs.cam: needs --gpu). The map comes from the run's log.
+Reads ticks.jsonl as the bot writes it (obs.mobs / obs.cam: the scene camera's tracks). The map comes from the run's log.
 """
 import json
 import os
@@ -94,7 +94,7 @@ class View:
                  f"({', '.join(f'{self.names.get(i, i)} {c}' for i, c in self.let.items())})",
                  render(self.mj, marks=marks, screen=scr, width=self.width, marked=self.marked_segs(run))]
         if not o.get("cam") and not o.get("mobs"):
-            lines.append("(no tracks in this run: start the bot with --gpu)")
+            lines.append("(no tracks in this run: no scene camera - an unclean map / observe without a map?)")
         return "\n".join(lines)
 
 

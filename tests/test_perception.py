@@ -16,21 +16,8 @@ TAG = np.load(Path(__file__).parents[1] / "assets" / "self_tag_gray.npy")      #
 # ---------------------------------------------------------------- HUD
 # ---------------------------------------------------------------- perceiver + motion look
 # ---------------------------------------------------------------- mob library
-def test_mobs_a_step_below_us_count_but_not_ones_above():
-    """pkg_swing1 start: we stood on a small step; snails on the ground ~60 px below were filtered out as 'not on
-    our ground line'. Walking off a step is free; going up needs a jump."""
-    from maplebrain.perception.perceiver import reachable_level
-    feet = 545
-    assert reachable_level((900, 560, 40, 26), feet, 18, 80)               # bottom 586: 41 px below
-    assert reachable_level((900, 579, 40, 26), feet, 18, 80)               # 60 px below
-    assert not reachable_level((900, 400, 40, 26), feet, 18, 80)           # 119 px above: a ledge / ghost
-    assert not reachable_level((900, 640, 40, 26), feet, 18, 80)           # 121 px below: another floor
-    assert reachable_level((900, 510, 40, 26), feet, 18, 80)               # on our line
 
 
-# ---------------------------------------------------------------- own tag cut off by the screen edge
-# ---------------------------------------------------------------- potions: HP/MP bars and the quickslots
-# ---------------------------------------------------------------- the game's Lie Detector (anti-bot test)
 def _lie(background=False):
     from maplebrain.perception.liedetector import LieDetector
     return LieDetector.load(FX, background=background)
@@ -137,23 +124,6 @@ def test_lie_detector_on_its_thread_answers_a_look_later_and_never_blocks():
     lie.pending.result()
     assert lie.check(game, 20.05)[0] is True
     assert lie.check(none, 0.0)[0] is False                    # a new hunt: the old 'on screen' is dropped
-
-
-def test_a_mob_up_a_gentle_slope_far_away_is_reachable():
-    """East Rocky Mountain I (serve 2026-11-01 22:27): Snails / Dark Stumps up the slope at the screen's left edge,
-    60-80 px above our feet and 500-900 px away, were never targeted (band 75 px, same level +-35)."""
-    from maplebrain.config import Config
-    from maplebrain.perception.perceiver import reachable_level
-    z = Config().zones
-    feet = 579
-    up70 = (100, feet - 70 - 34, 35, 34)                         # bottom 70 px above our feet
-    args = (feet, z.same_level, z.step_down)
-    assert not reachable_level(up70, *args)                      # the old rule: another platform
-    assert reachable_level(up70, *args, -600, z.climb_slope, z.climb_max)      # far: a walkable rise
-    assert not reachable_level(up70, *args, -120, z.climb_slope, z.climb_max)  # close: a ledge over us
-    up120 = (100, feet - 120 - 34, 35, 34)
-    assert not reachable_level(up120, *args, -900, z.climb_slope, z.climb_max)  # too high: needs a jump/rope
-    assert reachable_level((100, feet + 50 - 34, 35, 34), *args, -10, z.climb_slope, z.climb_max)  # step down: as before
 
 
 def test_a_new_max_needs_two_reads_and_a_covered_hud_keeps_the_last():

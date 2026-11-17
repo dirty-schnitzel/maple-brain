@@ -1,4 +1,8 @@
-# maplebrain perception redesign: the scene model (AGREED by the user 2026-11-16; step 0 DONE, see HANDOFF)
+# maplebrain perception redesign: the scene model (AGREED by the user 2026-11-16; steps 0-3 DONE, see HANDOFF)
+
+**2026-11-17: the old perception is deleted** (branch `perception-only` off `perception`): the scene camera + D + the
+fit + Fitter.look feeding world.py are the only mob perception; clean maps + the native window only (else no hunt);
+a lost scene camera pauses the hunt. Next: step 4 (the tracker) as a plan session.
 
 Written after the phase 1a speed review (HANDOFF "ROADMAP"). The user's target (2026-11-16): **capped at 60 fps, 100 %
 (or close) accuracy for platforms, monsters, the player - everything**; the game window goes to **native 1366x768,
@@ -76,7 +80,9 @@ not the screen size or the number of mob types. The loop processes each rendered
 camshift.py, the scene phase correlation, the per-tick minimap follow (kept for map identification, start-up and a
 ~5 Hz cross-check), the coarse / refine / near split, cover probes and edge-ghost rules (the fit handles both), the
 whole-screen tag fallback as a blocking call, CPU resize, repeated grey / HSV conversions; after v1 retires: mobs.py,
-sprites.py, motion.py.
+sprites.py, motion.py. **ALL GONE 2026-11-17** (with gpu_sprites.py, drops.py and brain v1). Left on purpose: the
+cover masks (cover.py) behind the tracker's `hidden` state - live on the fit path (deleting them changes Dangerous
+Steam's / Transfer Area's tracks): step 4 decides them with the 3-valued evidence.
 
 ## "100 %" - what it can mean, and how it is measured
 - Exact by construction once the camera is registered: platforms, ropes, portals, NPCs, HUD numbers.
@@ -168,9 +174,13 @@ bench needs the game running (GPU P-state: 40-43 ms idle vs 27-30 with the game)
   **DONE 2026-11-17 offline (HANDOFF "Step 3 state"; the user's live check open):** bench 13.3-13.7 ms p50 (old
   path 20.1-21.7, same state); labels 86.2 -> 94.2 % (every class >= before); real track-frames +6..+17 % on the 6
   native clips, every one of the 97 new-only tracks looked at: 0 scenery ghosts; the old path's keycap ghost gone.
-- Maps without a clean scene (moving / animated backs, a lost scene camera, non-native windows): today's path
-  whole and untouched, per tick; no FFT for it now (the clouds task decides its future: then the measured 7.7 ->
-  4.4 ms FFT is the option). The old search code is deleted only when no map needs it (the user's call then).
+- Maps without a clean scene (moving / animated backs, a lost scene camera, non-native windows): ~~today's path
+  whole and untouched, per tick~~ - **the user's call 2026-11-17: the old perception is DELETED (branch
+  `perception-only`; HANDOFF "DONE: the old perception deleted").** Now: a map without a clean scene model or a
+  non-native window -> the hunt (and `goto`) refuses to start with a clear message (observe still records:
+  frames, HUD, tag, minimap, no mobs); the scene camera not found mid-hunt -> keys released, no presses until it
+  is found again, logged both ways (TODO in HANDOFF: handle it properly as cases come up live). Perion's clouds
+  (the deferred task) are what brings those maps back.
 - Ghost gate on NATIVE footage (the documented FHD ghost runs only ever test the fallback): Dangerous Steam's
   scenery ghosts + the native clips' weak tracks. Tests on pre-native footage were deleted (the user, 2026-11-16;
   Lie Detector tests kept); the perf fixture is lossless now. New gate footage: HANDOFF task.

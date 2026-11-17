@@ -1,7 +1,7 @@
 """Where WE are, every tick, for brain-v2's movement skills: exact map x/y, ground / air / rope, velocity.
 
-Position: `obs.me_map` (our name tag on screen + the tracker's camera, exact px; the camera moves by the platforms'
-shift, perception/camshift.py) when our tag is found, else the minimap's `obs.map_pos` (16 px steps; our tag is
+Position: `obs.me_map` (our name tag on screen + the scene camera, exact px) when our tag is found and the camera
+registered, else the minimap's `obs.map_pos` (16 px steps; our tag is
 hidden on some ladders). State:
   ground - our feet within `ground_tol` of a platform surface and not moving vertically fast;
   rope   - at a rope's x (within `rope_tol`), between its ends, not on a surface;

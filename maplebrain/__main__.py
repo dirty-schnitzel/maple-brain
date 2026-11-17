@@ -7,7 +7,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from .config import Combat, Keys, Perception
+from .config import Combat, Keys
 
 
 def main(argv=None) -> int:
@@ -19,20 +19,12 @@ def main(argv=None) -> int:
     r.add_argument("--attack", default=Keys.attack)
     r.add_argument("--basic-attack", default=Keys.basic_attack, help="plain attack used while out of MP and MP potions")
     r.add_argument("--jump", default=Keys.jump)
-    r.add_argument("--pickup", default=Keys.pickup)
     r.add_argument("--hp-stop", type=float, default=0.45)
     r.add_argument("--map", type=int, default=None, help="Classic World map id (42 = Snail Hunting Ground III); "
                    "default: recognised from the minimap at the start")
-    r.add_argument("--loot", action="store_true", help="pick up drops (off: a pet does it)")
-    r.add_argument("--loot-sight", action="store_true", help="experimental: loot what's seen on the ground")
-    r.add_argument("--gpu", action="store_true", help="find mobs on the GPU (whole screen; needs torch + CUDA)")
-    r.add_argument("--tracker", action="store_true", help="the brain uses the tracker's tracks (needs --gpu)")
-    r.add_argument("--brain", choices=["v1", "v2"], default="v1", help="v2 = brain-v2 combat (implies --gpu)")
-    r.add_argument("--weapon", default=Combat.weapon, help="brain v2: weapon type for the reach (poleArm, spear, ...)")
-    r.add_argument("--attack-speed", type=int, default=None, help="brain v2: the weapon's attackSpeed, sets the swing "
+    r.add_argument("--weapon", default=Combat.weapon, help="weapon type for the reach (poleArm, spear, ...)")
+    r.add_argument("--attack-speed", type=int, default=None, help="the weapon's attackSpeed, sets the swing "
                    "length (default: the usual one for the type in the client data; a Booster takes 2 off)")
-    r.add_argument("--mob-score", type=float, default=None, help="a new mob needs a sighting this good (default "
-                   f"{Perception.sprite_score}); mobs already tracked are followed at any score")
     r.add_argument("--no-focus", action="store_true", help="don't bring the game to front; wait for you to")
     r.add_argument("--frames-every", type=int, default=3, help="save every Nth frame (1 = all, for tracker tests)")
     r.add_argument("--frames-png", action="store_true", help="save the frames lossless (PNG, ~1.1 MB each) instead "
@@ -43,19 +35,11 @@ def main(argv=None) -> int:
     v.add_argument("--attack", default=Keys.attack)
     v.add_argument("--basic-attack", default=Keys.basic_attack, help="plain attack used while out of MP and MP potions")
     v.add_argument("--jump", default=Keys.jump)
-    v.add_argument("--pickup", default=Keys.pickup)
     v.add_argument("--hp-stop", type=float, default=0.45)
     v.add_argument("--map", type=int, default=None, help="fix the map; default: recognised from the minimap on every start")
-    v.add_argument("--loot", action="store_true", help="pick up drops (off: a pet does it)")
-    v.add_argument("--loot-sight", action="store_true", help="experimental: loot what's seen on the ground")
-    v.add_argument("--gpu", action="store_true", help="find mobs on the GPU (whole screen; needs torch + CUDA)")
-    v.add_argument("--tracker", action="store_true", help="the brain uses the tracker's tracks (needs --gpu)")
-    v.add_argument("--brain", choices=["v1", "v2"], default="v1", help="v2 = brain-v2 combat (implies --gpu)")
-    v.add_argument("--weapon", default=Combat.weapon, help="brain v2: weapon type for the reach (poleArm, spear, ...)")
-    v.add_argument("--attack-speed", type=int, default=None, help="brain v2: the weapon's attackSpeed, sets the swing "
+    v.add_argument("--weapon", default=Combat.weapon, help="weapon type for the reach (poleArm, spear, ...)")
+    v.add_argument("--attack-speed", type=int, default=None, help="the weapon's attackSpeed, sets the swing "
                    "length (default: the usual one for the type in the client data; a Booster takes 2 off)")
-    v.add_argument("--mob-score", type=float, default=None, help="a new mob needs a sighting this good (default "
-                   f"{Perception.sprite_score}); mobs already tracked are followed at any score")
     v.add_argument("--start-key", default=Keys.start)
     v.add_argument("--stop-key", default=Keys.stop)
     v.add_argument("--frames", action="store_true", help="also save every 3rd frame (~50 MB per 10 min)")
@@ -64,7 +48,7 @@ def main(argv=None) -> int:
                    "per 5 min; implies --frames) instead of JPEG: reference recordings")
     v.add_argument("--observe", action="store_true", help="record only: you play, the bot presses no keys")
     g = sub.add_parser("goto", help="brain-v2 movement test: travel to a platform, or a tour of random goals "
-                       "(elevated; implies --gpu)")
+                       "(elevated; clean maps, native window)")
     g.add_argument("out", type=Path)
     g.add_argument("--to", type=float, nargs="+", default=None, metavar=("PLATFORM", "X"),
                    help="one trip to this platform id (and x on it), then stop")
@@ -75,7 +59,7 @@ def main(argv=None) -> int:
     g.add_argument("--seed", type=int, default=None)
     g.add_argument("--no-focus", action="store_true")
     g.add_argument("--frames-every", type=int, default=3)
-    lm = sub.add_parser("livemap", help="console map of the running hunt (tracks; needs --gpu), redrawn in place")
+    lm = sub.add_parser("livemap", help="console map of the running hunt (tracks), redrawn in place")
     lm.add_argument("dir", type=Path, nargs="?", default=Path("runs/manual"),
                     help="a run folder, or a folder of hunts (the newest is followed)")
     lm.add_argument("--every", type=float, default=0.3)
@@ -129,27 +113,18 @@ def main(argv=None) -> int:
         from .config import Config
         from .keyboard import validate
         from .runtime.runner import VK, run, serve
-        for k in (a.attack, a.basic_attack, a.jump, a.pickup):
+        for k in (a.attack, a.basic_attack, a.jump):
             validate(k)
         cfg = Config()
-        cfg.keys.attack, cfg.keys.jump, cfg.keys.pickup, cfg.safety.hp_stop = a.attack, a.jump, a.pickup, a.hp_stop
+        cfg.keys.attack, cfg.keys.jump, cfg.safety.hp_stop = a.attack, a.jump, a.hp_stop
         cfg.keys.basic_attack = a.basic_attack
         cfg.perception.map_id = a.map
-        cfg.perception.loot = a.loot
-        cfg.perception.loot_by_sight = a.loot and a.loot_sight
-        cfg.perception.gpu = a.gpu or a.brain == "v2"
-        cfg.brain, cfg.combat.weapon, cfg.combat.attack_speed = a.brain, a.weapon, a.attack_speed
-        if a.mob_score is not None:
-            cfg.perception.sprite_score = a.mob_score
-        if a.brain == "v2":
-            from .brain.reach import Reach
-            try:
-                Reach(a.weapon)
-            except KeyError as e:
-                ap.error(str(e))
-        if a.tracker and not a.gpu:
-            ap.error("--tracker needs --gpu")
-        cfg.perception.tracker = a.tracker
+        cfg.combat.weapon, cfg.combat.attack_speed = a.weapon, a.attack_speed
+        from .brain.reach import Reach
+        try:
+            Reach(a.weapon)
+        except KeyError as e:
+            ap.error(str(e))
         if a.cmd == "run":
             return run(a.out, a.seconds, cfg, focus=not a.no_focus, frames_every=a.frames_every,
                        frames_png=a.frames_png)

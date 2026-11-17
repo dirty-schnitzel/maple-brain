@@ -121,50 +121,10 @@ def sheet(rows: list, n: int, path: Path) -> None:
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("run", type=Path)
-    ap.add_argument("--map", type=int, default=None)
-    ap.add_argument("--n", type=int, default=300)
-    ap.add_argument("--score", type=float, default=0.9)
-    ap.add_argument("--sheet", type=int, default=0)
-    a = ap.parse_args()
-    from maplebrain.perception.gpu_sprites import PLAY_H, GpuSpriteDetector
-    from maplebrain.perception.tags import find_tags
-    map_id = a.map
-    if map_id is None:
-        log = (a.run / "log.txt").read_text(encoding="utf-8", errors="replace")
-        m = re.search(r"map recognised: (\d+)", log) or re.search(r"\bmap (\d+) ", log)
-        if not m:
-            raise SystemExit("no map in the run's log: --map ID")
-        map_id = int(m.group(1))
-    files = sorted(p for p in (a.run / "frames").iterdir() if p.suffix in (".png", ".jpg"))
-    if not files:
-        raise SystemExit(f"no frames in {a.run}")
-    files = [files[int(i * (len(files) - 1) / max(1, a.n - 1))] for i in range(min(a.n, len(files)))]
-    kinds = {p.suffix for p in files}
-    det = GpuSpriteDetector.for_map(map_id, ROOT / "assets" / "mcw", min_score=0.5)
-    items = {(mid, pose): (t, m) for mid, t, m, pose in det.items}
-    rows = []
-    for p in files:
-        frame = cv2.imread(str(p))
-        if frame is None:
-            continue
-        for h in clear_hits(det.find(frame), find_tags(frame), a.score, PLAY_H, frame.shape[1]):
-            t, m = items[(h.mob_id, h.pose)]
-            r = measure(frame, t, m, h.box[0], h.box[1])
-            if r is None:
-                continue
-            x, y = h.box[0] + r["dx"], h.box[1] + r["dy"]
-            r.update(mob=h.mob_id, score=h.score, frame=p.name, sprite=t, crop=frame[y:y + t.shape[0], x:x + t.shape[1]])
-            rows.append(r)
-    print(f"{a.run}: map {map_id}, frames {'/'.join(sorted(kinds))}, size {frame.shape[1]}x{frame.shape[0]}"
-          + ("   (JPEG frames: the +-4 share is NOT meaningful, see the docstring)" if ".jpg" in kinds else ""))
-    print(report(rows, len(files), det.names))
-    if a.sheet and rows:
-        sheet(rows, a.sheet, a.run / "native_check.png")
-        print(f"sheet: {a.run / 'native_check.png'}")
-    (a.run / "native_check.json").write_text(json.dumps(
-        [{k: v for k, v in r.items() if k not in ("worst", "sprite", "crop")} for r in rows]))
+    """The whole run found its mobs with the old whole-screen detector (gpu_sprites, deleted 2026-11-17; this main is
+    in git at 58d266e). Step 0's measurement it made is done (HANDOFF: the native picture is 1:1); `measure` /
+    `clear_hits` / `pooled` / `report` / `sheet` stay for reuse (e.g. on the fit's mobs)."""
+    raise SystemExit("native_check: its mob finder (the old detector) was deleted 2026-11-17 - see main's docstring")
 
 
 if __name__ == "__main__":

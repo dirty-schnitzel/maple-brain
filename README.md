@@ -128,7 +128,9 @@ The combat code started from measurements of the game and of a person playing, n
 
 ## 🚀 Quick start
 
-**You need:** Windows, Python 3.12, an NVIDIA GPU with CUDA PyTorch (for `--gpu`), and the game in windowed mode.
+**You need:** Windows, Python 3.12, an NVIDIA GPU with CUDA PyTorch, and the game windowed at exactly 1366x768.
+Hunts run only on maps with a clean scene model (`python -m maplebrain assets scene`; maps with moving backgrounds
+such as Perion's clouds are refused for now).
 The game runs elevated, so the bot must run from an **admin terminal**. Otherwise Windows silently drops its key
 presses.
 
@@ -137,10 +139,10 @@ presses.
 python -m maplebrain assets build
 
 # stay loaded: F7 starts a hunt (the map is recognised then), F8 stops it, Ctrl+C quits
-python -m maplebrain serve runs\v2 --brain v2 --frames
+python -m maplebrain serve runs\v2 --frames
 
 # a timed hunt that saves every 3rd frame
-python -m maplebrain run runs\v2\my_run --brain v2 --seconds 180 --frames-every 3
+python -m maplebrain run runs\v2\my_run --seconds 180 --frames-every 3
 
 # no hunt: only the Lie Detector siren (keep it running between hunts)
 python -m maplebrain watch runs\watch
@@ -150,7 +152,7 @@ python -m maplebrain livemap runs\v2
 python -m maplebrain livemap runs\v2\press1 --replay
 
 # record yourself playing (the bot presses nothing): keylog + ticks + frames
-python -m maplebrain serve runs\play --observe --gpu --tracker --frames
+python -m maplebrain serve runs\play --observe --frames-png
 ```
 
 Every key the bot uses is defined in one place, `Keys` in `maplebrain/config.py`.
@@ -171,7 +173,7 @@ slower than this machine's baseline.
 | Path | What's there |
 |---|---|
 | `maplebrain/config.py` | every threshold and timing: `Keys`, `Combat`, `Perception`, `Nav`, `Humanize` |
-| `maplebrain/perception/` | frame → `Observation`: GPU sprites, tracker, camera shift, own tag, HUD digits, Lie Detector |
+| `maplebrain/perception/` | frame → `Observation`: scene camera + the fit (mobs by their sprites over the map's own scenery), tracker, own tag, HUD digits, Lie Detector |
 | `maplebrain/nav/` | nav map (platforms, ropes, links, routes), minimap localisation, map identification, self state, simulator |
 | `maplebrain/brain/` | `brain_v2.py` + `v2/` (reflexes, ledger, scene, breaks, targeting, combat, trips), reach, moves, travel |
 | `maplebrain/runtime/` | run / serve / watch, the v2 hunt loop, KeyDriver, keylogger, recorder, EXP meter |

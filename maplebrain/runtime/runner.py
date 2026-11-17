@@ -11,6 +11,8 @@ Safety that does not depend on the brain:
   * focus lost -> every key released, paused until the game is back
   * the game window moved -> paused the same way until it rests, then the capture is re-aimed; not 1366x768 any
     more (resized, minimized, gone) -> paused until it is (runtime/window.py)
+  * no clean scene model for the map / not a native 1366x768 window -> the hunt doesn't start (`refuse`)
+  * the scene camera not found mid-hunt -> every key released, no presses until it is found again (hunt_v2)
   * Stop (HP) -> release, alarm beep, end the hunt
   * Stop (Lie Detector) -> release, keep sounding a siren until its window is gone (the user answers it), end
   * every key released when a hunt ends, whatever happened
@@ -26,15 +28,12 @@ from pathlib import Path
 
 import numpy as np
 
-from ..brain.actions import Forget, Learn, Look, Stop, Track, Untrack
-from ..brain.brain import Brain
-from ..capture import Screen, find_window
+from ..capture import H as SCREEN_H, W as SCREEN_W, Screen, find_window
 from ..config import Config
 from ..humanize import Humanizer
 from ..keyboard import FocusLost, Keyboard, bring_to_front, foreground_title
-from ..perception.perceiver import Perceiver
+from ..perception.perceiver import MapKit, Perceiver
 from . import window
-from .keys import KeyDriver, LegacyExecutor
 from .marks import Marks
 from .recorder import Recorder
 
@@ -97,12 +96,12 @@ class Rig:
     hz: Humanizer
     kb: object
     screen: object
-    sprites: object
+    kit: object                     # perception.perceiver.MapKit of the hunt's map (None: no map loaded)
     lie: object
     self_tag: np.ndarray
     locator: object = None          # nav.localize.MinimapLocator (with a map): our map position / platform
     ident: object = None            # nav.identify.MapIdentifier: no --map -> the map is recognised on every start
-    maps: dict = None               # map id -> (sprites, locator), loaded once per process
+    maps: dict = None               # map id -> (kit, locator), loaded once per process
 
 
 def _map_name(map_id: int) -> str:
@@ -111,26 +110,23 @@ def _map_name(map_id: int) -> str:
     return f"{e.get('street') or '?'} / {e.get('name') or '?'}"
 
 
-def _load_scene(map_id: int, say):
-    """The scene model for the scene camera (PLAN-perception.md step 2), or None: no `assets scene` for the map, or
-    moving / animated backgrounds (not covered yet: Perion's clouds) - the camera is then today's (platform shift +
-    minimap) alone. Step 2.5: the scene camera runs beside it and is logged (obs.scene_cam), nothing uses it yet."""
+def _load_scene(map_id: int):
+    """The scene model for the scene camera (PLAN-perception.md steps 1-2) -> (Scene, "") or (None, why): no
+    `assets scene` for the map, or moving / animated backgrounds (not covered yet: Perion's clouds)."""
     from ..scene import Scene
     if not Scene.have(map_id):
-        say(f"scene camera: no scene model for map {map_id} (python -m maplebrain assets scene {map_id}): today's camera")
-        return None
+        return None, f"no scene model (python -m maplebrain assets scene {map_id})"
     scene = Scene.load(map_id)
     if not scene.clean:
-        say(f"scene camera: map {map_id} has moving / animated backgrounds (not covered yet): today's camera")
-        return None
-    say(f"scene camera: on ({sum(it[0] == 'group' for g in scene.groups.values() for it in g)} pre-composed background "
-        f"groups of {len(scene.backs)} layers), logged beside today's camera")
-    return scene
+        return None, "moving / animated backgrounds (not covered by the scene model yet)"
+    return scene, ""
 
 
 def _load_map(rig: "Rig", map_id: int, say) -> bool:
-    """Make `map_id` the hunt's map: sprites + locator (cached), cfg.perception.map_id. False if assets/mcw doesn't
-    have it (every map of the client is there; a new one after a patch needs `assets build`)."""
+    """Make `map_id` the hunt's map: its MapKit (navmap, mob data, scene model + the fit on clean maps) + locator
+    (cached), cfg.perception.map_id. False if assets/mcw doesn't have it (every map of the client is there; a new
+    one after a patch needs `assets build`). A map without a clean scene loads too (map recognition, platform
+    marks, observe recordings), but no hunt starts there (`refuse`)."""
     cfg = rig.cfg
     if rig.maps is None:
         rig.maps = {}
@@ -138,46 +134,62 @@ def _load_map(rig: "Rig", map_id: int, say) -> bool:
         from ..gamedata import have_map
         from ..nav.localize import MinimapLocator
         from ..nav.navmap import NavMap
-        from ..perception.sprites import SpriteDetector
         if not have_map(map_id, ASSETS / "mcw"):
             say(f"map {map_id} isn't in assets/mcw (wrong id? new map after a game patch: re-export the client "
                 "and run `assets build`, see assets/README.md)")
             return False
-        sprites = SpriteDetector.for_map(map_id, ASSETS / "mcw", min_score=cfg.perception.sprite_score)
-        if cfg.perception.gpu:
-            from ..perception.gpu_sprites import GpuBand, GpuSpriteDetector
-            g = GpuSpriteDetector.for_map(map_id, ASSETS / "mcw", min_score=cfg.perception.sprite_score)
-            import numpy as np
-            g.find(np.zeros((768, 1366, 3), np.uint8))              # warm-up (~2 s, first CUDA call)
-            say(f"GPU mob detection on {g.dev}: {g.K} sprite frames, whole screen; tracker search warm-up "
-                f"{g.warm_near(occluded=True):.1f}s")
-            sprites = GpuBand(g, sprites)
-        navmap = NavMap.for_map(map_id, ASSETS / "mcw", cfg.nav)
-        if cfg.perception.gpu:                                     # the tracker (passive: logs obs.mobs only)
-            import json
-            mj = json.loads((ASSETS / "mcw" / "maps" / str(map_id) / "map.json").read_text(encoding="utf-8"))
+        mcw = ASSETS / "mcw"
+        mj = json.loads((mcw / "maps" / str(map_id) / "map.json").read_text(encoding="utf-8"))
+        ids = sorted({int(x["id"]) for x in mj.get("mobs") or []})
+        mobs = {i: json.loads((mcw / "mobs" / str(i) / "mob.json").read_text(encoding="utf-8"))
+                for i in ids if (mcw / "mobs" / str(i) / "mob.json").exists()}
+        navmap = NavMap.for_map(map_id, mcw, cfg.nav)
+        kit = MapKit(map_id, navmap, mobs)
+        try:
+            import torch
+            kit.dev = "cuda" if torch.cuda.is_available() else None
+        except ImportError:
+            kit.dev = None
+        scene, why = _load_scene(map_id) if kit.dev is not None else (None, "no CUDA GPU (torch)")
+        if scene is not None:
             from ..cover import Cover
-            from ..perception.world import TrackCfg
-            sprites.track_ctx = (navmap, mj, {
-                i: json.loads((ASSETS / "mcw" / "mobs" / str(i) / "mob.json").read_text(encoding="utf-8"))
-                for i in g.mob_ids}, TrackCfg.for_mob_score(cfg.perception.sprite_score),
-                Cover.for_map(map_id, ASSETS / "mcw"))
-            sprites.scene = _load_scene(map_id, say)
-            sprites.fitter = None
-            if sprites.scene is not None and cfg.perception.fit:   # the fit in shadow (step 3.3): ~0.2 s, no thread
-                from ..perception.fit import Fitter
-                t = time.perf_counter()
-                sprites.fitter = Fitter(sprites.scene, map_id, ASSETS / "mcw")
-                sprites.fitter.warm()
-                say(f"fit in shadow: {sprites.fitter.G} poses, built in {time.perf_counter() - t:.2f} s")
-        locator = MinimapLocator.for_map(map_id, ASSETS / "mcw", cfg.nav, navmap)
-        rig.maps[map_id] = (sprites, locator)
-        say(f"map {map_id} {_map_name(map_id)}: sprites for "
-            + (", ".join(f"{m.name} ({m.mob_id})" for m in sprites.mobs) or "nothing (no mobs here)")
+            from ..perception.fit import Fitter
+            torch.backends.cudnn.benchmark = True                  # (as the deleted GPU detector set it)
+            t = time.perf_counter()
+            kit.scene, kit.fitter = scene, Fitter(scene, map_id, mcw)
+            kit.fitter.warm()
+            kit.cover = Cover.for_map(map_id, mcw)
+            groups = sum(it[0] == "group" for g in scene.groups.values() for it in g)
+            say(f"scene camera + fit: {kit.fitter.G} poses, {groups} pre-composed background groups of "
+                f"{len(scene.backs)} layers; built in {time.perf_counter() - t:.2f} s")
+        else:
+            kit.why = why
+            say(f"map {map_id}: {why} -> no scene camera: hunts are refused here (observe records without mobs)")
+        locator = MinimapLocator.for_map(map_id, mcw, cfg.nav, navmap)
+        rig.maps[map_id] = (kit, locator)
+        say(f"map {map_id} {_map_name(map_id)}: mobs "
+            + (", ".join(f"{n} ({i})" for i, n in kit.names.items()) or "none")
             + f"; {len(navmap.platforms)} platforms, {len(navmap.ropes)} ropes, {len(navmap.links)} links")
-    rig.sprites, rig.locator = rig.maps[map_id]
+    rig.kit, rig.locator = rig.maps[map_id]
     cfg.perception.map_id = map_id
     return True
+
+
+def refuse(rig: "Rig") -> str | None:
+    """Why a hunt (or a goto) can't start here, or None. It needs the scene camera + the fit (the only mob
+    perception there is): a loaded map with a clean scene model, and the game window at its native 1366x768 (the
+    scene model is pixel-exact; a resampled picture never registers)."""
+    kit = rig.kit
+    if kit is None or rig.locator is None or rig.locator.navmap is None:
+        return "no map loaded (the map wasn't recognised: open the minimap, or pass --map)"
+    if not kit.clean:
+        return (f"map {kit.map_id} {_map_name(kit.map_id)} has no clean scene ({kit.why}): the hunt needs the scene "
+                "camera - only clean maps are hunted for now")
+    box, cols = getattr(rig.screen, "box", None), getattr(rig.screen, "cols", None)
+    if box and cols and (cols[1] - cols[0], box["height"]) != (SCREEN_W, SCREEN_H):
+        return (f"the game picture is {cols[1] - cols[0]}x{box['height']}, not the native {SCREEN_W}x{SCREEN_H} "
+                "window: set the game windowed at exactly 1366x768 (display scale 100 %)")
+    return None
 
 
 def _init_map(rig: "Rig", say, frames: int = 3, save_to: Path | None = None) -> bool:
@@ -237,62 +249,33 @@ def _setup(cfg: Config, say, focus: bool):
             say(f"no --map: the map is recognised from the minimap at every start ({len(rig.ident.canvases)} maps)")
         else:
             rig.ident = None
-            say("no --map and no minimaps on disk (`assets build`): mobs are only known by HP bars, motion "
-                "and the learned library")
+            say("no --map and no minimaps on disk (`assets build`): no map - hunts are refused, observe records "
+                "without mobs")
     return rig
 
 
-class _NoKeys:
-    """Executor stand-in for observe mode: the player is at the keys - never press, never release anything
-    (Keyboard.release_all sends key-ups for the arrows/shift/attack: it would cut the player's own jumps)."""
-    last_move = 0.0
-
-    def run(self, action):
-        pass
-
-    def release(self):
-        pass
-
-    def release_all(self):
-        pass
-
-
 def _hunt(rig: Rig, rec: Recorder, t0: float, until, observe: bool = False, area=None) -> str:
-    """Hunt until `until()` returns a reason (time limit, F8 ...) or the brain stops; returns the status.
-    Every key is released at the end, whatever happened. `observe`: perceive and record only - no brain, no keys
-    (the player plays; e.g. jump measurements). A Lie Detector still sounds the siren. `area`: platform mode's
-    marked platforms (brain v2 only)."""
-    cfg, hz, kb, screen = rig.cfg, rig.hz, rig.kb, rig.screen
-    if cfg.brain == "v2" and not observe:
+    """A hunt (runtime/hunt_v2.py; `area`: platform mode's marked platforms) or, `observe`, a recording: perceive
+    and record only until `until()` returns a reason - no brain, no key ever sent or released (the player plays;
+    Keyboard.release_all would send key-ups for the arrows / shift / attack and cut the player's own jumps), the
+    player's keys -> keys.jsonl. A Lie Detector still sounds the siren. Returns the status."""
+    if not observe:
         from .hunt_v2 import hunt_v2
         return hunt_v2(rig, rec, t0, until, area=area)
+    cfg, kb, screen = rig.cfg, rig.kb, rig.screen
 
     def say(msg):
         rec.say(f"{time.perf_counter() - t0:7.2f}s {msg}")
 
-    drops = None
-    if rig.sprites is not None and cfg.perception.loot_by_sight:
-        from ..perception.drops import DropSpotter
-        drops = DropSpotter()
     if rig.locator is not None:
         rig.locator.origin = None       # the screen crop is re-measured per hunt: the canvas may sit a fraction off
-    perceiver = Perceiver(cfg, rig.self_tag, rig.sprites, lie_detector=rig.lie, drops=drops, locator=rig.locator)
-    brain = Brain(cfg, hz=hz, navmap=rig.locator.navmap if rig.locator is not None else None)
-    if brain.navmap is not None and cfg.nav.seek_spawns:          # per map, per hunt (the map recognised at F7)
-        c = brain.navmap.spawn_center()
-        say(f"spawns: {len(brain.navmap.spawns)} points, densest around map x {c:.0f} - idle walks head there"
-            if c is not None else "spawns: none on this map - idle walks patrol as before")
-    driver = None
-    if observe:
-        ex = _NoKeys()
-    else:                                       # the keys on their own thread: no tap blocks the loop
-        driver = KeyDriver(kb.send, kb.focused, hz, cfg.humanize).start()
-        ex = LegacyExecutor(driver, kb.release_all)
-    keylog = None
-    if observe:                         # the player's own keys -> keys.jsonl, same clock as ticks (obs.t)
-        from .keylog import KeyLogger
-        keylog = KeyLogger(rec.out / "keys.jsonl", t0, focused=kb.focused).start()
-        say(f"recording your keys -> keys.jsonl" + (f" - FAILED: {keylog.error}" if keylog.error else ""))
+    why = refuse(rig)
+    if why is not None:
+        say(f"observe: {why} -> recording frames, HUD, our tag and the minimap; no camera, no mobs")
+    perceiver = Perceiver(cfg, rig.self_tag, rig.kit, lie_detector=rig.lie, locator=rig.locator)
+    from .keylog import KeyLogger
+    keylog = KeyLogger(rec.out / "keys.jsonl", t0, focused=kb.focused).start()   # same clock as ticks (obs.t)
+    say(f"recording your keys -> keys.jsonl" + (f" - FAILED: {keylog.error}" if keylog.error else ""))
     status, start, frames_n = "ok", time.perf_counter(), 0
     try:
         while (reason := until()) is None:
@@ -309,91 +292,33 @@ def _hunt(rig: Rig, rec: Recorder, t0: float, until, observe: bool = False, area
                 tg = time.perf_counter()
                 obs = perceiver.observe(frame, time.perf_counter() - t0, screen.cursor())
                 tp = time.perf_counter()
-                actions = [] if observe else brain.step(obs)
-                if observe and obs.lie_detector:
+                if obs.lie_detector:
                     say("LIE DETECTOR on screen -> siren until its window is gone")
                     lie_alarm(lambda: rig.lie.seen(screen.grab()))
                     say("lie detector window gone")
-                if any(isinstance(a, Look) for a in actions):            # still look, then decide again
-                    ex.release()
-                    wait = hz.vary(cfg.perception.settle_s) - (time.perf_counter() - ex.last_move)
-                    if wait > 0:                                         # camera still sliding: a look now is wasted
-                        time.sleep(wait)
-                        frame = screen.grab()
-                    look = [frame]
-                    for _ in range(cfg.perception.look_frames - 1):
-                        time.sleep(hz.vary(cfg.perception.look_gap_s))
-                        look.append(screen.grab())
-                    if not kb.focused():
-                        raise FocusLost()
-                    window.guard(screen)
-                    obs = perceiver.look(look, obs, screen.cursor())
-                    obs.t = time.perf_counter() - t0
-                    frame = look[-1]
-                    actions = [a for a in actions if not isinstance(a, Look)] + brain.step(obs)
-                for line in brain.events:
-                    rec.say(line)
-                stop = next((a for a in actions if isinstance(a, Stop)), None)
-                for a in actions:
-                    if isinstance(a, Track):
-                        perceiver.track(frame, a.box)
-                    elif isinstance(a, Untrack):
-                        perceiver.untrack()
-                    elif isinstance(a, Learn):
-                        perceiver.learn_target()
-                    elif isinstance(a, Forget):
-                        perceiver.forget_target(frame)
-                    elif not isinstance(a, (Stop, Look)):
-                        ex.run(a)
-                perceiver.target_proven = bool(brain.target and brain.target.proven)
                 timings = {"grab_ms": round(1000 * (tg - tick0)), "perceive_ms": round(1000 * (tp - tg)),
                            "total_ms": round(1000 * (time.perf_counter() - tick0))}
                 parts = getattr(perceiver, "parts", None)
                 if parts:                                       # where perceive_ms went (rest = after the last part)
                     timings["parts"] = {**parts, "rest": round(1000 * (tp - tg) - sum(parts.values()), 1)}
-                if hasattr(rig.sprites, "all_hits"):            # --gpu: the whole screen's mobs + GPU time
-                    timings["gpu_ms"] = round(rig.sprites.last_ms, 1)
-                    timings["gpu_mobs"] = [[h.mob_id, *map(int, h.feet), h.pose.anim, h.score]
-                                           for h in rig.sprites.all_hits]
-                rec.tick(frame, obs, actions, brain.mode, timings, facts=getattr(perceiver, "facts", None))
-                if stop:
-                    ex.release_all()
-                    status = f"STOPPED: {stop.reason}"
-                    if obs.lie_detector:
-                        say("LIE DETECTOR on screen -> keys released, siren until its window is gone")
-                        lie_alarm(lambda: rig.lie.seen(screen.grab()))
-                        say("lie detector window gone")
-                    else:
-                        alarm()
-                    break
+                rec.tick(frame, obs, [], "OBSERVE", timings, facts=perceiver.facts)
             except FocusLost as e:
-                ex.release_all()
                 say(window.pause_line(e, foreground_title))
-                if window.wait_back(screen, kb.focused, hz, say, lambda: until() is None, e):
+                if window.wait_back(screen, kb.focused, rig.hz, say, lambda: until() is None, e):
                     say("resumed")
-                    brain.mode, brain.target, brain.held = "SEEK", None, None
-                    perceiver.untrack()
-                    time.sleep(hz.vary(1.0))
         else:
             if reason != "time":
                 status = reason
-    except Exception as e:                       # noqa: BLE001 - report anything, keys are released below
+    except Exception as e:                       # noqa: BLE001 - report anything
         status = f"aborted: {type(e).__name__}: {e}"
         rec.log.write(traceback.format_exc())
     finally:
-        ex.release_all()
-        if driver is not None:
-            driver.stop()
-            say(f"keys: {driver.sent} key events sent")
-        if keylog is not None:
-            keylog.stop()
-            say(f"keys: {keylog.n} recorded, hook lag max {keylog.lag_max} ms"
-                + (f", error: {keylog.error}" if keylog.error else ""))
+        keylog.stop()
+        say(f"keys: {keylog.n} recorded, hook lag max {keylog.lag_max} ms"
+            + (f", error: {keylog.error}" if keylog.error else ""))
     elapsed = time.perf_counter() - start
-    stats = dict(brain.stats, frames=frames_n, fps=round(frames_n / max(elapsed, 1e-6), 1),
-                 library=len(perceiver.library))
     say(status)
-    say("stats " + json.dumps(stats))
+    say("stats " + json.dumps({"frames": frames_n, "fps": round(frames_n / max(elapsed, 1e-6), 1)}))
     return status
 
 
@@ -566,10 +491,9 @@ def serve(out_root: Path, cfg: Config, frames: int = 0,
             area = None
             if not observe and marks.mode == "platform":
                 area = marks.area(rig.cfg.perception.map_id)
-                if not area or cfg.brain != "v2":
+                if not area:
                     chirp(False)
-                    say("platform mode needs brain v2 (--brain v2) - not started" if area else
-                        f"platform mode: no platform marked on this map - {mark_key.upper()} on at least one first "
+                    say(f"platform mode: no platform marked on this map - {mark_key.upper()} on at least one first "
                         "(not started)")
                     continue
             hunts += 1

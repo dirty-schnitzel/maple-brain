@@ -1,6 +1,7 @@
 """`python -m maplebrain goto OUT [--to PLATFORM [X]] [--seconds S]` - brain-v2 movement, live (M1 step 4).
 
-No fighting: our position (nav/selfstate on the tracker's camera, so --gpu is implied) -> Travel along NavMap routes
+No fighting: our position (nav/selfstate on the scene camera: clean maps, native window only; camera not found ->
+keys released until it is) -> Travel along NavMap routes
 -> KeyDriver. `--to`: one trip, then stop. Without it: a TOUR of random goals (platforms reachable from where we
 are, a random x on each) until --seconds, with a short varied pause between trips. Logged per move (kind, ok,
 secs vs expected, why) + per trip; ticks.jsonl as usual, with timings.self (our state) and timings.travel.
@@ -20,7 +21,7 @@ from ..perception.perceiver import Perceiver
 from . import window
 from .keys import KeyDriver
 from .recorder import Recorder
-from .runner import _init_map, _picture, _setup, alarm, lie_alarm
+from .runner import _init_map, _picture, _setup, alarm, lie_alarm, refuse
 
 
 def goto(out: Path, cfg, seconds: float = 180.0, to=None, focus: bool = True, frames_every: int = 3,
@@ -31,7 +32,6 @@ def goto(out: Path, cfg, seconds: float = 180.0, to=None, focus: bool = True, fr
     def say(msg):
         rec.say(f"{time.perf_counter() - t0:7.2f}s {msg}")
 
-    cfg.perception.gpu = True                     # our exact position needs the tracker's camera
     rig = _setup(cfg, say, focus)
     if rig is None:
         rec.close()
@@ -47,6 +47,9 @@ def goto(out: Path, cfg, seconds: float = 180.0, to=None, focus: bool = True, fr
         time.sleep(rig.hz.vary(1.0))
         say(_picture(rig.screen, rig.screen.calibrate()))
         if not _init_map(rig, say):
+            return 1
+        if (why := refuse(rig)) is not None:          # our exact position needs the scene camera
+            say(f"NOT STARTED: {why}")
             return 1
         status = _tour(rig, rec, t0, say, seconds, to, seed)
     finally:
@@ -73,7 +76,7 @@ def _tour(rig, rec, t0, say, seconds, to, seed) -> str:
     cfg, kb, screen, hz = rig.cfg, rig.kb, rig.screen, rig.hz
     nav = rig.locator.navmap
     rig.locator.origin = None
-    perceiver = Perceiver(cfg, rig.self_tag, rig.sprites, lie_detector=rig.lie, locator=rig.locator)
+    perceiver = Perceiver(cfg, rig.self_tag, rig.kit, lie_detector=rig.lie, locator=rig.locator)
     me = SelfTracker(nav, cfg.nav)
     driver = KeyDriver(kb.send, kb.focused, hz, cfg.humanize).start()
     keymap = {"jump": cfg.keys.jump}
@@ -82,7 +85,7 @@ def _tour(rig, rec, t0, say, seconds, to, seed) -> str:
     trips = collections.Counter()
     kinds = collections.defaultdict(lambda: [0, 0, [], []])
     end = time.perf_counter() + seconds
-    status, n_logged, potion_t = "ok", 0, 0.0
+    status, n_logged, potion_t, lost = "ok", 0, 0.0, False
     try:
         while time.perf_counter() < end:
             try:
@@ -112,6 +115,15 @@ def _tour(rig, rec, t0, say, seconds, to, seed) -> str:
                     status = f"STOPPED: HP {obs.hp:.0%}"
                     alarm()
                     break
+                if obs.scene_cam is None:                # no exact camera: no keys until it is found (as a hunt)
+                    if not lost:
+                        driver.release_all()
+                        tr, lost = None, True
+                        say("PAUSED: scene camera not found -> keys released until it is")
+                    continue
+                if lost:
+                    say("scene camera found again -> resumed")
+                    lost = False
                 if tr is None and s is not None and t >= pause_until and s.state == "ground":
                     g = _goal(nav, s, rng, to)
                     if g is None:

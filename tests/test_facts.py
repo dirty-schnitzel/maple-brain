@@ -9,9 +9,7 @@ import pytest
 
 from maplebrain.config import Config
 from maplebrain.perception.facts import VERSION, FrameFacts
-from maplebrain.perception.gpu_sprites import Hit
 from maplebrain.perception.perceiver import Perceiver
-from maplebrain.perception.sprites import Pose
 from maplebrain.runtime.recorder import Recorder
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,7 +29,7 @@ def test_real_frames_round_trip_through_strict_json():
     for i, frame in enumerate(_frames()):
         per.observe(frame, 0.1 * i)
         f = per.facts
-        f.hits = [Hit(21, (100, 200, 60, 50), (130, 250), Pose("move", 2, "right", 30, 50), 0.912)]
+        f.tags = [(100, 200, 60, 12)]
         d = json.loads(json.dumps(f.as_dict()))                   # no default=str: numpy types would fail here
         assert FrameFacts.from_dict(d) == f
         seen += f.tag is not None and f.hp is not None and f.exp_points is not None
@@ -49,17 +47,20 @@ def test_the_recorder_writes_the_facts(tmp_path):
     assert [FrameFacts.from_dict(r["facts"]).t for r in rows] == [0.0, 0.1, 0.2]
 
 
-def test_v3_fit_fields_round_trip_and_older_records_read_without_them():
+def test_fit_fields_round_trip_and_older_records_read():
     f = FrameFacts(t=1.5, fit=[{"type": 19, "pose": "move_1", "facing": "left", "feet": [300, 480], "opacity": 1.0,
                                 "seen": 0.91, "absent": 0.01, "covered": 0.08, "n_inf": 1800, "n_seen": 1638,
                                 "votes": 410, "layer": 1, "tint": ""}], fit_ms=4.31,
                    fit_hints=[{"id": 7, "mob": 21, "sx": 540, "sy": 274, "pose": "move_0", "facing": "right",
                                "n_inf": 1898, "n_seen": 0, "n_abs": 39, "o": 0.992}])
-    assert f.v == VERSION == 3
+    assert f.v == VERSION == 4
     assert FrameFacts.from_dict(json.loads(json.dumps(f.as_dict()))) == f
     for v in (1, 2):
         old = FrameFacts.from_dict({"t": 0.0, "v": v})
         assert old.fit is None and old.fit_ms is None and old.fit_hints is None
+    old = FrameFacts.from_dict({"t": 0.0, "v": 3, "scene_shift": [1.0, 2.0], "plat_shift": None,   # v1-v3's
+                                "hits": [{"mob_id": 21}], "fit": []})                            # old camera
+    assert old.fit == [] and not hasattr(old, "hits")                                               # + detector
 
 
 def test_another_version_is_refused():

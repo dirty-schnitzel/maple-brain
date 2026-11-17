@@ -26,11 +26,12 @@ Proven 2026-11-16 (press1, fix3):
 ## The gate (since 2026-11-16, the user: short clips of many maps, no double replays)
 
     python tools/perc/replay/gate.py --quick        every sub-step: 3 clips (ant4, line1, transfer), ~3 min
-    python tools/perc/replay/gate.py                before a commit that changes tracking: all 7 clips, ~7 min
+    python tools/perc/replay/gate.py                before a commit that changes tracking: all 6 clips, ~6 min
     python tools/perc/replay/gate.py --list         the clips and what is cached
 
 Clips = ~1 min of each clean native PNG recording (Ant Tunnel IV x2, Dangerous Steam, Line 1, Transfer Area, Dark
-Cave) + 1 min FHD JPEG (fix3: the scene camera fails, today's camera). Replays are cached as
+Cave); the FHD JPEG clip (fix3) went with the old perception 2026-11-17. `run.py --old REF` builds only refs from
+that commit on (older ones: the cached fp_* replays, or a worktree of REF). Replays are cached as
 RUN/replay/fp_<fingerprint>_<clip>.jsonl; the fingerprint = git ids of maplebrain/, assets/ (tracked) and the replay
 tools, so the working tree's replay of one sub-step IS the base of the next (each code state replayed once). Equal
 fingerprints = nothing to replay (docs, tools, code off the live path: pytest + the speed line are the gate).
@@ -39,5 +40,5 @@ base's assets checked out) - the gate refuses otherwise. 2026-11-16 the tag-temp
 the NEW template with itself (void): found that way.
 Per clip: real / weak tracks, track-frames found both ways, sighted the same, mob feet within 2 px of their platform
 (the camera's exactness), our tag found, camera source. SAME = >= 99.9 % both ways everywhere; CHANGED = judge it.
-New clips: the user records ~1 min on a clean map (`serve runs\play --observe --gpu --tracker --frames-png`) ->
+New clips: the user records ~1 min on a clean map (`serve runs\play --observe --frames-png`) ->
 add it to gate.CLIPS.

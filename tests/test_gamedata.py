@@ -11,7 +11,6 @@ import pytest
 from maplebrain import gamedata
 from maplebrain.nav.localize import MinimapLocator
 from maplebrain.nav.navmap import NavMap
-from maplebrain.perception.sprites import SpriteDetector
 
 MCW = Path(__file__).resolve().parents[1] / "assets" / "mcw"
 
@@ -219,9 +218,11 @@ def test_manifest(built):
 
 
 def test_the_bot_loads_a_built_map(built):
-    """What the runner does with --map: sprites, platforms, minimap locator."""
-    det = SpriteDetector.for_map(42, built)
-    assert [m.name for m in det.mobs] == ["Snail", "Blue Snail"]
+    """What the runner does with --map (runner._load_map): the mobs' data, platforms, minimap locator."""
+    m = json.loads((built / "maps" / "42" / "map.json").read_text(encoding="utf-8"))
+    names = [json.loads((built / "mobs" / str(i) / "mob.json").read_text(encoding="utf-8"))["name"]
+             for i in sorted({int(x["id"]) for x in m["mobs"]})]
+    assert names == ["Snail", "Blue Snail"]
     nav = NavMap.for_map(42, built)
     assert len(nav.platforms) == 2 and len(nav.ropes) == 2
     assert nav.spawns == [(100.0, 100.0)]                   # the hidden spawn is left out

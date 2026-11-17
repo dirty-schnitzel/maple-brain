@@ -1,17 +1,19 @@
-"""Tracker replay: the live Perceiver (tools/perf/bench.build = runner._load_map with --gpu --tracker) over a recorded
+"""Tracker replay: the live Perceiver (tools/perf/bench.build = runner._load_map) over a recorded
 run's saved frames -> the tracks of every frame. The gate of every perception change: old code vs new code on the
 same frames (compare.py).
 
     python tools/perc/replay/run.py RUN                           # the working tree -> RUN/replay/work.jsonl
     python tools/perc/replay/run.py RUN --old HEAD                # maplebrain/ as committed at HEAD -> RUN/replay/HEAD.jsonl
     python tools/perc/replay/run.py RUN --old dev --only perception/world.py,cover.py     # only these files from `dev`
-    python tools/perc/replay/run.py RUN [--map ID] [--mob-score S] [--t0 S --t1 S] [--every K] [--out NAME]
+    python tools/perc/replay/run.py RUN [--map ID] [--t0 S --t1 S] [--every K] [--out NAME]
 
-The map and the mob score are read from RUN/log.txt (`map recognised: ID`, `mob score S`) unless given.
+The map is read from RUN/log.txt (`map recognised: ID`) unless given. (The mob score is gone with the old
+detector, 2026-11-17: the fit's sightings are 1.0 and no score bar applies.)
 `--old REF` swaps modules, not files: an import hook serves maplebrain's sources from `git show REF:...` under the
 working tree's file names (so the assets are found as always); nothing is checked out or written. The rig is built
 by the working tree's tools/perf/bench.py: a REF whose Rig / _load_map differ too much won't build (then check it
-out in a worktree and run its own copy).
+out in a worktree and run its own copy) - every ref before the old perception's deletion (58d266e and older) is
+such a ref: its replays are the gate's cache (RUN/replay/fp_*), or a worktree of it.
 
 One line per saved frame: {"n", "frame", "t", "cam", "cam_src", "me", "me_map", "map_pos", "mobs": [Track.as_dict],
 "scene_cam", "patches", "fit", "fit_ms", "fit_hints" (FrameFacts v3), "ms"}.
@@ -99,9 +101,8 @@ def saved_frames(run: Path, t0: float = 0.0, t1: float = 1e9, every: int = 1) ->
     return out[::every]
 
 
-def replay(run: Path, map_id: int, mob_score: float, frames: list, out: Path) -> dict:
-    import cv2
-    per = bench_module().build(map_id, mob_score)[0]
+def replay(run: Path, map_id: int, frames: list, out: Path) -> dict:
+    per = bench_module().build(map_id)[0]
     sys.path.insert(0, str(ROOT / "tools" / "perc"))
     import frames as rec                              # the 1 px capture error of two native recordings undone
     t_start = time.perf_counter()
@@ -125,7 +126,6 @@ def main():
     ap.add_argument("--old", default=None, metavar="REF", help="maplebrain's code from this git ref (default: the working tree)")
     ap.add_argument("--only", default=None, help="with --old: only these files from REF, comma separated (perception/world.py)")
     ap.add_argument("--map", type=int, default=None)
-    ap.add_argument("--mob-score", type=float, default=None)
     ap.add_argument("--t0", type=float, default=0.0)
     ap.add_argument("--t1", type=float, default=1e9)
     ap.add_argument("--every", type=int, default=1)
@@ -137,20 +137,19 @@ def main():
         sys.meta_path.insert(0, src)
     elif a.only:
         raise SystemExit("--only needs --old REF")
-    log_map, log_score = from_log(a.run)
+    log_map, _ = from_log(a.run)
     map_id = a.map or log_map
     if map_id is None:
         raise SystemExit("no map in the run's log: --map ID")
-    score = a.mob_score or log_score or 0.70
     frames = saved_frames(a.run, a.t0, a.t1, a.every)
     if not frames:
         raise SystemExit(f"no saved frames in {a.run}")
     name = a.out or (re.sub(r"[^\w.-]", "_", a.old) if a.old else "work")
     out = a.run / "replay" / f"{name}.jsonl"
     out.parent.mkdir(exist_ok=True)
-    r = replay(a.run, map_id, score, frames, out)
+    r = replay(a.run, map_id, frames, out)
     code = f"{a.old} ({len(src.served)} modules{' only: ' + a.only if a.only else ''})" if src else "working tree"
-    print(f"replay {a.run}: map {map_id}, mob score {score}, code {code}; {r['frames']} frames in {r['seconds']} s "
+    print(f"replay {a.run}: map {map_id}, code {code}; {r['frames']} frames in {r['seconds']} s "
           f"-> {out}")
     print("tracker stats:", r["stats"])
 

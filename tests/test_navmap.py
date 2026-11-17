@@ -172,3 +172,31 @@ def test_walking_jumps_seen_live_are_links(perion):
             (124, 113, -792), (148, 186, 568), (186, 162, 728)]
     for a, b, x in seen:
         assert [k for k in perion.links_from(a) if k.dst == b and k.lo - 20 <= x <= k.hi + 20], (a, b, x)
+
+
+# ---- moved from test_spawns.py / test_jump.py (2026-11-17: their brain-v1 tests deleted) - The Rain-Forest East of
+# Henesys (10001070): two pits with 60 px walls, 9 spawns
+RAIN = NavMap.for_map(10001070, ASSETS)
+
+
+def test_rain_forest_spawns_densest_right_of_centre():
+    assert len(RAIN.spawns) == 9
+    c = RAIN.spawn_center(215.0)
+    assert 750 <= c <= 950                     # between the 347-634 group and the right pit's 995-1215
+
+
+def test_spawn_center_counts_only_our_level():
+    m = {"footholds": {"1": {"x1": 0, "x2": 2000, "y1": 500, "y2": 500, "prev": 0, "next": 0}},
+         "mobs": [{"x": 100, "y": 500}, {"x": 150, "y": 500},
+                  {"x": 1800, "y": 100}, {"x": 1850, "y": 100}, {"x": 1900, "y": 100},
+                  {"x": 1000, "y": 500, "hidden": True}]}
+    nm = NavMap.from_json(m, Nav())
+    assert nm.spawn_center(500.0) < 300           # the high platform's 3 don't pull us off our floor
+    assert nm.spawn_center(100.0) > 1700
+    assert NavMap.from_json({**m, "mobs": []}, Nav()).spawn_center(500.0) is None
+
+
+def test_platform_at_tolerates_one_minimap_px_at_a_wall():
+    assert RAIN.platform_at(238, 279).id == 49                     # in the pit at its right wall, read past it
+    assert RAIN.platform_at(46, 215).id == 71                      # on the floor at the pit's left edge
+    assert RAIN.platform_at(135, 240) is None                      # mid-pit, half way up: really in the air

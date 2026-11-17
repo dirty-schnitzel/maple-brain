@@ -1,16 +1,15 @@
-"""Mob tracker in map coordinates (perception rework, stage 3, 2026-11-04).
+"""Mob tracker in map coordinates (perception rework, stage 3, 2026-11-04; the old detectors' paths deleted 2026-11-17).
 
-Per frame: the whole-screen detector's hits (acquire) + a search around every track it didn't see (track, all
-poses, lower threshold) -> `Track`s with an id, map feet x/y, velocity, facing, pose and state. Backend-agnostic:
-`update` takes the frame's hits and a `near(spots)` callable (GPU: `GpuSpriteDetector.find_near`).
+Per frame: the fit's mobs (perception/fit.py: the sightings, score 1.0) + one look at every track it didn't find
+(`look`: Fitter.look at the track's predicted feet) -> `Track`s with an id, map feet x/y, velocity, facing, pose and
+state. Runs only on frames where the scene camera registered (scene.SceneCamera): the camera is exact, map = screen
++ C. The tracker's timeouts (fight_s / lose_s / hidden_s ...) stay until step 4 (3-valued evidence) replaces them.
 
-Screen -> map: map = screen + C. `Camera` keeps C: moved every frame by the scenery's shift (exact, drifts ~20 px
-in 3 min), pulled slowly to (our minimap map pos - our screen pos) (no drift, +-10 px noise), and clamped to the
-map's vrBounds (the game's camera never shows past them: on the Rain-Forest C sits at the clamp most of the time).
-Relative geometry (a mob vs us) stays exact in screen px; map x/y are for platforms and memory.
+`hidden`: a track whose body is mostly behind map objects drawn in front of mobs (cover.py masks) or players' bodies
+(their name tags) is held up to hidden_s instead of lose_s. Kept on purpose 2026-11-17: it changes tracks on the
+fit path (Dangerous Steam, Transfer Area replays) - step 4 decides it.
 """
 from dataclasses import dataclass, field
-import math
 
 import numpy as np
 
@@ -19,8 +18,6 @@ SCREEN_W, SCREEN_H, PLAY_H = 1366, 768, 700
 
 @dataclass
 class TrackCfg:
-    pull: float = 0.05            # camera: share of the minimap anchor taken per frame
-    leash: float | None = 24.0    # camera: our feet (tag + C) at most this far from the minimap's (16 px steps + lag)
     gate_x: float = 30.0          # association: px allowed off the prediction, + vmax * time unseen
     gate_y: float = 24.0
     gate_y_air: float = 90.0
@@ -28,8 +25,7 @@ class TrackCfg:
     v_gain: float = 0.5           # velocity: share of a new measurement
     v_half_s: float = 0.6         # unseen: velocity halves every this many s (mobs stop / turn ~every 1.6 s)
     confirm_score: float = 0.75   # one sighting this good confirms a new track (else: two within confirm_s)
-    new_score: float = 0.55       # a new track needs this (the detector reports down to ~0.5: grass over a Pig's
-                                  # feet gives 0.53-0.55, scenery next to it 0.40-0.42); known tracks take any hit
+    new_score: float = 0.55       # a new track needs this (the fit's sightings are 1.0)
     jump_h: float = 140.0         # feet up to this far over a platform: a mob mid-jump (Pigs jump ~45-100 px)
     confirm_s: float = 0.5
     tentative_s: float = 0.3      # unconfirmed and unseen this long -> dropped
@@ -42,36 +38,15 @@ class TrackCfg:
     hit_s: float = 0.6            # hit1 pose: 600 ms in the client data
     die_sure: float = 0.75        # a death counts on one die sighting this good, or on two (l1a1_rec: one 0.59
                                   # die match flagged a live Bubbling; a dead one's spot was taken by a new one)
-    near_pad: int = 24            # search window around a track, +- px (+ vmax * time unseen, up to near_pad_max)
-    near_pad_max: int = 32
     other_type: float = 12.0      # association: cost of a hit of another mob type (look-alikes: the type is voted)
-    near_score: float = 0.55
     surface_tol: float = 16.0     # feet this close to a platform surface: on it
     dup_px: float = 14.0          # two tracks of one mob type this close: one mob
-    hidden_vis: float = 0.35      # cover (map objects drawn in front): less of the body visible -> hidden, not missed
+    hidden_vis: float = 0.35      # cover (map objects drawn in front) / players: less of the body visible -> hidden
     hidden_s: float = 2.0         # hidden this long at most (longer: ghosts in the grass, labels track1b)
-    new_vis: float = 0.25         # a new track needs this much of its body visible
-    new_onscreen: float = 0.6     # ... and this much of its body inside the screen (the play area). Half a sprite at
-                                  # the screen edge scores 0.57-0.68 on cave scenery (Ant Tunnel IV's right wall:
-                                  # ghosts 2026-11-09, 37-48 % on screen); real mobs walking in score that at 78 %+
-    edge_score: float = 0.70      # a sighting with less than new_onscreen of the body on screen counts only this good
-                                  # (a known track too: a real mob at the right wall was handed over to the ghost and
-                                  # followed 17 s, air1 2026-11-09). 6 Ant Tunnel runs, such sightings: ghosts p50 0.62,
-                                  # max 0.68 (0 of 1685 kept); real mobs 80 % kept, the rest coast as unseen frames
+    new_vis: float = 0.25         # a new track needs this much of its body visible (cover masks)
+    new_onscreen: float = 0.6     # ... and this much of its body inside the screen (the play area)
     player_half_w: int = 24       # a player's body over its name tag (players are drawn over mobs): +-px, height
     player_h: int = 70
-    probe_score: float = 0.65     # a new track from a probe (visible-only search beside players / in cover)
-    probe_step: int = 40          # px between cover probes along a platform
-    probe_max: int = 4            # cover probes per frame, taken in turns (a new mob is found within a few frames)
-    edge_px: int = 6              # edge probes: this far inside the left / right screen edge, on every platform
-    edge_max: int = 2             # ... per frame, in turns of their own
-    probe_players: bool = False   # also beside every character (track1b: +2 of 82 mobs, +4 false, +10 ms: off)
-
-    @classmethod
-    def for_mob_score(cls, score: float) -> "TrackCfg":
-        """cfg.perception.sprite_score is what a new mob needs from the detector: probes make new mobs too, so they
-        go along with it (near_score stays low: a mob already tracked is followed through what covers it)."""
-        return cls(probe_score=max(cls.probe_score, score))
 
 
 @dataclass
@@ -91,15 +66,15 @@ class Track:
     platform: int | None = None
     air: bool = False
     kind: str = "mob"             # mob / pet
-    state: str = "tentative"      # tentative / live / hit / dying / offscreen
+    state: str = "tentative"      # tentative / live / hit / hidden / dying / offscreen
     sightings: int = 1
     until: float = 0.0            # end of the hit / die animation
     last_x: float = 0.0           # map x at the last sighting (velocity)
-    src: str = "acq"              # how it was seen this frame: acq / near / none
+    src: str = "acq"              # how it was seen this frame: acq (the fit) / near (a look) / none
     votes: dict = field(default_factory=dict)      # mob id -> summed sighting scores (mob_id = the top one)
     misses: int = 0               # frames in a row it wasn't seen
     die_hits: int = 0             # die-pose sightings so far (see die_sure)
-    vis: float = 1.0              # share of its body nothing is drawn over (cover masks), at the prediction
+    vis: float = 1.0              # share of its body nothing is drawn over (cover masks, players), at the prediction
 
     def as_dict(self, t: float) -> dict:
         return {"id": self.id, "mob": self.mob_id, "kind": self.kind, "state": self.state,
@@ -110,35 +85,15 @@ class Track:
 
 
 class Camera:
-    def __init__(self, vr: dict | None, pull: float = 0.05, w: int = SCREEN_W, h: int = SCREEN_H,
-                 leash: float | None = None):
-        """`leash`: if set, our feet (screen + C) never sit farther than this from the minimap's position on either
-        axis - the minimap is coarse (16 px steps, a little late) but never drifts; a missed camera shift (a loop
-        stall past the search range) is then bounded instead of paid back slowly by the pull."""
-        self.vr, self.pull, self.w, self.h, self.leash = vr or None, pull, w, h, leash
-        self.C = None             # (cx, cy): map = screen + C
+    """The camera C (map = screen + C): the scene camera's, exact (scene.SceneCamera, PLAN-perception.md step 2.6).
+    Nothing else moves it since 2026-11-17 (the platform shift, phase correlation and minimap pull are deleted)."""
 
-    def update(self, shift, me_screen, me_map, exact=None):
-        """`shift`: (dx, dy) the scenery moved on screen since the last frame, or None. `me_screen`: our feet on
-        screen (x, y) or None; `me_map`: our feet on the map (the minimap) or None. `exact`: the camera registered on
-        the scene model (scene.SceneCamera, PLAN-perception.md step 2.6): taken as it is - no shift, pull or clamp."""
-        if exact is not None:
-            self.C = (float(exact[0]), float(exact[1]))
-            return self.C
-        C = self.C
-        if C is not None and shift is not None:
-            C = (C[0] - shift[0], C[1] - shift[1])
-        if me_screen is not None and me_map is not None:
-            a = (me_map[0] - me_screen[0], me_map[1] - me_screen[1])
-            C = a if C is None else (C[0] + self.pull * (a[0] - C[0]), C[1] + self.pull * (a[1] - C[1]))
-            if self.leash is not None:
-                L = self.leash
-                C = (min(max(C[0], a[0] - L), a[0] + L), min(max(C[1], a[1] - L), a[1] + L))
-        if C is not None and self.vr:
-            C = (min(max(C[0], self.vr["left"]), self.vr["right"] - self.w),
-                 min(max(C[1], self.vr["top"]), self.vr["bottom"] - self.h))
-        self.C = C
-        return C
+    def __init__(self):
+        self.C = None             # (cx, cy)
+
+    def update(self, exact):
+        self.C = (float(exact[0]), float(exact[1]))
+        return self.C
 
 
 def _die_s(info: dict) -> float:
@@ -147,7 +102,7 @@ def _die_s(info: dict) -> float:
 
 
 class World:
-    def __init__(self, navmap, map_json: dict, mobs: dict, cfg: TrackCfg | None = None, cover=None):
+    def __init__(self, navmap, mobs: dict, cfg: TrackCfg | None = None, cover=None):
         """`mobs`: mob id -> mob.json dict (the map's mobs). `cover`: cover.Cover (what is drawn in front of mobs)
         or None."""
         self.nav, self.cfg, self.cover = navmap, cfg or TrackCfg(), cover
@@ -156,11 +111,10 @@ class World:
             fr = (m.get("frames") or {})
             f0 = (fr.get("stand") or fr.get("move") or fr.get("fly") or [{}])[0]
             self.body[i] = (f0.get("lt") or [-30, -50], f0.get("rb") or [30, 0])
-        self.cam = Camera(map_json.get("vrBounds"), self.cfg.pull, leash=self.cfg.leash)
+        self.cam = Camera()
         self.flyers = {i for i, m in mobs.items() if (m.get("frames") or {}).get("fly")}
         self.die_s = {i: _die_s(m) for i, m in mobs.items()}
         self.tracks: list[Track] = []
-        self._cover_pts = None
         self.next_id = 1
         self.t = None
         self.stats = {"new": 0, "rejected_off_platform": 0, "rejected_covered": 0, "near_found": 0,
@@ -182,12 +136,6 @@ class World:
             p = self.nav.below(x, y)
             platform_id = p.id if p is not None else None
         return self.cover.layer(platform_id)
-
-    def _vis(self, mob_id, layer, sx, sy, C) -> float:
-        if self.cover is None or layer is None:
-            return 1.0
-        lt, rb = self.body.get(mob_id, ([-30, -50], [30, 0]))
-        return self.cover.visible_share(layer, C, (sx + lt[0], sy + lt[1], rb[0] - lt[0], rb[1] - lt[1]))
 
     def _predict(self, tr: Track, dt: float, t: float):
         c = self.cfg
@@ -257,7 +205,6 @@ class World:
             bodies.append((cx, y))
         if me_screen is not None:
             bodies.append((me_screen[0], me_screen[1]))
-        self._bodies = bodies
         if not bodies:
             return None
         m = np.ones(shape, bool)
@@ -266,67 +213,6 @@ class World:
             y0, y1 = max(0, int(top - c.player_h)), min(shape[0], int(top))
             m[y0:y1, x0:x1] = False
         return m
-
-    def _cover_probes(self):
-        """Map points (x, feet y, platform) along platforms, every probe_step px, where map objects cover part of a
-        mob standing there (cover > 15 % of a 60 x 45 body): where a plain search loses mobs."""
-        out = []
-        if self.cover is None or self.nav is None:
-            return out
-        for p in self.nav.platforms.values():
-            L = self.cover.layer(p.id)
-            m = self.cover.masks.get(L)
-            if m is None:
-                continue
-            x = p.left + self.cfg.probe_step / 2
-            while x < p.right:
-                y = p.y_at(x)
-                if y is not None:
-                    bx, by = int(x - 30 - self.cover.x0), int(y - 45 - self.cover.y0)
-                    sub = m[max(0, by):max(0, by + 45), max(0, bx):max(0, bx + 60)]
-                    if sub.size and 1 - sub.mean() > 0.15:
-                        out.append((x, y, p.id))
-                x += self.cfg.probe_step
-        return out
-
-    def _probes(self, C, occ, me_screen):
-        """Screen spots for the visible-only search that no track covers: both sides of every character's body (we
-        and other players are drawn over mobs) and the cover probes in view. Nearest us first, <= probe_max."""
-        c = self.cfg
-        if self._cover_pts is None:
-            self._cover_pts = self._cover_probes()
-        spots = []
-        for cx, top in getattr(self, "_bodies", []) if occ is not None and c.probe_players else []:
-            for dx in (-c.player_half_w, c.player_half_w):
-                spots.append((cx + dx, top, None))
-        for x, y, pid in self._cover_pts:
-            spots.append((x - C[0], y - C[1], pid))
-        out = []
-        for sx, sy, pid in spots:
-            if not (0 <= sx < SCREEN_W and 0 <= sy < PLAY_H + 40):
-                continue
-            if any(abs(tr.sx - sx) < 30 and abs(tr.sy - sy) < 30 for tr in self.tracks):
-                continue                                       # a track's own search covers it
-            if any(abs(o[0] - sx) < 20 and abs(o[1] - sy) < 20 for o in out):
-                continue
-            out.append((sx, sy, pid))
-        edges = []
-        if self.nav is not None:                               # screen edges: a mob half off screen (whole-screen
-            for sx in (c.edge_px, SCREEN_W - c.edge_px):       # search can't place a cut sprite; visible-only can)
-                for p, y in self.nav.surfaces(sx + C[0]):
-                    if 0 <= y - C[1] < PLAY_H + 40 and not any(abs(tr.sx - sx) < 40 and abs(tr.sy - (y - C[1])) < 30
-                                                               for tr in self.tracks):
-                        edges.append((sx, y - C[1], p.id))
-        return self._turns(out, c.probe_max, "_probe_turn") + self._turns(edges, c.edge_max, "_edge_turn")
-
-    def _turns(self, spots, k, name):
-        """k of the spots, a window that moves on each frame (a stable order first)."""
-        if len(spots) <= k:
-            return spots
-        spots.sort(key=lambda s: (s[0], s[1]))
-        turn = (getattr(self, name, 0) + k) % len(spots)
-        setattr(self, name, turn)
-        return [spots[(turn + i) % len(spots)] for i in range(k)]
 
     def _vis_map(self, layer, C, occ):
         base = self.cover.visible(layer, C) if self.cover is not None and layer is not None else None
@@ -338,10 +224,6 @@ class World:
         if key not in self._vis_cache:
             self._vis_cache[key] = base & occ
         return self._vis_cache[key]
-
-    def _weak_edge(self, h) -> bool:
-        """A sighting mostly past the screen edge that isn't a good match: no evidence of a mob (edge ghosts)."""
-        return h.score < self.cfg.edge_score and self._onscreen(h.mob_id, h.feet[0], h.feet[1]) < self.cfg.new_onscreen
 
     def _onscreen(self, mob_id, sx, sy) -> float:
         """Share of the mob's body box (stand frame) inside the play area: what any detection of it can be based on."""
@@ -360,24 +242,15 @@ class World:
         x1, y1 = min(vmap.shape[1], int(sx + rb[0])), min(vmap.shape[0], int(sy + rb[1]))
         return float(vmap[y0:y1, x0:x1].mean()) if x1 > x0 and y1 > y0 else 1.0
 
-    def update(self, t: float, hits: list, me_screen=None, me_map=None, shift=None, near=None,  # noqa: C901
-               tags=None, cam=None, look=None) -> list:
-        """One frame. `hits`: [Hit] from the whole-screen pass (screen px). `me_screen`: our feet on screen;
-        `me_map`: our feet from the minimap; `shift`: the scenery's (dx, dy) since the last frame; `near(spots, pad, vis)`:
-        [(mob ids, sx, sy)], +-pad px each, per spot the screen visibility of its layer (cover) -> [Hit | None]
-        (search around tracks; None = no search). `tags`: other characters' name tags (screen boxes) -> their
-        bodies don't count against a mob behind them. `cam`: the exact camera from the scene model (then `shift` and
-        `me_map` don't move it). `look(tracks)` -> [Hit | None] per track: the fit path (PLAN-perception.md step 3.4,
-        `hits` = the fit's mobs): the fit's look at each unseen track's predicted feet replaces `near`, and the
-        probes (cover + screen edges) and the edge-ghost score rule are off - the fit places cut and covered sprites
-        pixel by pixel. -> the tracks."""
+    def update(self, t: float, hits: list, cam, me_screen=None, tags=None, look=None) -> list:  # noqa: C901
+        """One frame with the scene camera found. `hits`: [sighting.Hit] = the fit's mobs (screen px). `cam`: the
+        exact camera (map = screen + cam). `me_screen`: our feet on screen. `tags`: other characters' name tags
+        (screen boxes) -> their bodies don't count against a mob behind them. `look(tracks)` -> [Hit | None] per
+        track: the fit's look at each track it didn't find, at its predicted feet (None = no look). -> the tracks."""
         c = self.cfg
-        edge_rule = look is None
         dt = 0.0 if self.t is None else max(0.0, t - self.t)
         self.t = t
-        C = self.cam.update(shift, me_screen, me_map, exact=cam)
-        if C is None:
-            return self.tracks                                 # no map position yet: nothing to place
+        C = self.cam.update(cam)
         for tr in self.tracks:
             self._predict(tr, dt, t)
             tr.sx, tr.sy = tr.x - C[0], tr.y - C[1]
@@ -387,8 +260,8 @@ class World:
         for tr in self.tracks:
             tr.vis = self._share(tr.mob_id, self._vis_map(self._layer(tr.platform if not tr.air else None, tr.x,
                                                                        tr.y), C, occ), tr.sx, tr.sy)
-        # --- associate the whole-screen hits: same mob type, nearest prediction first
-        hm = [(h, h.feet[0] + C[0], h.feet[1] + C[1]) for h in hits if not (edge_rule and self._weak_edge(h))]
+        # --- associate the fit's mobs: same mob type, nearest prediction first
+        hm = [(h, h.feet[0] + C[0], h.feet[1] + C[1]) for h in hits]
         pairs = []
         for i, (h, mx, my) in enumerate(hm):
             for j, tr in enumerate(self.tracks):
@@ -408,52 +281,32 @@ class World:
             used_t.add(j)
             h, mx, my = hm[i]
             self._apply(self.tracks[j], h, mx, my, t, "acq")
-        # --- search around the tracks nobody saw, + probes (beside characters / in cover: new mobs a plain search
-        # can't see) - one batched call
-        probe_found = []
-        if near is not None or look is not None:
+        # --- one look at each track nobody saw (the fit's look at its predicted feet), one batched call
+        if look is not None:
             todo = [tr for j, tr in enumerate(self.tracks) if j not in used_t and self._in_view(tr.sx, tr.sy)]
-            probes = self._probes(C, occ, me_screen) if look is None else []
-            found = None
-            if look is not None:                               # the fit path: one look per track (no probes)
-                found = look(todo) if todo else None
-            elif todo or probes:
-                pads = [c.near_pad if t - tr.seen <= 0.12 else c.near_pad_max for tr in todo]   # 2 sizes (warm_near)
-                vis = [self._vis_map(self._layer(tr.platform if not tr.air else None, tr.x, tr.y), C, occ)
-                       for tr in todo]                         # (given: visible-only NCC, past the edges too)
-                for sx, sy, pid in probes:
-                    vis.append(self._vis_map(self._layer(pid, sx + C[0], sy + C[1] - 1), C, occ))
-                spots = [(tuple(tr.votes) or (tr.mob_id,), tr.sx, tr.sy) for tr in todo]
-                spots += [(None, sx, sy) for sx, sy, _ in probes]
-                res = near(spots, pads + [c.near_pad] * len(probes), vis) or []
-                found, probe_found = res[:len(todo)], res[len(todo):]
+            found = look(todo) if todo else None
             if found is not None:
                 taken = [h.feet for i, (h, _, _) in enumerate(hm) if i in used_h]
                 for tr, h in zip(todo, found):
-                    if h is None or (edge_rule and self._weak_edge(h)):
-                        continue                               # (half a sprite at the edge: only a good match counts)
+                    if h is None:
+                        continue
                     if tr.state == "dying" and not h.pose.anim.startswith("die"):
-                        if h.score >= c.probe_score:           # a live mob where one died: a NEW mob, so it needs
-                            hm.append((h, h.feet[0] + C[0], h.feet[1] + C[1]))   # what any new mob needs (the
-                        continue                               # mob score), not the follow bar (ghosts 2026-11-09)
+                        hm.append((h, h.feet[0] + C[0], h.feet[1] + C[1]))   # a live mob where one died: a NEW mob
+                        continue
                     if any(abs(f[0] - h.feet[0]) < c.dup_px and abs(f[1] - h.feet[1]) < 20 for f in taken):
                         continue                               # that's another track's mob
                     taken.append(h.feet)
                     self._apply(tr, h, h.feet[0] + C[0], h.feet[1] + C[1], t, "near")
                     self.stats["near_found"] += 1
-        for h in probe_found:
-            if h is not None and h.score >= c.probe_score and not h.pose.anim.startswith("die"):
-                hm.append((h, h.feet[0] + C[0], h.feet[1] + C[1]))
-                self.stats["probe_hits"] = self.stats.get("probe_hits", 0) + 1
         # --- new tracks from the hits nobody claimed (on a platform, or a flyer)
         for i, (h, mx, my) in enumerate(hm):
             if i in used_h:
                 continue
-            if h.pose.anim.startswith("die"):                  # a dying mob no track claims starts none (the fit
-                continue                                       # path's hits have die poses; probes skip them too)
+            if h.pose.anim.startswith("die"):                  # a dying mob no track claims starts none
+                continue
             if any(tr.src != "none" and abs(tr.x - mx) < c.dup_px and abs(tr.y - my) < 20 and tr.state != "dying"
                    for tr in self.tracks):
-                continue                                       # a near search already took it
+                continue                                       # a look already took it
             if h.score < c.new_score:
                 continue
             if self._onscreen(h.mob_id, h.feet[0], h.feet[1]) < c.new_onscreen:
@@ -485,7 +338,7 @@ class World:
             gone = t - tr.seen
             hidden = tr.src == "none" and tr.vis < c.hidden_vis and tr.state in ("live", "hidden", "hit")
             if hidden:
-                tr.state = "hidden"                            # behind map objects: unseen is expected there
+                tr.state = "hidden"                            # behind map objects / players: unseen is expected
             elif tr.src == "none":
                 tr.misses += 1
                 if tr.state == "hidden":                       # out in the open again and still not seen

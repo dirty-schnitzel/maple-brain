@@ -4,8 +4,8 @@ several maps, cached by what the result depends on.
     python tools/perc/replay/gate.py [--quick] [--base REF] [--clips a,b] [--list]
 
 Clips (CLIPS below, the user 2026-11-16: "more ~1 min footages of various maps is better than 1 long one"): about a
-minute each of every clean native PNG recording + one FHD JPEG clip where the scene camera fails (today's camera,
-the fallback path). `--quick` = QUICK (3 clips, ~3 min): every sub-step; the full set before a commit that changes
+minute each of every clean native PNG recording (the FHD JPEG clip went with the old perception, 2026-11-17: no
+fallback path is left for it to test). `--quick` = QUICK (3 clips, ~3 min): every sub-step; the full set before a commit that changes
 tracking. A change that can't touch tracking (docs, tools, code off the live path) needs pytest + the speed line only:
 the gate says so itself when the fingerprints are equal.
 
@@ -37,7 +37,7 @@ import compare as cmp  # noqa: E402
 
 PY = sys.executable
 PLAY = "runs/play/"
-# name: (run, t0, t1) - native PNG, 1366x768, clean maps (no moving backgrounds); fix3 = FHD JPEG (fallback camera)
+# name: (run, t0, t1) - native PNG, 1366x768, clean maps (no moving backgrounds)
 CLIPS = {
     "ant4": (PLAY + "20261116_154819_1", 0, 60),          # Ant Tunnel IV, the user playing, 3 mob types, players
     "ant4b": (PLAY + "20261116_012059_1", 150, 210),      # Ant Tunnel IV, another session (busy: 5-6 tracks a frame)
@@ -45,7 +45,6 @@ CLIPS = {
     "line1": (PLAY + "20261116_085108_3", 0, 60),         # Line 1 <Area 1> (29 background layers, Bubblings)
     "transfer": (PLAY + "20261116_085215_4", 0, 60),      # Transfer Area (repeating bricks, animated objects)
     "darkcave": (PLAY + "20261116_084719_1", 0, 16.3),    # Dark Cave (only 0-16.3 s clean: the window was dragged)
-    "fhd": ("runs/v2/air1/fix3", 0, 60),                  # FHD JPEG: the scene camera fails -> today's camera
 }
 QUICK = ("ant4", "line1", "transfer")
 DEPS_TREES = ("maplebrain", "assets")

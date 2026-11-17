@@ -8,7 +8,7 @@ import maplebrain.capture as capture
 import maplebrain.runtime.runner as runner
 from maplebrain.config import Config
 from maplebrain.runtime import window
-from test_runner import FakeScreen, _run
+from test_runner import FakeScreen, _run, hunting  # noqa: F401 (a fixture)
 
 BOX = {"left": 8, "top": 32, "width": 1366, "height": 768}
 
@@ -120,7 +120,7 @@ class MovingScreen(FakeScreen):
         return super().calibrate()
 
 
-def test_run_moved_window_pauses_releases_reaims_logs_and_resumes(tmp_path, monkeypatch):
+def test_run_moved_window_pauses_releases_reaims_logs_and_resumes(tmp_path, monkeypatch, hunting):
     made = []
 
     class S(MovingScreen):
@@ -136,7 +136,7 @@ def test_run_moved_window_pauses_releases_reaims_logs_and_resumes(tmp_path, monk
     assert ("release_all", None) in kb.events and not kb.held
 
 
-def test_run_unchanged_window_never_reaims_or_logs(tmp_path, monkeypatch):
+def test_run_unchanged_window_never_reaims_or_logs(tmp_path, monkeypatch, hunting):
     made = []
 
     class S(MovingScreen):
@@ -150,7 +150,7 @@ def test_run_unchanged_window_never_reaims_or_logs(tmp_path, monkeypatch):
     assert code == 0 and made[0].calibrated == 1 and "game window" not in log and "PAUSED" not in log
 
 
-def test_run_wrong_size_pauses_with_keys_released_and_is_not_reaimed(tmp_path, monkeypatch):
+def test_run_wrong_size_pauses_with_keys_released_and_is_not_reaimed(tmp_path, monkeypatch, hunting):
     made = []
 
     class S(MovingScreen):
@@ -159,12 +159,15 @@ def test_run_wrong_size_pauses_with_keys_released_and_is_not_reaimed(tmp_path, m
         def __init__(self, hwnd):
             super().__init__(hwnd)
             made.append(self)
+    from test_runner import FakeKeyboard
+    held_at_pause, line = [], window.pause_line
+    monkeypatch.setattr(window, "pause_line", lambda *a: held_at_pause.append(set(FakeKeyboard.last.held)) or line(*a))
     code, kb, out = _run(tmp_path, monkeypatch, screen=S)
     log = (out / "log.txt").read_text(encoding="utf-8")
     assert "PAUSED: game window resized: client area 1280x720, not 1366x768 - not re-aimed; keys released" in log
     assert "game window back at (8, 32) 1366x768" in log and "resumed" in log
     assert made[0].calibrated == 1 and "re-aimed:" not in log
-    assert ("release_all", None) in kb.events[:-1] and not kb.held      # released at the pause, not only at the end
+    assert held_at_pause == [set()] and not kb.held                    # released at the pause, not only at the end
 
 
 # ---------------------------------------------------------------- watch: its own loop

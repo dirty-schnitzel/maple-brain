@@ -3,7 +3,7 @@ shows, pixel by pixel. Since 3.4 the tracker's sightings on clean maps (scene ca
 runs it before the tracker, each FitMob -> a detector Hit (`hit`, score 1.0: the rule below already decided), and
 the tracker's search around the tracks it did not see is `look` (one stage-2 look at each track's predicted feet;
 SEEN by the same rule -> a sighting there, ABSENT / COVERED -> none). FrameFacts.fit + fit_hints (the looks).
-`hints` = 3.3's shadow form of the looks (config perception.fit_tracks off).
+`hints` = 3.3's shadow form of the looks (tools only since the shadow path went, 2026-11-17).
 
 1. Candidates = the vote (perception/vote.py): cells (pose, feet) with >= `cand_votes` exclusive votes of the frame's
    2x2 sprite-colour features, taken where the expected scene does not explain the pixel. No windows, no footholds,
@@ -428,10 +428,9 @@ class Fitter:
         return n > 0 and row["n_seen"] >= c.min_seen and row["n_seen"] >= c.seen_min * n and row["n_abs"] <= c.absent_max * n
 
     def hit(self, mob_type: int, pose: str, facing: str, feet):
-        """A fit mob / a SEEN look as the tracker's detector Hit (gpu_sprites.Hit): the pose's box at the feet, score
-        1.0 (the fit's rule decided; the old detector's score thresholds do not apply)."""
-        from maplebrain.perception.gpu_sprites import Hit
-        from maplebrain.perception.sprites import Pose
+        """A fit mob / a SEEN look as the tracker's sighting (sighting.Hit): the pose's box at the feet, score 1.0
+        (the fit's rule decided)."""
+        from maplebrain.perception.sighting import Hit, Pose
         p = self.poses[self.pose_ix[(mob_type, pose, facing)]]
         anim, n = pose.rsplit("_", 1)
         fx, fy = int(feet[0]), int(feet[1])

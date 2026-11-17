@@ -1,12 +1,10 @@
-# maplebrain — session handoff (updated 2026-11-16)
+# maplebrain — session handoff (updated 2026-11-17)
 **Read this file top to bottom; it holds only the current state.** NEXT SESSION = "START HERE NEXT SESSION" below:
-brain v3 (**PLAN-v3.md**) steps 1-3 are DONE and **Platform mode passed its live test** (2026-11-15, Ant Tunnel IV;
-the user: "perfect platform mode test"). NOW = the perception redesign (**PLAN-perception.md**, agreed 2026-11-16,
-branch `perception`): steps 0-1 DONE, **step 2 (pipeline) in progress - see "Step 2 state" below** (sub-steps
-2.1-2.9 committed: the scene camera is the camera on clean maps, own tag 1:1 + its whole-screen look on the GPU,
-Lie Detector native templates + GPU look + watch 1 / s, HUD cache + CPU readers in threads: bench 18.4 ms, step 2's
-gate met, live-checked; NOW = step 3, order agreed, see "START HERE NEXT SESSION"); open offer: the
-humanness report (below).
+2026-11-17 the OLD PERCEPTION IS DELETED (branch `perception-only` off `perception`; the user merges): the scene
+camera + the fit are the only mob perception, clean maps + the native window only, a lost camera pauses the
+hunt. Before it: the perception redesign (**PLAN-perception.md**) steps 0-3 DONE and live-checked (3.4's hunt:
+"absolutely MASSIVE difference in bot behavior"); brain v3 (**PLAN-v3.md**) steps 1-3 DONE, Platform mode live.
+NEXT: the user's live check of the deletion, then step 4 (the tracker) as a plan session.
 Sessions 6-23, the old brain (v1), and superseded plans moved verbatim to **HISTORY.md** on 2026-11-08: grep it for
 old runs, numbers and decisions.
 Latest: 2026-11-15 Platform mode live (runs below), F9 mark fix; the hybrid BT + imitation-learning proposal reviewed
@@ -53,7 +51,68 @@ find mobs, fight them like a player, pick up loot, use potions, and **navigate p
 later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never reads memory or packets.
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
-## START HERE NEXT SESSION: DELETE THE OLD PERCEPTION (the user, 2026-11-17, after 3.4's live hunt)
+## START HERE NEXT SESSION: the user's live check of the deletion, then the tracker redesign (step 4) plan
+**DONE 2026-11-17: the old perception is deleted** (branch `perception-only` off `perception` 58d266e; `perception`
+= last good; the user merges). The user's words: "completely delete the old perception from code, no fallbacks, we
+continue with new perception exclusively". The only mob perception now: the scene camera + D + the fit +
+Fitter.look feeding world.py. ~8,000 lines out.
+- **Gone:** perception/{sprites, gpu_sprites, mobs, motion, camshift, drops}.py, brain/{brain, actions}.py (brain
+  v1), keys.LegacyExecutor; in the Perceiver the whole-screen search, find_near, phase correlation, PlatformShift,
+  the minimap-pull camera, the v1 target tracker + library + motion look, the 3.3 shadow path, the scene camera's
+  1-look-a-second back-off; in world.py the probes, the edge-ghost score rule, the `near` path and the camera's
+  shift / pull / leash / vrBounds clamp (`Camera` = the scene camera's C); config Zones, Timing, the old
+  Perception fields (sprite_score = `--mob-score`, tracker, gpu, fit, fit_tracks, platform_shift, library, loot ...),
+  Safety's v1 fields, Nav.seek_spawns, Config.brain; CLI `--brain`, `--gpu` (watch keeps its own), `--tracker`,
+  `--mob-score` (had no effect since 3.4: fit sightings are 1.0), `--loot`, `--loot-sight`, `--pickup`; FrameFacts
+  v4 (- scene_shift, plat_shift, hits; v1-v3 still read). Tests of deleted code deleted (test_brain, test_sprites,
+  test_gpu_sprites, test_camshift, test_drops, test_jump, test_spawns, test_fit_shadow + v1 parts of others; the 3
+  nav-only tests moved to test_navmap.py); tools importing deleted modules deleted (perc/truth, track_run,
+  gpu_eval, synth/before, nav/selfstate_eval, combat/probe/lost, loot/replay_drops, redesign/exp_bg, exp_score,
+  prof_tick); native_check.py's run mode stubbed (its `measure` kept + tested). All in git at 58d266e.
+- **Moved / kept:** `Hit` / `Pose` -> perception/sighting.py (same fields); `MapKit` (perceiver.py) replaces
+  `GpuBand` as what a map gives perception (navmap, mob.json dicts, scene, fitter, cover, the GPU device); the
+  Perceiver uploads the frame itself; `cudnn.benchmark` still set at map load (the old detector set it).
+- **KEPT ON PURPOSE (found while listing): cover.py + its masks + the tracker's `hidden` state.** They are live on
+  the fit path (Track.vis -> `hidden` holds a track up to 2 s instead of the 0.5 s timeout). HEAD replayed with
+  cover off: ant4 / ant4b / line1 / darkcave identical, steam 131 -> 135 real tracks (found 99.1 / 98.4 %),
+  transfer 59 -> 61 (100 / 98.5 %), sighted 100 % the same - only coasting behind scenery differs. The gate said
+  "the deletion must not change tracking", so they stay until step 4 (its 3-valued evidence replaces the
+  timeouts) - or the user's word now.
+- **What the bot does now:**
+  - map without a clean scene model (Perion's clouds: moving / animated backs; no `assets scene`) or a game
+    picture that isn't the native 1366x768 -> `NOT STARTED: <why>` (run / serve F7 / goto; runner.refuse).
+    Observe (`serve --observe`) still records there: frames, HUD, our tag, the minimap - no camera, no mobs (said
+    in its log).
+  - scene camera not found on a tick (lost mid-hunt, or not found yet at the start) -> every key released, no brain
+    step, until it is found: `PAUSED: scene camera lost -> keys released, no presses until it is found` / `scene
+    camera found again after X s (N ticks) -> resumed` (brain.reset, no settle sleep); ticks.jsonl
+    timings.paused = "scene camera"; the log's end says how many pauses. The Perceiver gives no camera and no
+    mobs on such a tick; the tracks wait unchanged. **TODO: handle a lost camera properly as cases come up live**
+    (a 1-tick miss releases every key today - watch for it; ideas: keep walking N ticks on the last camera,
+    re-seed from the minimap). goto pauses the same way.
+- **Gate (2026-11-17):** full tools/perc/replay/gate.py, base HEAD 58d266e = fp 746dfeb114 (cached), work = fp
+  a4713c8eae: **SAME tracks on all 6 native clips** - real / weak / found 100.0 / 100.0 % both ways / sighted /
+  surface / tag identical everywhere, camera exact on every frame. Static import check: 195 .py files, 312
+  maplebrain imports, 0 broken; grep: nothing imports a deleted module.
+- **Bench:** 14.3-14.5 ms p50 (p90 15.7-18.7), pinned, game up, nothing of mine running - above the
+  13.6 of 3.4's day, but an alternating A/B in the same state (a worktree of 58d266e, assets/scene linked)
+  read HEAD 14.6 / 14.7 / 15.3 vs this branch 14.3 / 14.5 / 15.0: the deletion is ~0.2-0.3 ms FASTER; the
+  machine read ~1 ms slow today (the user's idle serve process was up). Not re-baselined (test_perf passes
+  on 18.4). pytest: see the commit.
+- `tools/perc/replay/run.py --old REF` builds only refs from this commit on (bench.build's shape changed); older
+  refs = the gate's cached fp_* replays (HEAD 58d266e = fp 746dfeb114, on all 6 clips) or a worktree. gate.py: the
+  FHD clip dropped (no fallback path left to test).
+- **Remind the user:** `watch` is not running (restart it); a `serve runs\v2 --brain v2 ... --frames-png` started
+  from 58d266e was still running idle: it imports modules lazily at F7, so restart it (the new command has none of
+  those flags) before hunting on this branch.
+- NEXT: the user's live check - ONE short hunt (~2-3 min, Ant Tunnel IV, the usual spot, `watch` running):
+  `..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\v2 --frames-png` (restart serve first), F7 / F8.
+  Look for: `scene camera + fit: ...` at load, the hunt runs as 3.4's (runs/v2/20261117_094333_1), the log's
+  `scene camera: paused N time(s)` (expected 1 = the start's "not found yet"; any mid-hunt pause -> its ticks /
+  frames), the speed line (3.4: 16 ms p50). Optional: F7 on a Perion map -> `NOT STARTED: ... no clean scene`.
+  Then step 4 (the tracker redesign) as a Fable-max plan session (PLAN-perception.md step 4).
+
+## Earlier START HERE: DELETE THE OLD PERCEPTION (the user, 2026-11-17, after 3.4's live hunt)
 The user: "completely delete the old perception from code, no fallbacks, we continue with new perception
 exclusively"; no retest of 3.4 wanted ("perception is on the right path, we fix issues as we go"). Decisions:
 1. Brain v1 (brain/brain.py) goes too; `--tracker` goes (always on: scene camera + fit path).
@@ -1370,7 +1429,7 @@ as dim as the canvas = no edge = refused (not seen live; the old check refused t
 templates can't do it (right map first in 7 of 16 frames), real letter reading is untested. `I/II/III/IV` are its hard
 case, which the pictures tell apart; the two fail in opposite places. The user: finish and test this first.
 
-## Brain v2 today (`--brain v2`; the old brain v1 is still the CLI default until the A/B)
+## Brain v2 today (the only brain since 2026-11-17: brain v1 and `--brain` deleted)
 Each file's header states its step; v2/combat.py's doc holds THE ATTACK LOGIC END TO END and the game's swing rules.
 History of how it got here: HISTORY.md "Session 23", "BRAIN-V2: THE PLAN", "M1 steps".
 - **Loop** `runtime/hunt_v2.py`: grab -> Perceiver (GPU sprites + tracker; `--gpu` implied) -> SelfTracker ->
@@ -1488,17 +1547,19 @@ ticks + keys.jsonl + every 3rd frame; in a party). Tools: `tools/play/analyze.py
 ..\auto-maple\.venv\Scripts\python -m pytest                    # ~1100 tests, no game needed; ends with "bot speed"
 Get-Process python | ? Path -like '*auto-maple*'                 # running bot processes (never stop `watch`)
 ..\auto-maple\.venv\Scripts\python -m maplebrain watch runs\watch --seconds 14400            # LD siren, no hunt
-..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\v2 --brain v2 [--mob-score 0.70] --gpu --tracker [--frames]   # F7 / F8 (--tracker: scene camera + fit path)
-..\auto-maple\.venv\Scripts\python -m maplebrain run runs\v2\NAME --brain v2 --seconds 180 --frames-every 3
-..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\play --observe --gpu --tracker --frames   # record the user
+..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\v2 [--frames | --frames-png]   # F7 / F8 (scene camera + fit: clean maps, native window only)
+..\auto-maple\.venv\Scripts\python -m maplebrain run runs\v2\NAME --seconds 180 --frames-every 3
+..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\play --observe --frames-png   # record the user (records on any map)
 ..\auto-maple\.venv\Scripts\python -m maplebrain goto OUT [--to P [X]] [--seconds S]     # movement test
 ..\auto-maple\.venv\Scripts\python -m maplebrain livemap [runs\v2]                         # console map of the hunt
 ..\auto-maple\.venv\Scripts\python -m maplebrain assets build                              # client export -> assets/mcw
 ..\auto-maple\.venv\Scripts\python tools\perf\bench.py [--baseline]                     # tick speed vs the baseline
 ..\auto-maple\.venv\Scripts\python tools\perc\replay\run.py RUN [--old HEAD]              # tracker replay -> RUN\replay\
 ..\auto-maple\.venv\Scripts\python tools\perc\replay\compare.py RUN HEAD work             # old vs new tracks (the gate)
-..\auto-maple\.venv\Scripts\python tools\perc\native_check.py RUN --sheet 24             # picture 1:1 with the sprites?
+..\auto-maple\.venv\Scripts\python tools\perc\replay\gate.py [--quick]                  # the perception gate (6 native clips)
 ```
+(Gone 2026-11-17 with the old perception: `--brain`, `--gpu` (serve / run / goto; `watch --gpu` stays), `--tracker`,
+`--mob-score`, `--loot`, `--loot-sight`, `--pickup`; `native_check.py`'s run mode.)
 `--frames-png` (serve / run) saves the frames lossless: reference recordings (JPEG is useless for colour-exact work).
 `serve`: loads once, F7 starts a hunt (the map is recognised then; ignored unless the game is focused), F8 stops it
 (all keys released, rising / falling chirp), Ctrl+C quits; it still watches for the Lie Detector between hunts. Each
@@ -1527,10 +1588,10 @@ Analysis: `tools/combat/probe/` (README: bot_presses, turning, human_swings, aft
 |---|---|
 | `config.py` | every threshold and timing: `Keys` (all game keys + serve hotkeys, the only place keys live), `Combat`, `Perception`, `Nav`, `Humanize` |
 | `capture.py`, `keyboard.py`, `humanize.py` | capture (dxcam, mss fallback), SendInput + focus guard, randomised timing |
-| `perception/` | `perceiver.py` frame -> Observation; `gpu_sprites.py` / `sprites.py` mobs by their sprites; `world.py` tracker (tracks in map coordinates, Camera); `camshift.py`; `selfpos.py` own name tag; `hud.py` HP/MP/EXP digits, quickslots, mob HP bars; `liedetector.py`; `mapascii.py` |
+| `perception/` | `perceiver.py` frame -> Observation (+ `MapKit`: what a map gives perception); `../scene.py` the scene model + scene camera + D; `vote.py` + `fit.py` the mobs (the fit) and the looks around tracks; `sighting.py` Hit / Pose; `world.py` tracker (tracks in map coordinates); `facts.py` FrameFacts v4; `selfpos.py` own name tag; `tags.py` players' tags; `hud.py` HP/MP/EXP digits, quickslots; `liedetector.py`; `mapascii.py`; `../cover.py` cover masks (the tracker's `hidden`, until step 4) |
 | `nav/` | `navmap.py` platforms / ropes / links / `route()`; `localize.py` minimap window + our map position; `identify.py` which map; `selfstate.py`; `sim.py` |
-| `brain/` | `brain_v2.py` + `v2/` (above), `reach.py`, `moves.py`, `travel.py`; `brain.py` + `actions.py` = the old brain v1 |
-| `runtime/` | `runner.py` (run / serve / watch, setup, map init at F7), `hunt_v2.py`, `keys.py` KeyDriver, `keylog.py`, `recorder.py`, `exp_meter.py`, `goto.py` |
+| `brain/` | `brain_v2.py` + `v2/` (above) + `v3/`, `reach.py`, `moves.py`, `travel.py` (brain v1 deleted 2026-11-17: git 58d266e / HISTORY.md) |
+| `runtime/` | `runner.py` (run / serve / watch, setup, map init at F7, `refuse`, the observe loop), `hunt_v2.py` (the hunt loop), `keys.py` KeyDriver, `keylog.py`, `recorder.py`, `exp_meter.py`, `goto.py` |
 | `gamedata.py`, `livemap.py` | `assets build`; the console map |
 
 Measured game facts that still hold (the user's rules): a mob shows its HP bar + name **only after being hit**; loot

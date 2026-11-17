@@ -1,8 +1,7 @@
 """KeyDriver (brain-v2 executor): driven by pump(now) with a fake clock - no thread, no real keys."""
-from maplebrain.brain.actions import Hold, Release, Tap
 from maplebrain.config import Humanize
 from maplebrain.humanize import Humanizer
-from maplebrain.runtime.keys import KeyDriver, LegacyExecutor
+from maplebrain.runtime.keys import KeyDriver
 
 
 class Rig:
@@ -126,23 +125,6 @@ def test_release_all_is_immediate():
     r.run(0.1)
     r.d.release_all()
     assert r.d.held() == set() and sorted(k for t, k, e in r.events if e == "up") == ["right", "up"]
-
-
-def test_legacy_executor_keeps_the_old_meaning_without_blocking():
-    r = Rig()
-    ex = LegacyExecutor(r.d)
-    ex.run(Hold("right"))
-    r.run(0.05)
-    ex.run(Tap("z", 0.06))                                   # pickup while walking: still walking
-    r.run(0.2)
-    assert "right" in r.d.held() and r.downs("z")
-    ex.run(Tap("left", 0.035))                               # a turn: lets go of the walk key
-    r.run(0.4)
-    assert r.ups("right")[0] < 0.4 and "right" not in r.d.held() and r.downs("left")
-    ex.run(Hold("space"))
-    ex.run(Release())
-    r.run(0.6)
-    assert r.d.held() == set() and ex.held is None
 
 
 def test_real_thread_runs_and_stops():
