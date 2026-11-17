@@ -47,6 +47,14 @@ pass later; record before the tracker redesign (step 4).
    stands in, and it spoils the recordings as a record of human play. Each recording is one mode, tagged; nothing
    staged happens inside them. They then double as the **human baseline**: travel time per map and kills per
    minute per map, with the keys, to grade the bot's travel and farming against.
+9. **Capture now the one thing no later tool can recover: why the player did something** (the user, 2026-11-17).
+   Where one farms is not a fixed property of a map. It moves with the other players: sharing a map platform by
+   platform, being kill-stolen until one leaves, party members dividing the map ("I take bottom"), kill-stealing
+   on purpose. Modelling that is far down the road (after perception, the model and execution). But where the
+   other players stand and who kills what stays in the pictures and can be read out whenever perception learns to;
+   the player's reason is nowhere in them. So: a **marker key** during recording + one line per mark afterwards,
+   and real play recorded beyond the 5-minute sessions, because these situations cannot be staged. Nothing else
+   of the social layer is built or labelled now.
 
 ## 3. What was measured (2026-11-17)
 | # | Question | Result |
@@ -68,14 +76,20 @@ native 1366x768 window, chat minimized. A map is played in two ways, so it is re
   Easiest: leave the recorder on for the whole trip to a farming map. Every map on the way becomes a traversal
   recording (towns and moving-background maps too), and the map changes are recorded for real. The tool cuts the
   trip into its maps afterwards.
-- **Farm:** about 5 minutes of farming for EXP exactly as you would, in the spot you would really use. A map that
-  is farmed from one platform or a restricted area is recorded that way, with a note saying so ("top-left platform
-  only"). Start a new recording when you switch from travelling to farming.
+- **Farm:** about 5 minutes of farming for EXP exactly as you would, wherever the situation puts you: the whole
+  map, one platform, the part the others leave you. Start a new recording when you switch from travelling to
+  farming.
+- **The marker (edit 9):** whenever another player changes what you do (you leave a platform, you take one, you
+  split the map with a party, you kill-steal or are kill-stolen), press the marker key: a key the game does not
+  use, the user's choice. Your keys are logged with their times already, so the recorder needs nothing new. After
+  the recording, one line per mark in `RUN/notes.txt` ("2:10 kill-stolen by a mage, moved to the bottom").
 - **Staged** (tagged apart, never counted as human play): anything done for the camera only - group D, and a short
   tour of a map's unseen parts when the tool reports that traversal + farming showed too little of it
   (`corpus.py list` prints the share of each map the camera saw).
-Crowded is welcome (it is the hard case). One line of notes per recording: crowded / quiet, the farming spot,
-anything odd.
+Crowded is welcome (it is the hard case). Per recording, three facts: how many other players were on the map
+(none / 1-2 / more), solo or party (and your part of the map, if agreed), anything odd.
+**The key log holds whatever is typed while the game is focused, chat included.** It stays on this PC (the corpus
+is never in git). Start a recording only after logging in.
 
 **Group A - dev, the 11 maps that complete the coverage** (`python tools/data/map_cover.py --max-level 45`; a
 different level cap gives a different list - the user says what the character survives):
@@ -113,6 +127,11 @@ records there without mobs, as today.
 world map and the full chat; let 5+ drops pile up before picking them up, once near a ladder or post; if it
 happens: a level-up, a death. Each once.
 
+**Group E - real play, open-ended (edit 9):** whenever the user farms for real, the recorder stays on (`--group
+dev --mode farm`, any map, any length), with the marker. This is where sharing, kill-stealing and party play get
+into the corpus: they happen when they happen. Estimated 20-40 GB an hour on E: (measured in Session 1); the
+user's 1 TB holds 25-50 hours. No pass of this plan depends on group E.
+
 **When to record more:** a second farm recording on a map only when the validation pass shows a failure there, or
 a scenario has too few cases (section 6); a staged tour only where the camera saw too little of a map.
 
@@ -129,7 +148,9 @@ a scenario has too few cases (section 6); a staged tour only where the camera sa
   `tools/data/unpack.py RUN [names]`.
 - **Corpus:** `E:\maple-corpus\{dev,holdout}\<run>` + `manifest.jsonl`: one line per **segment** = one map inside
   one recording (group, mode traverse / farm / staged / bot, map, frame range, date, minutes, client data build,
-  native check, the user's note). `tools/data/corpus.py add RUN --group G --mode M [--note ...]` checks the
+  native check, other players none / 1-2 / more, solo / party, the user's note, the marks = marker-key times from
+  keys.jsonl with their lines from `RUN/notes.txt`). `tools/data/corpus.py add RUN --group G --mode M --others N
+  [--party AREA] [--note ...]` prints the marks that have no line yet, checks the
   recording (video reads end to end, frames = index = ticks, the window is native), finds its maps by recognising
   the minimap along the recording (a trip crosses several; today a recording knows only its first map) and writes
   the segments - nothing is re-encoded. `list` prints per map: its modes and minutes, the mob types and background
@@ -162,7 +183,8 @@ Perception runs **unchanged** over the dev group; this pass measures and lists, 
    camera, mobs passed and never fought); pooled found / false rates with 95 % intervals; the failure kinds, each
    with its count, its maps and example frames, split into "a threshold or a missing case" and "a structural
    assumption". Plus the **human baseline** per map, from the ticks and keys: crossing time per route, and for
-   farming kills and EXP per minute and where the player stood (the farming spot).
+   farming kills and EXP per minute and where the player stood - always next to how many other players were on
+   the map (a farming rate without its competition compares nothing), with the marks listed.
 6. Only then the hold-out group runs once (`--holdout`), as the honest number. Fixes are planned in a review
    session after the report, checked on dev, confirmed on the hold-out.
 
