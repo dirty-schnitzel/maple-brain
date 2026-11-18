@@ -1,6 +1,7 @@
 """tools/data/corpus.py (PLAN-data.md sections 4-5): a recording is cut into its maps by what the minimap names
-frame by frame, filed in the manifest, and handed to tools as segments - hold-out ones only on purpose.
-The cut is tested on scripted names (which frame names which map); `add` end to end on a small real recording of
+frame by frame; every stay on a map is filed in that map's folder (its frames written again losslessly and read
+back identical) and handed to tools by its id - hold-out ones only on purpose.
+The cut is tested on scripted names (which frame names which map); `add` end to end on small real recordings of
 the Ant Tunnel IV fixture frames (needs the GPU encoder: skipped without it)."""
 import importlib.util
 import json
@@ -22,6 +23,8 @@ from test_video import _frames, needs_encoder  # noqa: E402
 
 ANT4, DARK, LINE1, KERNING, BOOTH, PERION = 10005063, 10005064, 10003061, 10003000, 10003060, 10004000
 HOLD_A, HOLD_B = [m for m in range(10001000, 10001200) if zlib.crc32(str(m).encode()) % 4 == 0][:2]   # by the rule
+REAL_HOLD = next((int(p.name) for p in sorted((ROOT / "assets" / "mcw" / "maps").glob("1000*")) if p.is_dir()
+                  and zlib.crc32(p.name.encode()) % 4 == 0 and int(p.name) not in corpus.DEV_FIRST), HOLD_A)
 
 
 @pytest.fixture
@@ -29,7 +32,13 @@ def home(tmp_path, monkeypatch):
     """An empty corpus folder."""
     monkeypatch.setenv("MAPLE_CORPUS", str(tmp_path / "corpus"))
     fr._VIDEOS.clear()
-    return tmp_path / "corpus"
+    yield tmp_path / "corpus"
+    for v in [fr._VIDEOS.pop(k) for k in list(fr._VIDEOS)]:
+        if v is not None:
+            v.close()
+    for f in tmp_path.rglob("*"):                            # (filed footage is read-only: let pytest clear it)
+        if f.is_file():
+            f.chmod(0o666)
 
 
 class Names:
@@ -168,103 +177,263 @@ def test_hold_out_maps_are_picked_by_the_rule_and_the_first_seven_stay_dev(home)
 
 
 def _manifest(home, *lines):
-    home.mkdir(parents=True, exist_ok=True)
-    corpus._save([{"recording": s.split("#")[0], "k": int(s.split("#")[1]), "seg": s, "map": m, "group": g,
-                   "name": "x", "frames": [0, 9]} for s, m, g in lines])
+    """Stays as the manifest and their folders know them: (id, map, group)."""
+    rows = []
+    for s, m, g in lines:
+        top = "holdout" if g == "holdout" else "maps"
+        rows.append({"v": corpus.V, "session": s.split("#")[0], "k": int(s.split("#")[1]), "seg": s, "map": m,
+                     "group": g, "name": "x", "frames": [0, 9], "path": f"{top}/x ({m})/stay_{s.split('#')[1]}"})
+        (home / rows[-1]["path"]).mkdir(parents=True)
+        (home / rows[-1]["path"] / "stay.json").write_text(json.dumps(rows[-1]))
+    corpus._save(rows)
+    return rows
 
 
-def test_a_tool_is_refused_a_hold_out_segment_unless_asked_and_each_use_is_logged(home):
-    _manifest(home, ("walk_1#0", ANT4, "dev"), ("walk_1#1", HOLD_A, "holdout"))
-    (home / "recordings" / "walk_1").mkdir(parents=True)
+def test_a_tool_is_refused_a_hold_out_stay_unless_asked_and_each_use_is_logged(home):
+    a, b = _manifest(home, ("walk_1#0", ANT4, "dev"), ("walk_1#1", HOLD_A, "holdout"))
     assert fr.clip("walk_1#0", tool="t").map_id == ANT4
-    with pytest.raises(SystemExit, match="HOLD-OUT"):
-        fr.clip("walk_1#1", tool="t")
+    for arg in ("walk_1#1", home / b["path"]):               # by its id or by its folder: refused alike
+        with pytest.raises(SystemExit, match="HOLD-OUT"):
+            fr.clip(arg, tool="t")
     assert not (home / "holdout_uses.jsonl").exists()
     c = fr.clip("walk_1#1", holdout=True, tool="replay/run.py")
-    assert c.seg["map"] == HOLD_A and c.out == home / "work" / "walk_1#1" and c.run == home / "recordings" / "walk_1"
+    assert c.seg["map"] == HOLD_A and c.run == home / b["path"]
+    assert c.out == home / "work" / "walk_1#1" and c.keep == home / "labels" / "walk_1#1"      # never its folder
     (use,) = [json.loads(l) for l in (home / "holdout_uses.jsonl").read_text().splitlines()]
     assert use["tool"] == "replay/run.py" and use["seg"] == "walk_1#1" and use["map"] == HOLD_A
-    with pytest.raises(SystemExit, match="corpus recording of 2 maps"):          # the folder itself: which map?
-        fr.clip(home / "recordings" / "walk_1")
+    assert fr.clip(home / a["path"], tool="t").seg["seg"] == "walk_1#0"          # a dev stay by its folder
+    assert fr.map_of(home / a["path"]) == ANT4               # a stay's folder knows its map (a walk has no log)
     with pytest.raises(SystemExit, match="not a run folder"):
         fr.clip("walk_9#0")
 
 
+def test_labels_are_kept_apart_from_what_tools_can_make_again(home):
+    """By-eye labels of a stay live in labels/SESSION#K, tool output in work/SESSION#K (safe to delete); a plain
+    run folder keeps both in itself, as always."""
+    (a,) = _manifest(home, ("walk_1#0", ANT4, "dev"))
+    c = fr.clip("walk_1#0", tool="t")
+    assert c.find("labels.json") == home / "labels" / "walk_1#0" / "labels.json"            # where it will be
+    assert c.find("replay/work.jsonl") == home / "work" / "walk_1#0" / "replay" / "work.jsonl"
+    (c.run / "labels").mkdir()
+    (c.run / "labels" / "cams.json").write_text("{}")        # (an old recording's, were it left in the folder)
+    assert c.find("labels/cams.json") == c.run / "labels" / "cams.json"
+    plain = home / "some_run"
+    plain.mkdir()
+    p = fr.clip(plain)
+    assert p.keep == p.out == p.run == plain and p.find("labels.json") == plain / "labels.json"
+
+
 def test_a_map_moves_to_dev_only_before_it_was_used_as_hold_out(home):
-    _manifest(home, ("walk_1#0", HOLD_A, "holdout"), ("walk_1#1", HOLD_B, "holdout"))
-    (home / "recordings" / "walk_1").mkdir(parents=True)
+    a, b = _manifest(home, ("walk_1#0", HOLD_A, "holdout"), ("walk_1#1", HOLD_B, "holdout"))
     assert corpus.group_of(HOLD_A) == corpus.group_of(HOLD_B) == "holdout"
     fr.clip("walk_1#1", holdout=True, tool="t")
     corpus.to_dev([HOLD_A], say=lambda s: None)
-    assert corpus.group_of(HOLD_A) == "dev" and corpus.segment("walk_1#0")["group"] == "dev"
+    now = corpus.segment("walk_1#0")
+    assert corpus.group_of(HOLD_A) == "dev" and now["group"] == "dev" and now["path"].startswith("maps/")
+    assert (home / now["path"] / "stay.json").exists() and not (home / a["path"]).exists()   # the folder moved
+    assert json.loads((home / now["path"] / "stay.json").read_text())["group"] == "dev"
+    assert fr.clip("walk_1#0", tool="t").run == home / now["path"]
     with pytest.raises(SystemExit, match="already used as a hold-out"):
         corpus.to_dev([HOLD_B])
-    assert corpus.segment("walk_1#1")["group"] == "holdout"
+    assert corpus.segment("walk_1#1")["group"] == "holdout" and (home / b["path"]).exists()
+
+
+def test_a_stay_is_named_for_people():
+    """<date>_<time it began>_<mode>_<length>_s<its number>; the map's folder without what Windows refuses."""
+    from datetime import datetime
+    assert corpus.stay_name(datetime(2026, 11, 18, 14, 32, 5), "farming", 725.4, 3) == "2026-11-18_1432_farming_12m05s_s03"
+    assert corpus.stay_name(datetime(2026, 11, 18, 15, 2), "traveling", 21.9, 7) == "2026-11-18_1502_traveling_0m21s_s07"
+    assert corpus.map_folder(LINE1) == "Line 1 Area 1 (10003061)" and corpus.map_folder(None) == "_unknown"
+    assert corpus.safe('a<b>:c"/\\|?*% d. ') == "abc d"
+    mode = corpus.mode_of
+    assert mode(None, False, corpus.FARM_ATTACKS, 30, True) == "farming"       # fought
+    assert mode(None, False, corpus.FARM_ATTACKS - 1, 30, True) == "traveling"  # a mob in the way is not farming
+    assert mode(None, False, 0, 90, False) == "town" and mode(None, False, 0, 20, False) == "traveling"
+    assert mode(None, False, 0, 400, True) == "idle" and mode(None, False, 0, 400, None) == "idle"
+    assert mode(None, True, 0, 30, True) == "bot"                               # a bot hunt, whatever it pressed
+    assert mode("Expiry test!", False, 40, 300, True) == "scene-expiry-test"   # a staged scene says its name
+
+
+def test_every_frame_of_a_session_is_in_exactly_one_stay():
+    """A stay's files begin with the frames nobody could name before it (its loading screen); the last stay also
+    takes what follows it."""
+    segs = [{"i": [0, 99]}, {"i": [130, 400]}, {"i": [401, 500]}, {"i": [520, 600]}]
+    assert corpus.bounds(segs, 640) == [(0, 99), (100, 400), (401, 500), (501, 639)]
+    assert corpus.bounds([{"i": [5, 9]}], 10) == [(0, 9)]
+    with pytest.raises(corpus.Problem, match="out of order"):
+        corpus.bounds([{"i": [0, 99]}, {"i": [50, 120]}], 121)
 
 
 def _recording(run: Path, frames: list, keys: list = (), close: bool = True):
-    """A `record`-style recording: the frames as video at 60 fps, the player's key presses."""
+    """A `record`-style recording: the frames as video at 60 fps, the player's keys [(t, key) or (t, key, down)]."""
     from maplebrain.runtime.video import VideoWriter
     vw = VideoWriter(run, note={"by": "record"})
     for i, f in enumerate(frames):
-        vw.put(f, i, i / 60, wait=True)
+        vw.put(f, i, i / 60, cursor=(100 + i, 50), wait=True, buttons=1 if i == 5 else 0)
     if close:
         vw.close()
-    (run / "keys.jsonl").write_text("".join(json.dumps({"t": t, "key": k, "down": True}) + "\n" for t, k in keys))
+    (run / "keys.jsonl").write_text("".join(
+        json.dumps({"t": k[0], "key": k[1], "down": k[2] if len(k) > 2 else True}) + "\n" for k in keys))
     return vw
 
 
 @needs_encoder
-def test_add_files_a_recording_by_its_minimap_and_tools_read_its_frames(home, tmp_path, capsys):
-    """Check + cut + manifest + move, on 3 s of Ant Tunnel IV: named from the minimap alone (no log, no --map),
-    dev (one of the first seven), fought on (attack presses), the marker key counted; then a tool takes the
-    segment and gets the recorded pixels."""
+def test_add_files_a_recording_under_its_map_and_tools_read_its_frames(home, capsys):
+    """Check + cut + file, on 3 s of Ant Tunnel IV: named from the minimap alone (no log, no --map), dev (one of
+    the first seven), farmed (5 attack presses), the marker key counted. Its frames are written into the map's
+    folder and read back identical; the original in incoming/ is gone; a tool takes the stay by its id."""
     frames = _frames(180)
-    run = tmp_path / "incoming" / "20261118_101500_1"
-    _recording(run, frames, keys=[(0.5, "q"), (1.0, "c"), (1.2, "x"), (2.0, "f12"), (9.0, "q")])
+    run = home / "incoming" / "20261118_101500_1"
+    _recording(run, frames, keys=[(0.5, "q"), (0.7, "q"), (1.0, "c"), (1.2, "x"), (1.5, "q"), (1.8, "q"),
+                                  (2.0, "f12"), (9.0, "q")])
+    (run / "session.json").write_text(json.dumps({"v": 1, "by": "record", "scene": None, "epoch": 1795000500.0,
+                                                  "client": "build-x", "code": {"commit": "abc123"}}))
     (line,) = corpus.add(run, say=lambda s: None)
+    from datetime import datetime
+    began = datetime.fromtimestamp(1795000500.0)             # (the recorder's clock, not the folder's name)
+    stay = f"{began:%Y-%m-%d_%H%M}_farming_0m02s_s00"
     assert line["seg"] == "20261118_101500_1#0" and line["map"] == ANT4 and line["how"] == "minimap"
     assert line["name"] == "Ant Tunnel IV" and line["group"] == "dev" and line["frames"] == [0, 179]
-    assert line["attacks"] == 2 and line["first_attack"] == 0.5 and line["kind"] == "visited"
-    assert line["marks"] == [2.0] and line["by"] == "record" and line["minutes"] == round(179 / 60 / 60, 2)
-    assert not run.exists() and corpus.load() == [line]
-    dest = home / "recordings" / "20261118_101500_1"
+    assert line["attacks"] == 5 and line["first_attack"] == 0.5 and line["mode"] == "farming" and line["by"] == "record"
+    assert line["marks"] == [2.0] and line["minutes"] == round(179 / 60 / 60, 2) and line["arrive"] == 0
+    assert line["stay"] == stay and line["path"] == f"maps/Ant Tunnel IV (10005063)/{stay}"
+    assert line["client"] == "build-x" and line["code"] == "abc123"
+    assert not run.exists() and corpus.load() == [line]      # the original is gone only now: every frame is filed
+    dest = home / line["path"]
+    video = dest / f"Ant Tunnel IV_{stay}_000.mkv"           # a file that says what it is, wherever it is copied
+    assert [f["name"] for f in line["files"]] == [video.name] and line["bytes"] == video.stat().st_size
+    assert json.loads((dest / "stay.json").read_text()) == line
+    assert (dest / "sheet.jpg").stat().st_size > 10000 and (dest / "preview.mp4").stat().st_size > 1000
+    rows = [json.loads(l) for l in (dest / "frames.jsonl").read_text().splitlines()]
+    assert len(rows) == 180 and rows[5] == {"n": 5, "t": round(5 / 60, 4), "cur": [105, 50], "b": 1,
+                                            "h": corpus.fingerprint(frames[5])}
+    assert [json.loads(l)["key"] for l in (dest / "keys.jsonl").read_text().splitlines()] == \
+        ["q", "q", "c", "x", "q", "q", "f12"]                # the keys inside the stay's time (9.0 s is after it)
     with pytest.raises(PermissionError):
-        open(dest / "frames_0000.mkv", "ab")                 # the corpus is read-only
-    c = fr.clip("20261118_101500_1#0", tool="test")
-    rows = c.frames()
-    assert len(rows) == 180 and rows[0] == (0, "000000.png", 0.0)
-    assert np.array_equal(c.read("000179.png"), frames[179]) and np.array_equal(c.read("000000.png"), frames[0])
-    assert fr.clip(dest, tool="test").map_id == ANT4         # the folder of a one-map recording works too
+        open(video, "ab")                                    # the footage is read-only
+    ses = home / "sessions" / "20261118_101500_1"
+    assert json.loads((ses / "session.json").read_text())["client"] == "build-x"
+    assert stay in (ses / "route.txt").read_text() and (ses / "frames.jsonl").exists() and (ses / "cuts").is_dir()
+    assert "Ant Tunnel IV" in (home / "index.txt").read_text() and "maps/<map name>" in (home / "README.txt").read_text()
+    for arg in ("20261118_101500_1#0", dest):                # a tool takes it by its id or by its folder
+        c = fr.clip(arg, tool="test")
+        got = c.frames()
+        assert len(got) == 180 and got[0] == (0, "000000.png", 0.0) and c.map_id == ANT4
+        assert np.array_equal(c.read("000179.png"), frames[179]) and np.array_equal(c.read("000000.png"), frames[0])
+    fr.video(dest).close()
+    _recording(run, frames[:10])
     with pytest.raises(corpus.Problem, match="in the corpus already"):
-        corpus.add(dest)
-    corpus.report()
+        corpus.add(run)
+    corpus.report(stays=True)
     said = capsys.readouterr().out
-    assert "1 recording(s), 1 segment(s)" in said and "Dungeon / Ant Tunnel IV" in said
+    assert "1 session(s), 1 stay(s)" in said and "Dungeon / Ant Tunnel IV" in said and line["path"] in said
     if (ROOT / "assets" / "scene").exists():                 # (the coverage is counted from the scene models)
         assert "mob types: 2 of 51 on clean maps" in said and "background sets: 1 of 13" in said
         assert "not seen yet on a clean map" in said and "Stirge (lv 20): " in said
-    fr.video(dest).close()
-    for f in dest.iterdir():
-        f.chmod(0o666)                                       # (so pytest can clear its folder)
+    # verify: the files are what was filed - until one byte of one changes
+    assert corpus.verify(say=lambda s: None) == 0 and corpus.verify(frames=True, say=lambda s: None) == 0
+    video.chmod(0o666)
+    with open(video, "r+b") as f:
+        f.seek(video.stat().st_size // 2)
+        byte = f.read(1)
+        f.seek(-1, 1)
+        f.write(bytes([byte[0] ^ 0xFF]))
+    told = []
+    assert corpus.verify(say=told.append) == 1 and "is not the file that was filed" in told[0]
 
 
 @needs_encoder
-def test_add_dry_writes_nothing(home, tmp_path):
-    run = tmp_path / "incoming" / "20261118_101500_2"
+def test_add_dry_files_nothing_and_a_recording_outside_incoming_is_never_removed(home, tmp_path):
+    run = tmp_path / "elsewhere" / "20261118_101500_2"
     _recording(run, _frames(70))
     (line,) = corpus.add(run, dry=True, say=lambda s: None)
-    assert line["map"] == ANT4 and line["kind"] == "crossed" and line["attacks"] == 0
-    assert run.exists() and corpus.load() == [] and not (home / "recordings").exists()
-    fr.video(run).close()
+    assert line["map"] == ANT4 and line["mode"] == "traveling" and line["attacks"] == 0
+    assert run.exists() and corpus.load() == [] and not (home / "maps").exists() and not (home / "sessions").exists()
+    said = []
+    (line,) = corpus.add(run, say=said.append)               # for real: filed, and the original left where it was
+    assert (run / "frames_0000.mkv").exists() and any("the original stays as it is" in s for s in said)
+    assert (home / line["path"] / "stay.json").exists()
+    fr._VIDEOS.clear()
+
+
+class _Cut:
+    """A scripted cut (the fixture frames all show one map): `cut`'s result and its Namer."""
+    held = 0
+
+    def __init__(self, segs, cuts):
+        self.segs, self.cuts, self.seen, self.luma = segs, cuts, {}, {}
+
+    def __call__(self, i):
+        self.seen[i] = self.luma[i] = 1
+        return next((s["map"] for s in self.segs if s["i"][0] <= i <= s["i"][1]), None)
+
+    def cut(self, run, rows, ident, say=print, name=None):
+        return self.segs, self.cuts, self
 
 
 @needs_encoder
-def test_a_recording_cut_short_is_repaired_and_filed_with_the_frames_it_holds(home, tmp_path):
+def test_a_walk_through_two_maps_is_filed_as_two_stays_each_under_its_map(home, monkeypatch):
+    """1 s on Ant Tunnel IV, 20 loading frames, 1.7 s on a map new to the corpus that the rule holds out: two
+    folders, the hold-out one under holdout/. The loading frames open the second stay's files, so every frame of
+    the walk is in exactly one stay - and only then the original is removed."""
+    frames = _frames(180)
+    run = home / "incoming" / "20261118_101500_4"
+    _recording(run, frames, keys=[(0.2, "left"), (0.5, "q"), (0.6, "q", False), (2.0, "left", False), (2.5, "q")])
+    script = _Cut([{"i": [0, 59], "map": ANT4, "how": "minimap"}, {"i": [80, 179], "map": REAL_HOLD, "how": "minimap"}],
+                  [{"a": 60, "b": 79, "from": ANT4, "to": REAL_HOLD, "s": 0.35, "what": "loading", "map": None}])
+    monkeypatch.setattr(corpus, "cut", script.cut)
+    a, b = corpus.add(run, say=lambda s: None)
+    assert a["path"].startswith("maps/Ant Tunnel IV (10005063)/") and a["stay"].endswith("_s00")
+    assert b["path"].startswith(f"holdout/{corpus.map_folder(REAL_HOLD)}/") and b["stay"].endswith("_s01")
+    assert (a["frames"], a["file_frames"], a["n_file"], a["arrive"]) == ([0, 59], [0, 59], 60, 0)
+    assert (b["frames"], b["file_frames"], b["n_file"], b["arrive"]) == ([80, 179], [60, 179], 120, 20)
+    assert a["n_file"] + b["n_file"] == 180 and not run.exists()
+    assert b["held"] == ["left"] and a["held"] == []         # walked into the second map with the key held down
+    keys_b = [json.loads(l) for l in (home / b["path"] / "keys.jsonl").read_text().splitlines()]
+    assert [(k["key"], k["down"]) for k in keys_b] == [("left", False), ("q", True)]
+    with pytest.raises(SystemExit, match="HOLD-OUT"):
+        fr.clip(b["seg"], tool="t")
+    c = fr.clip(b["seg"], holdout=True, tool="t")
+    rows = c.frames()                                        # a tool gets the frames ON the map ...
+    assert len(rows) == 100 and rows[0][0] == 80 and np.array_equal(c.read("000080.png"), frames[80])
+    v = fr.Video(home / b["path"])                           # ... the files hold the loading screen before them too
+    assert len(v) == 120 and np.array_equal(v.frame(0), frames[60]) and np.array_equal(v.frame(119), frames[179])
+    v.close()
+    route = (home / "sessions" / "20261118_101500_4" / "route.txt").read_text()
+    assert a["stay"] in route and b["stay"] in route and route.index(a["stay"]) < route.index(b["stay"])
+    assert list((home / "sessions" / "20261118_101500_4" / "cuts").glob("cut_000_*.png"))    # the cut's sheet
+    assert corpus.verify(frames=True, say=lambda s: None) == 0
+    fr._VIDEOS.clear()
+
+
+@needs_encoder
+def test_a_filing_that_fails_leaves_nothing_half_filed_and_the_recording_as_it_was(home, monkeypatch):
+    frames = _frames(120)
+    run = home / "incoming" / "20261118_101500_5"
+    _recording(run, frames)
+    script = _Cut([{"i": [0, 59], "map": ANT4, "how": "minimap"}, {"i": [60, 119], "map": DARK, "how": "minimap"}], [])
+    monkeypatch.setattr(corpus, "cut", script.cut)
+    real = corpus.fingerprint
+    seen = []
+
+    def broken(frame):                                       # the second stay reads back differently
+        seen.append(1)
+        return real(frame) if len(seen) <= 150 else "0" * 16
+
+    monkeypatch.setattr(corpus, "fingerprint", broken)
+    with pytest.raises(corpus.Problem, match="read back differently"):
+        corpus.add(run, say=lambda s: None)
+    assert corpus.load() == [] and (run / "frames_0000.mkv").exists()
+    assert not list((home / "maps").rglob("*.mkv")) and not (home / "sessions").exists()
+    fr._VIDEOS.clear()
+
+
+@needs_encoder
+def test_a_recording_cut_short_is_repaired_and_filed_with_the_frames_it_holds(home):
     """The recorder killed: video.json was never closed and frames.jsonl lists frames that never reached the file.
     `add` takes what the file holds - the first frames, in order."""
     frames = _frames(100)
-    run = tmp_path / "incoming" / "20261118_101500_3"
+    run = home / "incoming" / "20261118_101500_3"
     vw = _recording(run, frames, close=False)
     for i in range(100, 130):                                # listed, never written: the queue at the kill
         vw._index.write(json.dumps({"n": i, "t": i / 60}) + "\n")
@@ -276,19 +445,18 @@ def test_a_recording_cut_short_is_repaired_and_filed_with_the_frames_it_holds(ho
     (line,) = corpus.add(run, say=said.append)
     assert line["frames"] == [0, 99] and line["n_frames"] == 100
     assert any("the last 30 never reached the file" in s for s in said)
-    dest = home / "recordings" / "20261118_101500_3"
-    assert json.loads((dest / "video.json").read_text())["cut"] is True
-    v = fr.video(dest)
+    assert json.loads((home / "sessions" / "20261118_101500_3" / "video.json").read_text())["cut"] is True
+    v = fr.Video(home / line["path"])
     assert len(v) == 100 and np.array_equal(v.frame(99), frames[99]) and np.array_equal(v.frame(40), frames[40])
     v.close()
-    for f in dest.iterdir():
-        f.chmod(0o666)
+    fr._VIDEOS.clear()
 
 
 @needs_encoder
-def test_an_old_png_recording_is_copied_in_as_video_and_left_as_it_is(home, tmp_path):
-    """Frames saved every 3rd tick as PNG + ticks.jsonl + a log naming the map: every video frame is compared with
-    its PNG, the whole recording is one dev segment of the log's map, the PNG folder is untouched."""
+def test_an_old_png_recording_is_filed_as_one_stay_and_left_as_it_is(home, tmp_path):
+    """Frames saved every 3rd tick as PNG + ticks.jsonl + a log naming the map: one stay on the log's map, every
+    filed frame its PNG's pixels, its own ticks / log beside the frames, its by-eye labels under labels/. The PNG
+    folder is untouched (it is not in incoming/)."""
     frames = _frames(24)
     run = tmp_path / "runs" / "20261116_154819_1"
     (run / "frames").mkdir(parents=True)
@@ -301,19 +469,21 @@ def test_an_old_png_recording_is_copied_in_as_video_and_left_as_it_is(home, tmp_
     (run / "log.txt").write_text("map 10005063 Dungeon / Ant Tunnel IV\n")
     (run / "keys.jsonl").write_text(json.dumps({"t": 1.0, "key": "q", "down": True}) + "\n")
     (run / "xshift.txt").write_text("0")
+    (run / "labels.json").write_text('{"v": 2}')
     (line,) = corpus.add(run, say=lambda s: None)
-    assert line["map"] == ANT4 and line["how"] == "log" and line["group"] == "dev" and line["by"] == "import"
-    assert line["frames"] == [3, 72] and line["n_frames"] == 24 and line["attacks"] == 1 and line["date"] == "2026-11-16"
+    assert line["map"] == ANT4 and line["how"] == "log" and line["group"] == "dev" and line["by"] == "observe"
+    assert line["frames"] == [3, 72] and line["n_frames"] == 24 and line["attacks"] == 1
+    assert line["date"] == "2026-11-16" and line["stay"] == "2026-11-16_1548_traveling_0m02s_s00"
     assert len(list((run / "frames").glob("*.png"))) == 24                # the PNG recording is as it was
-    dest = home / "recordings" / "20261116_154819_1"
-    assert (dest / "ticks.jsonl").exists() and (dest / "log.txt").exists() and not (dest / "frames").exists()
+    dest = home / line["path"]
+    assert (dest / "ticks.jsonl").exists() and (dest / "log.txt").exists() and (dest / "xshift.txt").exists()
+    assert not (dest / "frames").exists() and not (dest / "labels.json").exists()
     c = fr.clip("20261116_154819_1#0", tool="test")
+    assert c.find("labels.json") == home / "labels" / "20261116_154819_1#0" / "labels.json" and c.find("labels.json").exists()
     assert [n for n, _, _ in c.frames()] == list(range(3, 73, 3))
     assert np.array_equal(c.read("000072.png"), frames[23])
     assert [k["n"] for k in c.sight()] == list(range(3, 73, 3))           # its own ticks: what perception saw
-    fr.video(dest).close()
-    for f in dest.iterdir():
-        f.chmod(0o666)
+    fr._VIDEOS.clear()
 
 
 def test_presses_of_a_bot_hunt_come_from_its_ticks(tmp_path):

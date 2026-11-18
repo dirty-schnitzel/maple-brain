@@ -15,10 +15,12 @@ window. Recordings hit (Ant Tunnel IV 20261116_012059_1, Dangerous Steam 2026111
 RUN/xshift.txt holding `1`; `read` moves their picture back (column 0 is then unknown: a copy of column 1).
 
 **Clips.** `clip(arg)` is what the ported tools (replay/run.py, label_eval.py, labels/, synth/) take: `arg` = a run
-folder (as always: its frames, its map from log.txt, outputs written into it), or a corpus segment `RECORDING#K`
-(one line of the corpus' manifest.jsonl, tools/data/corpus.py: the frames of one map of a recorded walk;
-outputs go to CORPUS\\work\\RECORDING#K, the corpus itself is never written to). A hold-out segment is
-refused unless the tool was given --holdout, and every such use is logged (PLAN-data.md section 4).
+folder (as always: its frames, its map from log.txt, outputs written into it), or a STAY of the recording corpus
+(tools/data/corpus.py: one stay on one map of a recorded session, filed as its own folder under the map's): its id
+`SESSION#K` (the permanent name: labels and gates use it) or its folder. A stay's folder is never written to:
+what a tool makes goes to CORPUS\\work\\SESSION#K (re-creatable), by-eye labels to CORPUS\\labels\\SESSION#K (kept).
+A stay on a hold-out map is refused unless the tool was given --holdout, and every such use is logged
+(PLAN-data.md section 4).
 
     python tools/perc/frames.py RUN [RUN ...]     measure each recording's shift with the scene model (needs
                                                   `assets scene`), write / remove RUN/xshift.txt
@@ -172,6 +174,11 @@ def read(run: Path, name: str, shift: int | None = None) -> np.ndarray | None:
 
 
 def map_of(run: Path) -> int:
+    stay = Path(run) / "stay.json"                       # a corpus stay knows its map (a walk has no log)
+    if stay.exists():
+        m = json.loads(stay.read_text(encoding="utf-8")).get("map")
+        if m is not None:
+            return int(m)
     log = (Path(run) / "log.txt").read_text(encoding="utf-8", errors="replace")
     return int((re.search(r"map recognised: (\d+)", log) or re.search(r"\bmap (\d+) ", log)).group(1))
 
@@ -195,11 +202,18 @@ def saved(run: Path) -> list:
 @dataclass
 class Clip:
     """What a tool works on: the frames of one map, where they are and where the tool may write."""
-    run: Path                       # the recording's folder: frames, ticks.jsonl / frames.jsonl, keys.jsonl
-    out: Path                       # the tool's outputs (replay/, labels/, labels.json): `run`, or the segment's
-                                    # work folder beside the corpus
-    map_id: int | None = None       # the segment's map / the run log's (None: not known)
-    seg: dict | None = None         # the manifest line of a corpus segment (None: a plain run folder)
+    run: Path                       # the folder with the frames (a run, or a corpus stay): ticks.jsonl /
+                                    # frames.jsonl, keys.jsonl
+    out: Path                       # what a tool makes and can make again (replay/): `run`, or the stay's work
+                                    # folder CORPUS/work/SESSION#K
+    map_id: int | None = None       # the stay's map / the run log's (None: not known)
+    seg: dict | None = None         # the manifest line of a corpus stay (None: a plain run folder)
+    keep: Path | None = None        # by-eye work nobody can make again (labels.json, labels/): `run`, or
+                                    # CORPUS/labels/SESSION#K
+
+    def __post_init__(self):
+        if self.keep is None:
+            self.keep = self.out
 
     @property
     def name(self) -> str:
@@ -217,10 +231,10 @@ class Clip:
         return read(self.run, name)
 
     def find(self, rel: str) -> Path:
-        """An input a tool reads (labels.json, labels/cams.json, a replay): in `out` when it is there, else in the
-        recording's own folder (an old recording copied into the corpus brought its labels along)."""
-        p = self.out / rel
-        return p if p.exists() or not (self.run / rel).exists() else self.run / rel
+        """An input a tool reads (labels.json, labels/cams.json, a replay): among the kept by-eye work, else among
+        the tool outputs, else in the frames' own folder; where it would be written when it is nowhere yet."""
+        home = self.keep if rel.split("/")[0] in ("labels.json", "labels") else self.out
+        return next((d / rel for d in (self.keep, self.out, self.run) if (d / rel).exists()), home / rel)
 
     def sight(self, tracks: str = "replay/work.jsonl") -> list:
         """What perception saw on each frame of the clip, in order: [{"n", "frame", "t", "cam", "me", "mobs",
@@ -258,27 +272,26 @@ def _log_map(run: Path) -> int | None:
 
 
 def clip(arg, holdout: bool = False, tool: str = "") -> Clip:
-    """`arg` -> Clip: a run folder, or `RECORDING#K` = segment K of a corpus recording. Raises SystemExit with the
-    reason when it is neither, or a hold-out segment asked for without `holdout` (a use WITH it is logged in the
-    corpus, by `tool`)."""
+    """`arg` -> Clip: a run folder, or a stay of the corpus - its id `SESSION#K` or its folder. Raises SystemExit
+    with the reason when it is neither, or a hold-out stay asked for without `holdout` (a use WITH it is logged in
+    the corpus, by `tool`)."""
     sys.path.insert(0, str(ROOT / "tools" / "data"))
     import corpus
     p = Path(arg)
     if p.is_dir():
-        segs = corpus.segments_of(p)                     # a folder inside the corpus: its manifest lines
-        if not segs:
+        if not (p / "stay.json").exists():
             return Clip(p, p, _log_map(p))
-        named = [s for s in segs if s["map"] is not None]
-        if len(named) != 1:
-            raise SystemExit(f"{p.name} is a corpus recording of {len(named)} maps: name one segment "
-                             f"({', '.join(s['seg'] for s in named) or 'none named'})")
-        seg = named[0]
+        sid = json.loads((p / "stay.json").read_text(encoding="utf-8"))["seg"]
+        seg = corpus.segment(sid)                        # (the manifest's line: its group is the current one)
+        if seg is None:
+            raise SystemExit(f"{p} says it is stay {sid}, but the corpus' manifest has no such stay")
     else:
         seg = corpus.segment(str(arg))
         if seg is None:
-            raise SystemExit(f"{arg}: not a run folder and not a corpus segment (python tools/data/corpus.py list)")
+            raise SystemExit(f"{arg}: not a run folder and not a corpus stay (python tools/data/corpus.py list "
+                             "--stays)")
     corpus.allow(seg, holdout, tool or Path(sys.argv[0]).name)
-    return Clip(corpus.recording_dir(seg["recording"]), corpus.work_dir(seg["seg"]), seg["map"], seg)
+    return Clip(corpus.stay_dir(seg), corpus.work_dir(seg["seg"]), seg["map"], seg, corpus.labels_dir(seg["seg"]))
 
 
 def measure(run: Path, n: int = 20) -> int:

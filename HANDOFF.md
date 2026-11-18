@@ -10,7 +10,8 @@ a / d / e passed): its live gates wait for the user's recorded walk + a `serve -
 2026-11-18: `data` rebased on `dev` (loot part 1 merged). The user: recording this way is THE way data is collected
 from now on - one bank for perception, the live map + tracking, later AI training; footage replaces the gates ->
 the recorder also writes the mouse buttons + `session.json`; the corpus is at `F:\dev\maple-corpus`
-(`config.CORPUS`); the bank's folder-per-map structure is PROPOSED (START HERE).
+(`config.CORPUS`), **filed as a folder per map** (`maps\<map>\<stay>\`: every stay's frames written again
+losslessly and proven identical; built the same day, START HERE).
 Sessions 6-23, the old brain (v1), and superseded plans moved verbatim to **HISTORY.md** on 2026-11-08: grep it for
 old runs, numbers and decisions.
 Latest: 2026-11-15 Platform mode live (runs below), F9 mark fix; the hybrid BT + imitation-learning proposal reviewed
@@ -60,12 +61,13 @@ The user supervises every run at the PC. Botting is against Nexon's ToS (ban ris
 ## START HERE NEXT SESSION: PLAN-data.md Session 1 is BUILT (branch `data`); its live gates wait for the user's walk
 **State 2026-11-17 (branch `data` off `dev`, pushed; the user merges):** the recorder, the video writer / reader,
 the corpus tool and the ported tools are built and tested; gates (a), (d), (e) PASSED; gates (b), (c), (f) need
-the user's runs (commands below). The corpus exists: `F:\dev\maple-corpus` holds the 11 old native PNG recordings as
-video copies (the PNG folders in `runs/` are untouched - every gate still reads them, see below).
+the user's runs (commands below). The corpus exists: `F:\dev\maple-corpus` holds the 11 old native PNG recordings, filed
+by map (11 stays in 7 map folders; the PNG folders in `runs/` are untouched - every gate still reads them, see
+below).
 **The tracker redesign (step 4, the section below) still waits for the corpus.** 2026-11-18: `data` was rebased
 on `dev` (loot part 1 merged) and the loot tools read frames through the corpus reader (bed4333).
 
-### 2026-11-18: what the corpus is FOR (the user) - built since, and PROPOSED (waiting for the user's word)
+### 2026-11-18: what the corpus is FOR (the user), and what was built for it
 **The user's frame:** (1) this is the final way data is collected in this project; (2) the bank built with it
 serves everything - validating perception, the live map data model and tracking on it, later custom AI training;
 (3) footage recorded this way will replace all gated checks.
@@ -98,38 +100,52 @@ entries instead of four lists of `runs/` paths; a recording's name + frame numbe
 (loot's labels hang on them); the old clips hold every 3rd frame (~20 a second) - new footage shows the tracker
 all 60, as live, so the gate list is re-chosen from it once it exists.
 
-**PROPOSED, not built (the user asked for a coherent structure: a folder per map, names that say farming /
-traveling):**
+**The bank's layout (the user 2026-11-18: "filed per map, build it") - BUILT the same day:**
 ```
 F:\dev\maple-corpus\
-  index.txt        the overview, rewritten at every filing (per map: minutes farming / traveling, what is missing)
-  incoming\        fresh recordings, as the recorder wrote them
-  sessions\2026-11-18_1432\          one per recording: session.json, log, notes, route.txt (its maps in order)
-  maps\Ant Tunnel IV (10005063)\
-      2026-11-18_1432_farming_12m_s03\       one stay on the map = one folder
-          Ant Tunnel IV_2026-11-18_1432_farming_12m_s03_000.mkv ...  frames.jsonl  keys.jsonl  stay.json
-          sheet.jpg  preview.mp4
-      2026-11-18_1502_traveling_0m21s_s07\
-  maps\_unknown\  stretches the tool could not name (shops, the minimap closed)
-  holdout\         the same tree for the maps nobody tunes on
-  labels\  gates\  work\ (re-creatable, safe to delete)
+  README.txt  index.txt     the layout in the bank itself; `list`'s report, rewritten by every `add`
+  incoming\                 fresh recordings; `add` empties it
+  maps\Ant Tunnel IV (10005063)\2026-11-16_1548_farming_1m41s_s00\        one stay on a map = one folder
+      Ant Tunnel IV_2026-11-16_1548_farming_1m41s_s00_000.mkv ...  frames.jsonl  keys.jsonl  stay.json
+      video.json  sheet.jpg  preview.mp4   (+ ticks.jsonl, log.txt: a hunt / an observe run brings its own)
+  maps\_unknown\<stay>\    stretches nobody could name (a shop has no minimap; the minimap closed)
+  holdout\<map>\<stay>\    the same for the hold-out maps: apart, nothing opens them by accident
+  sessions\<SESSION>\      session.json, log, notes, the whole keys.jsonl / frames.jsonl, route.txt, cuts\
+  manifest.jsonl  labels\SESSION#K\  work\SESSION#K\
 ```
-- Modes in a name: `farming` (fought), `traveling` (crossed), `town` (stayed on a map without mobs),
-  `scene-NAME` (staged), `bot` (a bot hunt). Names are for people; tools use the permanent id
-  (session + stay number + frame number), so a folder can be renamed without breaking a label or a gate.
-- **The one decision:** footage physically filed per map (each stay re-written losslessly into its folder,
-  compared frame by frame with the original, then the original removed; estimated, not measured: filing takes
-  about half the recorded time, unattended) - recommended - or the recordings kept whole with the map folders
-  holding previews + pointers (instant, but the footage itself stays filed by date).
-- Other ideas offered: hold-out maps in their own top folder; a small ordinary preview video + thumbnail sheet
-  per stay; `route.txt` per session; a fingerprint per frame (proves a move / re-write lost nothing: the move to
-  E:); one gate list file for the perception and loot gates; labels outside `work\`.
-- Sound is not recorded (recommended: leave it out; it cannot be added later).
+- **Ids for tools, names for people.** A stay's permanent id is `SESSION#K` (SESSION = the recording's folder
+  name as recorded, K = its number in the session): what tools, labels and gates take (`clip` also takes the
+  stay's folder). The folder's name is for people: date, the time the stay began, mode, length, K. Modes
+  (`corpus.mode_of`): `farming` (5+ attack presses), `traveling`, `town` (60 s+ on a map without mobs), `idle`
+  (3 min+ without fighting), `scene-NAME` (`record --scene`), `bot` (a bot hunt). A better rule can rename folders.
+- **`add` files physically:** every stay's frames are read from the recording in order and written again,
+  losslessly, into the stay's folder (video files named `<map>_<stay>_000.mkv`: a file says what it is wherever
+  it is copied). A stay's files begin with the frames nobody could name before it (its loading screen: `arrive`
+  in its line), so every frame of a session is in exactly one stay; tools get the frames ON the map.
+- **The proof:** each frame's fingerprint (sha256 of its pixels, 16 hex digits) is taken from the original as it
+  is read and kept in the stay's frames.jsonl (`"h"`); every stay is then decoded again and compared (a second
+  thread, while the next stay is written). Only then the manifest; only then is the original removed - and only
+  an original inside `incoming\` (`--keep`: not even that; a folder elsewhere, like `runs/`, is never touched).
+  A filing that fails leaves nothing half-filed and the recording as it was.
+- **`corpus.py verify [--frames]`**: every video file against its sha256 in the manifest; `--frames`: every frame
+  against its fingerprint - the proof after the move to E:.
+- **Labels apart from tool output:** by-eye labels in `labels\SESSION#K\` (`Clip.keep`; label.py and patches.py
+  write there), re-creatable output in `work\SESSION#K\`. A plain run folder keeps both in itself, as before.
+- Also in a stay's folder, for people only: `sheet.jpg` (nine frames across it) and `preview.mp4` (half size,
+  30 fps, lossy - the lossless files do not play in every player). `sessions\<SESSION>\route.txt` = the walk's
+  maps in order.
+- **Measured 2026-11-18:** the 11 old recordings re-filed from their video copies - 16,410 frames into 11 stays in
+  7 map folders, every frame read back identical; then every filed frame against the PNG file it once was (runs/):
+  0 of 16,410 differ; `verify --frames`: all as filed; the tracker replayed on a filed stay (Line 1 <Area 1>) = the
+  gate's last cached replay of its PNG run on 541 of 541 rows; an unpacked PNG = the original. Filing costs ~8 ms a
+  frame (write + read back: 3,858 frames in 31 s) on top of the map looks: at 60 fps roughly 40 minutes per
+  recorded hour, unattended - the first walk gives the real figure
+- **Not built (offered, the user has not answered):** one gate list file for the perception and loot gates
+  (gate.CLIPS and loot's three lists still name the PNG folders under `runs/`); sound (recommended: leave it
+  out; it cannot be added to a recording later).
 - **A limit:** footage can gate whatever reads the screen (perception, tracking, the live map, what the brain
   would press vs what the user pressed); not what depends on the bot's own actions (kills a minute, getting
   stuck): a recording does not answer back - those stay live runs.
-**The walk does not wait for this:** what the recorder writes is final either way; the folder structure is how
-`corpus.py add` files it afterwards.
 
 ### What the user runs (gates b, c, f) - an elevated PowerShell in `C:\Users\Yoav\dev\maple-work`, branch `data`
 `watch` running as always; no `serve` / `run` of an older branch left open. Game windowed 1366x768, logged in,
@@ -143,7 +159,8 @@ chat minimized, **the minimap open in its usual place**.
    `.venv\Scripts\python -m maplebrain serve F:\dev\maple-corpus\incoming --video`  (F7 ... F8, Ctrl+C)
    `.venv\Scripts\python -m maplebrain serve runs\v2`                              (F7 ... F8, Ctrl+C)
 3. Claude then: `python tools\data\corpus.py add --dry F:\dev\maple-corpus\incoming\<walk>` -> looks at every cut
-   sheet in `F:\dev\maple-corpus\work\cuts\<walk>\` by eye (gate f) -> `add` for real; reads the numbers out of the
+   sheet in `F:\dev\maple-corpus\work\cuts\<walk>\` by eye (gate f) -> `add --keep` for real (the first walks: the
+   original stays in `incoming\` until the filed stays were looked at; later plain `add`); reads the numbers out of the
    logs (frames a second in the file, dropped frames, GB a minute; the two hunts' `speed:` lines and the video
    line's "handing a frame over cost the loop ..."). **Stop rules:** drops, or a tick cost over 1 ms -> stop with
    the numbers (fallbacks to weigh then: preset p1, every 2nd frame, the CPU encoder); a cut or a map name wrong
@@ -167,17 +184,20 @@ chat minimized, **the minimap open in its usual place**.
   until Session 3 is done. (The hunt's `speed:` line now has one decimal.)
 - **`tools/perc/frames.py`**: `read(run, name)` = the PNG file if it exists, else the video frame (`Video`: reads
   on when the frame is within 100 ahead, jumps otherwise). `clip(arg)` = what the ported tools take: a run folder
-  or a corpus segment `RECORDING#K` (outputs then go to `F:\dev\maple-corpus\work\RECORDING#K\`); a hold-out segment
-  only with `--holdout`, each use logged. `Clip.sight()` = what perception saw per frame: the recording's own
-  ticks.jsonl, or (a `record` walk has none) a replay of the segment.
-- **Ported** (frames from PNG or video, RUN or `RECORDING#K`, `--holdout`): `tools/perc/replay/run.py`,
+  or a corpus stay - its id `SESSION#K` or its folder (outputs then go to `F:\dev\maple-corpus\work\SESSION#K\`,
+  by-eye labels to `labels\SESSION#K\`); a stay on a hold-out map only with `--holdout`, each use logged.
+  `Clip.sight()` = what perception saw per frame: the recording's own ticks.jsonl, or (a `record` walk has none)
+  a replay of the stay. `map_of(folder)` reads a stay's map from its stay.json.
+- **Ported** (frames from PNG or video, RUN or `SESSION#K`, `--holdout`): `tools/perc/replay/run.py`,
   `label_eval.py`, `labels/{pick,patches,label}.py`, `synth/{synth,make}.py`. Every other tool: PNG files on
   demand from `python tools\data\unpack.py RUN [numbers | names | A-B] [--every N] [--out DIR]`.
-- **`tools/data/corpus.py add RUN`**: check -> cut into maps -> the keys per segment -> manifest lines + the
-  recording moved to `F:\dev\maple-corpus\recordings\` (files read-only). `--dry` stops before writing. A cut sheet
-  per cut in `work\cuts\NAME\`. `add --dev MAP` moves a map to dev (refused once it was used as hold-out).
-  `corpus.py list [--segments]` = the report of section 4. An old PNG recording given to `add` is copied in as
-  video and every frame compared with its PNG.
+- **`tools/data/corpus.py add RUN`**: check -> cut into maps -> the keys and the mode per stay -> every stay
+  filed in its map's folder (the layout above), the footage read-only. `--dry` stops before filing (cut sheets in
+  `work\cuts\SESSION\`; filed: `sessions\SESSION\cuts\`). `add --dev MAP` moves a map to dev, its folder from
+  `holdout\` to `maps\` (refused once it was used as hold-out). `corpus.py list [--stays]` = the report of
+  section 4. `corpus.py verify [--frames]`. A recording with a log that names its map (a hunt, an observe run,
+  an old PNG recording) is one stay on that map; a PNG recording's frames are read from its PNG files and the
+  folder is left as it is.
 - `tools/data/gate_video.py`: gates (a) and (d) without the game (re-runnable).
 
 ### Decisions made while building (not in the plan's text - the user's word changes them)
@@ -221,18 +241,39 @@ chat minimized, **the minimap open in its usual place**.
   <Area 1>, told from <Area 2> on all 57 looks): the same tracks on 541 of 541 frames; pick / patches / unpack run
   on the segment (picks equal to the PNG run's; an unpacked PNG = the original).
 
-### The corpus today (`python tools\data\corpus.py list`)
-```
-F:\dev\maple-corpus: 11 recording(s), 11 segment(s), 20.7 minutes, 3.5 GB
+- **2026-11-18, the per-map filing:** the 11 old recordings re-filed from their video copies - 16,410 frames into
+  11 stays in 7 map folders, every frame read back identical; then every filed frame against the PNG file it once
+  was (runs/): 0 of 16,410 differ; `verify --frames`: all as filed; the tracker replayed on a filed stay (Line 1
+  <Area 1>) = the gate's last cached replay of its PNG run on 541 of 541 rows; an unpacked PNG = the original.
+  Filing costs ~8 ms a frame (write + read back: 3,858 frames in 31 s) on top of the map looks: at 60 fps roughly
+  40 minutes per recorded hour, unattended - the first walk gives the real figure
+- **(e) again:** pytest 357 passed, bot speed 14.4 ms a tick (p90 15.7-16.6 over the day's runs; baseline 18.4).
 
-      map  name                                         group   stays crossed minutes attacks marks
- 10005063  Dungeon / Ant Tunnel IV                      dev         5       0    14.0     357     0
- 10005065  Dungeon / Dangerous Steam                    dev         1       0     1.6      21     0
- 10005064  Dungeon / Dark Cave                          dev         1       0     1.3       9     0
- 10004041  Hidden Street / Land of Wild Boar            dev         1       0     1.2      42     0
- 10004040  Victoria Road / Perion Street Corner         dev         1       0     1.1      14     0
- 10003061  Kerning City Subway / Line 1 <Area 1>        dev         1       0     0.9      22     0
- 10003062  Kerning City Subway / Transfer Area          dev         1       0     0.7      17     0
+### The corpus today (`python tools\data\corpus.py list --stays`)
+```
+F:\dev\maple-corpus: 11 session(s), 11 stay(s), 20.7 minutes, 3.5 GB
+
+      map  name                                         group   stays farming  bot travel minutes attacks marks
+ 10005063  Dungeon / Ant Tunnel IV                      dev         5       3    2      0    14.0     357     0
+ 10005065  Dungeon / Dangerous Steam                    dev         1       1    0      0     1.6      21     0
+ 10005064  Dungeon / Dark Cave                          dev         1       1    0      0     1.3       9     0
+ 10004041  Hidden Street / Land of Wild Boar            dev         1       1    0      0     1.2      42     0
+ 10004040  Victoria Road / Perion Street Corner         dev         1       1    0      0     1.1      14     0
+ 10003061  Kerning City Subway / Line 1 <Area 1>        dev         1       1    0      0     0.9      22     0
+ 10003062  Kerning City Subway / Transfer Area          dev         1       1    0      0     0.7      17     0
+
+stays (the id tools take; its folder):
+  20261116_012059_1#0        5.70 min dev     farming     177 attacks  maps/Ant Tunnel IV (10005063)/2026-11-16_0120_farming_5m42s_s00
+  20261116_084719_1#0        1.28 min dev     farming       9 attacks  maps/Dark Cave (10005064)/2026-11-16_0847_farming_1m16s_s00
+  20261116_084844_2#0        1.56 min dev     farming      21 attacks  maps/Dangerous Steam (10005065)/2026-11-16_0848_farming_1m33s_s00
+  20261116_085108_3#0        0.93 min dev     farming      22 attacks  maps/Line 1 Area 1 (10003061)/2026-11-16_0851_farming_0m55s_s00
+  20261116_085215_4#0        0.67 min dev     farming      17 attacks  maps/Transfer Area (10003062)/2026-11-16_0852_farming_0m40s_s00
+  20261116_085414_5#0        1.06 min dev     farming      14 attacks  maps/Perion Street Corner (10004040)/2026-11-16_0854_farming_1m03s_s00
+  20261116_085620_6#0        1.24 min dev     farming      42 attacks  maps/Land of Wild Boar (10004041)/2026-11-16_0856_farming_1m14s_s00
+  20261116_154819_1#0        1.70 min dev     farming      44 attacks  maps/Ant Tunnel IV (10005063)/2026-11-16_1548_farming_1m41s_s00
+  20261117_092718_1#0        1.78 min dev     farming      16 attacks  maps/Ant Tunnel IV (10005063)/2026-11-17_0927_farming_1m46s_s00
+  20261117_094333_1#0        2.57 min dev     bot          45 attacks  maps/Ant Tunnel IV (10005063)/2026-11-17_0943_bot_2m33s_s00
+  20261117_111248_1#0        2.23 min dev     bot          75 attacks  maps/Ant Tunnel IV (10005063)/2026-11-17_1112_bot_2m13s_s00
 
 coverage (7 maps: 7 fought on, 0 only crossed; 0 hold-out):
   mob types: 11 of 51 on clean maps (the ones perception hunts on), 12 of 72 in all
@@ -245,8 +286,14 @@ coverage (7 maps: 7 fought on, 0 only crossed; 0 hold-out):
 - Gates (b), (c), (f): the user's runs above. **Nobody has seen a real map change yet** - the cut's rules were
   built on recordings of single maps; the first walk is their test (every cut sheet looked at once).
 - `KEEP_S` (2 s) and the portal rule's narrow scope are decisions 1-2 above: confirm or change after the walk.
-- `add` looks at one frame a second in one process: ~0.2 s per recorded second (a 2-hour walk: ~25 minutes).
-  Split over the chunk files in parallel if that is too slow.
+- `add` looks at one frame a second in one process (~0.2 s per recorded second) and then writes + reads back
+  every frame (the measured line above): the first walk shows the real time per recorded hour at 60 fps. Both
+  split over stays / chunk files in parallel if it is too slow.
+- A cut found wrong AFTER filing is fixed by hand for now (the frames are all there: every frame of a session
+  is in one stay, numbered by the session): no `refile` command yet. Hence `--dry` + the sheets first.
+- One gate list for the perception and loot gates (gate.CLIPS, loot's pick.RUNS / bench_drops.CLIPS /
+  run_all.RUNS -> bank ids); only then can the PNG folders under `runs/` go (15.7 GB on C:).
+- `E:\maple-corpus` still holds the first layout's copy of the 11 recordings (3.5 GB): the user's to remove.
 - Session 2 writes the coverage of its replays (deaths per mob type, platforms stood on, the camera's share) back
   to the manifest; `list` prints only what Session 1 knows (minutes, attack presses, mob types / background sets
   by map).

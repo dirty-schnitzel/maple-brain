@@ -41,7 +41,7 @@ def follow(c, sight: list, scene, tol: int, ui_t) -> dict:
     cache = c.find("labels/cams.json")
     if cache.exists():
         return json.loads(cache.read_text())
-    cache = c.out / "labels" / "cams.json"
+    cache = c.keep / "labels" / "cams.json"
     prev, last, cams = None, None, {}
     for k in sight:
         if not k.get("frame") or not k.get("cam"):
@@ -201,7 +201,7 @@ def main():
     if a.only:
         want = {int(v) for v in a.only.split(",")}
         pick = [p for p in pick if p["n"] in want]
-    out = c.out / "labels"
+    out = c.keep / "labels"
     (out / "sheets").mkdir(parents=True, exist_ok=True)
     pj = out / "patches.json"
     allp = json.loads(pj.read_text()) if pj.exists() else {}

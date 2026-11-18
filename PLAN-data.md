@@ -179,9 +179,14 @@ names poison everything after; "unknown" stretches are fine.
 map + tracking and later AI training; its footage replaces the gated checks.** Built for it: the mouse buttons per
 frame (`frames.jsonl` `"b"`), `session.json` beside every recording (the config, the code's commit, the client
 build, the wall clock), `record --scene NAME` for staged scenes, and the corpus folder as one parameter
-(`config.CORPUS`: `F:\dev\maple-corpus` for now - an SSD; E:, a USB hard disk, later). Proposed, not built: the
-bank filed as a folder per map with names that say farming / traveling, a fingerprint per frame, one gate list
-for the perception and loot gates (HANDOFF's START HERE has the tree and the one decision it needs).
+(`config.CORPUS`: `F:\dev\maple-corpus` for now - an SSD; E:, a USB hard disk, later). **And the bank is filed
+per map** (the user: "filed per map, build it"), which replaces section 5's "one manifest line per segment of a
+recording kept whole": `maps\<map name> (<id>)\<date>_<time>_<mode>_<length>_sK\` holds one stay's frames,
+written again losslessly by `add` and proven identical frame by frame (a fingerprint per frame) before the
+original leaves `incoming\`; hold-out maps under `holdout\`; `sessions\<recording>\` keeps the session's small
+files and its route; a stay's permanent id is `RECORDING#K` (tools, labels, gates), its folder name is for people
+(mode = farming / traveling / town / idle / scene-NAME / bot); `corpus.py verify` re-checks the files. Still
+open: one gate list for the perception and loot gates. Detail: tools/data/corpus.py's docstring, HANDOFF.
 
 ## 6. The validation pass (Sessions 2 and 3)
 Perception runs **unchanged** over the dev group; this pass measures and lists, it fixes nothing.

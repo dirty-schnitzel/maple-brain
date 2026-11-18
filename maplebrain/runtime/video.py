@@ -40,21 +40,33 @@ def name_of(n: int) -> str:
 
 
 def encoder_cmd(out: Path, w: int = W, h: int = H, fps: int = FPS, gop: int = GOP, chunk: int = FPS * CHUNK_S,
-                ffmpeg: str = "ffmpeg") -> list:
-    """The ffmpeg command: raw BGR frames on stdin -> lossless HEVC chunks of `chunk` frames in `out`."""
+                ffmpeg: str = "ffmpeg", pattern: str = PATTERN) -> list:
+    """The ffmpeg command: raw BGR frames on stdin -> lossless HEVC chunks of `chunk` frames in `out`, named
+    `pattern` (one %0Nd: the chunk's number)."""
     if chunk % gop:
         raise ValueError(f"a chunk ({chunk} frames) must be whole keyframe intervals ({gop})")
+    if pattern.count("%") != 1:
+        raise ValueError(f"the chunk file name needs exactly one %0Nd, got {pattern!r}")
     return [ffmpeg, "-hide_banner", "-loglevel", "error", "-y",
             "-f", "rawvideo", "-pix_fmt", "bgr24", "-s", f"{w}x{h}", "-r", str(fps), "-i", "-",
             "-c:v", "hevc_nvenc", "-tune", "lossless", "-preset", "p4", "-pix_fmt", "gbrp",
             "-g", str(gop), "-forced-idr", "1",
             "-f", "segment", "-segment_time", f"{chunk / fps:g}", "-reset_timestamps", "1",
-            str(Path(out) / PATTERN)]
+            str(Path(out) / pattern)]
+
+
+def chunk_glob(pattern: str) -> str:
+    """'frames_%04d.mkv' -> 'frames_*.mkv' (as a glob: its special characters in the name taken literally)."""
+    import glob
+    import re
+    head, tail = re.split(r"%0?\d*d", pattern, maxsplit=1)
+    return glob.escape(head) + "*" + glob.escape(tail)
 
 
 class VideoWriter:
     def __init__(self, out: Path, w: int = W, h: int = H, fps: int = FPS, gop: int = GOP,
-                 chunk: int = FPS * CHUNK_S, backlog: int = BACKLOG, ffmpeg: str = "ffmpeg", note: dict | None = None):
+                 chunk: int = FPS * CHUNK_S, backlog: int = BACKLOG, ffmpeg: str = "ffmpeg", note: dict | None = None,
+                 pattern: str = PATTERN):
         """Starts the encoder (it waits for the first frame). `chunk`: frames per chunk file (tests use small ones).
         `note`: extra facts for video.json (what recorded this, the frame rate the frames really came at)."""
         self.out = Path(out)
@@ -63,9 +75,10 @@ class VideoWriter:
         self.written, self.dropped, self.queue_max = 0, 0, 0
         self.puts, self.put_s, self.put_max = 0, 0.0, 0.0    # what `put` costs the loop that calls it
         self.error = None                        # why the encoder stopped taking frames (every later frame drops)
-        self.meta = {"v": 1, "w": w, "h": h, "fps": fps, "gop": gop, "chunk": chunk, "pattern": PATTERN,
+        self.pattern = pattern
+        self.meta = {"v": 1, "w": w, "h": h, "fps": fps, "gop": gop, "chunk": chunk, "pattern": pattern,
                      "started": datetime.now().isoformat(timespec="seconds"), **(note or {}), "closed": False}
-        self.cmd = encoder_cmd(self.out, w, h, fps, gop, chunk, ffmpeg)
+        self.cmd = encoder_cmd(self.out, w, h, fps, gop, chunk, ffmpeg, pattern)
         self.meta["cmd"] = self.cmd[1:-1]
         self._index = open(self.out / "frames.jsonl", "w", buffering=1, encoding="utf-8")
         self._err = open(self.out / "ffmpeg.log", "w", encoding="utf-8")
@@ -123,8 +136,11 @@ class VideoWriter:
         self.puts, self.put_s, self.put_max = self.puts + 1, self.put_s + took, max(self.put_max, took)
         return ok
 
+    def files(self) -> list:
+        return sorted(self.out.glob(chunk_glob(self.pattern)))
+
     def bytes(self) -> int:
-        return sum(p.stat().st_size for p in self.out.glob("frames_*.mkv"))
+        return sum(p.stat().st_size for p in self.files())
 
     def close(self, wait_s: float = 120.0) -> dict:
         """Queued frames -> the encoder, its stdin closed, wait for it to finish the last chunk. Returns the totals
@@ -160,7 +176,7 @@ class VideoWriter:
             self.error += ": " + said[-300:]
         self.meta.update(closed=True, frames=self.written, dropped=self.dropped, queue_max=self.queue_max,
                          put_ms=[round(1000 * self.put_s / max(self.puts, 1), 4), round(1000 * self.put_max, 3)],
-                         bytes=self.bytes(), chunks=len(list(self.out.glob("frames_*.mkv"))),
+                         bytes=self.bytes(), chunks=len(self.files()),
                          ended=datetime.now().isoformat(timespec="seconds"), error=self.error)
         self._write_meta()
         return self.meta

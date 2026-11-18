@@ -1,25 +1,52 @@
-"""The recording corpus (PLAN-data.md sections 4-5): recordings filed by map with nobody looking at them.
+"""The recording corpus (PLAN-data.md sections 4-5; the layout: the user, 2026-11-18): every recording filed by
+map with nobody looking at it - the one bank perception, the live map, tracking and later training are tested on.
 
-    python tools/data/corpus.py add RUN [RUN ...] [--dry] [--full]     file a recording (a `record` walk, a --video
-                                                                       hunt, or an old PNG recording: copied in as video)
-    python tools/data/corpus.py add --dev MAP [MAP ...]                move a map to the dev group (before its first gate)
-    python tools/data/corpus.py list [--segments]                      what the corpus holds, what is covered
+    python tools/data/corpus.py add RUN [RUN ...] [--dry] [--full] [--keep]     file a recording (a `record` walk, a
+                                                                                --video hunt, an old PNG recording)
+    python tools/data/corpus.py add --dev MAP [MAP ...]                         move a map to the dev group
+    python tools/data/corpus.py list [--stays]                                  what the corpus holds, what is covered
+    python tools/data/corpus.py verify [--frames] [STAY ...]                    are the files what was filed?
 
 The corpus is a folder (maplebrain/config.py CORPUS: F:\\dev\\maple-corpus for now, E: later; the environment variable
 MAPLE_CORPUS or --corpus DIR names another - nothing in it holds a drive letter, so the folder moves as it is):
-  incoming/              where `python -m maplebrain record` writes
-  recordings/NAME/       the recordings, as recorded (frames_*.mkv, frames.jsonl, keys.jsonl, ...); files read-only
-  manifest.jsonl         one line per SEGMENT = one stay on one map inside one recording (the fields: `_line`)
+  README.txt             this layout, in the bank itself
+  index.txt              `list`'s report, rewritten by every `add`
+  incoming/              where `python -m maplebrain record` writes; `add` empties it
+  maps/<map name> (<map id>)/<stay>/      THE FOOTAGE: one folder per stay = one visit to one map
+  maps/_unknown/<stay>/                   stretches nobody could name (a shop has no minimap; the minimap closed)
+  holdout/<map name> (<map id>)/<stay>/   the same for the hold-out maps (below): apart, nothing opens them by accident
+  sessions/SESSION/      one per recording; SESSION = its folder name as recorded (20261118_143205_1): session.json
+                         (the facts of the day, runtime/session.py), log.txt, notes.txt, the whole keys.jsonl and
+                         frames.jsonl, route.txt (its stays in order), cuts/ (a sheet per cut)
+  manifest.jsonl         one line per stay (`_line`): the index tools read; the same line is the stay's stay.json
   groups.json            the maps moved to dev by hand
-  holdout_uses.jsonl     every time a tool opened a hold-out segment
-  work/SEG/              what tools write for a segment (replays, labels); work/cuts/NAME/ = the cut sheets
+  holdout_uses.jsonl     every time a tool opened a hold-out stay
+  labels/SESSION#K/      a stay's by-eye labels (nobody can make them again)
+  work/SESSION#K/        what tools write for a stay (replays): safe to delete; work/cuts/SESSION = a dry run's sheets
+
+**A stay** has a permanent id, `SESSION#K` (K = its number in the session): what labels, gates and tools use. Its
+folder is named for people: <date>_<time it began>_<mode>_<length>_s<K>, e.g. 2026-11-18_1432_farming_12m05s_s03.
+The mode (`mode_of`): `farming` (FARM_ATTACKS or more attack presses), `traveling` (crossed), `town` (TOWN_S or
+longer on a map without mobs), `idle` (IDLE_S or longer without fighting), `scene-NAME` (`record --scene NAME`),
+`bot` (a bot hunt). Nothing but people reads a name, so a better rule can rename folders without breaking a label.
+In the folder:
+  <map name>_<stay>_000.mkv ...  its frames, lossless, 5-minute files (runtime/video.py)
+  frames.jsonl   one line per frame: n = its number in the session, t = the session's clock, cur / b = the mouse,
+                 h = its fingerprint (the first 16 hex digits of the sha256 of its pixels, as stored); "drop" =
+                 listed by the recorder but never in the video
+  keys.jsonl     the session's key lines inside the stay's time
+  stay.json      its manifest line          video.json   the stream (the reader's)
+  sheet.jpg, preview.mp4   nine frames across it; a small ordinary video for watching (the lossless files do not
+                 play in every player). For people: no tool reads them.
+  ticks.jsonl, log.txt     a hunt / an observe run (one map by construction) brings its own files along
+A stay's files begin with the frames nobody could name before it - its loading screen (`arrive` of them): every
+frame of a session is in exactly one stay. Tools get the frames ON the map (`frames`).
 
 `add RUN` does, in order:
  1. **checks** the recording: every chunk file reads (its first and last frame; --full: every frame), the video
     holds the frames frames.jsonl lists, the picture is the native 1366x768. A recording that was cut (the recorder
     killed) is repaired without re-encoding: the last chunk rewritten as a finished file (a stream copy), the frame
-    count taken from the files. An old PNG recording is first copied into the corpus as video and every frame
-    compared with its PNG (the PNG folder is left as it is).
+    count taken from the files.
  2. **cuts it into maps** with the bot's own map recogniser (nav/identify.py: the on-screen minimap against every
     map's): one look a second. A look names a new map only if the next two frames and the look a second later
     name it too. A frame where the recogniser finds no minimap window is looked at once more with the window
@@ -28,32 +55,41 @@ MAPLE_CORPUS or --corpus DIR names another - nothing in it holds a drive letter,
     new one starts at its first, the frames between them (the loading screen) belong to neither. Looks that can't
     tell (minimap closed, covered, moved) keep the map - unless the unnamed stretch lasts longer than KEEP_S: 35 of
     the client's 336 maps (shops, salons, job halls) have no minimap, so "town -> shop -> town" looks like a town
-    with a hole; a longer hole is its own segment. Such a stretch is named by the portals when exactly one map
+    with a hole; a longer hole is its own stay. Such a stretch is named by the portals when exactly one map
     without a minimap connects the maps before and after it and they do not connect directly; else it stays
-    "unknown": kept, listed, out of the per-map numbers. Never a guessed name.
- 3. per segment, from keys.jsonl: the attack presses and the time of the first (none = the map was only
-    crossed), the presses of the marker key (Keys.note).
- 4. writes the manifest lines and moves the recording to recordings/. Nothing is re-encoded.
-A sheet per cut (the frames before, between and after it, the minimap corner 1:1) goes to work/cuts/NAME/:
-looked at by eye once (gate f), never needed afterwards. `--dry` stops before step 4.
+    "unknown": kept, listed, out of the per-map numbers. Never a guessed name. A recording with a log that names
+    its map (a hunt, an observe run: perception is tied to one map) is one stay on that map; the minimap is still
+    looked at and must not name another.
+ 3. per stay, from keys.jsonl: the attack presses and the time of the first, the presses of the marker key
+    (Keys.note) - and from them the mode.
+ 4. **files every stay**: its frames read from the recording in order, written losslessly into the stay's folder,
+    read back and compared frame by frame (the fingerprints). Then the session's small files, the manifest lines,
+    index.txt. Only when every frame of the recording is proven to be in a stay is the original removed - and
+    only an original inside incoming/ (--keep: not even that; a folder elsewhere, like a PNG recording under
+    runs/, is never touched).
+A sheet per cut (the frames before, between and after it, the minimap corner 1:1) goes to sessions/SESSION/cuts/
+(--dry: work/cuts/SESSION/): looked at by eye once (gate f). `--dry` stops before step 4.
 
 **Groups.** A map new to the corpus is `holdout` when crc32(its id as text) % 4 == 0 (about every 4th map), with
 every later recording of it; the 7 maps used before the corpus (DEV_FIRST) and the maps of `add --dev` are `dev`.
-Nobody tunes on hold-out maps: tools take segments through tools/perc/frames.py `clip`, which refuses a hold-out
-segment without --holdout and logs each use here (`allow`).
+Nobody tunes on hold-out maps: tools take stays through tools/perc/frames.py `clip`, which refuses a hold-out
+stay without --holdout and logs each use here (`allow`).
 """
 import argparse
 import bisect
+import hashlib
 import json
 import math
 import os
+import re
 import shutil
 import stat
 import subprocess
 import sys
 import zlib
 from collections import Counter, defaultdict
-from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import cv2
@@ -71,8 +107,15 @@ KEEP_S = 2.0            # an unnamed stretch up to this long is a loading screen
 CONFIRM = 2             # a look naming a new map counts when this many following frames name it too - and the
                         # look a second later: no map is visited for under a second, a half-drawn minimap is
 NO_MAP = 999999999      # a portal's toMap when it leads nowhere
-KEEP_FILES = ("ticks.jsonl", "log.txt", "keys.jsonl", "xshift.txt", "notes.txt", "labels.json", "labels/cams.json",
-              "labels/patches.json")           # what an old PNG recording brings along into the corpus
+FARM_ATTACKS = 5        # this many attack presses during a stay = the map was farmed (fewer: a mob in the way)
+TOWN_S = 60.0           # this long on a map without mobs = a stop in town, not a crossing
+IDLE_S = 180.0          # this long on a map with mobs without fighting = standing around, not a crossing
+WITH_FRAMES = ("xshift.txt",)                                # goes wherever a recording's frames go
+ONE_MAP_FILES = ("ticks.jsonl", "log.txt", "notes.txt")      # a one-stay recording's own files: into its stay
+LABEL_FILES = ("labels.json", "labels/cams.json", "labels/patches.json")     # its by-eye labels: into labels/
+SESSION_FILES = ("session.json", "log.txt", "notes.txt", "keys.jsonl", "frames.jsonl", "video.json")
+LOCKED = ("frames.jsonl", "keys.jsonl", "ticks.jsonl")       # read-only in a stay's folder, with its video files
+V = 2                   # the manifest line's version (1 = the first layout: whole recordings under recordings/)
 
 
 class Problem(Exception):
@@ -90,18 +133,24 @@ def load() -> list:
     p = root() / "manifest.jsonl"
     if not p.exists():
         return []
-    return [json.loads(l) for l in p.read_text(encoding="utf-8").splitlines() if l.strip()]
+    lines = [json.loads(l) for l in p.read_text(encoding="utf-8").splitlines() if l.strip()]
+    if any(l.get("v") != V for l in lines):
+        raise Problem(f"{root()} is laid out the old way (whole recordings under recordings/): file its recordings "
+                      "again into an empty corpus folder")
+    return lines
 
 
 def _save(lines: list) -> None:
     p = root() / "manifest.jsonl"
+    p.parent.mkdir(parents=True, exist_ok=True)
     tmp = p.with_suffix(".jsonl.new")
     tmp.write_text("".join(json.dumps(l) + "\n" for l in lines), encoding="utf-8")
     os.replace(tmp, p)
 
 
-def recording_dir(name: str) -> Path:
-    return root() / "recordings" / name
+def stay_dir(seg: dict) -> Path:
+    """The folder of a stay (its manifest line): the frames, never written to."""
+    return root() / seg["path"]
 
 
 def work_dir(seg: str) -> Path:
@@ -110,19 +159,13 @@ def work_dir(seg: str) -> Path:
     return d
 
 
+def labels_dir(seg: str) -> Path:
+    """Where the by-eye labels of stay `seg` are kept (made by the tool that writes the first)."""
+    return root() / "labels" / seg
+
+
 def segment(seg: str) -> dict | None:
     return next((l for l in load() if l["seg"] == seg), None)
-
-
-def segments_of(path: Path) -> list:
-    """The manifest lines of the recording whose folder is `path` ([] when it is not a corpus recording)."""
-    try:
-        p = Path(path).resolve()
-        if p.parent != (root() / "recordings").resolve():
-            return []
-    except OSError:
-        return []
-    return [l for l in load() if l["recording"] == p.name]
 
 
 def dev_maps() -> set:
@@ -141,20 +184,29 @@ def group_of(map_id: int | None, dev: set | None = None) -> str | None:
 
 
 def allow(seg: dict, holdout: bool, tool: str) -> None:
-    """A tool opens `seg`: refused (SystemExit) when it is a hold-out segment and --holdout was not given; a use
-    with it is written to holdout_uses.jsonl."""
+    """A tool opens the stay `seg`: refused (SystemExit) when it is on a hold-out map and --holdout was not given;
+    a use with it is written to holdout_uses.jsonl."""
     if seg.get("group") != "holdout":
         return
     if not holdout:
-        raise SystemExit(f"{seg['seg']} (map {seg['map']} {seg.get('name')}) is a HOLD-OUT segment: nobody tunes on "
+        raise SystemExit(f"{seg['seg']} (map {seg['map']} {seg.get('name')}) is a HOLD-OUT stay: nobody tunes on "
                          "it, it runs only at gates - pass --holdout to use it (the use is logged)")
     with open(root() / "holdout_uses.jsonl", "a", encoding="utf-8") as f:
         f.write(json.dumps({"when": datetime.now().isoformat(timespec="seconds"), "tool": tool, "seg": seg["seg"],
                             "map": seg["map"], "argv": sys.argv[1:]}) + "\n")
 
 
+def _write_stay(line: dict) -> None:
+    """The stay's own copy of its manifest line."""
+    p = stay_dir(line) / "stay.json"
+    if p.exists():
+        os.chmod(p, stat.S_IWRITE)
+    p.write_text(json.dumps(line, indent=1), encoding="utf-8")
+
+
 def to_dev(maps: list, say=print) -> None:
-    """`add --dev MAP`: the map's segments (and every later one) are dev. Refused once a tool used it as hold-out."""
+    """`add --dev MAP`: the map's stays (and every later one) are dev, its folder moves from holdout/ to maps/.
+    Refused once a tool used it as hold-out."""
     p = root() / "groups.json"
     used = set()
     if (root() / "holdout_uses.jsonl").exists():
@@ -171,8 +223,15 @@ def to_dev(maps: list, say=print) -> None:
         n = 0
         for l in lines:
             if l["map"] == m:
-                l["group"], n = "dev", n + 1
-        say(f"map {m} {map_name(m)} -> dev ({n} segment(s) in the corpus, and every later recording of it)")
+                old = stay_dir(l)
+                l["group"], l["path"], n = "dev", "maps/" + l["path"].split("/", 1)[1], n + 1
+                if old.exists():
+                    stay_dir(l).parent.mkdir(parents=True, exist_ok=True)
+                    shutil.move(str(old), str(stay_dir(l)))
+                    _write_stay(l)
+                    if not any(old.parent.iterdir()):
+                        old.parent.rmdir()
+        say(f"map {m} {map_name(m)} -> dev ({n} stay(s) in the corpus, and every later recording of it)")
     root().mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(cur), encoding="utf-8")
     _save(lines)
@@ -329,44 +388,6 @@ def check(run: Path, full: bool = False, say=print) -> dict:
     say(f"  check: {len(files)} chunk file(s), {total} frames, {listed - total} listed but not in the video, "
         f"{len(rows) - listed} dropped while recording; 1366x768" + ("; every frame decoded" if full else ""))
     return meta
-
-
-def import_png(run: Path, dest: Path, say=print) -> None:
-    """An old PNG recording -> `dest` as video: its saved frames in order (bit-exact: every frame read back and
-    compared with its PNG) + its small files. The PNG folder is not touched."""
-    from maplebrain.runtime.video import VideoWriter
-    rows = fr.saved(run)
-    if not rows:
-        raise Problem(f"no saved frames in {run}")
-    if any(not n.endswith(".png") for _, n, _ in rows):
-        raise Problem("JPEG frames are lossy: only PNG recordings enter the corpus")
-    dest.mkdir(parents=True)
-    dt = sorted(b[2] - a[2] for a, b in zip(rows, rows[1:]))
-    vw = VideoWriter(dest, note={"by": "import", "source": str(run).replace("\\", "/"),
-                                 "real_fps": round(1 / dt[len(dt) // 2], 1) if dt else None})
-    for n, name, t in rows:
-        f = cv2.imread(str(run / "frames" / name))
-        if f is None or f.shape != (768, 1366, 3):
-            vw.close()
-            raise Problem(f"{name}: not a 1366x768 picture")
-        vw.put(f, n, t, wait=True)
-    meta = vw.close()
-    if meta["error"] or meta["frames"] != len(rows):
-        raise Problem(f"the encoder: {meta['error']} ({meta['frames']} of {len(rows)} frames)")
-    for rel in KEEP_FILES:                                   # the recording's own files and its by-eye labels
-        if (run / rel).is_file():
-            (dest / rel).parent.mkdir(exist_ok=True)
-            shutil.copy2(run / rel, dest / rel)
-    v = fr.Video(dest)
-    bad = 0
-    for i, (n, name, t) in enumerate(rows):
-        a, b = v.frame(i), cv2.imread(str(run / "frames" / name))
-        bad += a is None or not np.array_equal(a, b)
-    v.close()
-    if bad:
-        raise Problem(f"{bad} of {len(rows)} video frames differ from their PNG")
-    say(f"  copied as video: {len(rows)} frames, every one identical to its PNG; {meta['bytes'] / 1e9:.2f} GB "
-        f"(the PNG files: {sum((run / 'frames' / n).stat().st_size for _, n, _ in rows) / 1e9:.2f} GB)")
 
 
 # ------------------------------------------------------------------------------------------ step 2: the cut
@@ -544,7 +565,7 @@ def sheet(run: Path, rows: list, c: dict, name: Namer, path: Path) -> None:
     cv2.imwrite(str(path), np.hstack([grid, corner]))
 
 
-# ---------------------------------------------------------------------------- step 3: the keys of each segment
+# ------------------------------------------------------------------------------- step 3: the keys of each stay
 def presses(run: Path) -> tuple:
     """([attack press times], [marker key press times]) of the recording, on the frames' clock: the player's keys
     (keys.jsonl), or - a bot hunt has none - the bot's own presses from ticks.jsonl: a new swing in timings.v2
@@ -573,145 +594,471 @@ def presses(run: Path) -> tuple:
     return attack, marks
 
 
-def _line(rec: str, k: int, s: dict, rows: list, attack: list, marks: list, meta: dict, dev: set) -> dict:
-    """One manifest line: segment `k` of recording `rec`."""
+# --------------------------------------------------------------------------- step 4: the stays and their names
+def safe(text, limit: int = 60) -> str:
+    """A map's name as a folder / file name: without what Windows (or a file pattern) refuses - Line 1 <Area 1>
+    -> Line 1 Area 1."""
+    s = re.sub(r'[<>:"/\\|?*%\x00-\x1f]', "", str(text))
+    s = re.sub(r"\s+", " ", s).strip(" .")
+    return s[:limit].rstrip(" .") or "map"
+
+
+def map_folder(map_id: int | None) -> str:
+    return "_unknown" if map_id is None else f"{safe(map_json(map_id).get('name') or 'map')} ({map_id})"
+
+
+def mode_of(scene, bot: bool, attacks: int, seconds: float, mobs: bool | None) -> str:
+    """What a stay was (module docstring). `mobs`: does the map have mobs (None: an unknown map)."""
+    if scene:
+        return "scene-" + (re.sub(r"[^a-z0-9]+", "-", str(scene).lower()).strip("-") or "x")
+    if bot:
+        return "bot"
+    if attacks >= FARM_ATTACKS:
+        return "farming"
+    if mobs is False and seconds >= TOWN_S:
+        return "town"
+    return "idle" if seconds >= IDLE_S else "traveling"
+
+
+def length(seconds: float) -> str:
+    return f"{int(seconds) // 60}m{int(seconds) % 60:02d}s"
+
+
+def stay_name(began: datetime, mode: str, seconds: float, k: int) -> str:
+    return f"{began:%Y-%m-%d_%H%M}_{mode}_{length(seconds)}_s{k:02d}"
+
+
+def began_at(run: Path, facts: dict, meta: dict) -> datetime:
+    """The wall clock at t = 0 of a recording: session.json's (the recorder wrote it), else the time in the
+    folder's name (<YYYYmmdd_HHMMSS>_k: every run folder is named so), else the video's / the folder's own."""
+    if facts.get("epoch"):
+        return datetime.fromtimestamp(facts["epoch"])
+    try:
+        return datetime.strptime(run.name[:15], "%Y%m%d_%H%M%S")
+    except ValueError:
+        pass
+    if meta.get("started") and meta.get("by") not in ("import", "png"):
+        return datetime.fromisoformat(meta["started"])
+    return datetime.fromtimestamp(run.stat().st_mtime)
+
+
+def bounds(segs: list, n: int) -> list:
+    """Per stay the rows its FILES hold, (first, last): from the row after the stay before it - the frames nobody
+    could name in between, its loading screen - to its own last row; the last stay also takes what follows it.
+    Every row of the recording is in exactly one stay."""
+    out, nxt = [], 0
+    for k, s in enumerate(segs):
+        if s["i"][0] < nxt or s["i"][1] < s["i"][0]:
+            raise Problem(f"the cut is out of order at stay {k}: rows {s['i']} after row {nxt - 1}")
+        last = n - 1 if k == len(segs) - 1 else s["i"][1]
+        out.append((nxt, last))
+        nxt = last + 1
+    return out
+
+
+def _keys(run: Path) -> list:
+    """[(the key event, its line as recorded)] of keys.jsonl, in order."""
+    p = run / "keys.jsonl"
+    if not p.exists():
+        return []
+    return [(json.loads(raw), raw) for raw in p.read_text(encoding="utf-8").splitlines() if raw.strip()]
+
+
+def _held(keys: list, t: float) -> list:
+    """The keys held down at time `t` (pressed before it and not yet released): a stay can begin mid-press."""
+    down = set()
+    for k, _ in keys:
+        if k.get("t", 0.0) >= t:
+            break
+        (down.add if k.get("down") else down.discard)(k.get("key"))
+    return sorted(x for x in down if x)
+
+
+def _line(ses: str, k: int, s: dict, bound: tuple, rows: list, attack: list, marks: list, keys: list,
+          start: datetime, facts: dict, by: str | None, dev: set) -> dict:
+    """One manifest line: stay `k` of session `ses` (the fields filing adds: n_file is checked, files, bytes)."""
     a, b = s["i"]
+    fa, fb = bound
     t0, t1 = rows[a][2], rows[b][2]
     hits = [x for x in attack if t0 <= x <= t1]
     m = s["map"]
     mj = map_json(m) if m is not None else {}
-    return {"seg": f"{rec}#{k}", "recording": rec, "k": k,
-            "frames": [rows[a][0], rows[b][0]],              # frame numbers (frames.jsonl "n"), inclusive
-            "n_frames": b - a + 1, "t": [round(t0, 2), round(t1, 2)], "minutes": round((t1 - t0) / 60, 2),
-            "map": m, "name": mj.get("name"), "street": mj.get("streetName"), "how": s["how"],
-            "group": group_of(m, dev),
+    group = group_of(m, dev)
+    mode = mode_of(facts.get("scene"), by == "bot", len(hits), t1 - t0, bool(mj.get("mobs")) if mj else None)
+    began = start + timedelta(seconds=t0)
+    stay = stay_name(began, mode, t1 - t0, k)
+    return {"v": V, "seg": f"{ses}#{k}", "session": ses, "k": k, "stay": stay,
+            "path": f"{'holdout' if group == 'holdout' else 'maps'}/{map_folder(m)}/{stay}",
+            "map": m, "name": mj.get("name"), "street": mj.get("streetName"), "how": s["how"], "group": group,
+            "mode": mode, "scene": facts.get("scene"), "by": by,
+            "frames": [rows[a][0], rows[b][0]],              # the frames ON the map (frames.jsonl "n"), inclusive
+            "n_frames": b - a + 1,
+            "file_frames": [rows[fa][0], rows[fb][0]],       # the frames in its files: + the loading screen before
+            "n_file": fb - fa + 1, "arrive": a - fa,
+            "t": [round(t0, 2), round(t1, 2)], "minutes": round((t1 - t0) / 60, 2),
+            "began": began.isoformat(timespec="seconds"), "date": f"{began:%Y-%m-%d}",
             "attacks": len(hits), "first_attack": round(hits[0], 2) if hits else None,
-            "kind": "visited" if hits else "crossed",
-            "marks": [round(x, 2) for x in marks if t0 <= x <= t1],
-            "date": (meta.get("started") or "")[:10], "by": meta.get("by"), "client": client_build(),
+            "marks": [round(x, 2) for x in marks if t0 <= x <= t1], "held": _held(keys, rows[fa][2]),
+            "client": facts.get("client") or client_build(), "code": (facts.get("code") or {}).get("commit"),
             "added": datetime.now().isoformat(timespec="seconds")}
 
 
-# ------------------------------------------------------------------------------------------------------ add
-def _readonly(d: Path) -> None:
-    for f in d.iterdir():
-        if f.is_file() and (f.suffix == ".mkv" or f.name in ("frames.jsonl", "keys.jsonl", "ticks.jsonl")):
-            os.chmod(f, stat.S_IREAD)
+# ------------------------------------------------------------------------------------------ step 4: the filing
+def fingerprint(frame: np.ndarray) -> str:
+    """A frame's fingerprint: the first 16 hex digits of the sha256 of its pixels (BGR, row by row, as stored)."""
+    return hashlib.sha256(memoryview(np.ascontiguousarray(frame)).cast("B")).hexdigest()[:16]
 
 
-def add(run: Path, dry: bool = False, full: bool = False, say=print) -> list:
+def _sha(path: Path) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        while part := f.read(1 << 22):
+            h.update(part)
+    return h.hexdigest()
+
+
+def _remove(path: Path) -> None:
+    """A folder gone, read-only files included."""
+    def retry(fn, p, _):
+        os.chmod(p, stat.S_IWRITE)
+        fn(p)
+    shutil.rmtree(path, onerror=retry)
+
+
+def _sheet(tiles: list, line: dict, path: Path) -> None:
+    """sheet.jpg: nine frames across the stay, each with its time into the stay and its frame number."""
+    cells = []
+    for n, t, small in tiles:
+        s = t - line["t"][0]
+        cv2.rectangle(small, (0, 0), (454, 16), (0, 0, 0), -1)
+        cv2.putText(small, f"{int(s) // 60}:{int(s) % 60:02d}  frame {n}", (4, 12), cv2.FONT_HERSHEY_SIMPLEX, 0.4,
+                    (255, 255, 255), 1)
+        cells.append(small)
+    cells += [np.zeros((256, 455, 3), np.uint8)] * (9 - len(cells))
+    grid = np.vstack([np.hstack(cells[r:r + 3]) for r in (0, 3, 6)])
+    top = np.zeros((24, grid.shape[1], 3), np.uint8)
+    cv2.putText(top, f"{map_name(line['map'])} ({line['map']})   {line['stay']}   {line['seg']}"[:150], (6, 17),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
+    ok, buf = cv2.imencode(".jpg", np.vstack([top, grid]), [cv2.IMWRITE_JPEG_QUALITY, 85])
+    if ok:
+        buf.tofile(str(path))
+
+
+def file_stay(src: Path, rows: list, line: dict, bound: tuple, index: list, keys: list, one_map: bool,
+              say=print) -> dict:
+    """One stay into its folder (module docstring): the rows `bound` of the recording `src` read in order and
+    written as lossless video, each frame's fingerprint taken from the pixels as read; then its small files.
+    `index`: the recorder's own lines per frame (frames.jsonl; [] when the recording has none), `keys`: `_keys`.
+    Fills in `line` (files, bytes) and returns it. The proof is `read_back`, which the caller runs before it
+    trusts the stay. Raises Problem; the caller removes what was made."""
+    from maplebrain.runtime.video import VideoWriter
+    dest = stay_dir(line)
+    if dest.exists():
+        raise Problem(f"{dest} exists already")
+    dest.mkdir(parents=True)
+    fa, fb = bound
+    stem = f"{safe(line['name']) if line['map'] is not None else 'unknown'}_{line['stay']}"
+    on, n_on = fa + line["arrive"], line["n_frames"]
+    picks = {on + round(j * (n_on - 1) / 8) for j in range(9)}
+    extra = {r["n"]: r for r in index}
+    vw = VideoWriter(dest, pattern=stem + "_%03d.mkv", note={"by": "corpus", "seg": line["seg"]})
+    prints, tiles = [], []
+    try:
+        for i in range(fa, fb + 1):
+            n, name, t = rows[i]
+            f = fr.read(src, name, shift=0)                  # as stored: the column fix (xshift.txt) goes along
+            if f is None or f.shape != (768, 1366, 3):
+                raise Problem(f"frame {name} of {src.name} does not read as a 1366x768 picture")
+            f = np.ascontiguousarray(f)
+            prints.append(fingerprint(f))
+            if i in picks:
+                tiles.append((n, t, cv2.resize(f, (455, 256), interpolation=cv2.INTER_AREA)))
+            r = extra.get(n) or {}
+            if not vw.put(f, n, t, r.get("cur"), wait=True, buttons=r.get("b", 0)):
+                raise Problem(f"the encoder stopped at frame {name}: {vw.error}")
+    finally:
+        meta = vw.close()
+    if meta["error"] or meta["frames"] != len(prints):
+        raise Problem(f"the encoder: {meta['error']} ({meta['frames']} of {len(prints)} frames written)")
+    # frames.jsonl: the recorder's line of every frame in the stay's range + its fingerprint; a frame the recorder
+    # listed but the video never held (dropped; the tail of a recording that was cut) is marked "drop"
+    lo, hi = rows[fa][0], rows[fb][0]
+    have = {rows[i][0]: (rows[i][2], prints[i - fa]) for i in range(fa, fb + 1)}
+    listed = [r for r in index if lo <= r["n"] <= hi] or [{"n": n, "t": round(t, 4)} for n, (t, _) in have.items()]
+    with open(dest / "frames.jsonl", "w", encoding="utf-8") as f:
+        for r in listed:
+            r = {k: x for k, x in r.items() if k != "drop"}
+            r.update({"h": have[r["n"]][1]} if r["n"] in have else {"drop": True})
+            f.write(json.dumps(r) + "\n")
+    t_lo, t_hi = rows[fa][2], rows[fb][2]
+    if keys:
+        (dest / "keys.jsonl").write_text("".join(raw + "\n" for k, raw in keys if t_lo <= k.get("t", -1) <= t_hi),
+                                         encoding="utf-8")
+    for rel in WITH_FRAMES + (ONE_MAP_FILES if one_map else ()):
+        if (src / rel).is_file():
+            shutil.copy2(src / rel, dest / rel)
+    if one_map:
+        for rel in LABEL_FILES:                              # by-eye labels: kept beside the corpus' other labels
+            if (src / rel).is_file():
+                to = labels_dir(line["seg"]) / rel
+                to.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src / rel, to)
+    _sheet(tiles, line, dest / "sheet.jpg")
+    log = dest / "ffmpeg.log"
+    if log.exists() and not log.read_text(encoding="utf-8", errors="replace").strip():
+        log.unlink()
+    files = sorted(dest.glob("*.mkv"))
+    line["files"] = [{"name": p.name, "bytes": p.stat().st_size, "sha256": _sha(p)} for p in files]
+    line["bytes"] = sum(f["bytes"] for f in line["files"])
+    _write_stay(line)
+    for p in dest.iterdir():
+        if p.suffix == ".mkv" or p.name in LOCKED:
+            os.chmod(p, stat.S_IREAD)
+    return line
+
+
+def read_back(dest: Path) -> str | None:
+    """The proof a stay was filed right: every frame of its files decoded again and compared with the fingerprint
+    frames.jsonl holds for it (taken from the original's pixels as they were read). -> why not, or None."""
+    want = [r["h"] for r in map(json.loads, open(dest / "frames.jsonl", encoding="utf-8")) if not r.get("drop")]
+    v = fr.Video(dest)
+    try:
+        bad = sum(1 for i, h in enumerate(want) if (g := v.frame(i)) is None or fingerprint(g) != h)
+        count = len(v)
+    finally:
+        v.close()
+    return f"{bad} of {len(want)} frames read back differently ({count} in the files)" if bad or count != len(want) \
+        else None
+
+
+def preview(dest: Path, line: dict, speed: float = 1.0):
+    """preview.mp4: the stay at half size, 30 frames a second, lossy - for watching (many players can't show the
+    lossless files). Made by a second ffmpeg while the filing goes on -> the process (None: it did not start).
+    `speed`: how many video frames one real 60th of a second is (an old recording kept every 3rd tick's frame)."""
+    names = [f["name"] for f in line["files"]]
+    (dest / "preview.txt").write_text("".join("file '" + n.replace("'", "'\\''") + "'\n" for n in names),
+                                      encoding="utf-8")
+    slow = f"setpts={1 / speed:.3f}*PTS," if speed < 0.8 else ""
+    try:
+        return subprocess.Popen(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-f", "concat", "-safe", "0",
+                                 "-i", "preview.txt", "-vf", f"{slow}fps=30,scale=684:384:flags=area",    # (even sizes)
+                                 "-c:v", "libx264", "-preset", "veryfast", "-crf", "26", "-pix_fmt", "yuv420p",
+                                 "-an", "preview.mp4"], cwd=dest, stdout=subprocess.DEVNULL,
+                                stderr=subprocess.DEVNULL)
+    except OSError:
+        return None
+
+
+def _previewed(dest: Path, proc) -> bool:
+    """Wait for a stay's preview; a failed one is removed (it is a convenience, never a reason not to file)."""
+    code = proc.wait() if proc is not None else 1
+    (dest / "preview.txt").unlink(missing_ok=True)
+    if code != 0:
+        (dest / "preview.mp4").unlink(missing_ok=True)
+    return code == 0
+
+
+def route(ses: str, start: datetime, lines: list) -> str:
+    """route.txt: the session's stays in order - where the walk went."""
+    out = [f"{ses}: began {start:%Y-%m-%d %H:%M:%S}, {len(lines)} stay(s), "
+           f"{sum(l['minutes'] for l in lines):.1f} minutes on maps", ""]
+    for l in lines:
+        out.append(f"{l['seg']:>24s}  {l['began'][11:]}  {length(l['t'][1] - l['t'][0]):>7s}  {l['mode']:12s} "
+                   f"{map_name(l['map'])}" + (f" ({l['map']})" if l["map"] is not None else "")
+                   + f"   -> {l['path']}")
+    return "\n".join(out) + "\n"
+
+
+def file_session(run: Path, ses: str, facts: dict, lines: list, start: datetime, cuts_out: Path) -> Path:
+    """sessions/SESSION: the recording's small files, session.json, route.txt, the cut sheets."""
+    d = root() / "sessions" / ses
+    d.mkdir(parents=True)
+    for p in [run / rel for rel in SESSION_FILES] + sorted(run.glob("lie_*.png")):
+        if p.is_file():
+            shutil.copy2(p, d / p.name)
+            os.chmod(d / p.name, stat.S_IWRITE)
+    if not (d / "session.json").exists():                    # recorded before the recorder wrote one
+        (d / "session.json").write_text(json.dumps(
+            {"v": 1, "by": lines[0]["by"], "scene": None, "started": start.isoformat(timespec="seconds"),
+             "source": str(run).replace("\\", "/"),
+             "note": "written when the recording was filed: it was made before the recorder wrote session.json"},
+            indent=1), encoding="utf-8")
+    (d / "route.txt").write_text(route(ses, start, lines), encoding="utf-8")
+    if cuts_out.exists():
+        shutil.move(str(cuts_out), str(d / "cuts"))
+    return d
+
+
+def add(run: Path, dry: bool = False, full: bool = False, keep: bool = False, say=print) -> list:
     """File one recording (module docstring). Returns its manifest lines (written unless `dry`)."""
+    import time
     from maplebrain.nav.identify import MapIdentifier
     run = Path(run).resolve()
-    name = run.name
-    if any(l["recording"] == name for l in load()):
-        raise Problem(f"{name} is in the corpus already")
-    say(f"{name}:")
+    ses = run.name
+    if any(l["session"] == ses for l in load()):
+        raise Problem(f"{ses} is in the corpus already")
+    if not dry and (root() / "sessions" / ses).exists():
+        raise Problem(f"{root() / 'sessions' / ses} exists, but the manifest has no stay of it: remove it first")
+    say(f"{ses}:")
     png = not (run / "video.json").exists()
-    dest = recording_dir(name)
-    if png and not dry:                                      # an old PNG recording: a copy as video, then as any
-        if dest.exists():
-            raise Problem(f"{dest} exists but is not in the manifest: remove it first")
-        try:
-            import_png(run, dest, say)
-        except Problem:
-            shutil.rmtree(dest, ignore_errors=True)
-            raise
-        src = dest
-    else:
-        src = run
-    meta = {"by": "png", "started": datetime.fromtimestamp((run / "log.txt").stat().st_mtime).isoformat()} \
-        if png and dry else check(src, full, say)
-    if png:
-        meta["started"] = datetime.strptime(name[:15], "%Y%m%d_%H%M%S").isoformat() if name[:8].isdigit() \
-            else meta.get("started")
-    rows = fr.saved(src)
+    meta = {"by": "png"} if png else check(run, full, say)
+    rows = fr.saved(run)
+    if not rows:
+        raise Problem(f"no saved frames in {run}")
+    if any(not name.endswith(".png") for _, name, _ in rows):
+        raise Problem("JPEG frames are lossy: only PNG recordings and videos enter the corpus")
+    facts = json.loads((run / "session.json").read_text(encoding="utf-8")) if (run / "session.json").exists() else {}
+    start = began_at(run, facts, meta)
     ident = MapIdentifier.load(MCW)
-    segs, cuts, namer = cut(src, rows, ident, say)
-    logged = fr._log_map(src)
+    segs, cuts, namer = cut(run, rows, ident, say)
+    logged = fr._log_map(run)
     if logged is not None:                                   # a hunt / an observe run: one map, and its log names it
         other = sorted({s["map"] for s in segs if s["map"] not in (None, logged)})
         if other:
             raise Problem(f"the log says map {logged} {map_name(logged)}, the minimap names {other}: look at "
-                          f"{root() / 'work' / 'cuts' / name}")
+                          f"{root() / 'work' / 'cuts' / ses}")
         segs = [{"i": [0, len(rows) - 1], "map": logged, "how": "log"}]
-    attack, marks = presses(src)
+    attack, marks = presses(run)
+    keys = _keys(run)
+    ticks = (run / "ticks.jsonl").exists()
+    by = ("record" if (facts.get("by") or meta.get("by")) == "record" else
+          "bot" if ticks and not (run / "keys.jsonl").exists() else "observe" if ticks else meta.get("by"))
     dev = dev_maps()
-    lines = [_line(name, k, s, rows, attack, marks, meta, dev) for k, s in enumerate(segs)]
-    out = root() / "work" / "cuts" / name
+    bnds = bounds(segs, len(rows))
+    lines = [_line(ses, k, s, b, rows, attack, marks, keys, start, facts, by, dev)
+             for k, (s, b) in enumerate(zip(segs, bnds))]
+    out = root() / "work" / "cuts" / ses
+    if out.exists():
+        _remove(out)                                         # (an earlier dry run's)
     for k, c in enumerate(cuts):
-        sheet(src, rows, c, namer, out / f"cut_{k:03d}_{rows[max(c['a'] - 1, 0)][0]:06d}.png")
-    if cuts or not dry:
-        out.mkdir(parents=True, exist_ok=True)
-        (out / "cuts.json").write_text(json.dumps(
-            [dict(c, frames=[rows[min(c["a"], len(rows) - 1)][0], rows[max(c["b"], 0)][0]],
-                  luma={rows[i][0]: namer.luma[i] for i in sorted(namer.luma)
-                        if c["a"] - 30 <= i <= c["b"] + 30}) for c in cuts], indent=1), encoding="utf-8")
+        sheet(run, rows, c, namer, out / f"cut_{k:03d}_{rows[max(c['a'] - 1, 0)][0]:06d}.png")
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "cuts.json").write_text(json.dumps(
+        [dict(c, frames=[rows[min(c["a"], len(rows) - 1)][0], rows[max(c["b"], 0)][0]],
+              luma={rows[i][0]: namer.luma[i] for i in sorted(namer.luma)
+                    if c["a"] - 30 <= i <= c["b"] + 30}) for c in cuts], indent=1), encoding="utf-8")
     looked = Counter("named" if m is not None else "no name" for m in namer.seen.values())
     if getattr(namer, "held", 0):
         looked["of them by the window measured on a frame beside it"] = namer.held
     say(f"  cut: {len(namer.seen)} frames looked at ({dict(looked)}), {len(cuts)} cut(s)"
-        + (f"; sheets in {out}" if cuts else ""))
+        + (f"; sheets in {out}" if cuts and dry else ""))
     for c in cuts:
         say(f"    frames {rows[min(c['a'], len(rows) - 1)][0]}..{rows[max(c['b'], 0)][0]} ({c['s']:.2f} s): "
             f"{map_name(c['from']) if c['from'] else 'start'} -> {map_name(c['to']) if c['to'] else 'end'}: "
             f"{c['what']}")
     for l in lines:
         say(f"  {l['seg']:24s} frames {l['frames'][0]:>6}..{l['frames'][1]:<6} {l['minutes']:6.2f} min  "
-            f"{l['group'] or '-':7s} {l['kind']:7s} {l['attacks']:4d} attacks  "
-            f"{str(l['map'] or ''):>9} {map_name(l['map'])}" + (f"  [{l['how']}]" if l["how"] != "minimap" else "")
+            f"{l['group'] or '-':7s} {l['mode']:10s} {l['attacks']:4d} attacks  -> {l['path']}"
+            + (f"  [{l['how']}]" if l["how"] != "minimap" else "")
             + (f"  marks {len(l['marks'])}" if l["marks"] else ""))
     if dry:
-        say("  --dry: nothing written")
+        say("  --dry: nothing filed")
         return lines
-    fr._VIDEOS.pop(str(src.resolve()), None)                 # (let go of the chunk file before it moves)
-    for v in list(fr._VIDEOS.values()):
+    # ---- step 4: every stay into its folder, proven frame by frame; only then the manifest and the original
+    dts = sorted(b[2] - a[2] for a, b in zip(rows, rows[1:]))
+    speed = min(1.0, (1 / 60) / max(dts[len(dts) // 2], 1e-4)) if dts else 1.0
+    index = [json.loads(l) for l in open(run / "frames.jsonl", encoding="utf-8") if l.strip()] \
+        if (run / "frames.jsonl").exists() else []
+    for l in lines:                                          # (before anything is made: nothing of another stay's
+        for d in (stay_dir(l), labels_dir(l["seg"])):        # is ever taken for this recording's)
+            if d.exists():
+                raise Problem(f"{d} exists already")
+    made, shown, proofs, t0 = [], [], [], time.perf_counter()
+    reader = ThreadPoolExecutor(1)                           # a stay is read back while the next one is written
+    try:
+        for l, b in zip(lines, bnds):
+            made += [stay_dir(l), labels_dir(l["seg"])]
+            file_stay(run, rows, l, b, index, keys, len(lines) == 1, say)
+            proofs.append((l, reader.submit(read_back, stay_dir(l))))
+            if shown and shown[-1][1] is not None:
+                shown[-1][1].wait()                          # (one preview at a time beside the encoder)
+            shown.append((stay_dir(l), preview(stay_dir(l), l, speed)))
+        for l, proof in proofs:
+            why = proof.result()
+            if why:
+                raise Problem(f"{l['seg']}: {why}")
+        if sum(l["n_file"] for l in lines) != len(rows):
+            raise Problem(f"{sum(l['n_file'] for l in lines)} frames filed, the recording holds {len(rows)}")
+        made.append(root() / "sessions" / ses)
+        file_session(run, ses, facts, lines, start, out)
+        _save(load() + lines)
+    except BaseException:                                    # nothing half-filed is left: the recording is as it was
+        reader.shutdown(wait=True, cancel_futures=True)
+        for d, p in shown:
+            if p is not None and p.poll() is None:
+                p.kill()
+                p.wait()
+        for d in made:
+            if d.exists():
+                _remove(d)
+        raise
+    reader.shutdown()
+    n_prev = sum(_previewed(d, p) for d, p in shown)
+    took = time.perf_counter() - t0
+    secs = rows[-1][2] - rows[0][2]
+    say(f"  filed: {len(lines)} stay(s), {len(rows)} frames, every one read back identical; "
+        f"{sum(l['bytes'] for l in lines) / 1e9:.2f} GB; {n_prev} preview(s); took {took:.0f} s"
+        + (f" = {took / secs:.2f} s per recorded second" if secs > 1 else ""))
+    for v in [fr._VIDEOS.pop(k) for k in list(fr._VIDEOS)]:  # (let go of the recording's files)
         if v is not None:
             v.close()
     namer.ident = None
-    if src != dest:
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        shutil.move(str(src), str(dest))
-    _readonly(dest)
-    _save(load() + lines)
-    say(f"  filed: {dest} ({sum(f.stat().st_size for f in dest.glob('frames_*.mkv')) / 1e9:.2f} GB), "
-        f"{len(lines)} segment(s) in the manifest")
+    if not keep and run.parent == (root() / "incoming").resolve():
+        _remove(run)
+        say("  the original in incoming/ is removed: every frame of it is in a stay")
+    else:
+        say(f"  the original stays as it is: {run}")
+    write_index()
     return lines
 
 
+def write_index() -> None:
+    """README.txt (the layout) and index.txt (`list`'s report) in the corpus folder itself."""
+    said = []
+    report(say=said.append)
+    (root() / "index.txt").write_text("\n".join(said) + "\n", encoding="utf-8")
+    (root() / "README.txt").write_text(
+        "The maplebrain recording corpus. Made and read by tools/data/corpus.py of the maple-work repo; what follows "
+        "is that file's own description.\n\n" + __doc__, encoding="utf-8")
+
+
 # ----------------------------------------------------------------------------------------------------- list
-def report(segments: bool = False, say=print) -> None:
-    """What the corpus holds (PLAN-data.md section 4): per map its minutes and attack presses; the mob types and
-    background sets covered out of those the game has; for each one not seen yet, the maps it lives on."""
+def report(stays: bool = False, say=print) -> None:
+    """What the corpus holds (PLAN-data.md section 4): per map its stays, minutes and attack presses; the mob
+    types and background sets covered out of those the game has; for each one not seen yet, the maps it lives on."""
     import map_cover
     lines = load()
     if not lines:
         say(f"{root()}: empty")
         return
-    recs = sorted({l["recording"] for l in lines})
-    gb = sum(f.stat().st_size for r in recs for f in recording_dir(r).glob("frames_*.mkv")) / 1e9
     known = [l for l in lines if l["map"] is not None]
-    say(f"{root()}: {len(recs)} recording(s), {len(lines)} segment(s), {sum(l['minutes'] for l in lines):.1f} "
-        f"minutes, {gb:.1f} GB")
+    say(f"{root()}: {len({l['session'] for l in lines})} session(s), {len(lines)} stay(s), "
+        f"{sum(l['minutes'] for l in lines):.1f} minutes, {sum(l.get('bytes', 0) for l in lines) / 1e9:.1f} GB")
     per = defaultdict(list)
     for l in known:
         per[l["map"]].append(l)
-    say(f"\n{'map':>9}  {'name':44s} {'group':7s} {'stays':>5} {'crossed':>7} {'minutes':>7} {'attacks':>7} {'marks':>5}")
+
+    def fought(l):
+        return l["mode"] == "bot" or l["attacks"] >= FARM_ATTACKS
+
+    say(f"\n{'map':>9}  {'name':44s} {'group':7s} {'stays':>5} {'farming':>7} {'bot':>4} {'travel':>6} "
+        f"{'minutes':>7} {'attacks':>7} {'marks':>5}")
     for m, ls in sorted(per.items(), key=lambda kv: -sum(l["minutes"] for l in kv[1])):
         say(f"{m:>9}  {map_name(m)[:44]:44s} {ls[0]['group']:7s} {len(ls):5d} "
-            f"{sum(l['kind'] == 'crossed' for l in ls):7d} {sum(l['minutes'] for l in ls):7.1f} "
+            f"{sum(l['mode'] == 'farming' for l in ls):7d} {sum(l['mode'] == 'bot' for l in ls):4d} "
+            f"{sum(l['mode'] == 'traveling' for l in ls):6d} {sum(l['minutes'] for l in ls):7.1f} "
             f"{sum(l['attacks'] for l in ls):7d} {sum(len(l['marks']) for l in ls):5d}")
     unk = [l for l in lines if l["map"] is None]
     if unk:
         say(f"\nunknown stretches (kept, out of the per-map numbers): {len(unk)}, "
             f"{sum(l['minutes'] for l in unk):.1f} minutes")
         for l in unk:
-            say(f"  {l['seg']}: frames {l['frames'][0]}..{l['frames'][1]}, {l['minutes']:.2f} min")
-    if segments:
-        say("\nsegments:")
+            say(f"  {l['seg']}: frames {l['frames'][0]}..{l['frames'][1]}, {l['minutes']:.2f} min -> {l['path']}")
+    if stays:
+        say("\nstays (the id tools take; its folder):")
         for l in lines:
-            say(f"  {l['seg']:24s} {l['date']} frames {l['frames'][0]:>6}..{l['frames'][1]:<6} {l['minutes']:6.2f} min "
-                f"{l['group'] or '-':7s} {l['kind']:7s} {l['attacks']:4d} attacks  {map_name(l['map'])}")
+            say(f"  {l['seg']:24s} {l['minutes']:6.2f} min {l['group'] or '-':7s} {l['mode']:10s} "
+                f"{l['attacks']:4d} attacks  {l['path']}")
     # coverage: from the client data (map_cover: a mob type counts on a map with 3+ spawn points of it)
     maps, mobs = map_cover.load()
     if not maps:
@@ -721,7 +1068,7 @@ def report(segments: bool = False, say=print) -> None:
     clean = [m for m in maps.values() if m["clean"]]
     all_items = set().union(*[map_cover.items(m) for m in maps.values()])
     clean_items = set().union(*[map_cover.items(m) for m in clean])
-    stayed = {m for m, ls in per.items() if any(l["kind"] == "visited" for l in ls)}
+    stayed = {m for m, ls in per.items() if any(fought(l) for l in ls)}
     got = set().union(*[map_cover.items(maps[m]) for m in stayed if m in maps]) if stayed else set()
     passed = (set().union(*[map_cover.items(maps[m]) for m in per if m in maps]) if per else set()) - got
 
@@ -745,38 +1092,81 @@ def report(segments: bool = False, say=print) -> None:
                 + (f" + {len(where) - 4} more" if len(where) > 4 else ""))
 
 
+# --------------------------------------------------------------------------------------------------- verify
+def verify(ids: list = (), frames: bool = False, say=print) -> int:
+    """Are the stays' files what was filed? Every video file against its checksum in the manifest; `frames`: every
+    frame decoded and compared with its fingerprint in frames.jsonl too (after a move to another drive: the proof
+    nothing changed). Returns how many stays are not as filed."""
+    lines = [l for l in load() if not ids or l["seg"] in ids]
+    missing = sorted(set(ids) - {l["seg"] for l in lines})
+    if missing:
+        raise Problem(f"no such stay: {', '.join(missing)}")
+    bad = n_files = n_frames = 0
+    for l in lines:
+        d, why = stay_dir(l), []
+        for f in l.get("files", []):
+            p = d / f["name"]
+            n_files += 1
+            if not p.is_file():
+                why.append(f"{f['name']} is missing")
+            elif p.stat().st_size != f["bytes"] or _sha(p) != f["sha256"]:
+                why.append(f"{f['name']} is not the file that was filed")
+        if frames and not why:
+            n_frames += l["n_file"]
+            diff = read_back(d)
+            if diff:
+                why.append(diff)
+        if why:
+            bad += 1
+            say(f"  {l['seg']} ({l['path']}): " + "; ".join(why))
+    say(f"verify: {len(lines)} stay(s), {n_files} video file(s)" + (f", {n_frames} frames decoded" if frames else "")
+        + (f": {bad} NOT as filed" if bad else ": all as filed"))
+    return bad
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("--corpus", type=Path, default=None, help="the corpus folder (default: config.CORPUS)")
     sub = ap.add_subparsers(dest="cmd", required=True)
-    a = sub.add_parser("add", help="file recordings: check, cut into maps, manifest lines, move to recordings/")
+    a = sub.add_parser("add", help="file recordings: check, cut into maps, every stay into its map's folder")
     a.add_argument("runs", type=Path, nargs="*")
-    a.add_argument("--dry", action="store_true", help="check + cut + the cut sheets, nothing written or moved")
+    a.add_argument("--dry", action="store_true", help="check + cut + the cut sheets, nothing filed")
     a.add_argument("--full", action="store_true", help="the check decodes every frame (minutes per hour recorded)")
+    a.add_argument("--keep", action="store_true", help="leave the original in incoming/ (default: removed once every "
+                   "frame of it is proven to be in a stay)")
     a.add_argument("--dev", type=int, nargs="+", default=None, metavar="MAP",
                    help="move these maps to the dev group (before their first gate)")
     ls = sub.add_parser("list", help="what the corpus holds and what is covered")
-    ls.add_argument("--segments", action="store_true", help="every segment too (the names tools take)")
+    ls.add_argument("--stays", "--segments", action="store_true", help="every stay too (the ids tools take)")
+    ve = sub.add_parser("verify", help="are the files what was filed (after a move to another drive)?")
+    ve.add_argument("stays", nargs="*", help="stay ids SESSION#K (default: every stay)")
+    ve.add_argument("--frames", action="store_true", help="decode every frame and compare its fingerprint too")
     args = ap.parse_args(argv)
     if args.corpus:
         os.environ["MAPLE_CORPUS"] = str(args.corpus)
-    if args.cmd == "add":
-        if not args.runs and not args.dev:
-            ap.error("add: a recording folder, or --dev MAP")
-        if args.dev:
-            to_dev(args.dev)
-        bad = 0
-        for run in args.runs:
-            try:
-                add(run, args.dry, args.full)
-            except Problem as e:
-                bad += 1
-                print(f"  NOT ADDED: {e}")
-        if args.runs and not args.dry:
-            print()
-            report()
-        return 1 if bad else 0
-    report(args.segments)
+    try:
+        if args.cmd == "verify":
+            return 1 if verify(args.stays, args.frames) else 0
+        if args.cmd == "add":
+            if not args.runs and not args.dev:
+                ap.error("add: a recording folder, or --dev MAP")
+            if args.dev:
+                to_dev(args.dev)
+            bad = 0
+            for run in args.runs:
+                try:
+                    add(run, args.dry, args.full, args.keep)
+                except Problem as e:
+                    bad += 1
+                    print(f"  NOT ADDED: {e}")
+            if args.runs and not args.dry:
+                print()
+                report()
+            return 1 if bad else 0
+        report(args.stays)
+    except Problem as e:
+        print(e)
+        return 1
     return 0
 
 

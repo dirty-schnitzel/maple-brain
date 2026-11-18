@@ -73,7 +73,8 @@ def main():
             rec = json.loads(line)
             frames[str(rec["n"])] = parse(rec, pj[str(rec["n"])]["tracks"])
     out = {"v": 2, "run": str(a.run).replace("\\", "/"), "frames": frames}
-    (c.out / "labels.json").write_text(json.dumps(out, indent=0))
+    c.keep.mkdir(parents=True, exist_ok=True)
+    (c.keep / "labels.json").write_text(json.dumps(out, indent=0))
     n = sum(len(f["mobs"]) for f in frames.values())
     by = {}
     for f in frames.values():
@@ -81,7 +82,7 @@ def main():
             for c in m["cls"] or "c":
                 by[c] = by.get(c, 0) + 1
     print(f"{len(frames)} frames, {n} mobs, {sum(len(f['false']) for f in frames.values())} tracks judged empty, "
-          f"{sum(len(f['unsure']) for f in frames.values())} unsure; classes {by} -> {c.out / 'labels.json'}")
+          f"{sum(len(f['unsure']) for f in frames.values())} unsure; classes {by} -> {c.keep / 'labels.json'}")
 
 
 if __name__ == "__main__":

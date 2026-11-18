@@ -155,9 +155,11 @@ python -m maplebrain livemap runs\v2\press1 --replay
 python -m maplebrain serve runs\play --observe --frames-png
 
 # the recording corpus: record a walk as lossless video (no perception), then file it by map
+# (F:\dev\maple-corpus\maps\<map>\<date>_<time>_<farming|traveling|...>_<length>_sK\; the folder: CORPUS in maplebrain/config.py)
 python -m maplebrain record
-python tools\data\corpus.py add F:\dev\maple-corpus\incoming\<recording>     # (the folder: CORPUS in maplebrain/config.py)
-python tools\data\corpus.py list
+python tools\data\corpus.py add F:\dev\maple-corpus\incoming\<recording>
+python tools\data\corpus.py list --stays
+python tools\data\corpus.py verify
 ```
 
 Every key the bot uses is defined in one place, `Keys` in `maplebrain/config.py`.
