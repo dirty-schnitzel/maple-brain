@@ -121,7 +121,8 @@ Fitter.look feeding world.py. ~8,000 lines out.
 
 ## Loot rework part 1: PERCEIVE drops - PLAN-loot.md OK'd by the user 2026-11-17 (branch `loot`)
 **START HERE for loot work: Sessions 1-3 done, every gate met (cost gate 2026-11-18); next = the user's live minute
-(`serve --observe --frames-png`, the user runs it).** Worktree `C:\Users\Yoav\dev\maple-loot`, branch `loot`.
+(`serve --observe --frames-png`, the user runs it).** Branch `loot`, checked out in maple-work (the maple-loot
+worktree was removed 2026-11-18, the user's call; `data` waits on its own branch).
 ### Session 3 result (2026-11-17/18): the product in shadow, S7-S9 - EVERY GATE MET
 - **S7** `maplebrain/perception/drops.py` DropFinder: items.npz (1,920 pictures: not weak, not cash) -> vote.Voter
   (tints off, new `fades=False`: no fade / pair tables); the pass = ONE CUDA graph on its own stream: `launch` copies
