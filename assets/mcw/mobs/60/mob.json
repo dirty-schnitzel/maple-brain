@@ -10,7 +10,7 @@
   "speed": -10,
   "bodyAttack": 1,
   "PADamage": 234,
-  "PDDamage": 0,
+  "PDDamage": 10,
   "MADamage": 0,
   "MDDamage": 20,
   "acc": 129,

@@ -2,7 +2,7 @@
  "id": 41,
  "name": "Snail Hunting Ground II",
  "streetName": "Maple Road",
- "mobRate": 1.0000002,
+ "mobRate": 0.5000001,
  "isTown": false,
  "returnMap": 60,
  "footholds": {
@@ -4281,7 +4281,7 @@
   "version": 10,
   "cloud": 0,
   "town": 0,
-  "mobRate": 1.0000002,
+  "mobRate": 0.5000001,
   "bgm": "Bgm00/RestNPeace",
   "returnMap": 60,
   "mapDesc": "",

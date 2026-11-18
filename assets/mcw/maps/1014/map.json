@@ -2,7 +2,7 @@
  "id": 1014,
  "name": "Snail Field of Flowers",
  "streetName": "Rainbow Street",
- "mobRate": 1.2000003,
+ "mobRate": 1.0000002,
  "isTown": false,
  "returnMap": 1010,
  "footholds": {
@@ -2829,7 +2829,7 @@
   "cloud": 0,
   "town": 0,
   "returnMap": 1010,
-  "mobRate": 1.2000003,
+  "mobRate": 1.0000002,
   "bgm": "Bgm00/FloralLife",
   "mapDesc": "",
   "forcedReturn": 999999999,

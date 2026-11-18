@@ -2,7 +2,7 @@
  "id": 10005090,
  "name": "Drake's Meal Table",
  "streetName": "Dungeon",
- "mobRate": 0.5999999,
+ "mobRate": 0.4999999,
  "isTown": false,
  "returnMap": 10005000,
  "footholds": {
@@ -9092,7 +9092,7 @@
   "cloud": 0,
   "town": 0,
   "returnMap": 10005000,
-  "mobRate": 0.5999999,
+  "mobRate": 0.4999999,
   "bgm": "Bgm01/AncientMove",
   "forcedReturn": 999999999,
   "mapMark": "Dungeon",

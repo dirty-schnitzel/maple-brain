@@ -2,7 +2,7 @@
  "id": 10003080,
  "name": "Construction Site North of Kerning City",
  "streetName": "Victoria Road",
- "mobRate": 1.0,
+ "mobRate": 0.4999999,
  "isTown": false,
  "returnMap": 10003000,
  "footholds": {
@@ -4620,7 +4620,7 @@
   "cloud": 0,
   "town": 0,
   "returnMap": 10003000,
-  "mobRate": 1.0,
+  "mobRate": 0.4999999,
   "bgm": "Bgm01/BadGuys",
   "forcedReturn": 999999999,
   "mapMark": "KerningCity",

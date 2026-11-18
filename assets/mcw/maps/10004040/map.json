@@ -2,7 +2,7 @@
  "id": 10004040,
  "name": "Perion Street Corner",
  "streetName": "Victoria Road",
- "mobRate": 1.0,
+ "mobRate": 0.79999995,
  "isTown": false,
  "returnMap": 10004000,
  "footholds": {
@@ -3601,7 +3601,7 @@
   "version": 10,
   "cloud": 1,
   "town": 0,
-  "mobRate": 1.0,
+  "mobRate": 0.79999995,
   "bgm": "Bgm00/Nightmare",
   "returnMap": 10004000,
   "forcedReturn": 999999999,

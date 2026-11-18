@@ -1,13 +1,13 @@
 {
- "built": "2026-11-17T13:41:36+00:00",
+ "built": "2026-11-18T21:07:28+00:00",
  "export": "C:\\Users\\Yoav\\dev\\cw-data\\export",
  "items": {
-  "cash": 2675,
-  "distinct": 4601,
-  "ids": 5016,
-  "linked": 257,
-  "pictures": 5028,
-  "searched": 1920,
+  "cash": 2688,
+  "distinct": 4686,
+  "ids": 5124,
+  "linked": 267,
+  "pictures": 5136,
+  "searched": 1992,
   "weak": 24
  },
  "maps": {
@@ -42,7 +42,7 @@
    "street": "Rainbow Street"
   },
   "10000000": {
-   "footholds": 475,
+   "footholds": 482,
    "ladderRopes": 17,
    "minimap": true,
    "mobs": [],
@@ -396,7 +396,7 @@
    "street": "Victoria Road"
   },
   "10001050": {
-   "footholds": 195,
+   "footholds": 200,
    "ladderRopes": 1,
    "minimap": true,
    "mobs": [],
@@ -637,7 +637,7 @@
    "street": "Hidden Street"
   },
   "10002005": {
-   "footholds": 30,
+   "footholds": 29,
    "ladderRopes": 2,
    "minimap": false,
    "mobs": [],
@@ -1391,7 +1391,7 @@
    "street": "Warning Street"
   },
   "10003091": {
-   "footholds": 230,
+   "footholds": 228,
    "ladderRopes": 24,
    "minimap": true,
    "mobs": [
@@ -2601,7 +2601,7 @@
    "street": "Dungeon"
   },
   "10005074": {
-   "footholds": 385,
+   "footholds": 379,
    "ladderRopes": 7,
    "minimap": true,
    "mobs": [
@@ -2756,8 +2756,233 @@
    "name": "The Cursed Sanctuary",
    "street": "Dungeon"
   },
+  "10006000": {
+   "footholds": 106,
+   "ladderRopes": 2,
+   "minimap": true,
+   "mobs": [],
+   "name": "Forgotten Hollow",
+   "street": "Shallow Passage"
+  },
+  "10006001": {
+   "footholds": 10,
+   "ladderRopes": 0,
+   "minimap": false,
+   "mobs": [],
+   "name": "Cave Fairy Sanctuary",
+   "street": "Shallow Passage"
+  },
+  "10006002": {
+   "footholds": 6,
+   "ladderRopes": 0,
+   "minimap": false,
+   "mobs": [],
+   "name": "Cave Fairy Store",
+   "street": "Shallow Passage"
+  },
+  "10006003": {
+   "footholds": 77,
+   "ladderRopes": 1,
+   "minimap": true,
+   "mobs": [],
+   "name": "The Faded Threshold",
+   "street": "Shallow Passage"
+  },
+  "10006010": {
+   "footholds": 175,
+   "ladderRopes": 5,
+   "minimap": true,
+   "mobs": [
+    54,
+    57,
+    58
+   ],
+   "name": "Primeval Forest I",
+   "street": "Shallow Passage"
+  },
+  "10006020": {
+   "footholds": 181,
+   "ladderRopes": 6,
+   "minimap": true,
+   "mobs": [
+    56,
+    57,
+    58
+   ],
+   "name": "Primeval Forest II",
+   "street": "Shallow Passage"
+  },
+  "10006022": {
+   "footholds": 325,
+   "ladderRopes": 32,
+   "minimap": true,
+   "mobs": [
+    54,
+    57,
+    59
+   ],
+   "name": "Hanging Gardens of Rot",
+   "street": "Hidden Street"
+  },
+  "10006030": {
+   "footholds": 131,
+   "ladderRopes": 2,
+   "minimap": true,
+   "mobs": [
+    55,
+    57
+   ],
+   "name": "Primeval Forest III",
+   "street": "Shallow Passage"
+  },
+  "10006031": {
+   "footholds": 117,
+   "ladderRopes": 10,
+   "minimap": true,
+   "mobs": [
+    21,
+    33,
+    38,
+    59
+   ],
+   "name": "The Valley of Death",
+   "street": "Hidden Street"
+  },
+  "10006040": {
+   "footholds": 214,
+   "ladderRopes": 11,
+   "minimap": true,
+   "mobs": [
+    55,
+    56,
+    57
+   ],
+   "name": "Forgotten Entrance I",
+   "street": "Shallow Passage"
+  },
+  "10006050": {
+   "footholds": 141,
+   "ladderRopes": 6,
+   "minimap": true,
+   "mobs": [
+    35,
+    54,
+    55
+   ],
+   "name": "Forgotten Entrance II",
+   "street": "Shallow Passage"
+  },
+  "10006060": {
+   "footholds": 137,
+   "ladderRopes": 4,
+   "minimap": true,
+   "mobs": [
+    31,
+    54,
+    55
+   ],
+   "name": "Forgotten Entrance III",
+   "street": "Shallow Passage"
+  },
+  "10006070": {
+   "footholds": 253,
+   "ladderRopes": 7,
+   "minimap": true,
+   "mobs": [
+    54,
+    57,
+    59,
+    60
+   ],
+   "name": "The End of Fleeting Light",
+   "street": "Shallow Passage"
+  },
+  "10006071": {
+   "footholds": 210,
+   "ladderRopes": 8,
+   "minimap": true,
+   "mobs": [
+    31,
+    54,
+    55
+   ],
+   "name": "Forgotten Dungeon Tunnel",
+   "street": "Shallow Passage"
+  },
+  "10006072": {
+   "footholds": 298,
+   "ladderRopes": 20,
+   "minimap": true,
+   "mobs": [
+    54,
+    55,
+    58
+   ],
+   "name": "The Faded Canopy",
+   "street": "Shallow Passage"
+  },
+  "10006080": {
+   "footholds": 171,
+   "ladderRopes": 24,
+   "minimap": true,
+   "mobs": [
+    21,
+    56,
+    59,
+    60
+   ],
+   "name": "Forbidden Entrance",
+   "street": "Shallow Passage"
+  },
+  "10006090": {
+   "footholds": 217,
+   "ladderRopes": 5,
+   "minimap": true,
+   "mobs": [
+    21,
+    34,
+    58
+   ],
+   "name": "Perilous Descent I",
+   "street": "Deep Passage"
+  },
+  "10006100": {
+   "footholds": 263,
+   "ladderRopes": 6,
+   "minimap": true,
+   "mobs": [
+    21,
+    33,
+    58,
+    60
+   ],
+   "name": "Perilous Descent II",
+   "street": "Deep Passage"
+  },
+  "10006110": {
+   "footholds": 150,
+   "ladderRopes": 4,
+   "minimap": true,
+   "mobs": [
+    58,
+    60
+   ],
+   "name": "Perilous Descent III",
+   "street": "Deep Passage"
+  },
+  "10006120": {
+   "footholds": 124,
+   "ladderRopes": 9,
+   "minimap": true,
+   "mobs": [
+    23,
+    60
+   ],
+   "name": "Decayed Tunnel I",
+   "street": "Deep Passage"
+  },
   "10006121": {
-   "footholds": 52,
+   "footholds": 78,
    "ladderRopes": 5,
    "minimap": true,
    "mobs": [
@@ -2766,8 +2991,99 @@
     62,
     700003
    ],
-   "name": null,
-   "street": null
+   "name": "Someone Else's Grave",
+   "street": "Hidden Street"
+  },
+  "10006122": {
+   "footholds": 11,
+   "ladderRopes": 0,
+   "minimap": false,
+   "mobs": [],
+   "name": "Rotten House",
+   "street": "Hidden Street"
+  },
+  "10006130": {
+   "footholds": 121,
+   "ladderRopes": 6,
+   "minimap": true,
+   "mobs": [
+    34,
+    38,
+    56,
+    59
+   ],
+   "name": "Decayed Tunnel II",
+   "street": "Deep Passage"
+  },
+  "10006140": {
+   "footholds": 197,
+   "ladderRopes": 11,
+   "minimap": true,
+   "mobs": [
+    56,
+    59,
+    61
+   ],
+   "name": "Decayed Tunnel III",
+   "street": "Deep Passage"
+  },
+  "10006150": {
+   "footholds": 301,
+   "ladderRopes": 7,
+   "minimap": true,
+   "mobs": [
+    28,
+    58,
+    61
+   ],
+   "name": "Lingering Regret",
+   "street": "Deep Passage"
+  },
+  "10006152": {
+   "footholds": 11,
+   "ladderRopes": 0,
+   "minimap": false,
+   "mobs": [],
+   "name": "Bygone Days",
+   "street": "Deep Passage"
+  },
+  "10006160": {
+   "footholds": 294,
+   "ladderRopes": 16,
+   "minimap": true,
+   "mobs": [
+    38,
+    60,
+    62,
+    800011
+   ],
+   "name": "Precipice of Darkness",
+   "street": "Deep Passage"
+  },
+  "10006161": {
+   "footholds": 236,
+   "ladderRopes": 8,
+   "minimap": true,
+   "mobs": [
+    26,
+    62,
+    63
+   ],
+   "name": "Dilapidated Tomb",
+   "street": "Deep Passage"
+  },
+  "10006162": {
+   "footholds": 131,
+   "ladderRopes": 8,
+   "minimap": true,
+   "mobs": [
+    33,
+    56,
+    62,
+    63
+   ],
+   "name": "Another Sanctuary",
+   "street": "Deep Passage"
   },
   "10007000": {
    "footholds": 171,
@@ -3447,14 +3763,6 @@
    "name": "The Manager's Room",
    "street": "Hidden Street"
   },
-  "900000003": {
-   "footholds": 18,
-   "ladderRopes": 0,
-   "minimap": false,
-   "mobs": [],
-   "name": "White Room",
-   "street": "Hidden Street"
-  },
   "90040000": {
    "footholds": 136,
    "ladderRopes": 3,
@@ -3532,7 +3840,7 @@
    "street": "Hidden Street"
   },
   "90040020": {
-   "footholds": 146,
+   "footholds": 147,
    "ladderRopes": 3,
    "minimap": true,
    "mobs": [],
@@ -3638,6 +3946,14 @@
    "mobs": [],
    "name": "Receiving the Reward For the Event",
    "street": "Hidden Street"
+  },
+  "99999999": {
+   "footholds": 10,
+   "ladderRopes": 0,
+   "minimap": false,
+   "mobs": [],
+   "name": "White Room",
+   "street": "White Room"
   }
  },
  "mobs": {
@@ -4872,6 +5188,131 @@
    "link": 800024,
    "name": "Goblin Fire"
   },
+  "800026": {
+   "framebooks": {
+    "die1": 4,
+    "hit1": 1,
+    "move": 4,
+    "stand": 3
+   },
+   "frames": 12,
+   "level": 41,
+   "link": 54,
+   "name": "Glowshroom"
+  },
+  "800027": {
+   "framebooks": {
+    "die1": 4,
+    "fly": 2,
+    "hit1": 1
+   },
+   "frames": 7,
+   "level": 42,
+   "link": 56,
+   "name": "Golden Stirge"
+  },
+  "800028": {
+   "framebooks": {
+    "die1": 10,
+    "hit1": 1,
+    "jump": 1,
+    "move": 6,
+    "stand": 6
+   },
+   "frames": 24,
+   "level": 43,
+   "link": 55,
+   "name": "Raffle"
+  },
+  "800029": {
+   "framebooks": {
+    "die1": 7,
+    "hit1": 1,
+    "move": 4,
+    "stand": 4
+   },
+   "frames": 16,
+   "level": 44,
+   "link": 57,
+   "name": "Aqumander"
+  },
+  "800030": {
+   "framebooks": {
+    "die1": 10,
+    "hit1": 1,
+    "jump": 1,
+    "move": 6,
+    "stand": 6
+   },
+   "frames": 24,
+   "level": 45,
+   "link": 59,
+   "name": "Rafflesia"
+  },
+  "800031": {
+   "framebooks": {
+    "die1": 7,
+    "hit1": 1,
+    "move": 4,
+    "stand": 4
+   },
+   "frames": 16,
+   "level": 46,
+   "link": 60,
+   "name": "Duskmander"
+  },
+  "800032": {
+   "framebooks": {
+    "attack1": 12,
+    "die1": 7,
+    "hit1": 1,
+    "move": 6,
+    "stand": 6
+   },
+   "frames": 32,
+   "level": 47,
+   "link": 61,
+   "name": "Myewood"
+  },
+  "800033": {
+   "framebooks": {
+    "die1": 3,
+    "hit1": 1,
+    "jump": 1,
+    "move": 5,
+    "stand": 2
+   },
+   "frames": 12,
+   "level": 48,
+   "link": 62,
+   "name": "Rotten Mushroom"
+  },
+  "800034": {
+   "framebooks": {
+    "attack1": 12,
+    "die1": 8,
+    "hit1": 1,
+    "move": 12,
+    "stand": 6
+   },
+   "frames": 39,
+   "level": 49,
+   "link": 63,
+   "name": "Sporewood"
+  },
+  "800035": {
+   "framebooks": {
+    "die1": 8,
+    "hit1": 1,
+    "move": 6,
+    "skill1": 16,
+    "stand": 6
+   },
+   "frames": 37,
+   "level": 50,
+   "link": null,
+   "name": "Darkwood"
+  },
   "810000": {
    "framebooks": {
     "die1": 9,
@@ -4995,6 +5436,19 @@
    "level": 20,
    "link": null,
    "name": "Orange Slime"
+  },
+  "900001": {
+   "framebooks": {
+    "attack1": 6,
+    "die1": 6,
+    "hit1": 1,
+    "move": 4,
+    "stand": 4
+   },
+   "frames": 21,
+   "level": 20,
+   "link": null,
+   "name": "Turkey"
   },
   "91": {
    "framebooks": {

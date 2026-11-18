@@ -122,7 +122,7 @@
   "town": 0,
   "returnMap": 10003000,
   "mobRate": 1.0,
-  "bgm": "Bgm02/JungleBook",
+  "bgm": "Bgm01/AncientMove",
   "mapDesc": "",
   "hideMinimap": 0,
   "forcedReturn": 999999999,

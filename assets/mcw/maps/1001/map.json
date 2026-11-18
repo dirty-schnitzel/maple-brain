@@ -2,7 +2,7 @@
  "id": 1001,
  "name": "In a Small Forest",
  "streetName": "Rainbow Street",
- "mobRate": 1.1000003,
+ "mobRate": 0.9000002,
  "isTown": false,
  "returnMap": 1010,
  "footholds": {
@@ -3369,7 +3369,7 @@
   "cloud": 0,
   "town": 0,
   "returnMap": 1010,
-  "mobRate": 1.1000003,
+  "mobRate": 0.9000002,
   "bgm": "Bgm00/RestNPeace",
   "mapDesc": "",
   "forcedReturn": 999999999,

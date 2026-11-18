@@ -70,7 +70,8 @@ def boxes_vs(stances: list, mob_box: tuple) -> tuple:
 
 
 def usual_speed(att: dict, weapon: str) -> int:
-    """The attackSpeed most weapons of this type have in the client (polearm 8, spear 7; normal = 6)."""
+    """The attackSpeed most weapons of this type have in the client (polearm 8, spear 6 = a 5-5 tie with 7 since the 2026-11-18
+    patch, a tie -> the faster; normal = 6)."""
     n = (att.get("speeds") or {}).get(weapon) or {"6": 1}
     return int(max(n, key=lambda s: (n[s], -int(s))))
 

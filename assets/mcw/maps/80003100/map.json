@@ -4,7 +4,7 @@
  "streetName": "Hidden Street",
  "mobRate": 1.0,
  "isTown": false,
- "returnMap": 80003300,
+ "returnMap": 80003000,
  "footholds": {
   "1": {
    "id": 1,
@@ -617,7 +617,8 @@
   "town": 0,
   "mobRate": 1.0,
   "bgm": "Bgm00/FloralLife",
-  "returnMap": 80003300,
+  "returnMap": 80003000,
+  "genReturnMap": 1,
   "mapDesc": "",
   "forcedReturn": 80003300,
   "hideMinimap": 0,
@@ -644,7 +645,7 @@
   "MRBottom": 465,
   "fieldScript": "",
   "onFirstUserEnter": "",
-  "onUserEnter": ""
+  "onUserEnter": "enter_80003100"
  },
  "cover": {
   "x0": -1049,

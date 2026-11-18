@@ -2,7 +2,7 @@
  "id": 10005070,
  "name": "Ant Tunnel Park",
  "streetName": "Dungeon",
- "mobRate": 0.79999995,
+ "mobRate": 0.4999999,
  "isTown": false,
  "returnMap": 10005000,
  "footholds": {
@@ -12595,6 +12595,20 @@
    "hidden": false,
    "flip": false,
    "mobTime": 0
+  },
+  {
+   "index": 59,
+   "id": 617,
+   "x": 459,
+   "y": -70,
+   "spriteY": -77,
+   "footholdId": 34,
+   "walkAreaX1": 409,
+   "walkAreaX2": 509,
+   "hidden": false,
+   "flip": false,
+   "mobTime": 0,
+   "limitedname": ""
   }
  ],
  "portals": [
@@ -12726,7 +12740,7 @@
   "cloud": 0,
   "town": 0,
   "returnMap": 10005000,
-  "mobRate": 0.79999995,
+  "mobRate": 0.4999999,
   "bgm": "Bgm01/AncientMove",
   "mapDesc": "",
   "forcedReturn": 999999999,

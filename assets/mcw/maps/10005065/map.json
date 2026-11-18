@@ -2,7 +2,7 @@
  "id": 10005065,
  "name": "Dangerous Steam",
  "streetName": "Dungeon",
- "mobRate": 0.6999999,
+ "mobRate": 0.39999992,
  "isTown": false,
  "returnMap": 10005000,
  "footholds": {
@@ -8679,7 +8679,7 @@
   "cloud": 0,
   "town": 0,
   "returnMap": 10005000,
-  "mobRate": 0.6999999,
+  "mobRate": 0.39999992,
   "bgm": "Bgm01/AncientMove",
   "mapDesc": "",
   "forcedReturn": 999999999,

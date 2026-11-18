@@ -7,7 +7,7 @@
   "exp": 107,
   "maxHP": 2163,
   "maxMP": 80,
-  "speed": 0,
+  "speed": 5,
   "bodyAttack": 1,
   "PADamage": 239,
   "PDDamage": 10,

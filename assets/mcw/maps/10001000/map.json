@@ -3807,17 +3807,17 @@
   },
   {
    "index": 11,
-   "id": 900026,
+   "id": 900027,
    "x": 1121,
    "y": 154,
-   "spriteY": 131,
+   "spriteY": 146,
    "footholdId": 263,
    "walkAreaX1": 1071,
    "walkAreaX2": 1171,
    "hidden": false,
    "flip": false,
    "mobTime": 0,
-   "limitedname": "2026Halloween",
+   "limitedname": "2026Thanksgiving",
    "forcedZPage": -1,
    "forcedZMass": -1
   }

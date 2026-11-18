@@ -1093,7 +1093,7 @@
   "mobRate": 1.0,
   "bgm": "Bgm00/Nightmare",
   "returnMap": 10004000,
-  "forcedReturn": 999999999,
+  "forcedReturn": 10004054,
   "mapMark": "Perion",
   "swim": 0,
   "fly": 0,

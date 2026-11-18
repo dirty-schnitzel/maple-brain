@@ -79,7 +79,8 @@ def test_spear_and_polearm_reach_vs_bubbling_from_the_client_boxes():
 
 def test_swing_length_from_the_client_stances_and_attack_speed():
     assert Reach("poleArm").attack_speed == 8 and Reach("poleArm").swing_s == pytest.approx(0.90)   # live 0.89-0.92
-    assert Reach("spear").attack_speed == 7 and Reach("spear").swing_s == pytest.approx(0.85)
+    # spears: 5 at speed 6 and 5 at speed 7 since the 2026-11-18 patch (it added faster ones); a tie -> the faster
+    assert Reach("spear").attack_speed == 6 and Reach("spear").swing_s == pytest.approx(0.80)
     assert Reach("poleArm", attack_speed=6).swing_s == pytest.approx(0.80)                         # a Booster: -2
     cfg = Config()
     cfg.combat.attack_speed = 6

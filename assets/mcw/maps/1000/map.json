@@ -2,7 +2,7 @@
  "id": 1000,
  "name": "The Field West of Amherst",
  "streetName": "Rainbow Street",
- "mobRate": 0.9000002,
+ "mobRate": 0.5000001,
  "isTown": false,
  "returnMap": 1010,
  "footholds": {
@@ -5893,7 +5893,7 @@
   "version": 10,
   "cloud": 0,
   "town": 0,
-  "mobRate": 0.9000002,
+  "mobRate": 0.5000001,
   "bgm": "Bgm00/RestNPeace",
   "returnMap": 1010,
   "mapDesc": "",

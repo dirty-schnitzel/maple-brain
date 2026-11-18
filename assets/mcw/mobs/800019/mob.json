@@ -19,7 +19,7 @@
   "fs": 10.0,
   "summonType": 1,
   "damagedByMob": 1,
-  "dropItemPeriod": 6
+  "dropItemPeriod": 10
  },
  "framebooks": {
   "stand": 6,
@@ -157,8 +157,8 @@
     "n": 5,
     "file": "stand_5.png",
     "size": [
-     85,
-     115
+     1,
+     1
     ],
     "origin": [
      43,
@@ -176,7 +176,8 @@
      -2,
      -97
     ],
-    "delay": 70
+    "delay": 70,
+    "_inlink": "stand/0"
    }
   ],
   "hit1": [
