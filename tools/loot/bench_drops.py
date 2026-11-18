@@ -35,15 +35,15 @@ def main():
     from maplebrain.procperf import prefer_performance
     print(prefer_performance())
     import frames as rec
-    from run import bench_module, from_log, saved_frames
+    from run import bench_module
     from maplebrain.perception.perceiver import Perceiver
     bench = bench_module()
     P = lambda v, q: float(np.percentile(v, q)) if len(v) else float("nan")  # noqa: E731
     for name in a.clips.split(","):
         run, t0, t1 = CLIPS[name]
         run = ROOT / run
-        mid = from_log(run)[0]
-        fr = saved_frames(run, t0, t1)
+        mid = rec.map_of(run)
+        fr = rec.Clip(run, run, mid).frames(t0, t1)
         fr = fr[:a.n]                                   # consecutive saved frames: the tag / camera / minimap hold
         imgs = [(rec.read(run, f), t) for _, f, t in fr]
         per0, _, _, rig = bench.build(mid)

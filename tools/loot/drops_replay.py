@@ -51,7 +51,7 @@ def main():
     ap.add_argument("--out", default="product")
     a = ap.parse_args()
     sys.path.insert(0, str(ROOT / "tools" / "perc" / "replay"))
-    from run import bench_module, saved_frames
+    from run import bench_module, frames_module
     from dropvote import DropFinder as Ref, facts
     from maplebrain.perception.drops import PLAY_H as PH
     bench = bench_module()
@@ -70,7 +70,7 @@ def main():
         if ref is None:
             ref = Ref(items=fz.items, cand_votes=fz.cfg.cand_votes)
         fh = Footholds(mid)
-        frames = [x for x in saved_frames(run, 0.0, T1.get(key, 1e9), a.every)]
+        frames = frames_module().Clip(run, run, mid).frames(0.0, T1.get(key, 1e9), a.every)
         t0 = time.time()
         with open(out_dir / f"{key}.jsonl", "w", encoding="utf-8") as fo:
             for n, name, t in frames:
