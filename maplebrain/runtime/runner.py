@@ -102,6 +102,7 @@ class Rig:
     locator: object = None          # nav.localize.MinimapLocator (with a map): our map position / platform
     ident: object = None            # nav.identify.MapIdentifier: no --map -> the map is recognised on every start
     maps: dict = None               # map id -> (kit, locator), loaded once per process
+    drops: object = None            # perception.drops.DropFinder: built once per process with the first clean map
 
 
 def _map_name(map_id: int) -> str:
@@ -162,6 +163,14 @@ def _load_map(rig: "Rig", map_id: int, say) -> bool:
             groups = sum(it[0] == "group" for g in scene.groups.values() for it in g)
             say(f"scene camera + fit: {kit.fitter.G} poses, {groups} pre-composed background groups of "
                 f"{len(scene.backs)} layers; built in {time.perf_counter() - t:.2f} s")
+            if cfg.perception.drops:                    # drops (PLAN-loot.md, in shadow): one finder per process
+                if getattr(rig, "drops", None) is None:
+                    from ..perception.drops import DropFinder
+                    t = time.perf_counter()
+                    rig.drops = DropFinder(device=kit.dev)
+                    rig.drops.warm()
+                    say(f"{rig.drops.describe()}; graph captured, {time.perf_counter() - t:.2f} s in all")
+                kit.drops = rig.drops
         else:
             kit.why = why
             say(f"map {map_id}: {why} -> no scene camera: hunts are refused here (observe records without mobs)")

@@ -7,6 +7,7 @@
 #   Mob\png\<7-digit id>\<anim>_<n>.png  every frame of every animation, links resolved, as stored (facing left)
 #   Afterimage\<weapon>.img.xml     attack boxes per weapon type (lt/rb per stance); Skill\<job>.img.xml skills
 #   String\Map.img.xml, Mob.img.xml  names
+#   Item\png\<8-digit id>_raw.png, Item\items.json  what a drop shows (item pictures; the section below)
 # Run (R2R off, see load.ps1): $env:DOTNET_ReadyToRun=0; pwsh -NoProfile -File tools\cwdata\export.ps1
 param([string]$Out = 'C:\Users\Yoav\dev\cw-data\export')
 $ErrorActionPreference = 'Stop'
@@ -119,7 +120,7 @@ function Export-Canvases($prop, $img, [string]$base) {
       try { Save-Png (Get-Bitmap $c $img) "$base\$($c.Name).png"; $script:nPart++ }
       catch { $fails.Add("$($img.Name) $base/$($c.Name): $_") }
     } elseif ($c -is [MapleLib.WzLib.WzProperties.WzSubProperty]) {
-      Export-Canvases $c $img "$base\$($c.Name)"
+      Export-Canvases $c $img "$base\$($c.Name.Trim())"        # 'emphasis ' (AntiMacro): Windows drops the space
     }
   }
 }
@@ -151,6 +152,97 @@ Export-Sets "$D\Effect\Effect_*.wz" "$Out\Effect" @('BasicEff.img')
 #   UI\AntiMacro.img.xml + UI\png\AntiMacro\..., UI\LieDetector.img.xml + UI\png\LieDetector\...
 if (Test-Path "$Out\UI") { Remove-Item -Recurse -Force "$Out\UI" }
 Export-Sets "$D\UI\UI_*.wz" "$Out\UI" @('AntiMacro.img', 'LieDetector.img')
+
+# what a DROP shows (PLAN-loot.md S1): the picture the client draws for an item lying on the ground = info/iconRaw,
+# 1:1 and opaque (info/icon = the same + a shadow, drawn in windows only: not exported)
+#   Item\png\<8-digit id>_raw.png      every Etc / Consume / Install item + every equip (Character\<slot>\<id>.img)
+#   Item\png\0900000<n>_raw_<f>.png    the meso pictures (Item\Special\0900.img: 4 sizes x 4 frames)
+#   Item\items.json  id -> {kind, name, raw: [w, h, ox, oy], link: the item whose picture it borrows, cash: 1 = a
+#                    cash-shop item (info/cash: never drops)} (mesos: frames
+#                    [[w, h, ox, oy, delay]..], delay 0 = none in the file); names from String Etc / Consume / Ins / Eqp
+# 257 items' iconRaw is a UOL (WzUOLProperty) to another item's (scroll families): followed to the target canvas.
+if (Test-Path "$Out\Item") { Remove-Item -Recurse -Force "$Out\Item" }
+New-Item -ItemType Directory -Force "$Out\Item\png" | Out-Null
+$names = @{}
+$sf = Open-Bms "$D\String\String_000.wz"
+foreach ($name in 'Consume.img', 'Ins.img') {
+  foreach ($p in ($sf.WzDirectory.WzImages | ? Name -eq $name).WzProperties) {
+    $n = $p.GetFromPath('name'); if ($n) { $names[[int]$p.Name] = "$($n.Value)" } } }
+foreach ($grp in ($sf.WzDirectory.WzImages | ? Name -eq 'Etc.img').WzProperties) {
+  foreach ($p in $grp.WzProperties) { $n = $p.GetFromPath('name'); if ($n) { $names[[int]$p.Name] = "$($n.Value)" } } }
+foreach ($top in ($sf.WzDirectory.WzImages | ? Name -eq 'Eqp.img').WzProperties) {
+  foreach ($slot in $top.WzProperties) {
+    foreach ($p in $slot.WzProperties) { $n = $p.GetFromPath('name'); if ($n) { $names[[int]$p.Name] = "$($n.Value)" } } } }
+$items = [ordered]@{}
+$nLink = 0; $nNoRaw = 0
+# one iconRaw -> its png + [w, h, ox, oy]; a UOL is followed to the canvas it names (its origin comes with it)
+function Add-Raw([string]$kind, [string]$id, $info, $img) {
+  $c = $info.GetFromPath('iconRaw')
+  if (-not $c) { $script:nNoRaw++; return }
+  $e = [ordered]@{ kind = $kind; name = $names[[int]$id] }
+  $cf = $info.GetFromPath('cash')                            # a cash-shop (NX) item: never drops
+  if ($cf -and [int]"$($cf.Value)" -eq 1) { $e['cash'] = 1 }
+  $uol = ''
+  for ($hop = 0; $c -is [MapleLib.WzLib.WzProperties.WzUOLProperty] -and $hop -lt 8; $hop++) {
+    $uol = "$($c.Value)"; $par = $c.Parent; $c = $c.LinkValue
+    if (-not $c) { $c = $par.GetFromPath($uol) }               # 'icon' (a sibling): LinkValue gives null
+    if ($c -and $c.Parent -and $c.Parent.Parent) { $e['link'] = ($c.Parent.Parent.Name -replace '\.img$', '') }
+  }
+  if ($c -isnot [MapleLib.WzLib.WzProperties.WzCanvasProperty]) { $fails.Add("item $kind $id : iconRaw -> '$uol' not a canvas"); return }
+  if ($e.Contains('link')) { $script:nLink++ }
+  try {
+    $bmp = Get-Bitmap $c $img
+    $o = $c.GetProperty('origin')
+    $e['raw'] = @([int]$bmp.Width, [int]$bmp.Height, [int]$o.X.Value, [int]$o.Y.Value)
+    Save-Png $bmp "$Out\Item\png\$($id)_raw.png"
+    $items[$id] = $e
+  } catch {                       # a link to a canvas the client doesn't have (01702302, a nameless cash weapon:
+    if ("$_" -like 'broken link*') { $script:skipped.Add("$kind $id") }      # iconRaw -> info/icon, no icon)
+    else { $fails.Add("item $kind $id : $_") }
+  }
+}
+$skipped = [Collections.Generic.List[string]]::new()
+foreach ($kind in 'Etc', 'Consume', 'Install') {             # <kind>\<4-digit>.img\<8-digit id>\info\iconRaw
+  $n0 = $items.Count
+  foreach ($w in Get-ChildItem "$D\Item\$kind" -Filter "$($kind)_*.wz") {
+    foreach ($img in (Open-Bms $w.FullName).WzDirectory.WzImages) {
+      foreach ($it in $img.WzProperties) { $info = $it.GetFromPath('info'); if ($info) { Add-Raw $kind $it.Name $info $img } }
+      $img.UnparseImage()
+    }
+  }
+  "items $kind : $($items.Count - $n0)"
+}
+$sp = (Open-Bms "$D\Item\Special\Special_000.wz").WzDirectory.WzImages | ? Name -eq '0900.img'
+foreach ($it in $sp.WzProperties) {                          # mesos: 0900.img\0900000<n>\iconRaw\<f>
+  if ($it.Name -notin '09000000', '09000001', '09000002', '09000003') { continue }   # the 4 sizes; 09000004-7 = a
+  $raw = $it.GetFromPath('iconRaw')                          # face coin, red glowing coins, a bronze copy: not mesos
+  if (-not $raw) { continue }
+  $fr = @()
+  foreach ($c in $raw.WzProperties) {
+    if ($c -isnot [MapleLib.WzLib.WzProperties.WzCanvasProperty]) { continue }
+    try {
+      $bmp = Get-Bitmap $c $sp
+      $o = $c.GetProperty('origin'); $dl = $c.GetProperty('delay')
+      $fr += , @([int]$bmp.Width, [int]$bmp.Height, [int]$o.X.Value, [int]$o.Y.Value, $(if ($dl) { [int]$dl.Value } else { 0 }))
+      Save-Png $bmp "$Out\Item\png\$($it.Name)_raw_$($c.Name).png"
+    } catch { $fails.Add("meso $($it.Name) $($c.Name): $_") }
+  }
+  if ($fr.Count) { $items[$it.Name] = [ordered]@{ kind = 'Meso'; name = $null; frames = $fr } }
+}
+foreach ($slot in 'Accessory', 'Cap', 'Cape', 'Coat', 'Glove', 'Longcoat', 'Pants', 'Ring', 'Shield', 'Shoes', 'Weapon') {
+  $n0 = $items.Count                                         # equips: Character\<slot>\<8-digit id>.img\info\iconRaw
+  foreach ($w in Get-ChildItem "$D\Character\$slot" -Filter "$($slot)_*.wz") {
+    foreach ($img in (Open-Bms $w.FullName).WzDirectory.WzImages) {
+      $info = $img.GetFromPath('info')
+      if ($info) { Add-Raw $slot ($img.Name -replace '\.img$', '') $info $img }
+      $img.UnparseImage()
+    }
+  }
+  "items $slot : $($items.Count - $n0)"
+}
+$items | ConvertTo-Json -Depth 6 -Compress | Set-Content -Encoding utf8 "$Out\Item\items.json"
+"items: $($items.Count) ($nLink by a link, $nNoRaw without iconRaw; skipped, iconRaw links to a canvas the client " +
+  "lacks: $($skipped.Count) $($skipped -join ', '))"
 
 # every mob + every frame
 $nMob = 0; $nPng = 0

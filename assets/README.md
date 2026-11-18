@@ -24,7 +24,20 @@ mcw/mobs/<id>/mob.json      info (stats as the client names them: level, maxHP, 
                             origin (the mob's feet, in the PNG), lt/rb (body box) and head relative to the feet,
                             delay (ms), n (the client's frame number), same (a reused picture: stand_0 = move_0)
 mcw/mobs/<id>/<anim>_<n>.png  one frame, RGBA, facing LEFT (flip for right): the client's canvas as is, n = 0..count-1
+mcw/items/items.npz         what a DROP shows (PLAN-loot.md): every distinct item picture = info/iconRaw of every
+                            Etc / Use / Setup item and equip + the 4 meso sizes x 4 frames (Special/0900.img
+                            09000000-3), BGRA packed: pix, start, hw, org, item (class id), f (meso frame), delay,
+                            n_feat / kept (the vote's features / usable ones), weak, cash (every id showing it is a
+                            cash-shop item: never drops, not searched). Read with gamedata.load_items()
+mcw/items/items.json        id -> name, kind, w, h, o (file origin), g (its picture), same (+ same_f): the picture
+                            class's id = the meso's if a meso frame shows it, else the lowest id; weak; link (the item
+                            whose picture a UOL borrows: 257 scroll-family items); mesos: frames [{g, w, h, o, delay}]
 ```
+Items (2026-11-17 build): 5,016 ids (4,755 with their own picture + 257 by a link + 4 meso sizes), 5,028 pictures ->
+4,601 distinct; 24 `weak` (< 16 usable 2x2 features: see-through glasses / wings / "Transparent ..." items, Piece of
+Ice, 3 with no opaque pixel at all) - the finder cannot vote for those; 2,750 cash-shop equips (info/cash) = 2,675
+cash-only pictures, not searched -> 1,920 pictures searched. Skipped by the export: 1 nameless cash weapon
+(01702302) whose iconRaw links to a canvas the client lacks; 0900.img's 09000004-7 (not the 4 meso sizes).
 
 Ids are the client's without the zero padding: map `000000042` -> 42, mob `0000002` -> 2 (Snail 2, Blue Snail 3,
 Red Snail 5; maps 40/41/42 = Snail Hunting Ground I/II/III). Names come from the client's `String` data.
@@ -42,9 +55,9 @@ x1.00, width x0.98, 1 px). The live Snail matches `hit1_0.png` exactly.
    ```
    -> `C:\Users\Yoav\dev\cw-data\export`: every map and mob as XML, every minimap and mob frame as PNG (links
    resolved). Key `WzMapleVersion.BMS`; mobs are in the encrypted pack `Packs\Mob_00000.ms`.
-3. **Build** (~7 s): `..\auto-maple\.venv\Scripts\python -m maplebrain assets build` -> `assets/mcw`, rebuilt from
+3. **Build** (~7 s): `.venv\Scripts\python -m maplebrain assets build` -> `assets/mcw`, rebuilt from
    scratch next to the old one and swapped in; prints and writes `changes.txt`.
-4. `..\auto-maple\.venv\Scripts\python -m pytest`, then commit `assets/mcw` (it's in git: the diff shows the patch).
+4. `.venv\Scripts\python -m pytest`, then commit `assets/mcw` (it's in git: the diff shows the patch).
 
 ## After a game patch
 
@@ -57,4 +70,4 @@ what the bot was tuned on. Do steps 1-4, then **read `changes.txt`** (and `git d
 - If the export itself fails: HaRepacker may need an update for a new client format/version (report the error).
 - Then a short live run on the farming map before longer sessions.
 
-Drops (loot) need no assets: they're found by how they bob on the ground (`maplebrain/perception/drops.py`).
+Drops (loot): found by their exact client picture (`mcw/items`, PLAN-loot.md); nothing on the live path reads them yet.

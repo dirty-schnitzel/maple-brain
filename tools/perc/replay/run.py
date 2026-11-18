@@ -16,7 +16,7 @@ out in a worktree and run its own copy) - every ref before the old perception's 
 such a ref: its replays are the gate's cache (RUN/replay/fp_*), or a worktree of it.
 
 One line per saved frame: {"n", "frame", "t", "cam", "cam_src", "me", "me_map", "map_pos", "mobs": [Track.as_dict],
-"scene_cam", "patches", "fit", "fit_ms", "fit_hints" (FrameFacts v3), "ms"}.
+"scene_cam", "patches", "fit", "fit_ms", "fit_hints" (FrameFacts v3), "drops", "drops_ms" (v5), "ms"}.
 Frames are saved every 3rd tick, so the replay runs at ~1/3 of the live rate: its tracks are close to the live
 run's (compare.py --live), not equal; two replays of the same code are equal row by row.
 """
@@ -114,7 +114,7 @@ def replay(run: Path, map_id: int, frames: list, out: Path) -> dict:
                                 "scene_cam": getattr(obs, "scene_cam", None),
                                 "patches": getattr(getattr(per, "facts", None), "patches", None),
                                 **{k: getattr(getattr(per, "facts", None), k, None)
-                                   for k in ("fit", "fit_ms", "fit_hints")},
+                                   for k in ("fit", "fit_ms", "fit_hints", "drops", "drops_ms")},
                                 "ms": dict(getattr(per, "parts", None) or {})}) + "\n")
     return {"frames": len(frames), "seconds": round(time.perf_counter() - t_start, 1),
             "stats": dict(getattr(per.world, "stats", {}) or {})}

@@ -58,7 +58,7 @@ capture 1366x768 (native, no resize) -> upload once (GPU)
 | Mob health | HP bar fill + damage numbers vs the client's maxHP (later) | - |
 | Other players, our pet | name tags -> body boxes; pet sprites from the client (Item/Pet) | occluders, never mobs |
 | Effects, speech bubbles | whatever D shows that no sprite explains = "covered here" | no class needed |
-| Drops | item icons from the client (later, with loot) | - |
+| Drops | item icons from the client: perception/drops.py (PLAN-loot.md, 2026-11-17: FrameFacts v5 `drops`, in shadow) | resting ones, pixel-exact |
 
 ### Evidence, not timeouts (tracker)
 - SEEN -> update. COVERED (something else is drawn over the predicted body) -> hold, position from the motion model;

@@ -37,6 +37,8 @@ class Perception:
                                     # camera's seed); every tick otherwise (step 2.6)
     lie_gpu: bool = True            # the Lie Detector look on the uploaded frame (liedetector.GpuLieLook, ~3.5 ms each
                                     # `every_s`) instead of the CPU thread (step 2.8)
+    drops: bool = True              # drops on the ground (perception/drops.py, PLAN-loot.md; in shadow: FrameFacts.drops,
+                                    # nothing reads them): a CUDA graph beside the fit, on clean maps
 
 
 @dataclass

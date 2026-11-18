@@ -1,0 +1,798 @@
+{
+"by": "Claude, by eye on runs/loot_labels/sheet_false_labels.png (S6, 2026-11-17)",
+"what": "every REST sighting the first eval called FALSE, looked at: all 66 are real resting drops the blind labels missed (edge-on coins, items at characters' feet, lower pile items, drops beside the quickslots). They count as labelled drops for FALSE (not false) but never in recall (found by construction).",
+"cases": [
+{
+"frame": "154819_1/000372.png",
+"box": [
+-5,
+275,
+23,
+24
+],
+"item": 9000000,
+"verdict": "drop",
+"note": "was unlabelled"
+},
+{
+"frame": "154819_1/000960.png",
+"box": [
+647,
+512,
+30,
+27
+],
+"item": 4000019,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "154819_1/001110.png",
+"box": [
+745,
+515,
+32,
+31
+],
+"item": 2060000,
+"verdict": "drop",
+"note": "was unlabelled"
+},
+{
+"frame": "154819_1/002106.png",
+"box": [
+762,
+425,
+32,
+34
+],
+"item": 4000063,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "154819_1/002154.png",
+"box": [
+762,
+477,
+32,
+34
+],
+"item": 4000063,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "154819_1/002241.png",
+"box": [
+597,
+331,
+23,
+24
+],
+"item": 9000001,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "084844_2/002289.png",
+"box": [
+1033,
+233,
+31,
+26
+],
+"item": 4000017,
+"verdict": "drop",
+"note": "was mobpart; a dropped Stirge Wing lying at map (884, ~1730) for 1.2 s (traced) while live Stirges fly past"
+},
+{
+"frame": "084844_2/002301.png",
+"box": [
+751,
+483,
+25,
+24
+],
+"item": 9000000,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "084844_2/002301.png",
+"box": [
+976,
+232,
+31,
+26
+],
+"item": 4000017,
+"verdict": "drop",
+"note": "was mobpart"
+},
+{
+"frame": "085108_3/001056.png",
+"box": [
+786,
+554,
+23,
+24
+],
+"item": 9000000,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "085108_3/001326.png",
+"box": [
+544,
+685,
+23,
+24
+],
+"item": 9000000,
+"verdict": "drop",
+"note": "was drop-free frame"
+},
+{
+"frame": "085215_4/000465.png",
+"box": [
+558,
+466,
+31,
+26
+],
+"item": 4000017,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "085215_4/000801.png",
+"box": [
+697,
+469,
+31,
+26
+],
+"item": 4000017,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "085215_4/000816.png",
+"box": [
+697,
+472,
+31,
+26
+],
+"item": 4000017,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "092718_1/004644.png",
+"box": [
+177,
+241,
+25,
+24
+],
+"item": 9000000,
+"verdict": "drop",
+"note": "was unlabelled"
+},
+{
+"frame": "094333_1/004998.png",
+"box": [
+913,
+-7,
+30,
+27
+],
+"item": 4000019,
+"verdict": "drop",
+"note": "was unlabelled"
+},
+{
+"frame": "094333_1/005670.png",
+"box": [
+175,
+498,
+25,
+25
+],
+"item": 2002003,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "094333_1/005832.png",
+"box": [
+314,
+309,
+27,
+27
+],
+"item": 2000001,
+"verdict": "drop",
+"note": "was unlabelled"
+},
+{
+"frame": "094333_1/006588.png",
+"box": [
+451,
+218,
+27,
+27
+],
+"item": 2000001,
+"verdict": "drop",
+"note": "was unlabelled"
+},
+{
+"frame": "094333_1/006666.png",
+"box": [
+444,
+296,
+27,
+27
+],
+"item": 2000001,
+"verdict": "drop",
+"note": "was unlabelled"
+},
+{
+"frame": "094333_1/007473.png",
+"box": [
+526,
+321,
+25,
+24
+],
+"item": 9000000,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "094333_1/008247.png",
+"box": [
+400,
+151,
+25,
+25
+],
+"item": 2002003,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "094333_1/008331.png",
+"box": [
+368,
+261,
+25,
+25
+],
+"item": 2002003,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "111248_1/000708.png",
+"box": [
+595,
+453,
+30,
+27
+],
+"item": 4000019,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "111248_1/001977.png",
+"box": [
+761,
+452,
+27,
+27
+],
+"item": 2000001,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "111248_1/001977.png",
+"box": [
+752,
+456,
+5,
+24
+],
+"item": 9000000,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "111248_1/002121.png",
+"box": [
+695,
+449,
+27,
+27
+],
+"item": 2000001,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "111248_1/002121.png",
+"box": [
+303,
+465,
+23,
+24
+],
+"item": 9000001,
+"verdict": "drop",
+"note": "was unlabelled"
+},
+{
+"frame": "111248_1/002829.png",
+"box": [
+907,
+667,
+26,
+26
+],
+"item": 4000020,
+"verdict": "drop",
+"note": "was window"
+},
+{
+"frame": "111248_1/003231.png",
+"box": [
+902,
+670,
+30,
+27
+],
+"item": 4000019,
+"verdict": "drop",
+"note": "was window"
+},
+{
+"frame": "111248_1/003231.png",
+"box": [
+850,
+672,
+26,
+26
+],
+"item": 4000020,
+"verdict": "drop",
+"note": "was window"
+},
+{
+"frame": "111248_1/003579.png",
+"box": [
+886,
+671,
+30,
+27
+],
+"item": 4000019,
+"verdict": "drop",
+"note": "was window"
+},
+{
+"frame": "111248_1/004008.png",
+"box": [
+894,
+668,
+26,
+26
+],
+"item": 4000020,
+"verdict": "drop",
+"note": "was window"
+},
+{
+"frame": "111248_1/004008.png",
+"box": [
+632,
+465,
+30,
+27
+],
+"item": 4000019,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "111248_1/004008.png",
+"box": [
+616,
+460,
+23,
+24
+],
+"item": 9000001,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "111248_1/004113.png",
+"box": [
+907,
+670,
+26,
+26
+],
+"item": 4000020,
+"verdict": "drop",
+"note": "was window"
+},
+{
+"frame": "111248_1/004113.png",
+"box": [
+645,
+465,
+30,
+27
+],
+"item": 4000019,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "111248_1/004113.png",
+"box": [
+712,
+462,
+5,
+24
+],
+"item": 9000000,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "111248_1/004149.png",
+"box": [
+907,
+667,
+26,
+26
+],
+"item": 4000020,
+"verdict": "drop",
+"note": "was window"
+},
+{
+"frame": "111248_1/004149.png",
+"box": [
+645,
+468,
+30,
+27
+],
+"item": 4000019,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "111248_1/004320.png",
+"box": [
+907,
+672,
+26,
+26
+],
+"item": 4000020,
+"verdict": "drop",
+"note": "was window"
+},
+{
+"frame": "111248_1/004320.png",
+"box": [
+645,
+469,
+30,
+27
+],
+"item": 4000019,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "111248_1/004455.png",
+"box": [
+889,
+672,
+26,
+26
+],
+"item": 4000020,
+"verdict": "drop",
+"note": "was window"
+},
+{
+"frame": "111248_1/005067.png",
+"box": [
+852,
+673,
+30,
+27
+],
+"item": 4000019,
+"verdict": "drop",
+"note": "was window"
+},
+{
+"frame": "111248_1/005613.png",
+"box": [
+963,
+296,
+5,
+24
+],
+"item": 9000000,
+"verdict": "drop",
+"note": "was unlabelled"
+},
+{
+"frame": "111248_1/005802.png",
+"box": [
+900,
+350,
+5,
+24
+],
+"item": 9000000,
+"verdict": "drop",
+"note": "was unlabelled"
+},
+{
+"frame": "111248_1/005802.png",
+"box": [
+486,
+354,
+5,
+24
+],
+"item": 9000001,
+"verdict": "drop",
+"note": "was unlabelled"
+},
+{
+"frame": "111248_1/006543.png",
+"box": [
+306,
+465,
+26,
+26
+],
+"item": 4000020,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "111248_1/006543.png",
+"box": [
+516,
+268,
+26,
+26
+],
+"item": 4000020,
+"verdict": "drop",
+"note": "was unlabelled"
+},
+{
+"frame": "111248_1/006567.png",
+"box": [
+47,
+260,
+5,
+24
+],
+"item": 9000001,
+"verdict": "drop",
+"note": "was unlabelled"
+},
+{
+"frame": "111248_1/007254.png",
+"box": [
+1066,
+469,
+26,
+26
+],
+"item": 4000020,
+"verdict": "drop",
+"note": "was unlabelled"
+},
+{
+"frame": "111248_1/007647.png",
+"box": [
+691,
+467,
+30,
+27
+],
+"item": 4000019,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "012059_1/002106.png",
+"box": [
+693,
+466,
+30,
+27
+],
+"item": 4000019,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "012059_1/002853.png",
+"box": [
+905,
+455,
+26,
+26
+],
+"item": 4000020,
+"verdict": "drop",
+"note": "was unlabelled"
+},
+{
+"frame": "012059_1/003060.png",
+"box": [
+594,
+466,
+30,
+27
+],
+"item": 4000019,
+"verdict": "drop",
+"note": "was window"
+},
+{
+"frame": "012059_1/003060.png",
+"box": [
+844,
+455,
+26,
+26
+],
+"item": 4000020,
+"verdict": "drop",
+"note": "was unlabelled"
+},
+{
+"frame": "012059_1/003156.png",
+"box": [
+889,
+473,
+5,
+24
+],
+"item": 9000000,
+"verdict": "drop",
+"note": "was unlabelled"
+},
+{
+"frame": "012059_1/007365.png",
+"box": [
+569,
+322,
+26,
+26
+],
+"item": 4000020,
+"verdict": "drop",
+"note": "was mobpart"
+},
+{
+"frame": "012059_1/008223.png",
+"box": [
+730,
+271,
+30,
+27
+],
+"item": 4000019,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "012059_1/008223.png",
+"box": [
+228,
+500,
+30,
+27
+],
+"item": 4000019,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "012059_1/008223.png",
+"box": [
+709,
+262,
+32,
+31
+],
+"item": 2061000,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "012059_1/008223.png",
+"box": [
+261,
+508,
+5,
+24
+],
+"item": 9000000,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "012059_1/008742.png",
+"box": [
+262,
+274,
+5,
+24
+],
+"item": 9000000,
+"verdict": "drop",
+"note": "was unlabelled"
+},
+{
+"frame": "012059_1/009873.png",
+"box": [
+267,
+448,
+5,
+24
+],
+"item": 9000001,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "012059_1/010521.png",
+"box": [
+756,
+554,
+30,
+27
+],
+"item": 4000019,
+"verdict": "drop",
+"note": "was worn"
+},
+{
+"frame": "012059_1/010626.png",
+"box": [
+706,
+375,
+5,
+24
+],
+"item": 9000001,
+"verdict": "drop",
+"note": "was unlabelled"
+}
+]
+}

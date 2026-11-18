@@ -135,11 +135,240 @@ Fitter.look feeding world.py. ~8,000 lines out.
   from 58d266e was still running idle: it imports modules lazily at F7, so restart it (the new command has none of
   those flags) before hunting on this branch.
 - NEXT: the user's live check - ONE short hunt (~2-3 min, Ant Tunnel IV, the usual spot, `watch` running):
-  `..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\v2 --frames-png` (restart serve first), F7 / F8.
+  `.venv\Scripts\python -m maplebrain serve runs\v2 --frames-png` (restart serve first), F7 / F8.
   Look for: `scene camera + fit: ...` at load, the hunt runs as 3.4's (runs/v2/20261117_094333_1), the log's
   `scene camera: paused N time(s)` (expected 1 = the start's "not found yet"; any mid-hunt pause -> its ticks /
   frames), the speed line (3.4: 16 ms p50). Optional: F7 on a Perion map -> `NOT STARTED: ... no clean scene`.
   Then step 4 (the tracker redesign) as a Fable-max plan session (PLAN-perception.md step 4).
+
+## Loot rework part 1: PERCEIVE drops - PLAN-loot.md OK'd by the user 2026-11-17 (branch `loot`)
+**START HERE for loot work: part 1 (perceive drops) DONE - Sessions 1-3, every gate met, the user's live minute
+passed 2026-11-18; drops are in FrameFacts v5, nothing reads them yet; next = part 2 (use them).** Branch `loot`, checked out in maple-work (the maple-loot
+worktree was removed 2026-11-18, the user's call; `data` waits on its own branch).
+### Session 3 result (2026-11-17/18): the product in shadow, S7-S9 - EVERY GATE MET
+- **S7** `maplebrain/perception/drops.py` DropFinder: items.npz (1,920 pictures: not weak, not cash) -> vote.Voter
+  (tints off, new `fades=False`: no fade / pair tables); the pass = ONE CUDA graph on its own stream: `launch` copies
+  frame / expected / known / world mask / the front planes (Scene.layers >= 128, stacked per map, cropped at C) on the
+  side stream and replays; `fetch` waits, downloads one tensor, picks on the CPU (the reference's pick: greedy by
+  SEEN, under / front / mob / ring with fit mobs + character boxes, lootlib's foothold rule, kinds as amended). ABSENT
+  is counted without front and per layer slot (8) in the graph, front bits per pixel. Build 0.5 s + capture.
+- **A design point proved wrong on the data (S7's "every catalogue picture found alone"), fixed - the user may veto:**
+  the plan's graph table (keys in <= 8 places only) left 4 pictures unfindable even alone (Tobi / Mokbi Throwing
+  Stars 3 votable features of the reference's 54 / 44, Black Gomushin 4 / 64, Black Cloth Vest 15 / 68; p1 over all
+  pictures 26). MAXP 16: 1 still missed, +0.57 ms GPU. Cutting those keys' rows to 8 places (neediest pictures
+  first): a hat read as its near-twin (wrong identity) -> reverted. **Kept: a second pool in the same graph** - the
+  features whose key is in > 8 places (7,481 keys, <= 64 places = the reference's table) get NF2 = 4,096 slots x 64
+  places (cells sorted a frame 393 k -> 655 k). -> 1,920 / 1,920 found alone, REST, class + box exact. No rule changed.
+- tests/test_drops.py (3): fixture (40 frames) = the reference's facts on every frame (votes aside), REST 50 / 50,
+  0 false, 0 wrong, feet exact 73 / 73, drop-free frames empty; the catalogue alone 1,920 / 1,920.
+- **S8** one DropFinder per process (`Rig.drops`, built + `warm()` in runner._load_map at the first clean map; every
+  kit's `MapKit.drops`); `set_map` per Perceiver (footholds + front planes, cached per map); launched right after
+  `expected()`, fetched after world.update (needs fit.taken + the tags); part `drops` = launch + fetch + pick (the
+  launch kept out of the next part); `_world_ui` now shared by the fit and the drops; FrameFacts **v5** `drops` +
+  `drops_ms` {launch, fetch, pick, feat, feat2, cands}; config `perception.drops` (default on); replay rows carry both.
+  Nothing reads them.
+- **S9 gates:**
+      gate.py, 6 clips (drops on)                 SAME tracks (100.0 / 100.0 found everywhere, camera exact)  MET
+      synth drops_s1 (385 frames), product        REST 2,053 / 2,057 = 99.81 %, 0 false, 0 wrong of 2,508,     MET
+                                                  feet exact 2,508 / 2,508 - drop_eval's output = the reference's
+                                                  line by line; fixture 50 / 50, 0 false, 0 wrong, 73 / 73
+      labels, rows made by the Perceiver itself   REST 629 / 631 = 99.68 %, 0 false REST, 0 wrong of 789,      MET
+      (tools/loot/drops_replay.py)                0 of 36 flights / hops REST = Session 2's; same 2 misses
+      the 9 recordings (14,962 frames; the        facts identical on 14,962 / 14,962 (votes aside), REST sets  MET
+      reference run on each tick's own inputs)    equal on all (70,610 REST sightings each); differences: none
+      cost: bench A/B off / on, +<= 1.0 ms p90    perceive p90 on - off: busy +0.46, steam +0.59, line1 +0.41, MET
+      (tools/loot/bench_drops.py, 2026-11-18:     ant4 -1.23 (noise); p50: +1.02 / +0.36 / +0.76 / +0.57.
+      game up, P-cores, 3 rounds alternating,     busy (12 drops a frame) off 12.95 / 14.88 -> on 13.97 / 15.34
+      150 frames a clip, nothing else of ours)    part drops p50 / p90: busy 0.90 / 1.00 (launch 0.29 / 0.39,
+                                                  fetch 0.12 / 0.13, pick 0.44 / 0.50), steam 0.50 / 0.90,
+                                                  line1 0.60 / 0.70, ant4 0.60 / 1.00. self_wide is 0.4-0.8 ms
+                                                  lower with drops on (the GPU pass overlaps its wait) - so on -
+                                                  off is below the part's own ms.
+  Main-thread parts before the gate (unpinned, game down, 1 round, busy stretch 094333_1 t 100-140, 12 drops a frame):
+  launch 0.28 / 0.35, fetch 0.12 / 0.13, pick 0.43 / 0.49 ms p50 / p90 (part `drops` 0.90 / 1.00). The first pick
+  was 0.86 / 1.05 (per-drop numpy on two padded planes): now an accepted drop's taken / drawn pixels are laid out only
+  for a later candidate whose box + ring meets its box, the ring bits come as "ring and not known / not explained",
+  the mob window is read only where a fit mob's box touches it (Perceiver passes the hits' boxes) - same numbers.
+  Fixed sizes on the 14,962 frames: features p50 13,307 / p99 27,377 / max 33,844 (NF 49,152: 0 over); second pool
+  p50 1,255 / p99 2,670 / max 4,164 (NF2 4,096: 1 frame over, 092718_1 006306 - its facts still = the reference's);
+  cells >= 16 votes p50 6 / p99 21 / max 35 (NC 64).
+- Open points: the ring bar vs a skill effect (111248_1 005613) stays (the user: transient - REST on 143 of the
+  item's 172 rows, weak only while the effect is behind it). **Two rule fixes approved by the user 2026-11-18**
+  (product + reference alike, tests/test_drops.py still product = reference):
+  (1) foothold = the one NEAREST the drop's bottom among those at / below bottom - 14 (was the topmost: on stairs the
+  step 13 px above won); (2) a second look after the greedy pick: under / front / ring of each accepted drop again with
+  EVERY other accepted drop (the pick knew only the earlier ones: 012059_1 002895's Charm under a later, smaller
+  edge-on coin read weak) - kinds only go weak -> REST, the accepted set never changes. Why (1) although looting the
+  top item reveals the rest: the user wants to know a big pile is there (later human-like loot behaviour).
+  After the fixes:   synth REST 2,057 / 2,057 = 100 % (was 2,053: clear +1 = stairs, pile +3), 0 false, 0 wrong,
+                     product eval = reference eval line by line (eval_fix2.log / eval_product_fix2.log)
+                     labels REST 630 / 631 = 99.84 % (the coin's Charm fixed; left: the skill effect), 0 false REST,
+                     0 wrong of 789, 0 / 36 flights / hops (runs/loot_labels/eval_fix2.log)
+                     9 recordings: facts identical on 14,962 / 14,962, REST sets equal (70,826 each, was 70,610)
+                     gate.py SAME on 6 clips (gate_fix2.log); pytest green, bot speed 15.1 ms (p90 17.2; drops 0.7)
+                     cost (bench_fix2.log, game up, pinned, 3 rounds): p90 on - off busy +0.60, steam -0.06, line1
+                     +0.41, ant4 -0.90 (gate +1.0: MET); busy pick 0.58 / 0.65 (was 0.44 / 0.50: the second look on
+                     piles), part drops 1.00 / 1.30.
+- Outputs: runs/loot_labels/replay_product/ (per frame product + reference), finder_product.jsonl, eval_product.log,
+  gate_s3.log; runs/synth/drops_s1/eval_product.log.
+- pytest green (+ tests/test_drops.py 3, test_facts v5); bot speed 15.4 ms (p90 17.4; part `drops` 0.7; Session 2:
+  13.0 - unpinned, machine state; baseline 18.4, not re-baselined).
+- **Live minute (the user, 2026-11-18, `serve --observe --frames-png`, Ant Tunnel IV, runs/manual/20261118_140357_1):
+  PASSED.** 2,871 ticks at 54.9 fps, drops on every tick, no errors; part drops 0.6 / 0.8 ms p50 / p90 (launch 0.29
+  / 0.41, fetch 0.12 / 0.13, pick 0.15 / 0.27), perceive 14.0 / 16.0, tick 16 / 18 ms; sizes far under the fixed
+  ones (features max 26,017 / 49,152, second pool 2,220 / 4,096, cells 8 / 64). The 957 saved frames replayed:
+  product = reference on 957 / 957 (1,138 REST sightings each), and the live facts = the replay's on 957 / 957.
+  By eye (runs/loot_labels/live1_sheet.png): REST = coins, potions, arrows, 4000019 resting on the ground; weak =
+  coins in flight, worn gear (a hat, a top), items behind skill effects / windows / the minimap / the screen edge.
+  The frames were deleted after the check (the user's call; log + ticks kept).
+- **NEXT:** part 2 (use the drops).
+### Session 2 result (2026-11-17): by-eye labels, S5-S6 - GATE MET
+- **S5** tools/loot/labels/pick.py (pick / sheets / legend / build / zoom / check; README = its docstring): 201 frames
+  over all 9 native recordings (84 even + 26 kill + 22 pickup + 23 pile + 19 covered + 16 drop-free + 8 player + 3
+  open inventory; find_v4 only to FIND hard moments). Sheets = the scene's residue blobs (frame vs expected, minus the
+  mob fit's explained pixels; never the finder's boxes), 3,231 lettered, 93 pages (runs/loot_labels/pages). My
+  judgments: tools/loot/labels/judgments.txt; built -> RUN/loot/labels.json + tools/loot/labels/<run>.json: **757
+  drops** (613 clear, 18 pile >= 50 %, 12 pile < 50 %, 19 front, 6 effect, 5 ui, 5 covered, 3 edge, 1 cover, 1
+  mob over it, 28 flight, 8 pickup, 38 unsure) + **746 not-drop regions** (509 worn = characters, 96 mob parts, 53
+  windows incl. the open inventory / quickslots / chat window / a pet tooltip, 88 other); 46 drop-free frames (every
+  map). No section-13 recording exists yet (none in runs/play after 092718_1).
+  Position = my named item snapped to its exact place in my blob (share of its opaque pixels = `vis`); motion = the
+  same map place in >= 2 of the frames +-0.3 / 0.6 s (a single frame cannot show it).
+- **S6** synth_find.py `labels` (the prototype with the live inputs on the labelled frames: find_v4's registered
+  camera, expected scene, world mask, the mob fit, our + players' tag boxes, front planes, footholds) ->
+  runs/loot_labels/finder_labels.jsonl; drop_eval.py `labels` (feet within 3 / 8 px, own class first; identity by
+  items.json `same`); drop_sheet.py `labels`. **Gate (section 7.3 as amended):**
+      gated visible resting (clear + pile >= 50 %)   REST 629 / 631 = 99.68 %    MET (>= 99 %)
+      FALSE REST                                     0                           MET (509 worn, 96 mob-part, 53
+                                                                                 window, 88 other regions; 46
+                                                                                 drop-free frames)
+      identity                                       0 wrong of 789 found        MET
+      flights / pickup hops read REST                0 of 36                     MET
+  Look-alike sightings the finder made, all weak: 44 window icons, 17 worn, 3 on drop-free frames, 18 elsewhere.
+  Not gated: pile < 50 % 12/12 REST, front 17/19, effect 4/6, ui 1/5, covered 2/5, edge 1/3, unsure 7/38 REST (the
+  7 are at the resting height: landing / pickup instants), flight 0/28, pickup 0/8.
+- **The 2 gated misses** (runs/loot_labels/sheet_miss_final.png): a Charm in front of a player's white skill effect
+  (111248_1 005613: ring 4 / 507 < 0.1 -> weak: the user's ring bar), a Charm under an edge-on gold coin (012059_1
+  002895: SEEN 282 / 393, u 0.26 -> weak: "under an accepted drop" depends on the pick order - Session 1's open point).
+- **Label errors found and fixed on the way (honest count):** the first eval read 66 FALSE REST; every one looked at
+  (runs/loot_labels/sheet_false_first_eval.png): **all 66 are real resting drops my blind labels missed** (edge-on
+  coins 5 px wide, items at characters' feet / beside the quickslots that I marked as worn / window regions, pile
+  members) -> tools/loot/labels/adjudicated.json, graded as `added` (not false, never in recall; 65 / 66 REST). Also
+  fixed by the snap / motion checks: edge-on coin colours (bronze <-> gold) in 5 frames, rest / flight calls after
+  tracing (52E, 69J, 94F, 190J, 190K, 169L move; 169N rests), 3 items that were not there (101B, 168F = a Zombie
+  Mushroom's talisman, 169A). 38 "clear" by eye turned
+  out to move between frames (31 of them 24-252 px above the foothold) -> `unsure`, not graded.
+- Open for Session 3 (unchanged): pick order for "under an accepted drop" (1 gated miss), the ring bar vs skill
+  effects (1 gated miss), foothold lookup on stairs.
+- pytest green (tools only: nothing in maplebrain/ changed); bot speed 13.0 ms (p90 14.5; baseline 18.4).
+### Session 1 result after the user's amendments (2026-11-17; PLAN-loot.md "AMENDED")
+The user, on the stop report: the 3 confused hat / shades pairs are NX items ("no way they are floating on the
+floor"), AIR isn't needed -> (1) cash-shop items not searched (info/cash: 2,750 equips, 2,675 cash-only pictures;
+1,920 searched instead of 4,577; export + build carry `cash`), (2) kinds REST / weak only, (3) REST needs ring >= 0.1
+(>= 60 known ring px; else pass). Synth regenerated: drops only from pictures that can drop (worn gear and window
+icons still use cash items). **S4 on synth (runs/synth/drops_s1, 385 frames): gated REST 2,053 / 2,057 = 99.81 %,
+FALSE 0 (410 window icons, 74 worn, 123 Stirges, 50 drop-free frames), identity 0 wrong of 2,508, feet exact on
+2,508 / 2,508 -> GATE MET; fixture (40 frames) MET too.** Reported: effect 0 % REST (92 none, 15 weak: digits over
+them), ui 13.6 %, edge 74 %, front 91.2 %, pile < 50 % 7 / 10, flights read REST 2 / 107 (another foothold just below
+them: dy -6 / +1), weak pictures 0 / 6. Gated misses: 1 clear on a stair (dy 11: the foothold lookup takes a step
+above), 3 pile items weak (the drop over them accepted after them). Finder build 0.7 s (1,920 pictures, 668 k table
+entries). pytest green; bot speed 14.8 ms (p90 16.9).
+Open for Session 2 / 3: the foothold lookup (topmost at / below bottom - 14 -> nearest to the bottom), the pick
+order for "under an accepted drop" - both minor, the user's call when labels show them.
+### Session 1 state BEFORE the amendments (kept for the numbers): S1-S3 DONE, S4 gate NOT MET
+- **S1 DONE** tools/cwdata/export.ps1 item section: `Item\png\<id>_raw.png` (iconRaw only), mesos 09000000-3 x 4
+  frames, `Item\items.json` (kind, name, raw [w, h, ox, oy], link); 257 UOL links resolved (256 via LinkValue, 1 =
+  02023002 "icon" = its own sibling, via the parent). Skipped and listed: 1 nameless cash weapon 01702302 (iconRaw
+  _inlinks to an info/icon the client lacks); 0900.img's 09000004-7 (a face coin, red glowing coins, a bronze copy:
+  not the 4 meso sizes). Also fixed: the UI section failed on 32 AntiMacro pictures (folder 'emphasis ' with a
+  trailing space; Windows drops it) - the export exits 0 again (~55 s). The plan session's draft output moved to
+  `cw-data\export\ItemDraft` (export_items.ps1's default now; lootlib.Items reads it; the synth's window icons need
+  its `icon`s).
+- **S2 DONE** `assets build` -> assets/mcw/items/items.npz (2.0 MB) + items.json (+ manifest, changes.txt "items:"
+  line, assets/README.md); `gamedata.load_items()` / `ItemPictures`, `item_classes`, `item_features`. **Gate: 5,028
+  pictures = 4,771 + 257 linked; 4,601 distinct** = the plan's 4,597 (it counted only pictures with >= 30 opaque px:
+  3 have none - 1392000, Free Spirit, Transparent Item) + 1 picture only a link has (Inkwell's Blessing). **24 weak**
+  (< 16 usable features): Transparent Hat, Transparent Face Accessory, Fu Manchu, Blue / Purple Aviator Shades,
+  Frameless Glasses, Transparent Eye Accessory, Nerdy Glasses, Round Shield Shades, Pink Aviator Sunglasses, Flat
+  Mini Glasses, Black Suit Pants, Old School Uniform Skirt, Transparent Gloves, Blue / Green / Yellow / Pink Nymph
+  Wing, 1392000, Kumbi Throwing Stars, Free Spirit, Arwen's Glass Shoe, Transparent Item, Piece of Ice.
+  tests/test_items.py (5).
+- **S3 DONE** tools/loot/synth_drops.py (README = its docstring): bases = native recordings at find_v4's camera
+  with every moving thing erased (Ant Tunnel IV 154819_1, Dangerous Steam 084844_2, Line 1 085108_3, Transfer Area
+  085215_4); cases cat (the whole catalogue, 24 a frame), pile, mob, player, effect, ui, edge, flight, window (real
+  `icon`s on a panel with the real inventory's slot colours), worn, mobpart (Stirges), free. Full set
+  runs/synth/drops_s1 (496 frames, 5,303 drops, all 4,601 pictures, 571 not-drops, 337 MB; ~95 s); fixture
+  tests/fixtures/synth_drops (40 frames, crops + exp + masks, 6.2 MB; tests/test_synth_drops.py: complete, clear
+  drops = the picture 1:1, drop_eval scores the truth 100 % / 0 false). tools/loot/drop_eval.py (two-pass matching:
+  own class within 3 / 8 px first, then overlap = wrong identity), tools/loot/synth_find.py (the prototype per frame
+  with the live inputs: expected, world mask, the mob fit's explained pixels, character boxes, front planes,
+  footholds; the fixture run also stores the fit's pixels in masks_fit.npz), tools/loot/drop_sheet.py (pictures).
+  Found + fixed in my tool on the way: real drops chained into our kept blob stayed in 15 bases (all confirmed in
+  find_v4) -> each find_v4 sighting is erased explicitly.
+- **S4 "before"** (dropvote.py now reads items.npz by default: 4,577 searchable pictures = 4,601 - 24 weak; kinds +
+  facts of sections 5 / 8 in `facts` / `kind_of`; cand_votes 16), `synth_find.py runs\synth\drops_s1` +
+  `drop_eval.py ... --list all --misses misses_before.json`:
+      gated visible resting (clear / mob / player / pile >= 50 %, nothing over them)  REST 4,333 / 4,344 = 99.75 %  MET
+      position: 5,083 / 5,083 found exactly at the box                                                     MET
+      0 REST / AIR on 119 Stirges (mob parts), 83 worn, 50 drop-free frames                                MET
+      FALSE: 36 window icons = 27 REST + 9 AIR                                                         NOT MET
+      IDENTITY: 2 wrong of 5,085 found                                                                  NOT MET
+  Reported (not gated): effect 0 % REST (87 none, 12 weak), ui 26.7 %, edge 81.3 %, front 92.5 %, flight AIR 94.9 %
+  (6 read REST), pile < 50 % 2 / 6, weak pictures 0 / 24. Fixture: gated 52 / 52, 6 window REST, 0 wrong.
+  Pictures: runs/synth/drops_s1/sheet_false_before.png, sheet_wrong_before.png, sheet_miss_before.png (gated misses).
+- **Why it fails (design points proven wrong on synth - the user's call, nothing changed):**
+  1. **Window icons at the resting height pass REST** (27): a window draws `icon`, which holds every iconRaw pixel
+     (SEEN 1.00, u 0), and a slot row at a foothold's height has dy in -7..+5; their ring is 0 (the panel) but REST
+     has no ring bar (section 5/6: "not needed on this data"; the real 1,867 window icons never sat at a foothold).
+     A REST ring bar 0.05 / 0.1 / 0.2 / 0.3 (>= 60 known ring px) costs 0 of the 4,333 gated REST on synth (their
+     ring p1 0.88) and removes 27 / 27; section 6 on the real footage: 0.1 costs 0.5 %, 0.3 1.5 % of resting
+     sightings (drops in front of mobs / players).
+     **Window icons over UNKNOWN scenery pass AIR** (9: Transfer's animated objects, Steam's animated backs): ring
+     not measurable (< 60 known px) = pass. "AIR needs a measurable ring" would cost 1 of 112 found synth flights.
+  2. **Identity: 3 pairs of pictures have identical OPAQUE pixels** and differ only in soft-alpha ones, which the
+     vote and SEEN never use (Santa Hat / Rudolph Santa Hat, Prismatic / Crystal Blue Sun Cap, Blue / Purple Aviator
+     Shades - the last pair weak): the finder can't tell them apart; S2's classes are byte-identical canvases.
+     Classes by opaque pixels = 4,598 (the 2 wrong become right). Note Prismatic's canvas is 8 rows taller (soft
+     glow below): the box / feet of the merged class would be the representative's.
+  Minor, reported, not gated: 3 clear misses on stairs read AIR (dy 13 / 14 / 13: lootlib.Footholds.under takes
+  the TOPMOST foothold at / below bottom - 14, here a step 13 px above; nearest-to-bottom would fix it); 2 thin
+  shades (Orange / Black Shades, 39 / 62 usable features) not found; 4 pile items read weak because the drop over
+  them was accepted AFTER them (greedy by SEEN: "under an accepted drop" depends on the order).
+- pytest green (+ test_items, test_synth_drops); bot speed 14.0 ms (p90 15.4; baseline 18.4, not re-baselined:
+  nothing live changed).
+### Plan session summary (2026-11-17)
+**PLAN-loot.md "Session 1" (S1-S4); the prompt is in its section 14.** The user's answers
+(2026-11-17): the plan is OK; the capsule of its section 12 is another player's NX cosmetic, not loot; the three
+recordings of section 13 will come soon (none blocks Session 1).
+Plan session (Fable max; in parallel with the tracker plan session). **Nothing built in maplebrain/; nothing reads
+drops.** Branch `loot` off `perception-only`, checked out in its own worktree `C:\Users\Yoav\dev\maple-loot`
+(the tracker session was working in `maple-work`; `assets\scene` and `runs` there are junctions to maple-work's).
+Read PLAN-loot.md; the experiments are tools/loot/ (E-L0 .. E-L13), the tables runs/loot_plan/*_v4.txt, the
+per-frame results RUN/loot/find_v4.jsonl. In short (9 native PNG recordings, 14,962 frames, 5 maps):
+- **A resting drop is pixel-exact** (`info/iconRaw`, 1:1, opaque): the mob fit's vote with item pictures as poses
+  finds it. All 4,597 distinct pictures (Etc / Use / Setup / equips / meso frames) in one table: 0 wrong identity
+  with every picture pasted on real frames (99.45 % found; the misses = 28 see-through pictures); ~0.2 ms more
+  than a list of 11 items -> search every picture, no per-map list. Item pictures are NOT in the export yet
+  (tools/loot/export_items.ps1 is the draft: cw-data\export\Item; 257 items are links the draft skips).
+- A drop: x fixed, picture bottom 1..5 px below its foothold's y at the lowest point, bob 5-6 px with a 2.00 s
+  period; flight in 0.99 s (apex ~100 px; items spin, mesos don't), mob death -> rests 1.25 s p50; pickup = a
+  ~33 px hop toward the looter in ~0.4 s, then a short fade; drops are drawn OVER mobs and players, UNDER damage
+  digits, front scenery, windows / tooltips / chat bars. Expiry not seen (longest 122 s).
+- **Look-alikes** and the rule that drops them (0 of 3,893 sightings kept; 97.9 % of 51,016 resting-drop
+  sightings kept): worn equipment (icon = part of the worn sprite, SEEN <= 0.64) -> unexplained cover <= 0.2;
+  window icons (inventory, quickslots) -> the resting height (box bottom - foothold in -7..+5) / the ring around
+  the picture; an item that is part of a mob (Stirge Wing on a Stirge) -> the mob fit's explained pixels.
+  Scenery in FRONT of a drop is cover, not absence (a ladder post hid two drops for 123 frames: found by the
+  independent residue check, now a term). Kinds: REST (what a tracker starts from) / AIR (flight, pickup: hints) /
+  weak.
+- **Cost beside the fit** (pinned, only `watch` running): the whole pass as one fixed-size CUDA graph on its own
+  stream, launched before the fit and read after it: +0.6 .. +1.05 ms p90, same drops as the reference on 450 /
+  450 frames (tools/loot/dropgraph.py). A plain second vote: +3.4 ms; numpy on a reader thread: +3.7 ms.
+- FrameFacts v5 `drops` (proposed, in shadow): item class, box, feet, kind, the counts (seen / absent / under a
+  drop / under front scenery / mob), ring, foothold. first-seen = the tracker's.
+- **Open for the user:** three recordings (section 13: expiry with the pet off, own pickups, windows over
+  drops).
+- 3 Opus sessions in the plan (data + synthetic truth; by-eye labels; the product in shadow), prompts inside.
 
 ## Earlier START HERE: DELETE THE OLD PERCEPTION (the user, 2026-11-17, after 3.4's live hunt)
 The user: "completely delete the old perception from code, no fallbacks, we continue with new perception
@@ -1218,7 +1447,7 @@ for the spot first (memory "no scripted input in public": the Ant Tunnel probe g
 of normal hunting on Ant Tunnel IV are fine after the user's OK.
 
 **The speed regression test (S0 below) - how to use it:**
-- Every `pytest` run (the venv: `..\auto-maple\.venv\Scripts\python -m pytest`) ends with a `bot speed` section:
+- Every `pytest` run (the venv: `.venv\Scripts\python -m pytest`) ends with a `bot speed` section:
   `bot speed (replay, 40 frames): 15.8 fps, tick 63.1 ms (p90 73.6) = resize .. + perceive .. [gpu .., hud .., world
   .., self .., camshift .., locate .., scene ..] + brain .. | baseline 16.8 fps, tick 59.6 ms (2026-11-08)`.
   Look at it after EVERY change: it says "N % slower" past 10 %, "FASTER ... re-baseline" past 15 %.
@@ -1228,7 +1457,7 @@ of normal hunting on Ant Tunnel IV are fine after the user's OK.
   `machine` = host + GPU name; another PC needs its own `--baseline`). Takes ~20 s.
 - It runs `tools/perf/bench.py --json` in its OWN process (inside pytest, after the other GPU tests, it read ~17 %
   slow). Standalone repeats agree within ~5 % (59.6-64.8 ms seen).
-- After a deliberate speed change (S1-S3, or a new perception part worth its cost): `..\auto-maple\.venv\Scripts\python
+- After a deliberate speed change (S1-S3, or a new perception part worth its cost): `.venv\Scripts\python
   tools\perf\bench.py --baseline` (rewrites tests/perf_baseline.json) and commit it with the change.
 - Bench any recorded run: `bench.py --frames runs/v2/press1/frames --map 10005063 --n 200`. The fixture
   (tests/fixtures/perf_ant4, 45 JPEG q85 frames, 7.8 MB, SOURCE.txt) is a fight stretch of press1 (t 40.8-49.2 s);
@@ -1347,7 +1576,7 @@ frames), `runs/v2/` itself (a 3-min `run` with frames, the hold), `runs/v2/react
   Killing press -> death visible p10 0.21 / median 0.59 / p90 0.76 s. Death -> next press median 2.1 s.
 - Turns: a mob within 110 px behind -> the user faces it after median 0.21 s (p90 0.45).
 - A NEW recording with the slow polearm on Ant Tunnel IV would fit today's setup better (the user offered):
-  `..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\play --observe --gpu --tracker --frames` (F7..F8, 10-15
+  `.venv\Scripts\python -m maplebrain serve runs\play --observe --gpu --tracker --frames` (F7..F8, 10-15
   min; keys.jsonl + ticks + frames). Then re-run the three probes on it.
 
 ### NEW ISSUE (analysed, NOT fixed): turning too slowly, hitting with mobs behind (the user, 2026-11-08)
@@ -1563,7 +1792,9 @@ ticks + keys.jsonl + every 3rd frame; in a party). Tools: `tools/play/analyze.py
 ## Environment
 - Project `C:\Users\Yoav\dev\maple-work` (package `maplebrain`, tests `tests/`, runs `runs/`, analysis tools
   `tools/`; `tools/hunt*.py`, `experiment1.py`, `bg_input_test.py` are retired). Git: `main` (last good) and `dev`.
-- Python venv `C:\Users\Yoav\dev\auto-maple\.venv` (Py 3.12: opencv, numpy, mss, dxcam, torch + CUDA, pytest).
+- Python venv `maple-work\.venv` (Py 3.12.3: opencv, numpy, mss, dxcam, torch + CUDA 12.8, pillow, pytest; pinned in
+  requirements.txt, how to make it in its header). Until 2026-11-18 it was auto-maple's venv (`..\auto-maple\.venv`,
+  same versions; the user keeps that folder for now).
 - **The game runs elevated, so the bot must too** (Windows drops SendInput from a lower-integrity process). Check:
   `whoami /groups | Select-String Mandatory` -> "High Mandatory Level".
 - The game: WINDOWED, client area exactly 1366x768 (native, since 2026-11-16; before: FHD / 2560x1440 stretched) on
@@ -1573,19 +1804,19 @@ ticks + keys.jsonl + every 3rd frame; in a party). Tools: `tools/play/analyze.py
 
 ## Commands (from `C:\Users\Yoav\dev\maple-work`)
 ```powershell
-..\auto-maple\.venv\Scripts\python -m pytest                    # ~1100 tests, no game needed; ends with "bot speed"
-Get-Process python | ? Path -like '*auto-maple*'                 # running bot processes (never stop `watch`)
-..\auto-maple\.venv\Scripts\python -m maplebrain watch runs\watch --seconds 14400            # LD siren, no hunt
-..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\v2 [--frames | --frames-png]   # F7 / F8 (scene camera + fit: clean maps, native window only)
-..\auto-maple\.venv\Scripts\python -m maplebrain run runs\v2\NAME --seconds 180 --frames-every 3
-..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\play --observe --frames-png   # record the user (records on any map)
-..\auto-maple\.venv\Scripts\python -m maplebrain goto OUT [--to P [X]] [--seconds S]     # movement test
-..\auto-maple\.venv\Scripts\python -m maplebrain livemap [runs\v2]                         # console map of the hunt
-..\auto-maple\.venv\Scripts\python -m maplebrain assets build                              # client export -> assets/mcw
-..\auto-maple\.venv\Scripts\python tools\perf\bench.py [--baseline]                     # tick speed vs the baseline
-..\auto-maple\.venv\Scripts\python tools\perc\replay\run.py RUN [--old HEAD]              # tracker replay -> RUN\replay\
-..\auto-maple\.venv\Scripts\python tools\perc\replay\compare.py RUN HEAD work             # old vs new tracks (the gate)
-..\auto-maple\.venv\Scripts\python tools\perc\replay\gate.py [--quick]                  # the perception gate (6 native clips)
+.venv\Scripts\python -m pytest                    # ~1100 tests, no game needed; ends with "bot speed"
+Get-Process python | ? Path -like '*maple-work*'                 # running bot processes (never stop `watch`)
+.venv\Scripts\python -m maplebrain watch runs\watch --seconds 14400            # LD siren, no hunt
+.venv\Scripts\python -m maplebrain serve runs\v2 [--frames | --frames-png]   # F7 / F8 (scene camera + fit: clean maps, native window only)
+.venv\Scripts\python -m maplebrain run runs\v2\NAME --seconds 180 --frames-every 3
+.venv\Scripts\python -m maplebrain serve runs\play --observe --frames-png   # record the user (records on any map)
+.venv\Scripts\python -m maplebrain goto OUT [--to P [X]] [--seconds S]     # movement test
+.venv\Scripts\python -m maplebrain livemap [runs\v2]                         # console map of the hunt
+.venv\Scripts\python -m maplebrain assets build                              # client export -> assets/mcw
+.venv\Scripts\python tools\perf\bench.py [--baseline]                     # tick speed vs the baseline
+.venv\Scripts\python tools\perc\replay\run.py RUN [--old HEAD]              # tracker replay -> RUN\replay\
+.venv\Scripts\python tools\perc\replay\compare.py RUN HEAD work             # old vs new tracks (the gate)
+.venv\Scripts\python tools\perc\replay\gate.py [--quick]                  # the perception gate (6 native clips)
 ```
 (Gone 2026-11-17 with the old perception: `--brain`, `--gpu` (serve / run / goto; `watch --gpu` stays), `--tracker`,
 `--mob-score`, `--loot`, `--loot-sight`, `--pickup`; `native_check.py`'s run mode.)
