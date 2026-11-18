@@ -120,8 +120,8 @@ Fitter.look feeding world.py. ~8,000 lines out.
   Then step 4 (the tracker redesign) as a Fable-max plan session (PLAN-perception.md step 4).
 
 ## Loot rework part 1: PERCEIVE drops - PLAN-loot.md OK'd by the user 2026-11-17 (branch `loot`)
-**START HERE for loot work: Sessions 1-3 done, every gate met (cost gate 2026-11-18); next = the user's live minute
-(`serve --observe --frames-png`, the user runs it).** Branch `loot`, checked out in maple-work (the maple-loot
+**START HERE for loot work: part 1 (perceive drops) DONE - Sessions 1-3, every gate met, the user's live minute
+passed 2026-11-18; drops are in FrameFacts v5, nothing reads them yet; next = part 2 (use them).** Branch `loot`, checked out in maple-work (the maple-loot
 worktree was removed 2026-11-18, the user's call; `data` waits on its own branch).
 ### Session 3 result (2026-11-17/18): the product in shadow, S7-S9 - EVERY GATE MET
 - **S7** `maplebrain/perception/drops.py` DropFinder: items.npz (1,920 pictures: not weak, not cash) -> vote.Voter
@@ -191,7 +191,15 @@ worktree was removed 2026-11-18, the user's call; `data` waits on its own branch
   gate_s3.log; runs/synth/drops_s1/eval_product.log.
 - pytest green (+ tests/test_drops.py 3, test_facts v5); bot speed 15.4 ms (p90 17.4; part `drops` 0.7; Session 2:
   13.0 - unpinned, machine state; baseline 18.4, not re-baselined).
-- **NEXT:** the user's live minute (`serve --observe --frames-png`, the user runs it); then part 2 (use the drops).
+- **Live minute (the user, 2026-11-18, `serve --observe --frames-png`, Ant Tunnel IV, runs/manual/20261118_140357_1):
+  PASSED.** 2,871 ticks at 54.9 fps, drops on every tick, no errors; part drops 0.6 / 0.8 ms p50 / p90 (launch 0.29
+  / 0.41, fetch 0.12 / 0.13, pick 0.15 / 0.27), perceive 14.0 / 16.0, tick 16 / 18 ms; sizes far under the fixed
+  ones (features max 26,017 / 49,152, second pool 2,220 / 4,096, cells 8 / 64). The 957 saved frames replayed:
+  product = reference on 957 / 957 (1,138 REST sightings each), and the live facts = the replay's on 957 / 957.
+  By eye (runs/loot_labels/live1_sheet.png): REST = coins, potions, arrows, 4000019 resting on the ground; weak =
+  coins in flight, worn gear (a hat, a top), items behind skill effects / windows / the minimap / the screen edge.
+  The frames were deleted after the check (the user's call; log + ticks kept).
+- **NEXT:** part 2 (use the drops).
 ### Session 2 result (2026-11-17): by-eye labels, S5-S6 - GATE MET
 - **S5** tools/loot/labels/pick.py (pick / sheets / legend / build / zoom / check; README = its docstring): 201 frames
   over all 9 native recordings (84 even + 26 kill + 22 pickup + 23 pile + 19 covered + 16 drop-free + 8 player + 3
