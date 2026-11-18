@@ -120,10 +120,9 @@ Fitter.look feeding world.py. ~8,000 lines out.
   Then step 4 (the tracker redesign) as a Fable-max plan session (PLAN-perception.md step 4).
 
 ## Loot rework part 1: PERCEIVE drops - PLAN-loot.md OK'd by the user 2026-11-17 (branch `loot`)
-**START HERE for loot work: Sessions 1-3 built; Session 3's cost gate (bench A/B) still to run with the game up,
-then the user's live minute (`serve --observe --frames-png`, the user runs it).** Worktree
-`C:\Users\Yoav\dev\maple-loot`, branch `loot`.
-### Session 3 result (2026-11-17): the product in shadow, S7-S9 - every gate met except the cost gate (NOT RUN: game down)
+**START HERE for loot work: Sessions 1-3 done, every gate met (cost gate 2026-11-18); next = the user's live minute
+(`serve --observe --frames-png`, the user runs it).** Worktree `C:\Users\Yoav\dev\maple-loot`, branch `loot`.
+### Session 3 result (2026-11-17/18): the product in shadow, S7-S9 - EVERY GATE MET
 - **S7** `maplebrain/perception/drops.py` DropFinder: items.npz (1,920 pictures: not weak, not cash) -> vote.Voter
   (tints off, new `fades=False`: no fade / pair tables); the pass = ONE CUDA graph on its own stream: `launch` copies
   frame / expected / known / world mask / the front planes (Scene.layers >= 128, stacked per map, cropped at C) on the
@@ -154,9 +153,15 @@ then the user's live minute (`serve --observe --frames-png`, the user runs it).*
       (tools/loot/drops_replay.py)                0 of 36 flights / hops REST = Session 2's; same 2 misses
       the 9 recordings (14,962 frames; the        facts identical on 14,962 / 14,962 (votes aside), REST sets  MET
       reference run on each tick's own inputs)    equal on all (70,610 REST sightings each); differences: none
-      cost: bench A/B off / on, +<= 1.0 ms p90    NOT RUN - the game was not running (tools/loot/bench_drops.py
-                                                  is ready: busy 094333_1 t 100-140, steam, line1, ant4)
-  Main-thread parts (NOT the gate: unpinned, game down, 1 round, busy stretch 094333_1 t 100-140, 12 drops a frame):
+      cost: bench A/B off / on, +<= 1.0 ms p90    perceive p90 on - off: busy +0.46, steam +0.59, line1 +0.41, MET
+      (tools/loot/bench_drops.py, 2026-11-18:     ant4 -1.23 (noise); p50: +1.02 / +0.36 / +0.76 / +0.57.
+      game up, P-cores, 3 rounds alternating,     busy (12 drops a frame) off 12.95 / 14.88 -> on 13.97 / 15.34
+      150 frames a clip, nothing else of ours)    part drops p50 / p90: busy 0.90 / 1.00 (launch 0.29 / 0.39,
+                                                  fetch 0.12 / 0.13, pick 0.44 / 0.50), steam 0.50 / 0.90,
+                                                  line1 0.60 / 0.70, ant4 0.60 / 1.00. self_wide is 0.4-0.8 ms
+                                                  lower with drops on (the GPU pass overlaps its wait) - so on -
+                                                  off is below the part's own ms.
+  Main-thread parts before the gate (unpinned, game down, 1 round, busy stretch 094333_1 t 100-140, 12 drops a frame):
   launch 0.28 / 0.35, fetch 0.12 / 0.13, pick 0.43 / 0.49 ms p50 / p90 (part `drops` 0.90 / 1.00). The first pick
   was 0.86 / 1.05 (per-drop numpy on two padded planes): now an accepted drop's taken / drawn pixels are laid out only
   for a later candidate whose box + ring meets its box, the ring bits come as "ring and not known / not explained",
@@ -170,9 +175,7 @@ then the user's live minute (`serve --observe --frames-png`, the user runs it).*
   gate_s3.log; runs/synth/drops_s1/eval_product.log.
 - pytest green (+ tests/test_drops.py 3, test_facts v5); bot speed 15.4 ms (p90 17.4; part `drops` 0.7; Session 2:
   13.0 - unpinned, machine state; baseline 18.4, not re-baselined).
-- **NEXT:** with the game running, pinned, nothing else of ours: `python tools/loot/bench_drops.py` (3 rounds, 4 clips)
-  -> the cost gate (+<= 1.0 ms p90 on - off); fails -> stop with the parts + section 9's levers (cadence = the user's).
-  Then the user's live minute.
+- **NEXT:** the user's live minute (`serve --observe --frames-png`, the user runs it); then part 2 (use the drops).
 ### Session 2 result (2026-11-17): by-eye labels, S5-S6 - GATE MET
 - **S5** tools/loot/labels/pick.py (pick / sheets / legend / build / zoom / check; README = its docstring): 201 frames
   over all 9 native recordings (84 even + 26 kill + 22 pickup + 23 pile + 19 covered + 16 drop-free + 8 player + 3
