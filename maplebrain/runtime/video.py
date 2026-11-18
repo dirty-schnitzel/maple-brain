@@ -96,10 +96,11 @@ class VideoWriter:
                 self.error = f"the encoder stopped ({type(e).__name__}: {e})"
                 return
 
-    def put(self, frame, n: int, t: float, cursor=None, wait: bool = False) -> bool:
+    def put(self, frame, n: int, t: float, cursor=None, wait: bool = False, buttons: int = 0) -> bool:
         """Queue frame number `n` (seen at `t` s) for the video; never waits. False = dropped (the queue is full or
         the encoder stopped): frames.jsonl says so and the video goes on without it. `wait` (copying a recording,
-        nothing live): a full queue is waited for instead."""
+        nothing live): a full queue is waited for instead. `cursor` / `buttons`: the mouse at this frame (its place
+        in frame pixels; the buttons held as bits, runtime/session.py BUTTONS)."""
         t_in = time.perf_counter()
         ok = self.error is None and frame.shape == self.shape and frame.flags.c_contiguous
         while ok:
@@ -115,8 +116,9 @@ class VideoWriter:
         else:
             self.dropped += 1
         cur = f', "cur": [{cursor[0]:.0f}, {cursor[1]:.0f}]' if cursor is not None else ""
+        held = f', "b": {buttons}' if buttons else ""
         drop = "" if ok else ', "drop": true'
-        self._index.write(f'{{"n": {n}, "t": {t:.4f}{cur}{drop}}}\n')
+        self._index.write(f'{{"n": {n}, "t": {t:.4f}{cur}{held}{drop}}}\n')
         took = time.perf_counter() - t_in
         self.puts, self.put_s, self.put_max = self.puts + 1, self.put_s + took, max(self.put_max, took)
         return ok

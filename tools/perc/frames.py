@@ -16,8 +16,8 @@ RUN/xshift.txt holding `1`; `read` moves their picture back (column 0 is then un
 
 **Clips.** `clip(arg)` is what the ported tools (replay/run.py, label_eval.py, labels/, synth/) take: `arg` = a run
 folder (as always: its frames, its map from log.txt, outputs written into it), or a corpus segment `RECORDING#K`
-(one line of E:\\maple-corpus\\manifest.jsonl, tools/data/corpus.py: the frames of one map of a recorded walk;
-outputs go to E:\\maple-corpus\\work\\RECORDING#K, the corpus itself is never written to). A hold-out segment is
+(one line of the corpus' manifest.jsonl, tools/data/corpus.py: the frames of one map of a recorded walk;
+outputs go to CORPUS\\work\\RECORDING#K, the corpus itself is never written to). A hold-out segment is
 refused unless the tool was given --holdout, and every such use is logged (PLAN-data.md section 4).
 
     python tools/perc/frames.py RUN [RUN ...]     measure each recording's shift with the scene model (needs

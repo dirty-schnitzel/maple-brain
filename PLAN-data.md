@@ -175,6 +175,14 @@ names poison everything after; "unknown" stretches are fine.
 - The marker key is F12 (`Keys.note`); a `record` recording numbers its frames from 0; chunk files sit flat in
   the run folder; an old PNG recording is one segment with the map of its log.
 
+**2026-11-18 (the user): this recorder is the final way data is collected; its bank serves perception, the live
+map + tracking and later AI training; its footage replaces the gated checks.** Built for it: the mouse buttons per
+frame (`frames.jsonl` `"b"`), `session.json` beside every recording (the config, the code's commit, the client
+build, the wall clock), `record --scene NAME` for staged scenes, and the corpus folder as one parameter
+(`config.CORPUS`: `F:\dev\maple-corpus` for now - an SSD; E:, a USB hard disk, later). Proposed, not built: the
+bank filed as a folder per map with names that say farming / traveling, a fingerprint per frame, one gate list
+for the perception and loot gates (HANDOFF's START HERE has the tree and the one decision it needs).
+
 ## 6. The validation pass (Sessions 2 and 3)
 Perception runs **unchanged** over the dev group; this pass measures and lists, it fixes nothing.
 1. **Per map, automatic** (`tools/data/replay_all.py`, the live Perceiver on every frame): share of frames with

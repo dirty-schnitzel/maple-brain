@@ -6,7 +6,10 @@ maps afterwards, by the minimap).
 Stays loaded like `serve`: the start key (F7) starts a recording, the stop key (F8) ends it, Ctrl+C in the console
 quits. Each recording is its own folder OUT/<date_time>_<k>:
   frames_0000.mkv ...   every frame the capture hands out, lossless (runtime/video.py), 5-minute chunk files
-  frames.jsonl          per frame: its number (from 0), its time, the mouse; "drop" when it is not in the video
+  frames.jsonl          per frame: its number (from 0), its time, the mouse (where it is in the frame, which
+                        buttons are held); "drop" when it is not in the video
+  session.json          the facts of the day, written by the recorder (runtime/session.py): the config (which key
+                        does what, the weapon), the code's commit, the client data's build, the wall clock at t = 0
   keys.jsonl            the player's keys with their times (runtime/keylog.py, the same clock) - whatever is typed
                         while the game is focused, chat included: start a recording only after logging in
   log.txt               what happened, and the numbers at the end (frames a second, dropped frames, GB a minute)
@@ -29,7 +32,7 @@ from ..capture import H, W, Screen, find_window
 from ..config import Config
 from ..humanize import Humanizer
 from ..keyboard import FocusLost, Keyboard, foreground_title
-from . import window
+from . import session, window
 from .runner import ASSETS, Hotkeys, _picture, chirp, lie_alarm
 from .video import VideoWriter
 
@@ -112,13 +115,17 @@ def _gaps(dt: list) -> str:
             f"max {1000 * s[-1]:.1f} ms; {late} over 25 ms (a frame and a half)")
 
 
-def record_one(out: Path, cfg: Config, kb, screen, lie, hz, until, where: str = "") -> str:
+def record_one(out: Path, cfg: Config, kb, screen, lie, hz, until, where: str = "", facts: dict | None = None,
+               mouse=None) -> str:
     """One recording into `out` until `until()` gives a reason. Returns the status (the reason / why it was
-    aborted). `where`: the log's words about the captured picture."""
+    aborted). `where`: the log's words about the captured picture. `facts`: session.json's content known before
+    the start (session.facts). `mouse()`: the mouse buttons held, asked once per frame (session.buttons)."""
+    mouse = mouse or session.buttons
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
     log = open(out / "log.txt", "w", buffering=1, encoding="utf-8")
-    t0 = time.perf_counter()
+    t0, epoch = time.perf_counter(), time.time()             # the same moment on both clocks
+    session.write(out, facts, epoch, capture={"picture": where})
 
     def say(msg):
         line = f"{time.perf_counter() - t0:7.2f}s {msg}"
@@ -144,7 +151,7 @@ def record_one(out: Path, cfg: Config, kb, screen, lie, hz, until, where: str = 
                 if not kb.focused():
                     raise FocusLost()
                 window.guard(screen)                 # aimed before and after: the frame is the whole game picture
-                vw.put(frame, n, now - t0, screen.cursor())
+                vw.put(frame, n, now - t0, screen.cursor(), buttons=mouse())
                 n += 1
                 if last is not None:
                     dt.append(now - last)
@@ -196,9 +203,10 @@ def record_one(out: Path, cfg: Config, kb, screen, lie, hz, until, where: str = 
 
 
 def record(out_root: Path, cfg: Config, hotkeys: Hotkeys | None = None, poll_s: float = 0.03,
-           max_recordings: int | None = None) -> int:
+           max_recordings: int | None = None, scene: str | None = None) -> int:
     """Stay loaded: cfg.keys.start starts a recording, cfg.keys.stop ends it; Ctrl+C in the console quits.
-    `max_recordings`: for tests."""
+    `scene`: the name of a staged scene ("expiry": drops left lying until they are gone), kept in each
+    recording's session.json - ordinary play has none. `max_recordings`: for tests."""
     out_root = Path(out_root)
     t0 = time.perf_counter()
 
@@ -218,13 +226,15 @@ def record(out_root: Path, cfg: Config, hotkeys: Hotkeys | None = None, poll_s: 
     kb = Keyboard(hwnd, hz, cfg.humanize, cfg.keys)          # only asked "is the game focused?": no key is ever sent
     screen = Screen(hwnd)
     say(f"capture: {screen.kind}{' (' + screen.note + ')' if screen.note else ''}")
+    facts = session.facts(cfg, "record", ASSETS, scene, {"kind": screen.kind, "note": screen.note})
     from ..perception.liedetector import LieDetector
     lie = LieDetector.load(ASSETS, background=False)
     start_key, stop_key = cfg.keys.start, cfg.keys.stop
     hk = hotkeys or Hotkeys([start_key, stop_key])
     say(f"ready: {start_key.upper()} = start recording (you play, nothing is pressed; your keys are recorded), "
         f"{stop_key.upper()} = stop, Ctrl+C here = quit. Recordings -> {out_root} ({free_gb(out_root):.0f} GB free). "
-        "The minimap open in its usual place; the Lie Detector is watched between recordings too")
+        "The minimap open in its usual place; the Lie Detector is watched between recordings too"
+        + (f". Scene: {scene}" if scene else ""))
     idle = LieWatch(lie, say, out_root)
     aim = window.Aim(screen, say)
     done, next_look = 0, 0.0
@@ -257,7 +267,7 @@ def record(out_root: Path, cfg: Config, hotkeys: Hotkeys | None = None, poll_s: 
             done += 1
             out = out_root / f"{datetime.now():%Y%m%d_%H%M%S}_{done}"
             chirp(True)
-            status = record_one(out, cfg, kb, screen, lie, hz, until, _picture(screen, cols))
+            status = record_one(out, cfg, kb, screen, lie, hz, until, _picture(screen, cols), facts)
             chirp(False)
             say(f"recording #{done} ended: {status} -> {out}; {start_key.upper()} to start another; then "
                 f"`python tools/data/corpus.py add {out}`")

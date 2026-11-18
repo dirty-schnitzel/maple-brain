@@ -156,7 +156,7 @@ python -m maplebrain serve runs\play --observe --frames-png
 
 # the recording corpus: record a walk as lossless video (no perception), then file it by map
 python -m maplebrain record
-python tools\data\corpus.py add E:\maple-corpus\incoming\<recording>
+python tools\data\corpus.py add F:\dev\maple-corpus\incoming\<recording>     # (the folder: CORPUS in maplebrain/config.py)
 python tools\data\corpus.py list
 ```
 

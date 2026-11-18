@@ -8,12 +8,11 @@ import argparse
 import sys
 from pathlib import Path
 
-from .config import Combat, Keys
+from .config import Combat, Keys, corpus_root
 
 
 VIDEO_HELP = ("every frame into a lossless video in the run folder (frames_0000.mkv ..., ~0.2-0.7 GB a minute) "
               "instead of frame files; with --frames-png the PNG files are written too")
-CORPUS_IN = Path("E:/maple-corpus/incoming")          # `record`'s default: the recording corpus lives on E: (never C:)
 
 
 def main(argv=None) -> int:
@@ -58,12 +57,17 @@ def main(argv=None) -> int:
     c = sub.add_parser("record", help=f"you play, everything the game shows is recorded as lossless video + your keys "
                                       f"(no perception, nothing pressed); {Keys.start.upper()} starts a recording, "
                                       f"{Keys.stop.upper()} ends it (game focused, native 1366x768 window)")
-    c.add_argument("out", type=Path, nargs="?", default=CORPUS_IN,
+    c.add_argument("out", type=Path, nargs="?", default=None,
                    help="one folder per recording in here (default: the corpus' incoming folder)")
+    c.add_argument("--corpus", type=Path, default=None, metavar="DIR",
+                   help=f"where the recordings go: the corpus folder, recordings land in DIR\\incoming (default: "
+                        f"{corpus_root()} = CORPUS in maplebrain/config.py, or the environment variable MAPLE_CORPUS)")
     c.add_argument("--start-key", default=Keys.start)
     c.add_argument("--stop-key", default=Keys.stop)
     c.add_argument("--note-key", default=Keys.note, help="the marker key: a key the game does not use, pressed when "
                    "something makes you change what you do (its presses are listed per map by the corpus)")
+    c.add_argument("--scene", default=None, metavar="NAME", help="a staged scene instead of ordinary play: its name "
+                   "is kept with each recording (e.g. expiry, pickups, windows)")
     g = sub.add_parser("goto", help="brain-v2 movement test: travel to a platform, or a tour of random goals "
                        "(elevated; clean maps, native window)")
     g.add_argument("out", type=Path)
@@ -117,7 +121,7 @@ def main(argv=None) -> int:
                 ap.error(f"hotkeys must be F1-F12, got {k!r}")
         cfg = Config()
         cfg.keys.start, cfg.keys.stop, cfg.keys.note = a.start_key, a.stop_key, a.note_key
-        return record(a.out, cfg)
+        return record(a.out or (a.corpus or corpus_root()) / "incoming", cfg, scene=a.scene)
     if a.cmd == "goto":
         from .config import Config
         from .keyboard import validate

@@ -7,7 +7,7 @@ same frames (compare.py).
     python tools/perc/replay/run.py RUN --old dev --only perception/world.py,cover.py     # only these files from `dev`
     python tools/perc/replay/run.py RUN [--map ID] [--t0 S --t1 S] [--every K] [--out NAME]
     python tools/perc/replay/run.py RECORDING#K [--holdout]       # a segment of the recording corpus (one map of a
-                                                                  # walk) -> E:/maple-corpus/work/RECORDING#K/replay/
+                                                                  # walk) -> CORPUS/work/RECORDING#K/replay/
 
 RUN = a run folder (frames as PNG files or as the lossless video: tools/perc/frames.py reads either) or a corpus
 segment (tools/data/corpus.py list --segments; a hold-out segment only with --holdout). The map is read from

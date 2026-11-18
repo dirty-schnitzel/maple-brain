@@ -50,12 +50,14 @@ def test_video_frames_are_the_png_pixels_exactly_across_chunk_borders(tmp_path):
     frames = _frames(150)
     vw = video.VideoWriter(tmp_path, gop=30, chunk=60, backlog=200)
     for i, f in enumerate(frames):
-        assert vw.put(f, i + 1, i / 60, cursor=(10.4, 20.6) if i == 3 else None)       # numbered like ticks: from 1
+        assert vw.put(f, i + 1, i / 60, cursor=(10.4, 20.6) if i == 3 else None,       # numbered like ticks: from 1
+                      buttons=2 if i == 4 else 0)
     meta = vw.close()
     assert meta["closed"] and meta["frames"] == 150 and meta["dropped"] == 0 and meta["error"] is None
     assert sorted(p.name for p in tmp_path.glob("frames_*.mkv")) == [f"frames_{k:04d}.mkv" for k in range(3)]
     rows = [json.loads(l) for l in (tmp_path / "frames.jsonl").read_text().splitlines()]
     assert [r["n"] for r in rows] == list(range(1, 151)) and rows[3]["cur"] == [10, 21] and "cur" not in rows[0]
+    assert rows[4]["b"] == 2 and "b" not in rows[3]           # the mouse buttons held, only when one is
     (tmp_path / "png").mkdir()
     for i in (0, 59, 60, 61, 119, 120, 149):                 # the PNG of the same frame (what --frames-png wrote)
         cv2.imwrite(str(tmp_path / "png" / f"{i}.png"), frames[i], [cv2.IMWRITE_PNG_COMPRESSION, 1])

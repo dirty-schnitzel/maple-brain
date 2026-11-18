@@ -7,6 +7,10 @@ hunt. Before it: the perception redesign (**PLAN-perception.md**) steps 0-3 DONE
 NEXT (the user, 2026-11-17): **the recording corpus first (PLAN-data.md, OK'd), step 4 (the tracker) waits for it.**
 2026-11-17 PLAN-data.md **Session 1 BUILT on branch `data`** (the recorder, lossless video, the corpus tool; gates
 a / d / e passed): its live gates wait for the user's recorded walk + a `serve --video` hunt (START HERE).
+2026-11-18: `data` rebased on `dev` (loot part 1 merged). The user: recording this way is THE way data is collected
+from now on - one bank for perception, the live map + tracking, later AI training; footage replaces the gates ->
+the recorder also writes the mouse buttons + `session.json`; the corpus is at `F:\dev\maple-corpus`
+(`config.CORPUS`); the bank's folder-per-map structure is PROPOSED (START HERE).
 Sessions 6-23, the old brain (v1), and superseded plans moved verbatim to **HISTORY.md** on 2026-11-08: grep it for
 old runs, numbers and decisions.
 Latest: 2026-11-15 Platform mode live (runs below), F9 mark fix; the hybrid BT + imitation-learning proposal reviewed
@@ -56,10 +60,76 @@ The user supervises every run at the PC. Botting is against Nexon's ToS (ban ris
 ## START HERE NEXT SESSION: PLAN-data.md Session 1 is BUILT (branch `data`); its live gates wait for the user's walk
 **State 2026-11-17 (branch `data` off `dev`, pushed; the user merges):** the recorder, the video writer / reader,
 the corpus tool and the ported tools are built and tested; gates (a), (d), (e) PASSED; gates (b), (c), (f) need
-the user's runs (commands below). The corpus exists: `E:\maple-corpus` holds the 11 old native PNG recordings as
-video copies (the PNG folders in `runs/` are untouched - the loot worktree reads them).
-**The tracker redesign (step 4, the section below) still waits for the corpus**; the loot rework goes on in its
-worktree.
+the user's runs (commands below). The corpus exists: `F:\dev\maple-corpus` holds the 11 old native PNG recordings as
+video copies (the PNG folders in `runs/` are untouched - every gate still reads them, see below).
+**The tracker redesign (step 4, the section below) still waits for the corpus.** 2026-11-18: `data` was rebased
+on `dev` (loot part 1 merged) and the loot tools read frames through the corpus reader (bed4333).
+
+### 2026-11-18: what the corpus is FOR (the user) - built since, and PROPOSED (waiting for the user's word)
+**The user's frame:** (1) this is the final way data is collected in this project; (2) the bank built with it
+serves everything - validating perception, the live map data model and tracking on it, later custom AI training;
+(3) footage recorded this way will replace all gated checks.
+**Built for it (the capture side: what a recording cannot be given later):**
+- **Mouse buttons** per frame: `frames.jsonl` `"b"` = the buttons held as bits (1 left, 2 right, 4 middle, 8 / 16
+  the side buttons; absent = none), asked once per frame (`session.buttons`, ~1 microsecond; no hook in the
+  mouse's path). The position (`"cur"`, frame pixels) was there already.
+- **`RUN\session.json`** (`runtime/session.py`, written by the recorder, nobody types it): the whole config as it
+  was (which key is the attack / jump / potions, the weapon, its speed), the code's commit, the client data's
+  build, the wall clock at t = 0 (`epoch`), the capture (kind, picture, monitor refresh rate), what each input
+  file holds. Without it "q went down" means nothing once keys or character change.
+- **`record --scene NAME`**: a staged scene instead of ordinary play (PLAN-loot.md section 13's three: `expiry`,
+  `pickups`, `windows`); the name is kept in session.json.
+- **Where the recordings go = one parameter:** `CORPUS` in `maplebrain/config.py` (now `F:\dev\maple-corpus`;
+  `record --corpus DIR`, `corpus.py --corpus DIR` or the environment variable MAPLE_CORPUS for one command).
+  The 11 recordings were copied there from `E:\maple-corpus` (93 files, sha256 identical); the E: folder is left
+  as it is. **This repo is on C: (76 GB free): never the corpus.** F: = an NVMe SSD (257 GB free = roughly 6-13
+  hours of footage at the plan's estimate), E: = a USB hard disk (2.8 TB free): record on the SSD, archive to E:
+  later (the user: "start on F, move to E later").
+- For AI training: human play is recorded with `record` only (with perception running, `serve --observe` delays
+  the key times).
+
+**Loot and the footage gates (the user's question):** the frame-series gate is `tools/perc/replay/gate.py` - 6
+clips (5 of ~1 minute + Dark Cave's 16 s; `--quick` = 3), the code before vs after a change on the same frames,
+cached. Loot added its own: drops on all 9 recordings (14,962 frames, product = reference), its by-eye labels
+(keyed recording + frame name), the cost bench (4 stretches). So FOUR lists name the same PNG folders under
+`runs/` (gate.CLIPS, loot's pick.RUNS, bench_drops.CLIPS, run_all.RUNS). Nothing changes in what is captured
+(drops need exact pixels and every frame: that is the recorder). What follows from it: one gate list naming bank
+entries instead of four lists of `runs/` paths; a recording's name + frame numbers are its permanent identity
+(loot's labels hang on them); the old clips hold every 3rd frame (~20 a second) - new footage shows the tracker
+all 60, as live, so the gate list is re-chosen from it once it exists.
+
+**PROPOSED, not built (the user asked for a coherent structure: a folder per map, names that say farming /
+traveling):**
+```
+F:\dev\maple-corpus\
+  index.txt        the overview, rewritten at every filing (per map: minutes farming / traveling, what is missing)
+  incoming\        fresh recordings, as the recorder wrote them
+  sessions\2026-11-18_1432\          one per recording: session.json, log, notes, route.txt (its maps in order)
+  maps\Ant Tunnel IV (10005063)\
+      2026-11-18_1432_farming_12m_s03\       one stay on the map = one folder
+          Ant Tunnel IV_2026-11-18_1432_farming_12m_s03_000.mkv ...  frames.jsonl  keys.jsonl  stay.json
+          sheet.jpg  preview.mp4
+      2026-11-18_1502_traveling_0m21s_s07\
+  maps\_unknown\  stretches the tool could not name (shops, the minimap closed)
+  holdout\         the same tree for the maps nobody tunes on
+  labels\  gates\  work\ (re-creatable, safe to delete)
+```
+- Modes in a name: `farming` (fought), `traveling` (crossed), `town` (stayed on a map without mobs),
+  `scene-NAME` (staged), `bot` (a bot hunt). Names are for people; tools use the permanent id
+  (session + stay number + frame number), so a folder can be renamed without breaking a label or a gate.
+- **The one decision:** footage physically filed per map (each stay re-written losslessly into its folder,
+  compared frame by frame with the original, then the original removed; estimated, not measured: filing takes
+  about half the recorded time, unattended) - recommended - or the recordings kept whole with the map folders
+  holding previews + pointers (instant, but the footage itself stays filed by date).
+- Other ideas offered: hold-out maps in their own top folder; a small ordinary preview video + thumbnail sheet
+  per stay; `route.txt` per session; a fingerprint per frame (proves a move / re-write lost nothing: the move to
+  E:); one gate list file for the perception and loot gates; labels outside `work\`.
+- Sound is not recorded (recommended: leave it out; it cannot be added later).
+- **A limit:** footage can gate whatever reads the screen (perception, tracking, the live map, what the brain
+  would press vs what the user pressed); not what depends on the bot's own actions (kills a minute, getting
+  stuck): a recording does not answer back - those stay live runs.
+**The walk does not wait for this:** what the recorder writes is final either way; the folder structure is how
+`corpus.py add` files it afterwards.
 
 ### What the user runs (gates b, c, f) - an elevated PowerShell in `C:\Users\Yoav\dev\maple-work`, branch `data`
 `watch` running as always; no `serve` / `run` of an older branch left open. Game windowed 1366x768, logged in,
@@ -67,13 +137,13 @@ chat minimized, **the minimap open in its usual place**.
 1. **The walk** (10+ minutes, 3+ maps; fight on at least one, only cross at least one):
    `.venv\Scripts\python -m maplebrain record`
    F7 in the game = start (rising chirp), F8 = stop (falling chirp), Ctrl+C in the console = quit. It writes
-   `E:\maple-corpus\incoming\<date_time>_1\` and prints the numbers. Say whether the game felt as smooth as
+   `F:\dev\maple-corpus\incoming\<date_time>_1\` and prints the numbers. Say whether the game felt as smooth as
    without it. Optional: F12 (the marker key) when another player changes what you do.
 2. **Two short hunts on the same map and spot, ~2 minutes each** (Ant Tunnel IV as usual), one with the video:
-   `.venv\Scripts\python -m maplebrain serve E:\maple-corpus\incoming --video`  (F7 ... F8, Ctrl+C)
+   `.venv\Scripts\python -m maplebrain serve F:\dev\maple-corpus\incoming --video`  (F7 ... F8, Ctrl+C)
    `.venv\Scripts\python -m maplebrain serve runs\v2`                              (F7 ... F8, Ctrl+C)
-3. Claude then: `python tools\data\corpus.py add --dry E:\maple-corpus\incoming\<walk>` -> looks at every cut
-   sheet in `E:\maple-corpus\work\cuts\<walk>\` by eye (gate f) -> `add` for real; reads the numbers out of the
+3. Claude then: `python tools\data\corpus.py add --dry F:\dev\maple-corpus\incoming\<walk>` -> looks at every cut
+   sheet in `F:\dev\maple-corpus\work\cuts\<walk>\` by eye (gate f) -> `add` for real; reads the numbers out of the
    logs (frames a second in the file, dropped frames, GB a minute; the two hunts' `speed:` lines and the video
    line's "handing a frame over cost the loop ..."). **Stop rules:** drops, or a tick cost over 1 ms -> stop with
    the numbers (fallbacks to weigh then: preset p1, every 2nd frame, the CPU encoder); a cut or a map name wrong
@@ -83,9 +153,9 @@ chat minimized, **the minimap open in its usual place**.
 - **`maplebrain/runtime/video.py` `VideoWriter`**: one ffmpeg (the plan's command: lossless HEVC on the GPU
   encoder, a keyframe every 120 frames, 5-minute chunk files `RUN\frames_0000.mkv` ...) fed by a writer thread.
   `put` only queues the frame (its own buffer: the capture hands out a fresh array per frame) - a full queue
-  (120 frames = 2 s) drops the frame. `RUN\frames.jsonl`: one line per frame handed over (number, time, mouse,
-  `"drop"`); `RUN\video.json`: the stream + the totals; `RUN\ffmpeg.log`.
-- **`python -m maplebrain record [OUT]`** (`runtime/record.py`; default `E:\maple-corpus\incoming`): F7 / F8 as
+  (120 frames = 2 s) drops the frame. `RUN\frames.jsonl`: one line per frame handed over (number, time, the
+  mouse's place and the buttons held, `"drop"`); `RUN\video.json`: the stream + the totals; `RUN\ffmpeg.log`.
+- **`python -m maplebrain record [OUT]`** (`runtime/record.py`; default `F:\dev\maple-corpus\incoming`): F7 / F8 as
   serve. No perception, no key sent, ever. Frames -> the video, the player's keys -> `keys.jsonl` (same clock).
   Paused while the game is not focused / the window moved (never another window's picture in the video). Refuses
   to start on a window that is not native 1366x768 or a drive with under 30 GB free; stops under 5 GB. The Lie
@@ -97,14 +167,14 @@ chat minimized, **the minimap open in its usual place**.
   until Session 3 is done. (The hunt's `speed:` line now has one decimal.)
 - **`tools/perc/frames.py`**: `read(run, name)` = the PNG file if it exists, else the video frame (`Video`: reads
   on when the frame is within 100 ahead, jumps otherwise). `clip(arg)` = what the ported tools take: a run folder
-  or a corpus segment `RECORDING#K` (outputs then go to `E:\maple-corpus\work\RECORDING#K\`); a hold-out segment
+  or a corpus segment `RECORDING#K` (outputs then go to `F:\dev\maple-corpus\work\RECORDING#K\`); a hold-out segment
   only with `--holdout`, each use logged. `Clip.sight()` = what perception saw per frame: the recording's own
   ticks.jsonl, or (a `record` walk has none) a replay of the segment.
 - **Ported** (frames from PNG or video, RUN or `RECORDING#K`, `--holdout`): `tools/perc/replay/run.py`,
   `label_eval.py`, `labels/{pick,patches,label}.py`, `synth/{synth,make}.py`. Every other tool: PNG files on
   demand from `python tools\data\unpack.py RUN [numbers | names | A-B] [--every N] [--out DIR]`.
 - **`tools/data/corpus.py add RUN`**: check -> cut into maps -> the keys per segment -> manifest lines + the
-  recording moved to `E:\maple-corpus\recordings\` (files read-only). `--dry` stops before writing. A cut sheet
+  recording moved to `F:\dev\maple-corpus\recordings\` (files read-only). `--dry` stops before writing. A cut sheet
   per cut in `work\cuts\NAME\`. `add --dev MAP` moves a map to dev (refused once it was used as hold-out).
   `corpus.py list [--segments]` = the report of section 4. An old PNG recording given to `add` is copied in as
   video and every frame compared with its PNG.
@@ -153,7 +223,7 @@ chat minimized, **the minimap open in its usual place**.
 
 ### The corpus today (`python tools\data\corpus.py list`)
 ```
-E:\maple-corpus: 11 recording(s), 11 segment(s), 20.7 minutes, 3.5 GB
+F:\dev\maple-corpus: 11 recording(s), 11 segment(s), 20.7 minutes, 3.5 GB
 
       map  name                                         group   stays crossed minutes attacks marks
  10005063  Dungeon / Ant Tunnel IV                      dev         5       0    14.0     357     0
@@ -1939,7 +2009,7 @@ Get-Process python | ? Path -like '*maple-work*'                 # running bot p
 .venv\Scripts\python -m maplebrain serve runs\v2 [--frames | --frames-png]   # F7 / F8 (scene camera + fit: clean maps, native window only)
 .venv\Scripts\python -m maplebrain run runs\v2\NAME --seconds 180 --frames-every 3
 .venv\Scripts\python -m maplebrain serve runs\play --observe --frames-png   # record the user (records on any map)
-.venv\Scripts\python -m maplebrain record                                   # the corpus walk: F7 / F8, lossless video + keys -> E:\maple-corpus\incoming (no perception)
+.venv\Scripts\python -m maplebrain record                                   # the corpus walk: F7 / F8, lossless video + keys -> F:\dev\maple-corpus\incoming (no perception)
 .venv\Scripts\python -m maplebrain serve OUT --video                        # a hunt with every frame in a lossless video (frames_0000.mkv ...)
 .venv\Scripts\python tools\data\corpus.py add [--dry] RUN                   # file a recording: check, cut into maps, manifest
 .venv\Scripts\python tools\data\corpus.py list [--segments]                 # what the corpus holds + coverage

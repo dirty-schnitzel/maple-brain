@@ -5,7 +5,8 @@
     python tools/data/corpus.py add --dev MAP [MAP ...]                move a map to the dev group (before its first gate)
     python tools/data/corpus.py list [--segments]                      what the corpus holds, what is covered
 
-The corpus is a folder (E:\\maple-corpus; the environment variable MAPLE_CORPUS or --corpus DIR names another):
+The corpus is a folder (maplebrain/config.py CORPUS: F:\\dev\\maple-corpus for now, E: later; the environment variable
+MAPLE_CORPUS or --corpus DIR names another - nothing in it holds a drive letter, so the folder moves as it is):
   incoming/              where `python -m maplebrain record` writes
   recordings/NAME/       the recordings, as recorded (frames_*.mkv, frames.jsonl, keys.jsonl, ...); files read-only
   manifest.jsonl         one line per SEGMENT = one stay on one map inside one recording (the fields: `_line`)
@@ -80,7 +81,8 @@ class Problem(Exception):
 
 # ---------------------------------------------------------------------------------------------- the corpus folder
 def root() -> Path:
-    return Path(os.environ.get("MAPLE_CORPUS") or r"E:\maple-corpus")
+    from maplebrain.config import corpus_root
+    return corpus_root()
 
 
 def load() -> list:
@@ -745,7 +747,7 @@ def report(segments: bool = False, say=print) -> None:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--corpus", type=Path, default=None, help="the corpus folder (default: E:\\maple-corpus)")
+    ap.add_argument("--corpus", type=Path, default=None, help="the corpus folder (default: config.CORPUS)")
     sub = ap.add_subparsers(dest="cmd", required=True)
     a = sub.add_parser("add", help="file recordings: check, cut into maps, manifest lines, move to recordings/")
     a.add_argument("runs", type=Path, nargs="*")

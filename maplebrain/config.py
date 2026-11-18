@@ -1,5 +1,17 @@
 """Every tunable in one place. All pixel values are in the normalized 1366x768 game frame."""
+import os
 from dataclasses import dataclass, field
+from pathlib import Path
+
+CORPUS = "F:/dev/maple-corpus"  # WHERE THE RECORDINGS GO: the recording corpus (PLAN-data.md). F: (an SSD) for now,
+                                # E: later (the user, 2026-11-18); never C: (this repo's drive is nearly full).
+                                # Change it here, or name another folder for one command with the environment
+                                # variable MAPLE_CORPUS / `record --corpus DIR` / `corpus.py --corpus DIR`.
+
+
+def corpus_root() -> Path:
+    """The corpus folder: `record` writes into its incoming/, tools/data/corpus.py files recordings into it."""
+    return Path(os.environ.get("MAPLE_CORPUS") or CORPUS)
 
 
 @dataclass

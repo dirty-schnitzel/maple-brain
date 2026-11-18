@@ -20,13 +20,14 @@ class FakeVideo:
     last = None
 
     def __init__(self, out, note=None):
-        self.out, self.note, self.frames = Path(out), note, []
+        self.out, self.note, self.frames, self.buttons = Path(out), note, [], []
         self.written = self.dropped = self.queue_max = 0
         self.error, self.closed = None, False
         FakeVideo.last = self
 
-    def put(self, frame, n, t, cursor=None, wait=False):
+    def put(self, frame, n, t, cursor=None, wait=False, buttons=0):
         self.frames.append((n, t, cursor, frame))
+        self.buttons.append(buttons)
         self.written += 1
         return True
 
@@ -52,7 +53,7 @@ class Keys(ScriptedKeys):
 
 
 def _record(tmp_path, monkeypatch, script, focus_script=None, screen=None, max_recordings=1, free=500.0,
-            quit_after=None):
+            quit_after=None, scene=None):
     holder = {}
 
     def make_kb(hwnd, *_):
@@ -69,7 +70,7 @@ def _record(tmp_path, monkeypatch, script, focus_script=None, screen=None, max_r
     monkeypatch.setattr(record, "ASSETS", FX)
     FakeVideo.last = None
     hk = runner.Hotkeys([START, STOP], key_down=Keys(script, quit_after))
-    code = record.record(tmp_path / "incoming", Config(), hotkeys=hk, max_recordings=max_recordings)
+    code = record.record(tmp_path / "incoming", Config(), hotkeys=hk, max_recordings=max_recordings, scene=scene)
     return code, holder["kb"], tmp_path / "incoming"
 
 
@@ -87,6 +88,26 @@ def test_start_key_records_every_frame_until_the_stop_key_and_sends_no_key(tmp_p
     assert f"stopped by {STOP.upper()}" in log and f"frames: {len(v.frames)} grabbed" in log and "0 dropped" in log
     assert "time between frames p50" in log and (rec / "keys.jsonl").exists()
     assert not (rec / "ticks.jsonl").exists()                            # no perception ran
+
+
+def test_a_recording_carries_the_facts_of_the_day_and_the_mouse_buttons(tmp_path, monkeypatch):
+    """session.json is written by the recorder itself: the config as it was (which key is the attack, the weapon),
+    the code's commit, the wall clock at t = 0 - and each frame is handed over with the mouse buttons held."""
+    import json
+    held = iter([0, 0, 1, 1, 0, 2] + [0] * 1000)
+    monkeypatch.setattr(record.session, "buttons", lambda: next(held))
+    script = lambda name, n: (name == START and 3 <= n <= 4) or (name == STOP and 20 <= n <= 21)  # noqa: E731
+    before = time.time()
+    code, _, out = _record(tmp_path, monkeypatch, script, scene="expiry")
+    (rec,) = list(out.iterdir())
+    s = json.loads((rec / "session.json").read_text(encoding="utf-8"))
+    cfg = Config()
+    assert code == 0 and s["by"] == "record" and s["scene"] == "expiry"
+    assert s["config"]["keys"]["attack"] == cfg.keys.attack and s["config"]["combat"]["weapon"] == cfg.combat.weapon
+    assert before - 1 <= s["epoch"] <= time.time() + 1 and s["started_utc"].endswith("+00:00")
+    assert set(s["code"]) == {"commit", "branch", "dirty"} and s["capture"]["kind"] == "fake"
+    assert "picture" in s["capture"] and "frames.jsonl" in s["inputs"]
+    assert FakeVideo.last.buttons[:6] == [0, 0, 1, 1, 0, 2]
 
 
 def test_start_key_is_ignored_while_the_game_is_not_focused(tmp_path, monkeypatch, capsys):
