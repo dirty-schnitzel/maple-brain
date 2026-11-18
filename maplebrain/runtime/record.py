@@ -203,10 +203,11 @@ def record_one(out: Path, cfg: Config, kb, screen, lie, hz, until, where: str = 
 
 
 def record(out_root: Path, cfg: Config, hotkeys: Hotkeys | None = None, poll_s: float = 0.03,
-           max_recordings: int | None = None, scene: str | None = None) -> int:
+           max_recordings: int | None = None, labels=()) -> int:
     """Stay loaded: cfg.keys.start starts a recording, cfg.keys.stop ends it; Ctrl+C in the console quits.
-    `scene`: the name of a staged scene ("expiry": drops left lying until they are gone), kept in each
-    recording's session.json - ordinary play has none. `max_recordings`: for tests."""
+    `labels`: the words the player gave these recordings (`--label exploration`: what they set out to do), kept
+    in each recording's session.json and, once it is filed, in the names of its captures. `max_recordings`: for
+    tests."""
     out_root = Path(out_root)
     t0 = time.perf_counter()
 
@@ -226,7 +227,7 @@ def record(out_root: Path, cfg: Config, hotkeys: Hotkeys | None = None, poll_s: 
     kb = Keyboard(hwnd, hz, cfg.humanize, cfg.keys)          # only asked "is the game focused?": no key is ever sent
     screen = Screen(hwnd)
     say(f"capture: {screen.kind}{' (' + screen.note + ')' if screen.note else ''}")
-    facts = session.facts(cfg, "record", ASSETS, scene, {"kind": screen.kind, "note": screen.note})
+    facts = session.facts(cfg, "record", ASSETS, labels, {"kind": screen.kind, "note": screen.note})
     from ..perception.liedetector import LieDetector
     lie = LieDetector.load(ASSETS, background=False)
     start_key, stop_key = cfg.keys.start, cfg.keys.stop
@@ -234,7 +235,7 @@ def record(out_root: Path, cfg: Config, hotkeys: Hotkeys | None = None, poll_s: 
     say(f"ready: {start_key.upper()} = start recording (you play, nothing is pressed; your keys are recorded), "
         f"{stop_key.upper()} = stop, Ctrl+C here = quit. Recordings -> {out_root} ({free_gb(out_root):.0f} GB free). "
         "The minimap open in its usual place; the Lie Detector is watched between recordings too"
-        + (f". Scene: {scene}" if scene else ""))
+        + (f". Labels: {', '.join(labels)}" if labels else ""))
     idle = LieWatch(lie, say, out_root)
     aim = window.Aim(screen, say)
     done, next_look = 0, 0.0

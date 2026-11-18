@@ -178,18 +178,26 @@ names poison everything after; "unknown" stretches are fine.
 **2026-11-18 (the user): this recorder is the final way data is collected; its bank serves perception, the live
 map + tracking and later AI training; its footage replaces the gated checks.** Built for it: the mouse buttons per
 frame (`frames.jsonl` `"b"`), `session.json` beside every recording (the config, the code's commit, the client
-build, the wall clock), `record --scene NAME` for staged scenes, and the corpus folder as one parameter
+build, the wall clock), `record --label NAME` (what the player set out to do), and the corpus folder as one parameter
 (`config.CORPUS`: `F:\dev\maple-corpus` for now - an SSD; E:, a USB hard disk, later). **And the bank is filed
 per map** (the user: "filed per map, build it"), which replaces section 5's "one manifest line per segment of a
-recording kept whole": `maps\<map name> (<id>)\<date>_<time>_<mode>_<length>_sK\` holds one stay's frames,
+recording kept whole": `maps\<map name> (<id>)\<date>_<time>_<labels>_<length>_sK\` holds one stay's frames,
 written again losslessly by `add` and proven identical frame by frame (a fingerprint per frame) before the
 original leaves `incoming\`; hold-out maps under `holdout\`; `sessions\<recording>\` keeps the session's small
 files and its route; a stay's permanent id is `RECORDING#K` (tools, labels, gates), its folder name is for people
-(mode = farming / traveling / town / idle / bot, worked out per stay; a session's label from `record --scene NAME`
-is one more word in the name); `corpus.py verify` re-checks the files. Detail:
+(labels = the player's from `record --label NAME`, then the one worked out per stay: farming / traveling / town /
+idle / bot - words, nothing more: the user, 2026-11-19); `corpus.py verify` re-checks the files. Detail:
 tools/data/corpus.py's docstring, HANDOFF. Decided the same day: **sound is not recorded** (vision only); **one
 gate list on the bank** for the perception and loot gates is agreed as a future task, designed once the corpus
 has substance (HANDOFF "FUTURE TASK").
+
+**2026-11-19, Session 1b on the user's first walk** (16.4 minutes down the Ant Tunnel: 14 maps, 13 map changes):
+gate (b) PASSED in its recording half (59,163 frames, 60.0 a second, 0 dropped, 0.155 ms a frame on the loop) -
+**its tick-cost half is open until the user records the two hunts**; gate (c) PASSED (0.38 GB a minute, 23 GB an
+hour); gate (f) PASSED (all 13 cut sheets by eye: every cut on the portal's fade, every name = the minimap's
+title; loading screens 0.22-0.60 s, so `KEEP_S` = 2 s stays). Filed: 14 captures, every frame read back
+identical, ~46 minutes of unattended tool time per recorded hour. The bank: 25 captures on 18 maps, 37 minutes -
+**not enough for Session 2**: the walk of section 4 is still to be recorded. Detail: HANDOFF.
 
 ## 6. The validation pass (Sessions 2 and 3)
 Perception runs **unchanged** over the dev group; this pass measures and lists, it fixes nothing.
@@ -243,7 +251,8 @@ rules: stop with numbers, no workarounds. Leave alone: the native PNG recordings
 reads them; they enter the corpus as copies only), tools/perc/track/ (another session's work), the `loot`
 branch. At the end update HANDOFF, commit and push `data`."
 
-**Session 1b (Opus, high; written 2026-11-18, when the first walk was in `incoming\`):**
+**Session 1b (Opus, high; written 2026-11-18, when the first walk was in `incoming\`; run on that walk
+2026-11-19 - the same prompt serves every later batch of recordings):**
 ```
 You are the executor of PLAN-data.md, Session 1b: Session 1's live gates on my recordings, then the filing.
 Read HANDOFF's START HERE and the docstring of tools/data/corpus.py; PLAN-data.md section 5 has gates (b), (c),

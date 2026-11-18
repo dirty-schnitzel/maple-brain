@@ -58,30 +58,61 @@ find mobs, fight them like a player, pick up loot, use potions, and **navigate p
 later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never reads memory or packets.
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
-## START HERE NEXT SESSION: PLAN-data.md Session 1 is BUILT (branch `data`); its live gates wait for the user's walk
+## START HERE NEXT SESSION: PLAN-data.md Session 1 is BUILT (branch `data`); the first walk is filed; the two hunts and more walks are the user's
 **State 2026-11-17 (branch `data` off `dev`, pushed; the user merges):** the recorder, the video writer / reader,
-the corpus tool and the ported tools are built and tested; gates (a), (d), (e) PASSED; gates (b), (c), (f) need
-the user's runs (commands below). The corpus exists: `F:\dev\maple-corpus` holds the 11 old native PNG recordings, filed
+the corpus tool and the ported tools are built and tested; gates (a), (d), (e) PASSED; **2026-11-19: (c) and (f)
+PASSED on the user's first walk, (b) in its recording half** - the two hunts for the tick cost are still owed
+(below). The corpus exists: `F:\dev\maple-corpus` holds the 11 old native PNG recordings, filed
 by map (11 stays in 7 map folders; the PNG folders in `runs/` are untouched - every gate still reads them, see
 below).
 **The tracker redesign (step 4, the section below) still waits for the corpus.** 2026-11-18: `data` was rebased
 on `dev` (loot part 1 merged) and the loot tools read frames through the corpus reader (bed4333).
 
-### NEXT SESSION = "Session 1b" (its prompt: PLAN-data.md section 10): the live gates on the user's recordings, then the filing
-**The first walk is in `F:\dev\maple-corpus\incoming\20261118_232410_1`** (2026-11-18 23:24, `record --scene
-exploration`, on commit daec2b0 = the assets rebuilt from the day's client patch: 28 new maps, another session's
-commit). Read from its log, nothing run on it yet: 986 s of recording, 59,163 frames = 60.0 a second, **0
-dropped**, the queue at most 1 of 120, handing a frame over cost the loop 0.155 ms on average / 0.69 ms at most,
-6.27 GB = **0.38 GB a minute** (23 GB an hour), time between frames p50 16.8 / p99 19.9 / max 54.1 ms (9 over
-25 ms), 3,459 key events (hook lag max 16 ms), a mouse button held on 261 frames; one Lie Detector during it
-(siren, frame saved, gone after 22 s - it is in the footage), two pauses (PowerShell in front). `session.json` is
-there. **Still owed:** the dry cut + every cut sheet by eye (gate f), the two hunts for the tick cost (gate b:
-none recorded yet), the user's word on smoothness. A `record --scene exploration` process was still loaded when
-this was written (more recordings may follow): never stop it.
-**The label rule (changed 2026-11-18 after seeing that walk):** `record --scene NAME` (also `--label`) is a label
-for what the player set out to do; it is one more word in each capture's name, BEFORE the mode - the mode
-(farming / traveling / ...) is always worked out per capture: `2026-11-18_2324_exploration_traveling_0m40s_s03`.
-(As first built the label replaced the mode: every capture of that walk would have been "scene-exploration".)
+### 2026-11-19: Session 1b on the first walk - gates (c) and (f) PASSED, (b) half; the walk is in the bank
+**The user's first walk** (`20261118_232410_1`: 2026-11-18 23:24, 16.4 minutes, recorded with the label
+`exploration` on commit daec2b0 = the assets rebuilt from that day's client patch) went down the whole Ant Tunnel:
+**Ant Tunnel I -> II -> III -> IV -> Dark Cave -> Dangerous Steam -> Deep Ant Tunnel I -> II -> Ant Tunnel Park ->
+The Cave of Evil Eye I -> II -> III -> IV -> Drake Hunting Ground** = 14 maps, 13 map changes, 14 captures.
+- **Gate (b), the recording half: PASSED.** 59,163 frames in 986.1 s = 60.0 a second, **0 dropped**, the queue at
+  most 1 of 120, handing a frame over cost the loop 0.155 ms on average / 0.69 ms at most; time between frames
+  p50 16.8 / p99 19.9 / max 54.1 ms (9 of 59,163 over 25 ms). **The tick-cost half is OPEN:** the two hunts
+  (`serve F:\dev\maple-corpus\incoming --video` and `serve runs\v2`, same map and spot, ~2 minutes each) are not
+  recorded yet, and the user has not said whether the game felt as smooth as without the recorder.
+- **Gate (c): PASSED.** 6.27 GB = 0.38 GB a minute = 23 GB an hour (the plan allowed 0.2-0.7).
+- **Gate (f): PASSED on this walk.** All 13 cut sheets looked at by eye: every cut sits on the portal's fade to
+  black, and every name the tool gave is the name in the minimap's title on the frames before and after; each two
+  maps in a row are joined by a portal in the client data (no map skipped). 1,872 frames looked at, 48 without
+  a name, 202 named through the window measured beside them; no unnamed stretch outlasted a loading screen, so
+  no "unknown" capture. **Loading screens: 0.22-0.60 s (median 0.33) -> `KEEP_S` = 2 s stays** (3 times the
+  longest). Not yet seen by the cutter in real footage: a shop / a map without a minimap, a town, a death, a
+  channel change, the world map opened over the minimap.
+- **Filed** with `add --keep`: 14 captures, 59,163 frames, every one read back identical; then every capture's
+  sheet.jpg looked at (each shows its one map, the labels fit) and `verify --frames` over the whole bank: all as
+  filed. Cost: the cut 0.45 s + the filing 0.32 s per recorded second = **~46 minutes per recorded hour**,
+  unattended. The original is still in `incoming\` (6.3 GB): the user's to delete (nothing in it is missing from
+  the bank: every frame is in a capture, the small files are in `sessions\20261118_232410_1\`).
+- **The bank now:** 12 recordings, 25 captures, 18 maps, 37.3 minutes, 9.8 GB (F: 242 GB free = ~10 more hours).
+  **Hold-out by the rule:** Deep Ant Tunnel I, Ant Tunnel Park, The Cave of Evil Eye II (3 of the walk's 14).
+- In the footage: a Lie Detector (The Cave of Evil Eye I, capture #9, from ~28 s in for 22 s: its window is in
+  the frames), two pauses of 7.4 s and 6.4 s (PowerShell in front: the clock jumps inside captures #9 and #11,
+  their lengths include it), other players in almost every frame (the user: popular maps are always crowded).
+- **Open, for the user:** `w` was tapped 288 times and `e` 76 times; neither is in `Keys`. The farming label
+  counts only the attack keys of the day (`q`, `c`): if `w` is an attack skill the counts are low (Deep Ant
+  Tunnel II is "farming" on exactly 5 presses of `q` beside 44 of `w`).
+- **Enough for Session 2?** No: 18 maps / 37 minutes, all but 4 in one dungeon. The plan's walk (section 4) is
+  hours across the popular maps; Session 2 (the validation pass) starts when the user says the walk is done.
+  More walks: `python -m maplebrain record [--label NAME]`, then `corpus.py add --dry` -> the sheets -> `add`.
+
+**Labels (the user, 2026-11-19: "--scene should just be an added label, also farming and traveling are just labels
+not modes"):** `record --label NAME` (as many as wanted; `--scene` is gone) gives a recording words for what the
+player set out to do. A capture's `labels` (a list in its manifest line / stay.json = the words in its folder's
+name) are those, then the one the tool works out from the keys (`corpus.play_label`: farming / traveling / town /
+idle / bot): `2026-11-18_2324_exploration_farming_0m57s_s00`. They are only words - no tool behaves differently
+for one. session.json holds `labels` (the recordings of 2026-11-18 hold one name under `scene`: still read).
+Manifest lines are version 3 (2 had `mode` + `scene`; the bank's 11 lines were converted, the old manifest is
+`work\manifest.v2.jsonl`). The attack presses are now counted with the recording's own keys (session.json
+`config.keys`), not today's. Not built: giving a capture a label AFTER it was filed (the user's picture - "each
+one has different labels" - may want it: `labels` + a folder rename).
 
 ### 2026-11-18: what the corpus is FOR (the user), and what was built for it
 **The user's frame:** (1) this is the final way data is collected in this project; (2) the bank built with it
@@ -95,7 +126,7 @@ serves everything - validating perception, the live map data model and tracking 
   was (which key is the attack / jump / potions, the weapon, its speed), the code's commit, the client data's
   build, the wall clock at t = 0 (`epoch`), the capture (kind, picture, monitor refresh rate), what each input
   file holds. Without it "q went down" means nothing once keys or character change.
-- **`record --scene NAME`** (also `--label`): a label for what the player set out to do (`exploration`;
+- **`record --label NAME`** (repeatable; first built as `--scene`): what the player set out to do (`exploration`;
   PLAN-loot.md section 13's three: `expiry`, `pickups`, `windows`); kept in session.json, a word in the names.
 - **Where the recordings go = one parameter:** `CORPUS` in `maplebrain/config.py` (now `F:\dev\maple-corpus`;
   `record --corpus DIR`, `corpus.py --corpus DIR` or the environment variable MAPLE_CORPUS for one command).
@@ -131,10 +162,10 @@ F:\dev\maple-corpus\
 ```
 - **Ids for tools, names for people.** A stay's permanent id is `SESSION#K` (SESSION = the recording's folder
   name as recorded, K = its number in the session): what tools, labels and gates take (`clip` also takes the
-  stay's folder). The folder's name is for people: date, the time the stay began, mode, length, K. Modes
-  (`corpus.mode_of`): `farming` (5+ attack presses), `traveling`, `town` (60 s+ on a map without mobs), `idle`
-  (3 min+ without fighting), `bot` (a bot hunt); a session's label (`record --scene NAME`) is one more word
-  before the mode. A better rule can rename folders.
+  stay's folder). The folder's name is for people: date, the time the stay began, its labels, length, K. Labels
+  = the player's (`record --label NAME`), then the tool's (`corpus.play_label`): `farming` (5+ attack presses),
+  `traveling`, `town` (60 s+ on a map without mobs), `idle` (3 min+ without fighting), `bot` (a bot hunt). A
+  better rule can rename folders.
 - **`add` files physically:** every stay's frames are read from the recording in order and written again,
   losslessly, into the stay's folder (video files named `<map>_<stay>_000.mkv`: a file says what it is wherever
   it is copied). A stay's files begin with the frames nobody could name before it (its loading screen: `arrive`
@@ -161,13 +192,16 @@ F:\dev\maple-corpus\
   TASK designed once the corpus has substance (its own section below). **Sound is not recorded** ("vision only,
   like a Tesla"). Faster filing: not needed for now. The user's picture of the bank, which this layout is: "a
   directory for each map with multiple captures, each one has different labels, and possibly different uses" -
-  a capture's labels = its stay.json (mode, who played, date, length, attack presses, marks, group) + its by-eye
-  labels in `labels\SESSION#K\`; a use = a list pointing at captures by id (today: the dev / hold-out group).
+  a capture's labels = the words in its stay.json `labels` (exploration, farming) and the facts beside them (who
+  played, date, length, attack presses, marks, group) + its by-eye labels in `labels\SESSION#K\`; a use = a list
+  pointing at captures by id (today: the dev / hold-out group).
 - **A limit:** footage can gate whatever reads the screen (perception, tracking, the live map, what the brain
   would press vs what the user pressed); not what depends on the bot's own actions (kills a minute, getting
   stuck): a recording does not answer back - those stay live runs.
 
 ### What the user runs (gates b, c, f) - an elevated PowerShell in `C:\Users\Yoav\dev\maple-work`, branch `data`
+**2026-11-19: step 1 is done once (the first walk, above); step 2 - the two hunts - is still owed; more walks =
+step 1 again, with `--label NAME` if wanted.**
 `watch` running as always; no `serve` / `run` of an older branch left open. Game windowed 1366x768, logged in,
 chat minimized, **the minimap open in its usual place**.
 1. **The walk** (10+ minutes, 3+ maps; fight on at least one, only cross at least one):
@@ -211,7 +245,7 @@ chat minimized, **the minimap open in its usual place**.
 - **Ported** (frames from PNG or video, RUN or `SESSION#K`, `--holdout`): `tools/perc/replay/run.py`,
   `label_eval.py`, `labels/{pick,patches,label}.py`, `synth/{synth,make}.py`. Every other tool: PNG files on
   demand from `python tools\data\unpack.py RUN [numbers | names | A-B] [--every N] [--out DIR]`.
-- **`tools/data/corpus.py add RUN`**: check -> cut into maps -> the keys and the mode per stay -> every stay
+- **`tools/data/corpus.py add RUN`**: check -> cut into maps -> the keys and the labels per stay -> every stay
   filed in its map's folder (the layout above), the footage read-only. `--dry` stops before filing (cut sheets in
   `work\cuts\SESSION\`; filed: `sessions\SESSION\cuts\`). `add --dev MAP` moves a map to dev, its folder from
   `holdout\` to `maps\` (refused once it was used as hold-out). `corpus.py list [--stays]` = the report of
@@ -303,12 +337,12 @@ coverage (7 maps: 7 fought on, 0 only crossed; 0 hold-out):
 ```
 
 ### Not done / open
-- Gates (b), (c), (f): the user's runs above. **Nobody has seen a real map change yet** - the cut's rules were
-  built on recordings of single maps; the first walk is their test (every cut sheet looked at once).
-- `KEEP_S` (2 s) and the portal rule's narrow scope are decisions 1-2 above: confirm or change after the walk.
-- `add` looks at one frame a second in one process (~0.2 s per recorded second) and then writes + reads back
-  every frame (the measured line above): the first walk shows the real time per recorded hour at 60 fps. Making
-  it faster: the user, 2026-11-18: not needed for now.
+- Gate (b)'s tick cost: the user's two hunts (above), and their word on smoothness. Gates (c), (f) passed on
+  the first walk (2026-11-19, top of this section): 13 real map changes, all cut and named right.
+- `KEEP_S` (2 s) stays: real loading screens are 0.22-0.60 s. The portal rule (decision 2) has not met a real
+  shop yet: the first walk with a town in it is its test (look at that cut sheet).
+- `add` costs ~46 minutes per recorded hour at 60 fps (measured on the first walk: the cut 0.45 s + the filing
+  0.32 s per recorded second), unattended. Making it faster: the user, 2026-11-18: not needed for now.
 - **A walk split in the wrong place** (the tool names a map change a few seconds off, or takes two maps for
   one): found AFTER filing, the frames sit in the wrong capture's folder and there is no command that moves
   them - a fix by hand (every frame is there, numbered by its session). It is about a mistake of the tool, not

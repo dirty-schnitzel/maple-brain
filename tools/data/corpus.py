@@ -21,16 +21,19 @@ MAPLE_CORPUS or --corpus DIR names another - nothing in it holds a drive letter,
   manifest.jsonl         one line per stay (`_line`): the index tools read; the same line is the stay's stay.json
   groups.json            the maps moved to dev by hand
   holdout_uses.jsonl     every time a tool opened a hold-out stay
-  labels/SESSION#K/      a stay's by-eye labels (nobody can make them again)
+  labels/SESSION#K/      a stay's by-eye labels: what is where on its frames (labels.json; nobody can make them
+                         again). Not the words below.
   work/SESSION#K/        what tools write for a stay (replays): safe to delete; work/cuts/SESSION = a dry run's sheets
 
-**A stay** has a permanent id, `SESSION#K` (K = its number in the session): what labels, gates and tools use. Its
-folder is named for people: <date>_<time it began>_<mode>_<length>_s<K>, e.g. 2026-11-18_1432_farming_12m05s_s03.
-The mode (`mode_of`) is worked out per stay: `farming` (FARM_ATTACKS or more attack presses), `traveling`
-(crossed), `town` (TOWN_S or longer on a map without mobs), `idle` (IDLE_S or longer without fighting), `bot` (a
-bot hunt). A session recorded with a label (`record --scene NAME`: what the player set out to do - exploration,
-expiry) carries it in every stay's name, before the mode: 2026-11-18_2324_exploration_traveling_0m40s_s03.
-Nothing but people reads a name, so a better rule can rename folders without breaking anything.
+**A stay** has a permanent id, `SESSION#K` (K = its number in the session): what by-eye labels, gates and tools
+use. Its folder is named for people: <date>_<time it began>_<its labels>_<length>_s<K>, e.g.
+2026-11-18_2324_exploration_traveling_0m40s_s03.
+**Its labels** (the manifest line's `labels`, a list) are plain words saying what the footage is - nothing in the
+tools behaves differently for one. First the ones the player gave the recording (`record --label NAME`, as many
+as wanted: exploration, expiry), then the one worked out from what was pressed during the stay (`play_label`):
+`farming` (FARM_ATTACKS or more attack presses), `traveling` (crossed), `town` (TOWN_S or longer on a map without
+mobs), `idle` (IDLE_S or longer without fighting), `bot` (a bot hunt). Nothing but people reads a name, so a
+better rule - or a label added later - can rename folders without breaking anything.
 In the folder:
   <map name>_<stay>_000.mkv ...  its frames, lossless, 5-minute files (runtime/video.py)
   frames.jsonl   one line per frame: n = its number in the session, t = the session's clock, cur / b = the mouse,
@@ -63,7 +66,7 @@ frame of a session is in exactly one stay. Tools get the frames ON the map (`fra
     its map (a hunt, an observe run: perception is tied to one map) is one stay on that map; the minimap is still
     looked at and must not name another.
  3. per stay, from keys.jsonl: the attack presses and the time of the first, the presses of the marker key
-    (Keys.note) - and from them the mode.
+    (Keys.note) - and from them the label the tool gives it.
  4. **files every stay**: its frames read from the recording in order, written losslessly into the stay's folder,
     read back and compared frame by frame (the fingerprints). Then the session's small files, the manifest lines,
     index.txt. Only when every frame of the recording is proven to be in a stay is the original removed - and
@@ -117,7 +120,8 @@ ONE_MAP_FILES = ("ticks.jsonl", "log.txt", "notes.txt")      # a one-stay record
 LABEL_FILES = ("labels.json", "labels/cams.json", "labels/patches.json")     # its by-eye labels: into labels/
 SESSION_FILES = ("session.json", "log.txt", "notes.txt", "keys.jsonl", "frames.jsonl", "video.json")
 LOCKED = ("frames.jsonl", "keys.jsonl", "ticks.jsonl")       # read-only in a stay's folder, with its video files
-V = 2                   # the manifest line's version (1 = the first layout: whole recordings under recordings/)
+V = 3                   # the manifest line's version (1 = the first layout: whole recordings under recordings/;
+                        # 2 = `mode` and `scene` where `labels` is now)
 
 
 class Problem(Exception):
@@ -136,9 +140,11 @@ def load() -> list:
     if not p.exists():
         return []
     lines = [json.loads(l) for l in p.read_text(encoding="utf-8").splitlines() if l.strip()]
-    if any(l.get("v") != V for l in lines):
-        raise Problem(f"{root()} is laid out the old way (whole recordings under recordings/): file its recordings "
-                      "again into an empty corpus folder")
+    old = sorted({l.get("v") for l in lines} - {V}, key=str)
+    if old:
+        raise Problem(f"{root()}: manifest lines of version {old}, this tool reads version {V} (1 = whole recordings "
+                      "under recordings/: file them again into an empty corpus folder; 2 = `mode` / `scene` in "
+                      "place of `labels`)")
     return lines
 
 
@@ -568,20 +574,23 @@ def sheet(run: Path, rows: list, c: dict, name: Namer, path: Path) -> None:
 
 
 # ------------------------------------------------------------------------------- step 3: the keys of each stay
-def presses(run: Path) -> tuple:
+def presses(run: Path, own: dict | None = None) -> tuple:
     """([attack press times], [marker key press times]) of the recording, on the frames' clock: the player's keys
     (keys.jsonl), or - a bot hunt has none - the bot's own presses from ticks.jsonl: a new swing in timings.v2
     (brain v2 presses once per swing; the hunts of 2026-11-17: 75 and 45, the logs' own counts), or for older
-    brains the attack key going down in the held keys."""
+    brains the attack key going down in the held keys. `own`: the recording's own keys (session.json
+    `config.keys`: which key was the attack that day); without them, today's (config.Keys)."""
     from maplebrain.config import Keys
+    own = own or {}
     attack, marks = [], []
-    keys = {Keys.attack, Keys.basic_attack}
+    keys = {own.get("attack") or Keys.attack, own.get("basic_attack") or Keys.basic_attack}
+    note = own.get("note") or Keys.note
     if (run / "keys.jsonl").exists():
         for l in open(run / "keys.jsonl", encoding="utf-8"):
             k = json.loads(l)
             if k.get("down") and k.get("key") in keys:
                 attack.append(k["t"])
-            elif k.get("down") and k.get("key") == Keys.note:
+            elif k.get("down") and k.get("key") == note:
                 marks.append(k["t"])
     elif (run / "ticks.jsonl").exists():
         was, swing = False, None
@@ -609,9 +618,9 @@ def map_folder(map_id: int | None) -> str:
     return "_unknown" if map_id is None else f"{safe(map_json(map_id).get('name') or 'map')} ({map_id})"
 
 
-def mode_of(bot: bool, attacks: int, seconds: float, mobs: bool | None) -> str:
-    """What a stay was, from what was pressed during it (module docstring). `mobs`: does the map have mobs (None:
-    an unknown map)."""
+def play_label(bot: bool, attacks: int, seconds: float, mobs: bool | None) -> str:
+    """The label the tool gives a stay itself, from what was pressed during it (module docstring). `mobs`: does
+    the map have mobs (None: an unknown map)."""
     if bot:
         return "bot"
     if attacks >= FARM_ATTACKS:
@@ -625,14 +634,23 @@ def length(seconds: float) -> str:
     return f"{int(seconds) // 60}m{int(seconds) % 60:02d}s"
 
 
-def label_of(scene) -> str:
-    """The session's label (`record --scene NAME`) as a part of a name: 'Expiry test!' -> 'expiry-test'."""
-    return re.sub(r"[^a-z0-9]+", "-", str(scene or "").lower()).strip("-")
+def slug(text) -> str:
+    """A label as a part of a name: 'Expiry test!' -> 'expiry-test'."""
+    return re.sub(r"[^a-z0-9]+", "-", str(text or "").lower()).strip("-")
 
 
-def stay_name(began: datetime, mode: str, seconds: float, k: int, scene=None) -> str:
-    label = label_of(scene)
-    return f"{began:%Y-%m-%d_%H%M}_{label + '_' if label else ''}{mode}_{length(seconds)}_s{k:02d}"
+def given_labels(facts: dict) -> list:
+    """The labels the player gave a recording (`record --label NAME`: session.json's "labels"; a recording of
+    2026-11-18 has one name or null under "scene"), as parts of a name, in the order given, each once."""
+    out = []
+    for x in facts.get("labels") or ([facts["scene"]] if facts.get("scene") else []):
+        if (s := slug(x)) and s not in out:
+            out.append(s)
+    return out
+
+
+def stay_name(began: datetime, labels: list, seconds: float, k: int) -> str:
+    return "_".join([f"{began:%Y-%m-%d_%H%M}", *labels, length(seconds), f"s{k:02d}"])
 
 
 def began_at(run: Path, facts: dict, meta: dict) -> datetime:
@@ -686,18 +704,19 @@ def _line(ses: str, k: int, s: dict, bound: tuple, rows: list, attack: list, mar
     """One manifest line: stay `k` of session `ses` (the fields filing adds: n_file is checked, files, bytes)."""
     a, b = s["i"]
     fa, fb = bound
-    t0, t1 = rows[a][2], rows[b][2]
+    t0, t1 = round(rows[a][2], 2), round(rows[b][2], 2)      # (as the line keeps them: one length everywhere)
     hits = [x for x in attack if t0 <= x <= t1]
     m = s["map"]
     mj = map_json(m) if m is not None else {}
     group = group_of(m, dev)
-    mode = mode_of(by == "bot", len(hits), t1 - t0, bool(mj.get("mobs")) if mj else None)
+    play = play_label(by == "bot", len(hits), t1 - t0, bool(mj.get("mobs")) if mj else None)
+    labels = [x for x in given_labels(facts) if x != play] + [play]      # the player's, then the tool's
     began = start + timedelta(seconds=t0)
-    stay = stay_name(began, mode, t1 - t0, k, facts.get("scene"))
+    stay = stay_name(began, labels, t1 - t0, k)
     return {"v": V, "seg": f"{ses}#{k}", "session": ses, "k": k, "stay": stay,
             "path": f"{'holdout' if group == 'holdout' else 'maps'}/{map_folder(m)}/{stay}",
             "map": m, "name": mj.get("name"), "street": mj.get("streetName"), "how": s["how"], "group": group,
-            "mode": mode, "scene": facts.get("scene"), "by": by,
+            "labels": labels, "by": by,
             "frames": [rows[a][0], rows[b][0]],              # the frames ON the map (frames.jsonl "n"), inclusive
             "n_frames": b - a + 1,
             "file_frames": [rows[fa][0], rows[fb][0]],       # the frames in its files: + the loading screen before
@@ -870,7 +889,7 @@ def route(ses: str, start: datetime, lines: list) -> str:
     out = [f"{ses}: began {start:%Y-%m-%d %H:%M:%S}, {len(lines)} stay(s), "
            f"{sum(l['minutes'] for l in lines):.1f} minutes on maps", ""]
     for l in lines:
-        out.append(f"{l['seg']:>24s}  {l['began'][11:]}  {length(l['t'][1] - l['t'][0]):>7s}  {l['mode']:12s} "
+        out.append(f"{l['seg']:>24s}  {l['began'][11:]}  {length(l['t'][1] - l['t'][0]):>7s}  {' '.join(l['labels']):22s} "
                    f"{map_name(l['map'])}" + (f" ({l['map']})" if l["map"] is not None else "")
                    + f"   -> {l['path']}")
     return "\n".join(out) + "\n"
@@ -886,7 +905,7 @@ def file_session(run: Path, ses: str, facts: dict, lines: list, start: datetime,
             os.chmod(d / p.name, stat.S_IWRITE)
     if not (d / "session.json").exists():                    # recorded before the recorder wrote one
         (d / "session.json").write_text(json.dumps(
-            {"v": 1, "by": lines[0]["by"], "scene": None, "started": start.isoformat(timespec="seconds"),
+            {"v": 1, "by": lines[0]["by"], "labels": [], "started": start.isoformat(timespec="seconds"),
              "source": str(run).replace("\\", "/"),
              "note": "written when the recording was filed: it was made before the recorder wrote session.json"},
             indent=1), encoding="utf-8")
@@ -925,7 +944,7 @@ def add(run: Path, dry: bool = False, full: bool = False, keep: bool = False, sa
             raise Problem(f"the log says map {logged} {map_name(logged)}, the minimap names {other}: look at "
                           f"{root() / 'work' / 'cuts' / ses}")
         segs = [{"i": [0, len(rows) - 1], "map": logged, "how": "log"}]
-    attack, marks = presses(run)
+    attack, marks = presses(run, (facts.get("config") or {}).get("keys"))
     keys = _keys(run)
     ticks = (run / "ticks.jsonl").exists()
     by = ("record" if (facts.get("by") or meta.get("by")) == "record" else
@@ -955,7 +974,7 @@ def add(run: Path, dry: bool = False, full: bool = False, keep: bool = False, sa
             f"{c['what']}")
     for l in lines:
         say(f"  {l['seg']:24s} frames {l['frames'][0]:>6}..{l['frames'][1]:<6} {l['minutes']:6.2f} min  "
-            f"{l['group'] or '-':7s} {l['mode']:10s} {l['attacks']:4d} attacks  -> {l['path']}"
+            f"{l['group'] or '-':7s} {' '.join(l['labels']):22s} {l['attacks']:4d} attacks  -> {l['path']}"
             + (f"  [{l['how']}]" if l["how"] != "minimap" else "")
             + (f"  marks {len(l['marks'])}" if l["marks"] else ""))
     if dry:
@@ -1046,14 +1065,14 @@ def report(stays: bool = False, say=print) -> None:
         per[l["map"]].append(l)
 
     def fought(l):
-        return l["mode"] == "bot" or l["attacks"] >= FARM_ATTACKS
+        return "bot" in l["labels"] or l["attacks"] >= FARM_ATTACKS
 
     say(f"\n{'map':>9}  {'name':44s} {'group':7s} {'stays':>5} {'farming':>7} {'bot':>4} {'travel':>6} "
         f"{'minutes':>7} {'attacks':>7} {'marks':>5}")
     for m, ls in sorted(per.items(), key=lambda kv: -sum(l["minutes"] for l in kv[1])):
         say(f"{m:>9}  {map_name(m)[:44]:44s} {ls[0]['group']:7s} {len(ls):5d} "
-            f"{sum(l['mode'] == 'farming' for l in ls):7d} {sum(l['mode'] == 'bot' for l in ls):4d} "
-            f"{sum(l['mode'] == 'traveling' for l in ls):6d} {sum(l['minutes'] for l in ls):7.1f} "
+            f"{sum('farming' in l['labels'] for l in ls):7d} {sum('bot' in l['labels'] for l in ls):4d} "
+            f"{sum('traveling' in l['labels'] for l in ls):6d} {sum(l['minutes'] for l in ls):7.1f} "
             f"{sum(l['attacks'] for l in ls):7d} {sum(len(l['marks']) for l in ls):5d}")
     unk = [l for l in lines if l["map"] is None]
     if unk:
@@ -1064,7 +1083,7 @@ def report(stays: bool = False, say=print) -> None:
     if stays:
         say("\nstays (the id tools take; its folder):")
         for l in lines:
-            say(f"  {l['seg']:24s} {l['minutes']:6.2f} min {l['group'] or '-':7s} {l['mode']:10s} "
+            say(f"  {l['seg']:24s} {l['minutes']:6.2f} min {l['group'] or '-':7s} {' '.join(l['labels']):22s} "
                 f"{l['attacks']:4d} attacks  {l['path']}")
     # coverage: from the client data (map_cover: a mob type counts on a map with 3+ spawn points of it)
     maps, mobs = map_cover.load()

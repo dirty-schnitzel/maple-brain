@@ -9,7 +9,9 @@ collected). Its frames and keys say WHAT happened; this file says what that mean
   clock     `epoch` = the wall clock (seconds since 1970, UTC) at t = 0 of frames.jsonl / keys.jsonl
   capture   how the picture was taken (the capture kind, where in the window, the monitor's refresh rate)
   inputs    what each input file holds, in words: the format explains itself
-  scene     the name of a staged scene (`record --scene NAME`), else null: ordinary play
+  labels    the words the player gave the recording (`record --label NAME`, as many as wanted): what they set
+            out to do - exploration, expiry; [] = none. They become words in the names of its captures.
+            (The recordings of 2026-11-18 hold one name or null under "scene" instead: V 1.)
 Sound is not recorded, on purpose (the user, 2026-11-18: vision only) - the bot never hears.
 """
 import ctypes
@@ -22,7 +24,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-V = 1
+V = 2
 # mouse buttons held, as bits of frames.jsonl's "b" (virtual-key code, bit): the physical buttons
 BUTTONS = ((0x01, 1), (0x02, 2), (0x04, 4), (0x05, 8), (0x06, 16))
 INPUTS = {
@@ -80,10 +82,10 @@ def display() -> dict:
         return {}
 
 
-def facts(cfg, by: str, assets: Path, scene: str | None = None, capture: dict | None = None) -> dict:
+def facts(cfg, by: str, assets: Path, labels=(), capture: dict | None = None) -> dict:
     """Everything known before a recording starts (asked once: the git calls take a moment). `started` / `epoch`
     are added by `write` at the recording's t = 0."""
-    return {"v": V, "by": by, "scene": scene or None,
+    return {"v": V, "by": by, "labels": [str(x) for x in labels or () if str(x).strip()],
             "code": code(), "client": client(assets),
             "config": asdict(cfg) if is_dataclass(cfg) else dict(cfg or {}),
             "capture": {**(capture or {}), **display()},

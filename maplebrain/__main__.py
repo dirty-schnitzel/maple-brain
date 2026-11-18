@@ -66,9 +66,9 @@ def main(argv=None) -> int:
     c.add_argument("--stop-key", default=Keys.stop)
     c.add_argument("--note-key", default=Keys.note, help="the marker key: a key the game does not use, pressed when "
                    "something makes you change what you do (its presses are listed per map by the corpus)")
-    c.add_argument("--scene", "--label", default=None, metavar="NAME", help="a label for what you set out to do "
-                   "(exploration, expiry, pickups): kept with each recording and written into its captures' names, "
-                   "beside farming / traveling")
+    c.add_argument("--label", action="append", default=[], metavar="NAME", help="a label for what you set out to "
+                   "do (exploration, expiry, pickups; give it again for a second label): kept with each recording "
+                   "and written into its captures' names, beside the label the tool works out (farming, traveling)")
     g = sub.add_parser("goto", help="brain-v2 movement test: travel to a platform, or a tour of random goals "
                        "(elevated; clean maps, native window)")
     g.add_argument("out", type=Path)
@@ -122,7 +122,7 @@ def main(argv=None) -> int:
                 ap.error(f"hotkeys must be F1-F12, got {k!r}")
         cfg = Config()
         cfg.keys.start, cfg.keys.stop, cfg.keys.note = a.start_key, a.stop_key, a.note_key
-        return record(a.out or (a.corpus or corpus_root()) / "incoming", cfg, scene=a.scene)
+        return record(a.out or (a.corpus or corpus_root()) / "incoming", cfg, labels=a.label)
     if a.cmd == "goto":
         from .config import Config
         from .keyboard import validate

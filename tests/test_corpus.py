@@ -239,24 +239,25 @@ def test_a_map_moves_to_dev_only_before_it_was_used_as_hold_out(home):
 
 
 def test_a_stay_is_named_for_people():
-    """<date>_<time it began>_<mode>_<length>_s<its number>, the session's label (record --scene) before the
-    mode; the map's folder without what Windows refuses."""
+    """<date>_<time it began>_<its labels>_<length>_s<its number>: the labels the player gave the recording
+    (record --label), then the one the tool works out; the map's folder without what Windows refuses."""
     from datetime import datetime
-    assert corpus.stay_name(datetime(2026, 11, 18, 14, 32, 5), "farming", 725.4, 3) == "2026-11-18_1432_farming_12m05s_s03"
-    assert corpus.stay_name(datetime(2026, 11, 18, 15, 2), "traveling", 21.9, 7) == "2026-11-18_1502_traveling_0m21s_s07"
+    assert corpus.stay_name(datetime(2026, 11, 18, 14, 32, 5), ["farming"], 725.4, 3) == "2026-11-18_1432_farming_12m05s_s03"
+    assert corpus.stay_name(datetime(2026, 11, 18, 15, 2), ["traveling"], 21.9, 7) == "2026-11-18_1502_traveling_0m21s_s07"
     assert corpus.map_folder(LINE1) == "Line 1 Area 1 (10003061)" and corpus.map_folder(None) == "_unknown"
     assert corpus.safe('a<b>:c"/\\|?*% d. ') == "abc d"
-    mode = corpus.mode_of
+    mode = corpus.play_label                                 # the label the tool gives a stay itself
     assert mode(False, corpus.FARM_ATTACKS, 30, True) == "farming"             # fought
     assert mode(False, corpus.FARM_ATTACKS - 1, 30, True) == "traveling"        # a mob in the way is not farming
     assert mode(False, 0, 90, False) == "town" and mode(False, 0, 20, False) == "traveling"
     assert mode(False, 0, 400, True) == "idle" and mode(False, 0, 400, None) == "idle"
     assert mode(True, 0, 30, True) == "bot"                                     # a bot hunt, whatever it pressed
-    # a label the player gave the session is one more word in the name: it never hides farming / traveling
-    assert corpus.stay_name(datetime(2026, 11, 18, 23, 24), "traveling", 40, 3, "exploration") == \
+    # the player's labels are more words in the name, beside farming / traveling: as typed -> parts of a name
+    given = corpus.given_labels
+    assert given({"labels": ["Expiry test!", "exploration", "expiry-test", " "]}) == ["expiry-test", "exploration"]
+    assert given({"scene": "exploration"}) == ["exploration"] and given({"scene": None}) == [] == given({})
+    assert corpus.stay_name(datetime(2026, 11, 18, 23, 24), ["exploration", "traveling"], 40, 3) == \
         "2026-11-18_2324_exploration_traveling_0m40s_s03"
-    assert corpus.stay_name(datetime(2026, 11, 18, 23, 24), "farming", 300, 0, "Expiry test!") == \
-        "2026-11-18_2324_expiry-test_farming_5m00s_s00"
 
 
 def test_every_frame_of_a_session_is_in_exactly_one_stay():
@@ -291,7 +292,7 @@ def test_add_files_a_recording_under_its_map_and_tools_read_its_frames(home, cap
     run = home / "incoming" / "20261118_101500_1"
     _recording(run, frames, keys=[(0.5, "q"), (0.7, "q"), (1.0, "c"), (1.2, "x"), (1.5, "q"), (1.8, "q"),
                                   (2.0, "f12"), (9.0, "q")])
-    (run / "session.json").write_text(json.dumps({"v": 1, "by": "record", "scene": None, "epoch": 1795000500.0,
+    (run / "session.json").write_text(json.dumps({"v": 2, "by": "record", "labels": [], "epoch": 1795000500.0,
                                                   "client": "build-x", "code": {"commit": "abc123"}}))
     (line,) = corpus.add(run, say=lambda s: None)
     from datetime import datetime
@@ -299,7 +300,7 @@ def test_add_files_a_recording_under_its_map_and_tools_read_its_frames(home, cap
     stay = f"{began:%Y-%m-%d_%H%M}_farming_0m02s_s00"
     assert line["seg"] == "20261118_101500_1#0" and line["map"] == ANT4 and line["how"] == "minimap"
     assert line["name"] == "Ant Tunnel IV" and line["group"] == "dev" and line["frames"] == [0, 179]
-    assert line["attacks"] == 5 and line["first_attack"] == 0.5 and line["mode"] == "farming" and line["by"] == "record"
+    assert line["attacks"] == 5 and line["first_attack"] == 0.5 and line["labels"] == ["farming"] and line["by"] == "record"
     assert line["marks"] == [2.0] and line["minutes"] == round(179 / 60 / 60, 2) and line["arrive"] == 0
     assert line["stay"] == stay and line["path"] == f"maps/Ant Tunnel IV (10005063)/{stay}"
     assert line["client"] == "build-x" and line["code"] == "abc123"
@@ -352,7 +353,7 @@ def test_add_dry_files_nothing_and_a_recording_outside_incoming_is_never_removed
     run = tmp_path / "elsewhere" / "20261118_101500_2"
     _recording(run, _frames(70))
     (line,) = corpus.add(run, dry=True, say=lambda s: None)
-    assert line["map"] == ANT4 and line["mode"] == "traveling" and line["attacks"] == 0
+    assert line["map"] == ANT4 and line["labels"] == ["traveling"] and line["attacks"] == 0
     assert run.exists() and corpus.load() == [] and not (home / "maps").exists() and not (home / "sessions").exists()
     said = []
     (line,) = corpus.add(run, say=said.append)               # for real: filed, and the original left where it was
@@ -498,3 +499,13 @@ def test_presses_of_a_bot_hunt_come_from_its_ticks(tmp_path):
         json.dumps({"n": i + 1, "obs": {"t": i / 10}, "timings": {"held": h}}) + "\n" for i, h in enumerate(held)))
     attack, marks = corpus.presses(tmp_path)
     assert attack == [0.1, 0.5, 0.7] and marks == []
+
+
+def test_attack_presses_are_counted_with_the_recordings_own_keys(tmp_path):
+    """Which key is the attack can change: a recording's session.json says which it was that day."""
+    from maplebrain.config import Keys
+    (tmp_path / "keys.jsonl").write_text("".join(
+        json.dumps({"t": t, "key": k, "down": True}) + "\n"
+        for t, k in [(0.1, "a"), (0.2, Keys.attack), (0.3, "f11"), (0.4, "a")]))
+    assert corpus.presses(tmp_path, {"attack": "a", "basic_attack": "b", "note": "f11"}) == ([0.1, 0.4], [0.3])
+    assert corpus.presses(tmp_path) == ([0.2], [])           # (without them: today's keys)

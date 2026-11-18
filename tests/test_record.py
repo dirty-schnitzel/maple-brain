@@ -53,7 +53,7 @@ class Keys(ScriptedKeys):
 
 
 def _record(tmp_path, monkeypatch, script, focus_script=None, screen=None, max_recordings=1, free=500.0,
-            quit_after=None, scene=None):
+            quit_after=None, labels=()):
     holder = {}
 
     def make_kb(hwnd, *_):
@@ -70,7 +70,7 @@ def _record(tmp_path, monkeypatch, script, focus_script=None, screen=None, max_r
     monkeypatch.setattr(record, "ASSETS", FX)
     FakeVideo.last = None
     hk = runner.Hotkeys([START, STOP], key_down=Keys(script, quit_after))
-    code = record.record(tmp_path / "incoming", Config(), hotkeys=hk, max_recordings=max_recordings, scene=scene)
+    code = record.record(tmp_path / "incoming", Config(), hotkeys=hk, max_recordings=max_recordings, labels=labels)
     return code, holder["kb"], tmp_path / "incoming"
 
 
@@ -98,11 +98,11 @@ def test_a_recording_carries_the_facts_of_the_day_and_the_mouse_buttons(tmp_path
     monkeypatch.setattr(record.session, "buttons", lambda: next(held))
     script = lambda name, n: (name == START and 3 <= n <= 4) or (name == STOP and 20 <= n <= 21)  # noqa: E731
     before = time.time()
-    code, _, out = _record(tmp_path, monkeypatch, script, scene="expiry")
+    code, _, out = _record(tmp_path, monkeypatch, script, labels=["expiry", "exploration"])
     (rec,) = list(out.iterdir())
     s = json.loads((rec / "session.json").read_text(encoding="utf-8"))
     cfg = Config()
-    assert code == 0 and s["by"] == "record" and s["scene"] == "expiry"
+    assert code == 0 and s["by"] == "record" and s["labels"] == ["expiry", "exploration"]
     assert s["config"]["keys"]["attack"] == cfg.keys.attack and s["config"]["combat"]["weapon"] == cfg.combat.weapon
     assert before - 1 <= s["epoch"] <= time.time() + 1 and s["started_utc"].endswith("+00:00")
     assert set(s["code"]) == {"commit", "branch", "dirty"} and s["capture"]["kind"] == "fake"
