@@ -74,6 +74,11 @@ corpus**; the loot rework goes on in its worktree.
   as they are for that session.
 
 ## AFTER THE CORPUS: the tracker redesign (step 4) as a Fable-max plan session (PLAN-perception.md step 4)
+**Loot part 2 is part of this rework (the user, 2026-11-18):** the tracker redone from scratch also tracks drops
+(FrameFacts v5 `drops`, loot part 1: REST births a drop, weak only confirms, gone = the scene shows at its place;
+PLAN-loot.md). Recordings it needs, still owed by the user (PLAN-loot.md section 13) - record them in the corpus
+walk: (1) drops expiring by themselves, pet OFF, ~5 min; (2) our own pickups, near and on top, pet OFF, ~2 min;
+(3) windows opened / closed over drops on screen, ~1 min.
 **Live check of the deletion PASSED (the user, 2026-11-17, `runs/v2/20261117_111248_1`, `serve runs\v2
 --frames-png`, Ant Tunnel IV, platform mode 262 / 454 / 463, 2.2 min; the user OK'd the merge):** scene camera on
 8010 / 8010 ticks (the first too: 0 pauses), tick p50 16 / p90 18 / p99 32 ms, 59.8 fps; 42 last-hit kills =
