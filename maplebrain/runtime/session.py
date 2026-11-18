@@ -10,6 +10,7 @@ collected). Its frames and keys say WHAT happened; this file says what that mean
   capture   how the picture was taken (the capture kind, where in the window, the monitor's refresh rate)
   inputs    what each input file holds, in words: the format explains itself
   scene     the name of a staged scene (`record --scene NAME`), else null: ordinary play
+Sound is not recorded, on purpose (the user, 2026-11-18: vision only) - the bot never hears.
 """
 import ctypes
 import json

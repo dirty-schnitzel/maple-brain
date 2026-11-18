@@ -140,9 +140,12 @@ F:\dev\maple-corpus\
   gate's last cached replay of its PNG run on 541 of 541 rows; an unpacked PNG = the original. Filing costs ~8 ms a
   frame (write + read back: 3,858 frames in 31 s) on top of the map looks: at 60 fps roughly 40 minutes per
   recorded hour, unattended - the first walk gives the real figure
-- **Not built (offered, the user has not answered):** one gate list file for the perception and loot gates
-  (gate.CLIPS and loot's three lists still name the PNG folders under `runs/`); sound (recommended: leave it
-  out; it cannot be added to a recording later).
+- **Decided by the user 2026-11-18:** the one gate list for the perception and loot gates = agreed, a FUTURE
+  TASK designed once the corpus has substance (its own section below). **Sound is not recorded** ("vision only,
+  like a Tesla"). Faster filing: not needed for now. The user's picture of the bank, which this layout is: "a
+  directory for each map with multiple captures, each one has different labels, and possibly different uses" -
+  a capture's labels = its stay.json (mode, who played, date, length, attack presses, marks, group) + its by-eye
+  labels in `labels\SESSION#K\`; a use = a list pointing at captures by id (today: the dev / hold-out group).
 - **A limit:** footage can gate whatever reads the screen (perception, tracking, the live map, what the brain
   would press vs what the user pressed); not what depends on the bot's own actions (kills a minute, getting
   stuck): a recording does not answer back - those stay live runs.
@@ -287,12 +290,14 @@ coverage (7 maps: 7 fought on, 0 only crossed; 0 hold-out):
   built on recordings of single maps; the first walk is their test (every cut sheet looked at once).
 - `KEEP_S` (2 s) and the portal rule's narrow scope are decisions 1-2 above: confirm or change after the walk.
 - `add` looks at one frame a second in one process (~0.2 s per recorded second) and then writes + reads back
-  every frame (the measured line above): the first walk shows the real time per recorded hour at 60 fps. Both
-  split over stays / chunk files in parallel if it is too slow.
-- A cut found wrong AFTER filing is fixed by hand for now (the frames are all there: every frame of a session
-  is in one stay, numbered by the session): no `refile` command yet. Hence `--dry` + the sheets first.
-- One gate list for the perception and loot gates (gate.CLIPS, loot's pick.RUNS / bench_drops.CLIPS /
-  run_all.RUNS -> bank ids); only then can the PNG folders under `runs/` go (15.7 GB on C:).
+  every frame (the measured line above): the first walk shows the real time per recorded hour at 60 fps. Making
+  it faster: the user, 2026-11-18: not needed for now.
+- **A walk split in the wrong place** (the tool names a map change a few seconds off, or takes two maps for
+  one): found AFTER filing, the frames sit in the wrong capture's folder and there is no command that moves
+  them - a fix by hand (every frame is there, numbered by its session). It is about a mistake of the tool, not
+  about the layout. Guard: `--dry` + the cut sheets first, the first walks filed with `--keep`. A `refile`
+  command only if such a mistake ever happens.
+- The one gate list: the FUTURE TASK section below (the PNG folders under `runs/` stay until then).
 - `E:\maple-corpus` still holds the first layout's copy of the 11 recordings (3.5 GB): the user's to remove.
 - Session 2 writes the coverage of its replays (deaths per mob type, platforms stood on, the camera's share) back
   to the manifest; `list` prints only what Session 1 knows (minutes, attack presses, mob types / background sets
@@ -300,6 +305,25 @@ coverage (7 maps: 7 fought on, 0 only crossed; 0 hold-out):
 - The Dark Cave recording (20261116_084719_1) is clean only for its first 16.3 s (the window was dragged): its
   segment is the whole recording; `gate.CLIPS` knows.
 - `tools/perc/track/` (untracked) = a step-4 session's experiments: left as they are.
+
+## FUTURE TASK (agreed with the user 2026-11-18): the gates read the bank - ONE gate list
+**Not now: designed once the corpus has substance** (the user: "waiting to have some substance to corpus before
+we design it"). A plan session of its own (PLAN-*.md, the user's OK), not a side job of another session.
+- **What:** one list of bank captures (stay id `SESSION#K` + a time range) with the accepted result of each
+  check on each, read by every gate that replays frames - instead of today's four lists in the code that name PNG
+  folders under `runs/`: `tools/perc/replay/gate.py` CLIPS (6 clips, `--quick` = 3), `tools/loot/labels/pick.py`
+  RUNS (drops on 9 recordings + the by-eye labels keyed recording + frame), `tools/loot/bench_drops.py` CLIPS,
+  `tools/loot/run_all.py` RUNS.
+- **Why wait:** today's clips keep every 3rd frame (~20 a second) of 7 maps; the walk brings every frame (60 a
+  second, what the tracker sees live) of many maps. The list is chosen from that footage, not from the old.
+- **For the designer:** a capture is filed once, under its map; a USE is a list that points at captures by id
+  (the user's picture: a folder per map with many captures, each with its own labels and possibly several uses) -
+  never a copy and never a folder of its own. The everyday list is drawn from `dev` maps; `holdout\` stays for
+  milestones or it stops being an honest number. The gate's replay cache (`RUN/replay/fp_*.jsonl`) moves to
+  `work\SESSION#K\`. Loot's labels move to `labels\SESSION#K\`. Footage gates what reads the screen; what
+  depends on the bot's own actions stays a live run.
+- **What it frees:** only when no gate reads them can the PNG folders under `runs/` go (15.7 GB on C:; all 11
+  are in the bank, 0 of 16,410 frames differ).
 
 ## Earlier START HERE: the recording corpus decided (2026-11-17, session "data")
 The reworks were tuned on too little - 7 maps, 11 of the 51 mob types the hunted maps have, ~300 labelled frames.

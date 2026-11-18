@@ -185,8 +185,10 @@ recording kept whole": `maps\<map name> (<id>)\<date>_<time>_<mode>_<length>_sK\
 written again losslessly by `add` and proven identical frame by frame (a fingerprint per frame) before the
 original leaves `incoming\`; hold-out maps under `holdout\`; `sessions\<recording>\` keeps the session's small
 files and its route; a stay's permanent id is `RECORDING#K` (tools, labels, gates), its folder name is for people
-(mode = farming / traveling / town / idle / scene-NAME / bot); `corpus.py verify` re-checks the files. Still
-open: one gate list for the perception and loot gates. Detail: tools/data/corpus.py's docstring, HANDOFF.
+(mode = farming / traveling / town / idle / scene-NAME / bot); `corpus.py verify` re-checks the files. Detail:
+tools/data/corpus.py's docstring, HANDOFF. Decided the same day: **sound is not recorded** (vision only); **one
+gate list on the bank** for the perception and loot gates is agreed as a future task, designed once the corpus
+has substance (HANDOFF "FUTURE TASK").
 
 ## 6. The validation pass (Sessions 2 and 3)
 Perception runs **unchanged** over the dev group; this pass measures and lists, it fixes nothing.
