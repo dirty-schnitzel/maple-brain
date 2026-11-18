@@ -137,7 +137,7 @@ the plan is the user's: keep it simple; anything beyond the plan's section 3 -> 
 Gate as written there (pytest + the 'bot speed' line unchanged; draw + JPEG <= 5 ms p90; >= 10 pictures / s over HTTP
 in both views; cached start <= 1 s; the four pictures by eye next to the prototype's; --ascii unchanged). If a gate
 fails, stop and tell me with numbers.
-Rules: Python = ../auto-maple/.venv/Scripts/python.exe; no GPU and no torch at draw time; the viewer never opens a
+Rules: Python = .venv/Scripts/python.exe (maple-work's own, since 2026-11-18); no GPU and no torch at draw time; the viewer never opens a
 window and the bot never imports it; no live run, no keys sent; if `watch` is running never stop it; no sed on files
 (CRLF: Edit or byte-safe Python); scripts via the Write tool, not shell heredocs; commit + push on the branch, no
 Claude attribution.

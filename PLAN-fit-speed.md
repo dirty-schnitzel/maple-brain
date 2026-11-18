@@ -171,7 +171,7 @@ reference implementation to productionize, tools/perc/fit/* the tools to adapt. 
 Gates as written there (vote <= 2.5 ms p90; opaque fit <= 4 ms p90 on the labels frames; synth opaque cases >= 99 %,
 0 false; labels non-fade classes >= the LS fit's column; steam ghost spots 0). If a gate fails or a design point
 proves wrong on the data, stop and tell me with numbers - no change of course without my word.
-Rules: Python = ../auto-maple/.venv; time only with the game running, A/B in the same state; `watch` is running -
+Rules: Python = .venv (maple-work's own, since 2026-11-18); time only with the game running, A/B in the same state; `watch` is running -
 never stop it; nothing live reads the fit and no live code changes (pytest + the 'bot speed' line; no gate
 replay); no sed on
 files (CRLF: Edit or byte-safe Python; write patch scripts with the Write tool, not shell heredocs); long jobs with

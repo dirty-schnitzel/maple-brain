@@ -2,6 +2,7 @@
 runs/
 captures/
 __pycache__/
+.venv/
 *.pyc
 .pytest_cache/
 .idea/

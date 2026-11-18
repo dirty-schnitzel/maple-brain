@@ -1,7 +1,7 @@
 """LIVE probe: how the game treats our attack presses and direction keys (HANDOFF "attack per press", plan step 1).
 
 Stand still on a FLAT, QUIET spot (no mobs, few players: a town is fine), the game in front. Then (elevated):
-    ..\\auto-maple\\.venv\\Scripts\\python tools\\combat\\probe\\swing_live.py runs\\probe\\swing1
+    .venv\\Scripts\\python tools\\combat\\probe\\swing_live.py runs\\probe\\swing1
 It switches to the game, waits 3 s, and runs ~45 short trials (~2.5 min) on the attack key (Keys.attack) and the
 arrows, recording a crop around us at the game's frame rate. Hands off the keyboard until it says "done".
 Then `swing_read.py runs\\probe\\swing1` reads the poses.

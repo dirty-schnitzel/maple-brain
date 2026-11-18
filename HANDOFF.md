@@ -113,7 +113,7 @@ Fitter.look feeding world.py. ~8,000 lines out.
   from 58d266e was still running idle: it imports modules lazily at F7, so restart it (the new command has none of
   those flags) before hunting on this branch.
 - NEXT: the user's live check - ONE short hunt (~2-3 min, Ant Tunnel IV, the usual spot, `watch` running):
-  `..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\v2 --frames-png` (restart serve first), F7 / F8.
+  `.venv\Scripts\python -m maplebrain serve runs\v2 --frames-png` (restart serve first), F7 / F8.
   Look for: `scene camera + fit: ...` at load, the hunt runs as 3.4's (runs/v2/20261117_094333_1), the log's
   `scene camera: paused N time(s)` (expected 1 = the start's "not found yet"; any mid-hunt pause -> its ticks /
   frames), the speed line (3.4: 16 ms p50). Optional: F7 on a Perion map -> `NOT STARTED: ... no clean scene`.
@@ -1417,7 +1417,7 @@ for the spot first (memory "no scripted input in public": the Ant Tunnel probe g
 of normal hunting on Ant Tunnel IV are fine after the user's OK.
 
 **The speed regression test (S0 below) - how to use it:**
-- Every `pytest` run (the venv: `..\auto-maple\.venv\Scripts\python -m pytest`) ends with a `bot speed` section:
+- Every `pytest` run (the venv: `.venv\Scripts\python -m pytest`) ends with a `bot speed` section:
   `bot speed (replay, 40 frames): 15.8 fps, tick 63.1 ms (p90 73.6) = resize .. + perceive .. [gpu .., hud .., world
   .., self .., camshift .., locate .., scene ..] + brain .. | baseline 16.8 fps, tick 59.6 ms (2026-11-08)`.
   Look at it after EVERY change: it says "N % slower" past 10 %, "FASTER ... re-baseline" past 15 %.
@@ -1427,7 +1427,7 @@ of normal hunting on Ant Tunnel IV are fine after the user's OK.
   `machine` = host + GPU name; another PC needs its own `--baseline`). Takes ~20 s.
 - It runs `tools/perf/bench.py --json` in its OWN process (inside pytest, after the other GPU tests, it read ~17 %
   slow). Standalone repeats agree within ~5 % (59.6-64.8 ms seen).
-- After a deliberate speed change (S1-S3, or a new perception part worth its cost): `..\auto-maple\.venv\Scripts\python
+- After a deliberate speed change (S1-S3, or a new perception part worth its cost): `.venv\Scripts\python
   tools\perf\bench.py --baseline` (rewrites tests/perf_baseline.json) and commit it with the change.
 - Bench any recorded run: `bench.py --frames runs/v2/press1/frames --map 10005063 --n 200`. The fixture
   (tests/fixtures/perf_ant4, 45 JPEG q85 frames, 7.8 MB, SOURCE.txt) is a fight stretch of press1 (t 40.8-49.2 s);
@@ -1546,7 +1546,7 @@ frames), `runs/v2/` itself (a 3-min `run` with frames, the hold), `runs/v2/react
   Killing press -> death visible p10 0.21 / median 0.59 / p90 0.76 s. Death -> next press median 2.1 s.
 - Turns: a mob within 110 px behind -> the user faces it after median 0.21 s (p90 0.45).
 - A NEW recording with the slow polearm on Ant Tunnel IV would fit today's setup better (the user offered):
-  `..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\play --observe --gpu --tracker --frames` (F7..F8, 10-15
+  `.venv\Scripts\python -m maplebrain serve runs\play --observe --gpu --tracker --frames` (F7..F8, 10-15
   min; keys.jsonl + ticks + frames). Then re-run the three probes on it.
 
 ### NEW ISSUE (analysed, NOT fixed): turning too slowly, hitting with mobs behind (the user, 2026-11-08)
@@ -1762,7 +1762,9 @@ ticks + keys.jsonl + every 3rd frame; in a party). Tools: `tools/play/analyze.py
 ## Environment
 - Project `C:\Users\Yoav\dev\maple-work` (package `maplebrain`, tests `tests/`, runs `runs/`, analysis tools
   `tools/`; `tools/hunt*.py`, `experiment1.py`, `bg_input_test.py` are retired). Git: `main` (last good) and `dev`.
-- Python venv `C:\Users\Yoav\dev\auto-maple\.venv` (Py 3.12: opencv, numpy, mss, dxcam, torch + CUDA, pytest).
+- Python venv `maple-work\.venv` (Py 3.12.3: opencv, numpy, mss, dxcam, torch + CUDA 12.8, pillow, pytest; pinned in
+  requirements.txt, how to make it in its header). Until 2026-11-18 it was auto-maple's venv (`..\auto-maple\.venv`,
+  same versions; the user keeps that folder for now).
 - **The game runs elevated, so the bot must too** (Windows drops SendInput from a lower-integrity process). Check:
   `whoami /groups | Select-String Mandatory` -> "High Mandatory Level".
 - The game: WINDOWED, client area exactly 1366x768 (native, since 2026-11-16; before: FHD / 2560x1440 stretched) on
@@ -1772,19 +1774,19 @@ ticks + keys.jsonl + every 3rd frame; in a party). Tools: `tools/play/analyze.py
 
 ## Commands (from `C:\Users\Yoav\dev\maple-work`)
 ```powershell
-..\auto-maple\.venv\Scripts\python -m pytest                    # ~1100 tests, no game needed; ends with "bot speed"
-Get-Process python | ? Path -like '*auto-maple*'                 # running bot processes (never stop `watch`)
-..\auto-maple\.venv\Scripts\python -m maplebrain watch runs\watch --seconds 14400            # LD siren, no hunt
-..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\v2 [--frames | --frames-png]   # F7 / F8 (scene camera + fit: clean maps, native window only)
-..\auto-maple\.venv\Scripts\python -m maplebrain run runs\v2\NAME --seconds 180 --frames-every 3
-..\auto-maple\.venv\Scripts\python -m maplebrain serve runs\play --observe --frames-png   # record the user (records on any map)
-..\auto-maple\.venv\Scripts\python -m maplebrain goto OUT [--to P [X]] [--seconds S]     # movement test
-..\auto-maple\.venv\Scripts\python -m maplebrain livemap [runs\v2]                         # console map of the hunt
-..\auto-maple\.venv\Scripts\python -m maplebrain assets build                              # client export -> assets/mcw
-..\auto-maple\.venv\Scripts\python tools\perf\bench.py [--baseline]                     # tick speed vs the baseline
-..\auto-maple\.venv\Scripts\python tools\perc\replay\run.py RUN [--old HEAD]              # tracker replay -> RUN\replay\
-..\auto-maple\.venv\Scripts\python tools\perc\replay\compare.py RUN HEAD work             # old vs new tracks (the gate)
-..\auto-maple\.venv\Scripts\python tools\perc\replay\gate.py [--quick]                  # the perception gate (6 native clips)
+.venv\Scripts\python -m pytest                    # ~1100 tests, no game needed; ends with "bot speed"
+Get-Process python | ? Path -like '*maple-work*'                 # running bot processes (never stop `watch`)
+.venv\Scripts\python -m maplebrain watch runs\watch --seconds 14400            # LD siren, no hunt
+.venv\Scripts\python -m maplebrain serve runs\v2 [--frames | --frames-png]   # F7 / F8 (scene camera + fit: clean maps, native window only)
+.venv\Scripts\python -m maplebrain run runs\v2\NAME --seconds 180 --frames-every 3
+.venv\Scripts\python -m maplebrain serve runs\play --observe --frames-png   # record the user (records on any map)
+.venv\Scripts\python -m maplebrain goto OUT [--to P [X]] [--seconds S]     # movement test
+.venv\Scripts\python -m maplebrain livemap [runs\v2]                         # console map of the hunt
+.venv\Scripts\python -m maplebrain assets build                              # client export -> assets/mcw
+.venv\Scripts\python tools\perf\bench.py [--baseline]                     # tick speed vs the baseline
+.venv\Scripts\python tools\perc\replay\run.py RUN [--old HEAD]              # tracker replay -> RUN\replay\
+.venv\Scripts\python tools\perc\replay\compare.py RUN HEAD work             # old vs new tracks (the gate)
+.venv\Scripts\python tools\perc\replay\gate.py [--quick]                  # the perception gate (6 native clips)
 ```
 (Gone 2026-11-17 with the old perception: `--brain`, `--gpu` (serve / run / goto; `watch --gpu` stays), `--tracker`,
 `--mob-score`, `--loot`, `--loot-sight`, `--pickup`; `native_check.py`'s run mode.)

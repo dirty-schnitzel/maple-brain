@@ -361,7 +361,7 @@ cw-client-data-harepacker has the export procedure (BMS key, DOTNET_ReadyToRun=0
 maplebrain/perception, nothing on the live path. Budget matters: be terse.
 Gates as written (S2's counts; S4: section 7.3 on synth). A gate fails or a design point proves wrong on the data ->
 stop and tell me with numbers; no change of course without my word.
-Rules: Python = ../auto-maple/.venv; `watch` is running - never stop it; no live / scripted input; no sed on repo
+Rules: Python = .venv (maple-work's own, since 2026-11-18); `watch` is running - never stop it; no live / scripted input; no sed on repo
 files (CRLF: Edit, or byte-safe Python); long jobs with run_in_background; pytest + the 'bot speed' line; commit +
 push on this branch; numbers into HANDOFF.
 ```

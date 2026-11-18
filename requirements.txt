@@ -1,0 +1,13 @@
+# maplebrain's Python environment (Python 3.12), pinned to the versions every gate ran on.
+# Make it (from maple-work):
+#   C:\Users\Yoav\AppData\Local\Programs\Python\Python312\python.exe -m venv .venv
+#   .venv\Scripts\python -m pip install -r requirements.txt
+--extra-index-url https://download.pytorch.org/whl/cu128
+torch==2.11.0+cu128
+numpy==2.5.4
+opencv-python-headless==5.0.0.93
+mss==10.2.0
+dxcam==0.3.0
+comtypes==1.4.17
+pillow==13.0.0
+pytest==9.2.0
