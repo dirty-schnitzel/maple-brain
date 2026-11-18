@@ -169,8 +169,23 @@ Fitter.look feeding world.py. ~8,000 lines out.
   Fixed sizes on the 14,962 frames: features p50 13,307 / p99 27,377 / max 33,844 (NF 49,152: 0 over); second pool
   p50 1,255 / p99 2,670 / max 4,164 (NF2 4,096: 1 frame over, 092718_1 006306 - its facts still = the reference's);
   cells >= 16 votes p50 6 / p99 21 / max 35 (NC 64).
-- Open points, reported, rule NOT changed (the user's word): the pick order for "under an accepted drop" (012059_1
-  002895), the ring bar vs a skill effect (111248_1 005613), the foothold lookup on stairs (synth: 1 clear miss).
+- Open points: the ring bar vs a skill effect (111248_1 005613) stays (the user: transient - REST on 143 of the
+  item's 172 rows, weak only while the effect is behind it). **Two rule fixes approved by the user 2026-11-18**
+  (product + reference alike, tests/test_drops.py still product = reference):
+  (1) foothold = the one NEAREST the drop's bottom among those at / below bottom - 14 (was the topmost: on stairs the
+  step 13 px above won); (2) a second look after the greedy pick: under / front / ring of each accepted drop again with
+  EVERY other accepted drop (the pick knew only the earlier ones: 012059_1 002895's Charm under a later, smaller
+  edge-on coin read weak) - kinds only go weak -> REST, the accepted set never changes. Why (1) although looting the
+  top item reveals the rest: the user wants to know a big pile is there (later human-like loot behaviour).
+  After the fixes:   synth REST 2,057 / 2,057 = 100 % (was 2,053: clear +1 = stairs, pile +3), 0 false, 0 wrong,
+                     product eval = reference eval line by line (eval_fix2.log / eval_product_fix2.log)
+                     labels REST 630 / 631 = 99.84 % (the coin's Charm fixed; left: the skill effect), 0 false REST,
+                     0 wrong of 789, 0 / 36 flights / hops (runs/loot_labels/eval_fix2.log)
+                     9 recordings: facts identical on 14,962 / 14,962, REST sets equal (70,826 each, was 70,610)
+                     gate.py SAME on 6 clips (gate_fix2.log); pytest green, bot speed 15.1 ms (p90 17.2; drops 0.7)
+                     cost (bench_fix2.log, game up, pinned, 3 rounds): p90 on - off busy +0.60, steam -0.06, line1
+                     +0.41, ant4 -0.90 (gate +1.0: MET); busy pick 0.58 / 0.65 (was 0.44 / 0.50: the second look on
+                     piles), part drops 1.00 / 1.30.
 - Outputs: runs/loot_labels/replay_product/ (per frame product + reference), finder_product.jsonl, eval_product.log,
   gate_s3.log; runs/synth/drops_s1/eval_product.log.
 - pytest green (+ tests/test_drops.py 3, test_facts v5); bot speed 15.4 ms (p90 17.4; part `drops` 0.7; Session 2:

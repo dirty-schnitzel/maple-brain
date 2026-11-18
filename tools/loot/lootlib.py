@@ -64,8 +64,9 @@ def world_mask(map_id: int, shape) -> np.ndarray:
 
 
 class Footholds:
-    """A map's footholds (assets/mcw/maps/<id>/map.json): `under(mx, my)` -> (y, layer, id) of the nearest foothold
-    at / below map (mx, my - 14) (a drop's bottom bobs a few px around its foothold), or None."""
+    """A map's footholds (assets/mcw/maps/<id>/map.json): `under(mx, my)` -> (y, layer, id) of the foothold nearest
+    my among those at / below map (mx, my - 14) (a drop's bottom bobs a few px around its foothold), or None. Nearest,
+    not topmost: on stairs the step 13 px above won (the user, 2026-11-18)."""
 
     def __init__(self, map_id: int):
         mp = json.loads((ROOT / "assets" / "mcw" / "maps" / str(map_id) / "map.json").read_text(encoding="utf-8"))
@@ -86,8 +87,9 @@ class Footholds:
         below = ya >= my - 14
         if not below.any():
             return None
-        i = on[below][np.argmin(ya[below])]
-        return float(ya[below].min()), int(F[i, 4]), int(F[i, 5])
+        j = np.argmin(np.abs(ya[below] - my))
+        i = on[below][j]
+        return float(ya[below][j]), int(F[i, 4]), int(F[i, 5])
 
 
 class Items:

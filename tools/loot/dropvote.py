@@ -177,7 +177,7 @@ class DropFinder:
             taken = np.zeros((PLAY_H, SW), bool)            # SEEN pixels of the accepted drops
             drawn = np.zeros((PLAY_H, SW), bool)            # every drawn (alpha > 0) pixel of the accepted drops
             M = 2                                           # the ring: this many px around the box
-            rows = []
+            rows, keep = [], []
             for i in range(len(g)):
                 p = self.poses[int(g[i])]
                 h, w = p.pic.shape[:2]
@@ -248,6 +248,28 @@ class DropFinder:
                 d = Drop(it, fr, box, (box[0] + org[0], box[1] + org[1]), n_op, n2, n_abs, int(ex[i]), nf, nfs)
                 d.extra = extra
                 drops.append(d)
+                keep.append(((a0, b0, a1, b1), seen, op, dr, (ra0, rb0, ra1, rb1), ring, kn, ex_, under_front, xm))
+            # the second look (the user, 2026-11-18): under / front / ring again with EVERY other accepted drop - the
+            # greedy pass knew only the earlier ones (a Charm under an edge-on coin with fewer SEEN px read weak)
+            for j, (d, ((a0, b0, a1, b1), seen, op, dr, (ra0, rb0, ra1, rb1), ring, kn, ex_, under_front, xm)) in \
+                    enumerate(zip(drops, keep)):
+                def meets(k):
+                    (p0, q0, p1, q1) = k[0]
+                    return p0 < ra1 and p1 > ra0 and q0 < rb1 and q1 > rb0
+                if not any(meets(k) for k in keep[j + 1:]):
+                    continue
+                dk = np.zeros((rb1 - rb0, ra1 - ra0), bool)    # every other accepted drop's drawn px in the window
+                for m, k in enumerate(keep):
+                    if m != j and meets(k):
+                        (p0, q0, p1, q1), kdr = k[0], k[3]
+                        u0, v0, u1, v1 = max(p0, ra0), max(q0, rb0), min(p1, ra1), min(q1, rb1)
+                        dk[v0 - rb0:v1 - rb0, u0 - ra0:u1 - ra0] |= kdr[v0 - q0:v1 - q0, u0 - p0:u1 - p0]
+                dd = dk[b0 - rb0:b1 - rb0, a0 - ra0:a1 - ra0]
+                e = d.extra
+                e["n_cd"] = int((op & ~seen & dd).sum())
+                e["n_front"] = int((under_front & ~dd).sum())
+                e["ring_n"], e["ring_e"] = int((ring & (kn | dk)).sum()), int((ring & (ex_ | dk)).sum())
+                e["ring_n2"], e["ring_e2"] = int((ring & (kn | dk | xm)).sum()), int((ring & (ex_ | dk | xm)).sum())
         t2 = time.perf_counter()
         self.ms = {"vote": (t1 - t0) * 1000, "check": (t2 - t1) * 1000, "cands": len(g), "feat": vc["feat"],
                    "votes": vc["votes"]}

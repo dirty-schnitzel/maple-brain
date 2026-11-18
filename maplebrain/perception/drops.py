@@ -22,8 +22,11 @@ Per tick (clean map, scene camera found):
             under   unseen pixels under an accepted drop     front  unseen, under front scenery of its layer
             mob     SEEN pixels the mob fit explained         ring   [explained, known] ring pixels; the fit's mobs
                                                                      and characters' body boxes count as both
-            dy, fh, layer  box bottom - the foothold's y under its centre (lootlib's rule: the topmost foothold at /
-                           below bottom - 14), its id and layer (None: nothing under it)
+            dy, fh, layer  box bottom - the foothold's y under its centre (lootlib's rule: the foothold nearest the
+                           bottom at / below bottom - 14), its id and layer (None: nothing under it)
+          then a second look: `under`, `front` and `ring` of each accepted drop again with EVERY other accepted drop
+          (the greedy pass only knew the ones before it: a Charm under an edge-on coin with fewer SEEN px read weak;
+          the user, 2026-11-18) - kinds only go weak -> REST, the accepted set never changes.
           kind REST = dy in -7..+5, u = 1 - (seen + absent + under + front) / n_op <= 0.2, mob < 0.5 seen, ring
           explained >= 0.1 of the known (< 60 known ring px: pass); else weak.
 GPU memory ~0.3 GB; build ~1 s + capture once per process (runner._load_map).
@@ -77,9 +80,9 @@ def kind_of(d: dict, c: DropConfig | None = None) -> str:
 
 
 class Footholds:
-    """A map's footholds (map.json): `under(mx, my)` -> (y, layer, id) of the topmost foothold at / below map
-    (mx, my - 14) (a drop's bottom bobs a few px around its foothold), or None. Same rule as tools/loot/lootlib.py
-    (known: on stairs a step 13 px above can win - Session 1's open point, unchanged)."""
+    """A map's footholds (map.json): `under(mx, my)` -> (y, layer, id) of the foothold NEAREST my among those at /
+    below map (mx, my - 14) (a drop's bottom bobs a few px around its foothold), or None. Nearest, not topmost: on
+    stairs the step 13 px above won (the user, 2026-11-18). Same rule as tools/loot/lootlib.py."""
 
     def __init__(self, map_json: dict):
         rows = []
@@ -99,14 +102,18 @@ class Footholds:
             ya = F[None, :, 1] + (mx - F[None, :, 0]) * (F[None, :, 3] - F[None, :, 1]) / (F[None, :, 2] - F[None, :, 0])
         below = on & (ya >= my - 14)
         ok = below.any(axis=1)
-        ym = np.where(below, ya, np.inf)
-        j = ym.argmin(axis=1) if len(F) else np.zeros(len(mx), int)
-        y = ym[np.arange(len(mx)), j] if len(F) else np.zeros(len(mx))
+        j = np.where(below, np.abs(ya - my), np.inf).argmin(axis=1) if len(F) else np.zeros(len(mx), int)
+        y = ya[np.arange(len(mx)), j] if len(F) else np.zeros(len(mx))
         return y, F[j, 4].astype(int) if len(F) else j, F[j, 5].astype(int) if len(F) else j, ok
 
     def under(self, mx, my):
         y, L, i, ok = self.under_many([mx], [my])
         return (float(y[0]), int(L[0]), int(i[0])) if ok[0] else None
+
+
+def _meets(a, x: int, y: int, w: int, h: int) -> bool:
+    """Accepted drop `a` (x, y, w, h, ...): its picture box meets the box (x, y, w, h) + the ring."""
+    return a[0] < x + w + M and a[0] + a[2] > x - M and a[1] < y + h + M and a[1] + a[3] > y - M
 
 
 def _rect_win(boxes, y0: int, x0: int, K: int) -> np.ndarray:
@@ -411,6 +418,16 @@ class DropFinder:
         self._out, self._C = self._out_s, (int(C[0]), int(C[1]))
         self._launch_ms = (time.perf_counter() - t0) * 1000
 
+    def _drawn(self, accs, x, y) -> np.ndarray:
+        """(K, K) bool: the drawn pixels of the accepted drops `accs` in the window of the box at screen (x, y)."""
+        K = self.K
+        dk = np.zeros((K, K), bool)
+        for ax, ay, _, _, _, agi, _ in accs:
+            dx, dy = ax - x, ay - y                                     # both windows start M px before the box
+            r0, r1, c0, c1 = max(0, dy), min(K, K + dy), max(0, dx), min(K, K + dx)
+            dk[r0:r1, c0:c1] |= self.dr_np[agi][r0 - dy:r1 - dy, c0 - dx:c1 - dx]
+        return dk
+
     def fetch(self, mob_taken=None, chars=(), mob_boxes=None) -> list | None:
         """The pass' result -> [section 8's facts + kind] (None: nothing launched). `mob_taken`: bool (PLAY_H, SW)
         numpy, the pixels the fit's accepted mobs explained (Fitter.taken's screen part); `chars`: characters' body
@@ -436,7 +453,7 @@ class DropFinder:
         order = cand[np.argsort(-ns[cand], kind="stable")]
         # the accepted drops: (window x, y, its taken px or None = all its SEEN px, picture index, bits); an accepted
         # drop's taken / drawn pixels are only laid out for a later candidate whose window overlaps its window
-        drops, acc = [], []
+        drops, acc, info = [], [], []
         if len(order):
             w, h = self.wh[g[order], 0], self.wh[g[order], 1]
             bx, by = fx[order] - w // 2, fy[order] - h
@@ -453,15 +470,14 @@ class DropFinder:
                 b = bits[i]
                 seen = px = None
                 # accepted drops whose picture box meets this box + ring: their taken / drawn pixels in the window
-                near = [a for a in acc if a[0] < x + ww + M and a[0] + a[2] > wx and a[1] < y + hh + M and a[1] + a[3] > wy]
+                near = [a for a in acc if _meets(a, x, y, ww, hh)]
                 if near:
-                    tk, dk = np.zeros((K, K), bool), np.zeros((K, K), bool)
+                    tk, dk = np.zeros((K, K), bool), self._drawn(near, x, y)
                     for ax, ay, _, _, apx, agi, ab in near:
                         dx, dy = ax - x, ay - y                         # both windows start M px before the box
                         r0, r1, c0, c1 = max(0, dy), min(K, K + dy), max(0, dx), min(K, K + dx)
                         src = (slice(r0 - dy, r1 - dy), slice(c0 - dx, c1 - dx))
                         tk[r0:r1, c0:c1] |= (apx if apx is not None else (ab & 1).view(bool))[src]
-                        dk[r0:r1, c0:c1] |= self.dr_np[agi][src]
                     seen = (b & 1).view(bool)
                     px = seen & ~tk
                     n2 = int(px.sum())
@@ -477,7 +493,7 @@ class DropFinder:
                     if n_front:
                         n_front = int((uns & ((frb[i] >> slot) & 1).view(bool) & ~dk).sum())
                     xm = dk
-                n_mob = 0
+                n_mob, xo = 0, None                                     # xo: the mobs + chars part of xm
                 if mob_taken is not None and (mob_boxes is None or any(
                         mx < wx + K and mx + mw > wx and my < wy + K and my + mh > wy for mx, my, mw, mh in mob_boxes)):
                     if 0 <= wy and wy + K <= mob_taken.shape[0] and 0 <= wx and wx + K <= mob_taken.shape[1]:
@@ -487,10 +503,12 @@ class DropFinder:
                     if mt.any():
                         seen = (b & 1).view(bool) if seen is None else seen
                         n_mob = int((seen & mt).sum())
-                        xm = mt if xm is None else xm | mt
+                        xo = mt
                 if chars and any(b0[0] < wx + K and b0[2] > wx and b0[1] < wy + K and b0[3] > wy for b0 in chars):
                     cw_ = _rect_win(chars, wy, wx, K)
-                    xm = cw_ if xm is None else xm | cw_
+                    xo = cw_ if xo is None else xo | cw_
+                if xo is not None:
+                    xm = xo if xm is None else xm | xo
                 ring = [int(rex[i]), int(rkn[i])]
                 if xm is not None:
                     ring = [ring[0] + int((((b & 8) > 0) & xm).sum()), ring[1] + int((((b & 4) > 0) & xm).sum())]
@@ -501,6 +519,22 @@ class DropFinder:
                 d["kind"] = kind_of(d, c)
                 acc.append((x, y, ww, hh, px, gi, b))
                 drops.append(d)
+                info.append((i, slot, xo))
+            # the second look: a drop with an accepted drop AFTER it over its window counts every other accepted
+            # drop (the greedy pass knew only the earlier ones) - under / front / ring again, then the kind
+            for j, (d, (i, slot, xo)) in enumerate(zip(drops, info)):
+                x, y, ww, hh = d["box"]
+                if not any(_meets(a, x, y, ww, hh) for a in acc[j + 1:]):
+                    continue
+                dk = self._drawn([a for m, a in enumerate(acc) if m != j and _meets(a, x, y, ww, hh)], x, y)
+                b = bits[i]
+                uns = (b & 3) == 2
+                d["under"] = int((uns & dk).sum())
+                if slot is not None and cnt[i, NCNT + NL + slot]:
+                    d["front"] = int((uns & ((frb[i] >> slot) & 1).view(bool) & ~dk).sum())
+                xm = dk if xo is None else dk | xo
+                d["ring"] = [int(rex[i]) + int((((b & 8) > 0) & xm).sum()), int(rkn[i]) + int((((b & 4) > 0) & xm).sum())]
+                d["kind"] = kind_of(d, c)
         t2 = time.perf_counter()
         self.ms = {"launch": round(self._launch_ms, 3), "fetch": round((t1 - t0) * 1000, 3),
                    "pick": round((t2 - t1) * 1000, 3), "feat": int(cnt[0, 10]), "feat2": int(cnt[0, 11]),

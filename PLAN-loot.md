@@ -18,7 +18,9 @@ identical opaque pixels) - numbers, pictures and options in HANDOFF "Session 1 s
 "Session 2 result". NEXT = Session 3.**
 **Session 3 (2026-11-17): S7-S9 built (perception/drops.py, FrameFacts v5, in shadow); gates met (tracks SAME, synth,
 labels = Session 2's, the 9 recordings = the reference's REST sets on 14,962 / 14,962 frames) and the cost gate
-(2026-11-18: perceive p90 on - off +0.41..+0.59 ms on 4 clips, busy +0.46). Section 9's table "keys in <= 8 places" proved wrong (4 pictures unfindable alone): a second
+(2026-11-18: perceive p90 on - off +0.41..+0.59 ms on 4 clips, busy +0.46). 2026-11-18 the user approved two rule
+fixes (foothold nearest the bottom; a second look vs every accepted drop): synth 100 %, labels 630 / 631, cost busy
++0.60 - HANDOFF. Section 9's table "keys in <= 8 places" proved wrong (4 pictures unfindable alone): a second
 pool for keys in more places, in the same graph - HANDOFF "Session 3 result".**
 Executors: Opus (high), three sessions; prompts at the end. Parent plan: PLAN-perception.md (the table's row "Drops:
 item icons from the client (later, with loot)"). Branch `loot` off `perception-only`.
