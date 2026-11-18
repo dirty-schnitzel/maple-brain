@@ -67,6 +67,22 @@ below).
 **The tracker redesign (step 4, the section below) still waits for the corpus.** 2026-11-18: `data` was rebased
 on `dev` (loot part 1 merged) and the loot tools read frames through the corpus reader (bed4333).
 
+### NEXT SESSION = "Session 1b" (its prompt: PLAN-data.md section 10): the live gates on the user's recordings, then the filing
+**The first walk is in `F:\dev\maple-corpus\incoming\20261118_232410_1`** (2026-11-18 23:24, `record --scene
+exploration`, on commit daec2b0 = the assets rebuilt from the day's client patch: 28 new maps, another session's
+commit). Read from its log, nothing run on it yet: 986 s of recording, 59,163 frames = 60.0 a second, **0
+dropped**, the queue at most 1 of 120, handing a frame over cost the loop 0.155 ms on average / 0.69 ms at most,
+6.27 GB = **0.38 GB a minute** (23 GB an hour), time between frames p50 16.8 / p99 19.9 / max 54.1 ms (9 over
+25 ms), 3,459 key events (hook lag max 16 ms), a mouse button held on 261 frames; one Lie Detector during it
+(siren, frame saved, gone after 22 s - it is in the footage), two pauses (PowerShell in front). `session.json` is
+there. **Still owed:** the dry cut + every cut sheet by eye (gate f), the two hunts for the tick cost (gate b:
+none recorded yet), the user's word on smoothness. A `record --scene exploration` process was still loaded when
+this was written (more recordings may follow): never stop it.
+**The label rule (changed 2026-11-18 after seeing that walk):** `record --scene NAME` (also `--label`) is a label
+for what the player set out to do; it is one more word in each capture's name, BEFORE the mode - the mode
+(farming / traveling / ...) is always worked out per capture: `2026-11-18_2324_exploration_traveling_0m40s_s03`.
+(As first built the label replaced the mode: every capture of that walk would have been "scene-exploration".)
+
 ### 2026-11-18: what the corpus is FOR (the user), and what was built for it
 **The user's frame:** (1) this is the final way data is collected in this project; (2) the bank built with it
 serves everything - validating perception, the live map data model and tracking on it, later custom AI training;
@@ -79,8 +95,8 @@ serves everything - validating perception, the live map data model and tracking 
   was (which key is the attack / jump / potions, the weapon, its speed), the code's commit, the client data's
   build, the wall clock at t = 0 (`epoch`), the capture (kind, picture, monitor refresh rate), what each input
   file holds. Without it "q went down" means nothing once keys or character change.
-- **`record --scene NAME`**: a staged scene instead of ordinary play (PLAN-loot.md section 13's three: `expiry`,
-  `pickups`, `windows`); the name is kept in session.json.
+- **`record --scene NAME`** (also `--label`): a label for what the player set out to do (`exploration`;
+  PLAN-loot.md section 13's three: `expiry`, `pickups`, `windows`); kept in session.json, a word in the names.
 - **Where the recordings go = one parameter:** `CORPUS` in `maplebrain/config.py` (now `F:\dev\maple-corpus`;
   `record --corpus DIR`, `corpus.py --corpus DIR` or the environment variable MAPLE_CORPUS for one command).
   The 11 recordings were copied there from `E:\maple-corpus` (93 files, sha256 identical); the E: folder is left
@@ -117,7 +133,8 @@ F:\dev\maple-corpus\
   name as recorded, K = its number in the session): what tools, labels and gates take (`clip` also takes the
   stay's folder). The folder's name is for people: date, the time the stay began, mode, length, K. Modes
   (`corpus.mode_of`): `farming` (5+ attack presses), `traveling`, `town` (60 s+ on a map without mobs), `idle`
-  (3 min+ without fighting), `scene-NAME` (`record --scene`), `bot` (a bot hunt). A better rule can rename folders.
+  (3 min+ without fighting), `bot` (a bot hunt); a session's label (`record --scene NAME`) is one more word
+  before the mode. A better rule can rename folders.
 - **`add` files physically:** every stay's frames are read from the recording in order and written again,
   losslessly, into the stay's folder (video files named `<map>_<stay>_000.mkv`: a file says what it is wherever
   it is copied). A stay's files begin with the frames nobody could name before it (its loading screen: `arrive`

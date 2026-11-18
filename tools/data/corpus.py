@@ -26,9 +26,11 @@ MAPLE_CORPUS or --corpus DIR names another - nothing in it holds a drive letter,
 
 **A stay** has a permanent id, `SESSION#K` (K = its number in the session): what labels, gates and tools use. Its
 folder is named for people: <date>_<time it began>_<mode>_<length>_s<K>, e.g. 2026-11-18_1432_farming_12m05s_s03.
-The mode (`mode_of`): `farming` (FARM_ATTACKS or more attack presses), `traveling` (crossed), `town` (TOWN_S or
-longer on a map without mobs), `idle` (IDLE_S or longer without fighting), `scene-NAME` (`record --scene NAME`),
-`bot` (a bot hunt). Nothing but people reads a name, so a better rule can rename folders without breaking a label.
+The mode (`mode_of`) is worked out per stay: `farming` (FARM_ATTACKS or more attack presses), `traveling`
+(crossed), `town` (TOWN_S or longer on a map without mobs), `idle` (IDLE_S or longer without fighting), `bot` (a
+bot hunt). A session recorded with a label (`record --scene NAME`: what the player set out to do - exploration,
+expiry) carries it in every stay's name, before the mode: 2026-11-18_2324_exploration_traveling_0m40s_s03.
+Nothing but people reads a name, so a better rule can rename folders without breaking anything.
 In the folder:
   <map name>_<stay>_000.mkv ...  its frames, lossless, 5-minute files (runtime/video.py)
   frames.jsonl   one line per frame: n = its number in the session, t = the session's clock, cur / b = the mouse,
@@ -607,10 +609,9 @@ def map_folder(map_id: int | None) -> str:
     return "_unknown" if map_id is None else f"{safe(map_json(map_id).get('name') or 'map')} ({map_id})"
 
 
-def mode_of(scene, bot: bool, attacks: int, seconds: float, mobs: bool | None) -> str:
-    """What a stay was (module docstring). `mobs`: does the map have mobs (None: an unknown map)."""
-    if scene:
-        return "scene-" + (re.sub(r"[^a-z0-9]+", "-", str(scene).lower()).strip("-") or "x")
+def mode_of(bot: bool, attacks: int, seconds: float, mobs: bool | None) -> str:
+    """What a stay was, from what was pressed during it (module docstring). `mobs`: does the map have mobs (None:
+    an unknown map)."""
     if bot:
         return "bot"
     if attacks >= FARM_ATTACKS:
@@ -624,8 +625,14 @@ def length(seconds: float) -> str:
     return f"{int(seconds) // 60}m{int(seconds) % 60:02d}s"
 
 
-def stay_name(began: datetime, mode: str, seconds: float, k: int) -> str:
-    return f"{began:%Y-%m-%d_%H%M}_{mode}_{length(seconds)}_s{k:02d}"
+def label_of(scene) -> str:
+    """The session's label (`record --scene NAME`) as a part of a name: 'Expiry test!' -> 'expiry-test'."""
+    return re.sub(r"[^a-z0-9]+", "-", str(scene or "").lower()).strip("-")
+
+
+def stay_name(began: datetime, mode: str, seconds: float, k: int, scene=None) -> str:
+    label = label_of(scene)
+    return f"{began:%Y-%m-%d_%H%M}_{label + '_' if label else ''}{mode}_{length(seconds)}_s{k:02d}"
 
 
 def began_at(run: Path, facts: dict, meta: dict) -> datetime:
@@ -684,9 +691,9 @@ def _line(ses: str, k: int, s: dict, bound: tuple, rows: list, attack: list, mar
     m = s["map"]
     mj = map_json(m) if m is not None else {}
     group = group_of(m, dev)
-    mode = mode_of(facts.get("scene"), by == "bot", len(hits), t1 - t0, bool(mj.get("mobs")) if mj else None)
+    mode = mode_of(by == "bot", len(hits), t1 - t0, bool(mj.get("mobs")) if mj else None)
     began = start + timedelta(seconds=t0)
-    stay = stay_name(began, mode, t1 - t0, k)
+    stay = stay_name(began, mode, t1 - t0, k, facts.get("scene"))
     return {"v": V, "seg": f"{ses}#{k}", "session": ses, "k": k, "stay": stay,
             "path": f"{'holdout' if group == 'holdout' else 'maps'}/{map_folder(m)}/{stay}",
             "map": m, "name": mj.get("name"), "street": mj.get("streetName"), "how": s["how"], "group": group,

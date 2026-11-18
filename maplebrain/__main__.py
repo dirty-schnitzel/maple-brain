@@ -66,8 +66,9 @@ def main(argv=None) -> int:
     c.add_argument("--stop-key", default=Keys.stop)
     c.add_argument("--note-key", default=Keys.note, help="the marker key: a key the game does not use, pressed when "
                    "something makes you change what you do (its presses are listed per map by the corpus)")
-    c.add_argument("--scene", default=None, metavar="NAME", help="a staged scene instead of ordinary play: its name "
-                   "is kept with each recording (e.g. expiry, pickups, windows)")
+    c.add_argument("--scene", "--label", default=None, metavar="NAME", help="a label for what you set out to do "
+                   "(exploration, expiry, pickups): kept with each recording and written into its captures' names, "
+                   "beside farming / traveling")
     g = sub.add_parser("goto", help="brain-v2 movement test: travel to a platform, or a tour of random goals "
                        "(elevated; clean maps, native window)")
     g.add_argument("out", type=Path)

@@ -185,7 +185,8 @@ recording kept whole": `maps\<map name> (<id>)\<date>_<time>_<mode>_<length>_sK\
 written again losslessly by `add` and proven identical frame by frame (a fingerprint per frame) before the
 original leaves `incoming\`; hold-out maps under `holdout\`; `sessions\<recording>\` keeps the session's small
 files and its route; a stay's permanent id is `RECORDING#K` (tools, labels, gates), its folder name is for people
-(mode = farming / traveling / town / idle / scene-NAME / bot); `corpus.py verify` re-checks the files. Detail:
+(mode = farming / traveling / town / idle / bot, worked out per stay; a session's label from `record --scene NAME`
+is one more word in the name); `corpus.py verify` re-checks the files. Detail:
 tools/data/corpus.py's docstring, HANDOFF. Decided the same day: **sound is not recorded** (vision only); **one
 gate list on the bank** for the perception and loot gates is agreed as a future task, designed once the corpus
 has substance (HANDOFF "FUTURE TASK").
@@ -241,6 +242,45 @@ for a short `serve --video` hunt, wait for my runs, then report the numbers in p
 rules: stop with numbers, no workarounds. Leave alone: the native PNG recordings in runs/ (the loot worktree
 reads them; they enter the corpus as copies only), tools/perc/track/ (another session's work), the `loot`
 branch. At the end update HANDOFF, commit and push `data`."
+
+**Session 1b (Opus, high; written 2026-11-18, when the first walk was in `incoming\`):**
+```
+You are the executor of PLAN-data.md, Session 1b: Session 1's live gates on my recordings, then the filing.
+Read HANDOFF's START HERE and the docstring of tools/data/corpus.py; PLAN-data.md section 5 has gates (b), (c),
+(f) and the stop rules. Branch `data` (checked out). Python = .venv\Scripts\python. The corpus is
+F:\dev\maple-corpus - never C:.
+
+My recordings are in F:\dev\maple-corpus\incoming\ (the first walk is 20261118_232410_1; take every folder
+there). A `record` or `watch` process may be running: never stop it, and leave alone a recording that is still
+being written (video.json says "closed": false while a recorder is loaded).
+
+1. Verify each recording BEFORE anything is filed:
+   - the last lines of its log.txt: frames a second, dropped frames, the gaps, GB a minute, the queue, the cost
+     per frame;
+   - `python tools\data\corpus.py add --dry <folder>`: the check and the cut. Look at EVERY cut sheet in
+     work\cuts\<folder>\ by eye: is each map change cut at the right frames, and is every map named right (the
+     minimap corner and the map's name on screen against the name the tool gave)? Measure how long the loading
+     screens really are (cuts.json) against KEEP_S = 2 s;
+   - session.json is there (config, commit), frames.jsonl has the mouse, keys.jsonl has my keys.
+2. The gates: (b) 0 dropped frames, ~60 frames a second; and the `speed:` lines of my two hunts - one
+   `serve ... --video` in incoming\, one without in runs\v2\ - within 1 ms of each other. If the hunts are not
+   there, say so with the two commands and go on with the rest. (c) GB a minute. (f) the cuts and the names.
+3. Stop rules, no workarounds: drops, or a tick cost over 1 ms -> stop with the numbers (fallbacks to weigh:
+   preset p1, every 2nd frame, the CPU encoder). A cut or a map name wrong -> stop with the frames and do not
+   file that recording. "unknown" stretches are fine.
+4. If a recording passes: file it with `add --keep`. Then look at what was filed - its route.txt, each
+   capture's sheet.jpg, and whether the names fit what the sheets show (farming / traveling / town / idle) - and
+   run `python tools\data\corpus.py verify --frames`. Only then remove the kept original from incoming\.
+5. Report in plain words: each gate's numbers, each walk's route with its captures, how long filing took per
+   recorded hour, what the corpus holds now (`corpus.py list`), which maps went to hold-out, and anything that
+   surprised you.
+6. Then close Session 1: HANDOFF and PLAN-data say which gates passed with their numbers and whether KEEP_S
+   stays; commit and push `data` (I merge). Say whether the corpus is enough to start Session 2 (section 6) or
+   what is still missing - do not start Session 2.
+
+Leave alone: runs/ (the PNG recordings: the gates read them), tools/perc/track/, E:\maple-corpus. Nothing is
+ever pressed into the game.
+```
 
 **Session 2 (Opus, high):** "Read PLAN-data.md section 6. The corpus is recorded (`python tools/data/corpus.py
 list`). Build tools/data/replay_all.py and run items 1-3 on the dev group only; pick the frames for item 4. Do not

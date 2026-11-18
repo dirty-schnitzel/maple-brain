@@ -239,19 +239,24 @@ def test_a_map_moves_to_dev_only_before_it_was_used_as_hold_out(home):
 
 
 def test_a_stay_is_named_for_people():
-    """<date>_<time it began>_<mode>_<length>_s<its number>; the map's folder without what Windows refuses."""
+    """<date>_<time it began>_<mode>_<length>_s<its number>, the session's label (record --scene) before the
+    mode; the map's folder without what Windows refuses."""
     from datetime import datetime
     assert corpus.stay_name(datetime(2026, 11, 18, 14, 32, 5), "farming", 725.4, 3) == "2026-11-18_1432_farming_12m05s_s03"
     assert corpus.stay_name(datetime(2026, 11, 18, 15, 2), "traveling", 21.9, 7) == "2026-11-18_1502_traveling_0m21s_s07"
     assert corpus.map_folder(LINE1) == "Line 1 Area 1 (10003061)" and corpus.map_folder(None) == "_unknown"
     assert corpus.safe('a<b>:c"/\\|?*% d. ') == "abc d"
     mode = corpus.mode_of
-    assert mode(None, False, corpus.FARM_ATTACKS, 30, True) == "farming"       # fought
-    assert mode(None, False, corpus.FARM_ATTACKS - 1, 30, True) == "traveling"  # a mob in the way is not farming
-    assert mode(None, False, 0, 90, False) == "town" and mode(None, False, 0, 20, False) == "traveling"
-    assert mode(None, False, 0, 400, True) == "idle" and mode(None, False, 0, 400, None) == "idle"
-    assert mode(None, True, 0, 30, True) == "bot"                               # a bot hunt, whatever it pressed
-    assert mode("Expiry test!", False, 40, 300, True) == "scene-expiry-test"   # a staged scene says its name
+    assert mode(False, corpus.FARM_ATTACKS, 30, True) == "farming"             # fought
+    assert mode(False, corpus.FARM_ATTACKS - 1, 30, True) == "traveling"        # a mob in the way is not farming
+    assert mode(False, 0, 90, False) == "town" and mode(False, 0, 20, False) == "traveling"
+    assert mode(False, 0, 400, True) == "idle" and mode(False, 0, 400, None) == "idle"
+    assert mode(True, 0, 30, True) == "bot"                                     # a bot hunt, whatever it pressed
+    # a label the player gave the session is one more word in the name: it never hides farming / traveling
+    assert corpus.stay_name(datetime(2026, 11, 18, 23, 24), "traveling", 40, 3, "exploration") == \
+        "2026-11-18_2324_exploration_traveling_0m40s_s03"
+    assert corpus.stay_name(datetime(2026, 11, 18, 23, 24), "farming", 300, 0, "Expiry test!") == \
+        "2026-11-18_2324_expiry-test_farming_5m00s_s00"
 
 
 def test_every_frame_of_a_session_is_in_exactly_one_stay():
