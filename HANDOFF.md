@@ -77,7 +77,7 @@ The Cave of Evil Eye I -> II -> III -> IV -> Drake Hunting Ground** = 14 maps, 1
   most 1 of 120, handing a frame over cost the loop 0.155 ms on average / 0.69 ms at most; time between frames
   p50 16.8 / p99 19.9 / max 54.1 ms (9 of 59,163 over 25 ms). **The tick-cost half is OPEN:** the two hunts
   (`serve F:\dev\maple-corpus\incoming --video` and `serve runs\v2`, same map and spot, ~2 minutes each) are not
-  recorded yet, and the user has not said whether the game felt as smooth as without the recorder.
+  recorded yet. Smoothness: answered - "Game is smooth" (the user, 2026-11-19).
 - **Gate (c): PASSED.** 6.27 GB = 0.38 GB a minute = 23 GB an hour (the plan allowed 0.2-0.7).
 - **Gate (f): PASSED on this walk.** All 13 cut sheets looked at by eye: every cut sits on the portal's fade to
   black, and every name the tool gave is the name in the minimap's title on the frames before and after; each two
@@ -89,16 +89,19 @@ The Cave of Evil Eye I -> II -> III -> IV -> Drake Hunting Ground** = 14 maps, 1
 - **Filed** with `add --keep`: 14 captures, 59,163 frames, every one read back identical; then every capture's
   sheet.jpg looked at (each shows its one map, the labels fit) and `verify --frames` over the whole bank: all as
   filed. Cost: the cut 0.45 s + the filing 0.32 s per recorded second = **~46 minutes per recorded hour**,
-  unattended. The original is still in `incoming\` (6.3 GB): the user's to delete (nothing in it is missing from
-  the bank: every frame is in a capture, the small files are in `sessions\20261118_232410_1\`).
+  unattended. The original was deleted from `incoming\` on 2026-11-19 (the user: "delete anything redundant ...
+  everything should be there"): every frame is in a capture, the small files are in
+  `sessions\20261118_232410_1\` (compared byte for byte first; `verify` after: all as filed). From now on plain
+  `add`, which empties `incoming\` itself. Still a second copy: `E:\maple-corpus` (3.5 GB, the first layout).
 - **The bank now:** 12 recordings, 25 captures, 18 maps, 37.3 minutes, 9.8 GB (F: 242 GB free = ~10 more hours).
   **Hold-out by the rule:** Deep Ant Tunnel I, Ant Tunnel Park, The Cave of Evil Eye II (3 of the walk's 14).
 - In the footage: a Lie Detector (The Cave of Evil Eye I, capture #9, from ~28 s in for 22 s: its window is in
   the frames), two pauses of 7.4 s and 6.4 s (PowerShell in front: the clock jumps inside captures #9 and #11,
   their lengths include it), other players in almost every frame (the user: popular maps are always crowded).
-- **Open, for the user:** `w` was tapped 288 times and `e` 76 times; neither is in `Keys`. The farming label
-  counts only the attack keys of the day (`q`, `c`): if `w` is an attack skill the counts are low (Deep Ant
-  Tunnel II is "farming" on exactly 5 presses of `q` beside 44 of `w`).
+- **`w` and `e` are skills the brain does not have yet** (the user, 2026-11-19; 288 and 76 taps, neither in
+  `Keys`). The farming label counts only the attack keys of the day (`q`, `c`), so its counts are low where the
+  user fought with `w` (Deep Ant Tunnel II is "farming" on exactly 5 presses of `q` beside 44 of `w`). When
+  the skills get their entries in `Keys`, the label can count them (the keys are in every keys.jsonl).
 - **Enough for Session 2?** No: 18 maps / 37 minutes, all but 4 in one dungeon. The plan's walk (section 4) is
   hours across the popular maps; Session 2 (the validation pass) starts when the user says the walk is done.
   More walks: `python -m maplebrain record [--label NAME]`, then `corpus.py add --dry` -> the sheets -> `add`.
@@ -337,7 +340,7 @@ coverage (7 maps: 7 fought on, 0 only crossed; 0 hold-out):
 ```
 
 ### Not done / open
-- Gate (b)'s tick cost: the user's two hunts (above), and their word on smoothness. Gates (c), (f) passed on
+- Gate (b)'s tick cost: the user's two hunts (above; the game is smooth, their word). Gates (c), (f) passed on
   the first walk (2026-11-19, top of this section): 13 real map changes, all cut and named right.
 - `KEEP_S` (2 s) stays: real loading screens are 0.22-0.60 s. The portal rule (decision 2) has not met a real
   shop yet: the first walk with a town in it is its test (look at that cut sheet).

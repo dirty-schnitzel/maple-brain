@@ -193,7 +193,7 @@ has substance (HANDOFF "FUTURE TASK").
 
 **2026-11-19, Session 1b on the user's first walk** (16.4 minutes down the Ant Tunnel: 14 maps, 13 map changes):
 gate (b) PASSED in its recording half (59,163 frames, 60.0 a second, 0 dropped, 0.155 ms a frame on the loop) -
-**its tick-cost half is open until the user records the two hunts**; gate (c) PASSED (0.38 GB a minute, 23 GB an
+**its tick-cost half is open until the user records the two hunts** (smoothness: "Game is smooth", the user); gate (c) PASSED (0.38 GB a minute, 23 GB an
 hour); gate (f) PASSED (all 13 cut sheets by eye: every cut on the portal's fade, every name = the minimap's
 title; loading screens 0.22-0.60 s, so `KEEP_S` = 2 s stays). Filed: 14 captures, every frame read back
 identical, ~46 minutes of unattended tool time per recorded hour. The bank: 25 captures on 18 maps, 37 minutes -
