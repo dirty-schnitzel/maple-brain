@@ -92,7 +92,7 @@ The Cave of Evil Eye I -> II -> III -> IV -> Drake Hunting Ground** = 14 maps, 1
   unattended. The original was deleted from `incoming\` on 2026-11-19 (the user: "delete anything redundant ...
   everything should be there"): every frame is in a capture, the small files are in
   `sessions\20261118_232410_1\` (compared byte for byte first; `verify` after: all as filed). From now on plain
-  `add`, which empties `incoming\` itself. Still a second copy: `E:\maple-corpus` (3.5 GB, the first layout).
+  `add`, which empties `incoming\` itself. `E:\maple-corpus` (the first layout's copy) was deleted too, on the user's word.
 - **The bank now:** 12 recordings, 25 captures, 18 maps, 37.3 minutes, 9.8 GB (F: 242 GB free = ~10 more hours).
   **Hold-out by the rule:** Deep Ant Tunnel I, Ant Tunnel Park, The Cave of Evil Eye II (3 of the walk's 14).
 - In the footage: a Lie Detector (The Cave of Evil Eye I, capture #9, from ~28 s in for 22 s: its window is in
