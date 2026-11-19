@@ -102,12 +102,13 @@ The tool is described at the top of `tools/data/corpus.py` (the same text is `RE
 `corpus.py list --stays` = what the bank holds, `verify [--frames]` = are the files what was filed.
 Standing words of the user: the bank stays lean (nothing redundant kept), it lives on F:, never C:; say
 "capture" and "labels".
-**OPEN - the live check of the new recorder (the user's next recording):** starting a new video file mid-recording
-restarts the encoder while frames wait in a 2 s queue. Proven offline only (real frames through the same code:
-cuts at the two real loading screens, files 910 / 2129 / 919 frames, the F8 step filed 3 maps right). In that
-recording's log.txt read: `dropped 0`, `queue at most N of 120` (N well under 120), `time between frames ...
-max`, `loading screens: K` = the map changes walked. If frames drop at a loading screen: `old.wait(1.0)` in
-video.py `_roll` is the knob (or a larger BACKLOG).
+**The live check of the new recorder PASSED (2026-11-19, recording 20261119_204522_1, 7.6 min, Henesys ->
+Ellinia):** 27,274 frames at 60.0 a second, 0 dropped, queue at most 6 of 120 across 8 loading screens, time
+between frames p99 19.7 / max 38.6 ms (as before); 9 pieces = 9 captures, every one named (26 of 27 looks),
+filed by itself in 56 s = 0.12 s per recorded second. Bank: 47 captures. **Next steps:** the user goes on
+walking (chat minimized); the two hunts for gate (b)'s tick cost are still owed; Session 2 (validation) when
+the user says the walking is done. Ideas not built: drop preview.mp4 (the slowest part of filing now); count
+`w` / `e` skill presses for the farming label once they are in `Keys`; add a label to a filed capture.
 
 ### 2026-11-19: Session 1b on the first walk - gates (c) and (f) PASSED, (b) half; the walk is in the bank
 **The user's first walk** (`20261118_232410_1`: 2026-11-18 23:24, 16.4 minutes, recorded with the label
