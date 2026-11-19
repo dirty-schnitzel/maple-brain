@@ -509,3 +509,69 @@ def test_attack_presses_are_counted_with_the_recordings_own_keys(tmp_path):
         for t, k in [(0.1, "a"), (0.2, Keys.attack), (0.3, "f11"), (0.4, "a")]))
     assert corpus.presses(tmp_path, {"attack": "a", "basic_attack": "b", "note": "f11"}) == ([0.1, 0.4], [0.3])
     assert corpus.presses(tmp_path) == ([0.2], [])           # (without them: today's keys)
+
+
+@needs_encoder
+def test_a_lie_detector_met_while_recording_is_copied_to_lie_with_the_keys_and_the_mouse(home, monkeypatch):
+    """3 s of Ant Tunnel IV with the Lie Detector's title on frames 50..130: `add` copies those frames and a
+    little before and after into lie/, with the keys pressed and the mouse inside that time. The stay under maps/
+    still holds every frame."""
+    from maplebrain.perception.liedetector import NAMES
+    title = np.load(ROOT / "assets" / NAMES[0])
+    frames = [f.copy() for f in _frames(180)]
+    for f in frames[50:131]:
+        f[300:300 + title.shape[0], 600:600 + title.shape[1]] = title[..., None]
+    monkeypatch.setattr(corpus, "LIE_PAD_S", 0.25)
+    run = home / "incoming" / "20261118_101500_7"
+    _recording(run, frames, keys=[(0.1, "q"), (0.7, "left"), (1.0, "1"), (1.2, "left", False), (2.9, "q")])
+    said = []
+    (line,) = corpus.add(run, say=said.append)
+    ((info, d),) = corpus.lie_dirs()
+    assert info["id"] == "20261118_101500_7@ld1" and info["stays"] == [line["seg"]] and info["map"] == ANT4
+    assert info["seen_frames"] == [50, 130] and info["frames"] == [35, 145] and info["n_frames"] == 111
+    assert info["key_presses"] == 2 and info["held"] == ["q"] and d.name.endswith("_Ant Tunnel IV_0m01s_ld1")
+    rows = [json.loads(l) for l in (d / "frames.jsonl").read_text().splitlines()]
+    assert rows[0]["n"] == 35 and rows[0]["cur"] == [135, 50] and rows[0]["h"] == corpus.fingerprint(frames[35])
+    assert [json.loads(l)["key"] for l in (d / "keys.jsonl").read_text().splitlines()] == ["left", "1", "left"]
+    v = fr.Video(d)
+    assert len(v) == 111 and np.array_equal(v.frame(0), frames[35]) and np.array_equal(v.frame(110), frames[145])
+    v.close()
+    assert (d / "sheet.jpg").exists() and any("@ld1" in s for s in said)
+    assert json.loads((home / "sessions" / "20261118_101500_7" / "lie.json").read_text())["sections"] == [info["id"]]
+    assert line["n_file"] == 180 and corpus.lie_sections(say=said.append) == []          # looked through already
+    told = []
+    assert corpus.verify(frames=True, say=told.append) == 0 and "1 Lie Detector section(s)" in told[-1]
+    (again,) = corpus.lie_sections(["20261118_101500_7"], again=True, say=said.append)
+    assert again["frames"] == [35, 145] and len(corpus.lie_dirs()) == 1
+    fr._VIDEOS.clear()
+
+
+def _bar(level: str, job: str = "Spearman") -> np.ndarray:
+    """A frame with the status bar's level digits and class line drawn from hud_glyphs.json."""
+    g = json.loads(corpus.GLYPHS.read_text())
+    pic = lambda text: np.array([[c == "#" for c in row] for row in text.split("/")])     # noqa: E731
+    f = np.zeros((768, 1366, 3), np.uint8)
+    for k, d in enumerate(level):
+        m = pic(next(t for t, v in g["digits"].items() if v == d))
+        box = f[744:757, 329 + 12 * k:329 + 12 * k + m.shape[1]]
+        box[:] = (30, 120, 240)                              # orange (BGR)
+        box[m] = 255
+    m = pic(next(t for t, v in g["jobs"].items() if v == job))
+    f[737:750, 370:370 + m.shape[1]][m] = 230
+    return f
+
+
+def test_the_class_and_level_are_read_off_the_status_bar():
+    """The digits and the class line are compared with the pictures hud_glyphs.json holds; a stay's level is the
+    one at its start, `level_to` the one it ends on; a frame without the bar (a loading screen) is passed over."""
+    assert corpus.char_of(_bar("31")) == ("Spearman", 31) and corpus.char_of(_bar("133")) == ("Spearman", 133)
+    blank = np.zeros((768, 1366, 3), np.uint8)
+    assert corpus.char_of(blank) == (None, None)
+    odd = _bar("31")
+    odd[745, 331] = 255                                      # a digit drawn another way: not known, never guessed
+    assert corpus.char_of(odd) == ("Spearman", None)
+    frames = {0: blank, 30: _bar("31"), 60: _bar("31"), 90: _bar("33")}
+    got = corpus.char_fields(frames.get, 0, 90)
+    assert got == {"job": "Spearman", "level": 31, "level_to": 33}
+    assert corpus.who(dict(got)) == "Spearman lv 31-33" and corpus.who({}) == ""
+    assert corpus.char_fields(frames.get, 30, 60) == {"job": "Spearman", "level": 31}

@@ -102,6 +102,22 @@ The Cave of Evil Eye I -> II -> III -> IV -> Drake Hunting Ground** = 14 maps, 1
   `Keys`). The farming label counts only the attack keys of the day (`q`, `c`), so its counts are low where the
   user fought with `w` (Deep Ant Tunnel II is "farming" on exactly 5 presses of `q` beside 44 of `w`). When
   the skills get their entries in `Keys`, the label can count them (the keys are in every keys.jsonl).
+- **The Lie Detector folder (the user, 2026-11-19): `F:\dev\maple-corpus\lie\`.** Every Lie Detector met while
+  recording is copied there by `corpus.py add` (and by `corpus.py lie` for sessions filed before): the frames it
+  is on screen (the bot's own recogniser, a look a second, then frame by frame for the edges) with 3 s before
+  and after, lossless, with frames.jsonl (the mouse and its buttons per frame), keys.jsonl, lie.json,
+  sheet.jpg, preview.mp4. A copy: the capture under `maps\` keeps every frame. `verify` checks the sections
+  too. In it now: the one of this walk, `2026-11-18_233550_The Cave of Evil Eye I_0m27s_ld1` (id
+  `20261118_232410_1@ld1`): on screen 22.4 s, 1,647 frames, 21 key presses, 1 click - the announcement, the
+  "follow the fading figure with the mouse" mini-game, SUCCESS (the sheet looked at). The 11 older sessions
+  were looked through: none. The look costs ~4 min per recorded hour on top of the filing.
+- **Class and level (the user, 2026-11-19): in the manifest, not in the names** (`job`, `level`, `level_to`
+  when a capture ends on another level; shown in route.txt, `list --stays`, the sheet's title). Read off the
+  status bar's left end by comparing pixels with `tools/data/hud_glyphs.json`, which holds only what was met:
+  the digits 3 and 1, the class Spearman. **A new digit or class reads as NOT READ in `add`'s output:** add its
+  picture to hud_glyphs.json (`corpus.char_glyphs(frame)` prints it), then `corpus.py char`. All 25 captures:
+  Spearman lv 31. Why not in the names: tools pick captures by the manifest, a level changes inside a capture,
+  the paths are long already.
 - **Enough for Session 2?** No: 18 maps / 37 minutes, all but 4 in one dungeon. The plan's walk (section 4) is
   hours across the popular maps; Session 2 (the validation pass) starts when the user says the walk is done.
   More walks: `python -m maplebrain record [--label NAME]`, then `corpus.py add --dry` -> the sheets -> `add`.

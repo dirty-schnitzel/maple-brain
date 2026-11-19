@@ -6,6 +6,8 @@ map with nobody looking at it - the one bank perception, the live map, tracking 
     python tools/data/corpus.py add --dev MAP [MAP ...]                         move a map to the dev group
     python tools/data/corpus.py list [--stays]                                  what the corpus holds, what is covered
     python tools/data/corpus.py verify [--frames] [STAY ...]                    are the files what was filed?
+    python tools/data/corpus.py lie [SESSION ...] [--again]                     the Lie Detector sections into lie/
+    python tools/data/corpus.py char [--again]                                  the class and level of every stay
 
 The corpus is a folder (maplebrain/config.py CORPUS: F:\\dev\\maple-corpus for now, E: later; the environment variable
 MAPLE_CORPUS or --corpus DIR names another - nothing in it holds a drive letter, so the folder moves as it is):
@@ -24,6 +26,7 @@ MAPLE_CORPUS or --corpus DIR names another - nothing in it holds a drive letter,
   labels/SESSION#K/      a stay's by-eye labels: what is where on its frames (labels.json; nobody can make them
                          again). Not the words below.
   work/SESSION#K/        what tools write for a stay (replays): safe to delete; work/cuts/SESSION = a dry run's sheets
+  lie/<section>/         every Lie Detector met, with how the player solved it (the user, 2026-11-19; below)
 
 **A stay** has a permanent id, `SESSION#K` (K = its number in the session): what by-eye labels, gates and tools
 use. Its folder is named for people: <date>_<time it began>_<its labels>_<length>_s<K>, e.g.
@@ -75,6 +78,32 @@ frame of a session is in exactly one stay. Tools get the frames ON the map (`fra
 A sheet per cut (the frames before, between and after it, the minimap corner 1:1) goes to sessions/SESSION/cuts/
 (--dry: work/cuts/SESSION/): looked at by eye once (gate f). `--dry` stops before step 4.
 
+**The character** (the user, 2026-11-19): every stay's manifest line says who played - `job` (the class as the
+status bar writes it: "Spearman") and `level` (at the stay's start; `level_to` when it ended on another). Read
+from the frames themselves (`char_of`): the orange level digits and the class line at the bar's left, compared
+pixel for pixel with the pictures hud_glyphs.json holds (the game draws them the same every time). A digit or a
+class never met yet reads as None and `add` says so: its picture is added to hud_glyphs.json once (`char_glyphs`
+prints it), then `char` fills the stays in. It is in the manifest, route.txt, `list --stays` and the sheet - not
+in the folder's name: tools pick stays by the manifest, the level changes inside a stay, and the paths are
+long already.
+
+**The Lie Detector sections** (`lie/`; made by `add` for every recording it files, by `lie` for the sessions filed
+before). A session's filed frames are looked at once every LIE_EVERY_S with the bot's own recogniser
+(perception/liedetector.py: the gold title of the announcement panel and of the mini-game window); around a look
+that sees it, frame by frame, for the first and the last frame it is on screen. A section = those frames (the
+announcement, the mini-game, the player solving it) with LIE_PAD_S before and after; sightings up to LIE_JOIN_S
+apart are one section. It is a COPY: the same frames stay in their stay under maps/. Its folder is named
+<date>_<time>_<map name>_<length>_ld<N of the session>; its id is SESSION@ldN. In it:
+  <folder name>_000.mkv   the frames, lossless (each one's fingerprint checked against the stay's while copied,
+                          then read back)
+  frames.jsonl   as a stay's: n, t (the session's), cur / b = the mouse and its buttons, h
+  keys.jsonl     the session's key lines inside the section's time
+  lie.json       what it is: the session, the stay(s) and the map it was on, t / frames (the section), seen /
+                 seen_frames (the Lie Detector on screen), the key presses and clicks counted, the keys held at
+                 its start
+  sheet.jpg, preview.mp4   for people
+sessions/SESSION/lie.json says the session was looked through and which sections it gave (`lie --again` redoes it).
+
 **Groups.** A map new to the corpus is `holdout` when crc32(its id as text) % 4 == 0 (about every 4th map), with
 every later recording of it; the 7 maps used before the corpus (DEV_FIRST) and the maps of `add --dev` are `dev`.
 Nobody tunes on hold-out maps: tools take stays through tools/perc/frames.py `clip`, which refuses a hold-out
@@ -120,6 +149,9 @@ ONE_MAP_FILES = ("ticks.jsonl", "log.txt", "notes.txt")      # a one-stay record
 LABEL_FILES = ("labels.json", "labels/cams.json", "labels/patches.json")     # its by-eye labels: into labels/
 SESSION_FILES = ("session.json", "log.txt", "notes.txt", "keys.jsonl", "frames.jsonl", "video.json")
 LOCKED = ("frames.jsonl", "keys.jsonl", "ticks.jsonl")       # read-only in a stay's folder, with its video files
+LIE_EVERY_S = 1.0       # the Lie Detector is looked for this often in a session's filed frames (it stays 10+ s)
+LIE_PAD_S = 3.0         # a section holds this long before the first and after the last frame it is on screen
+LIE_JOIN_S = 5.0        # sightings up to this far apart are one section (the announcement, then the mini-game)
 V = 3                   # the manifest line's version (1 = the first layout: whole recordings under recordings/;
                         # 2 = `mode` and `scene` where `labels` is now)
 
@@ -729,6 +761,89 @@ def _line(ses: str, k: int, s: dict, bound: tuple, rows: list, attack: list, mar
             "added": datetime.now().isoformat(timespec="seconds")}
 
 
+# ------------------------------------------------------------------------------------------ who played
+GLYPHS = Path(__file__).with_name("hud_glyphs.json")
+_GLYPHS = {}
+
+
+def char_glyphs(frame: np.ndarray) -> tuple:
+    """The status bar's level digits and class line as pictures: ([one text per orange digit box], the class
+    line's text), rows joined by "/", "#" = a lit pixel. ([], "") when the bar is not there (a loading screen)."""
+    r = frame[744:757, 300:366].astype(np.int16)
+    orange = (r[..., 2] > 200) & (r[..., 1] > 80) & (r[..., 1] < 170) & (r[..., 0] < 80)
+    white = r.min(2) > 200
+    boxes = []
+    for x in np.nonzero((orange | white).any(0) & orange.any(0))[0]:
+        if boxes and x == boxes[-1][1] + 1:
+            boxes[-1][1] = x
+        else:
+            boxes.append([x, x])
+    text = lambda m: "/".join("".join("#" if v else "." for v in row) for row in m)    # noqa: E731
+    digits = [text(white[:, a:b + 1]) for a, b in boxes if 9 <= b - a + 1 <= 12]
+    line = frame[737:750, 366:490].min(2) > 150
+    cols = np.nonzero(line.any(0))[0]
+    return digits, (text(line[:, cols[0]:cols[-1] + 1]) if len(cols) and digits else "")
+
+
+def char_of(frame: np.ndarray) -> tuple:
+    """(the class, the level) the status bar shows on this frame; None for what is not there or not known yet."""
+    if not _GLYPHS:
+        _GLYPHS.update(json.loads(GLYPHS.read_text(encoding="utf-8")))
+    digits, job = char_glyphs(frame)
+    got = [_GLYPHS["digits"].get(d) for d in digits]
+    return _GLYPHS["jobs"].get(job), (int("".join(got)) if got and all(got) else None)
+
+
+def char_fields(read, a: int, b: int, step: int = 30, tries: int = 8) -> dict:
+    """A stay's `job`, `level` (and `level_to` when it ends on another level) from its frames: `read(i)` = the
+    picture of frame i, `a`..`b` the frames on the map. The first frames from each end that read fully count
+    (a window over the bar, the fade of a portal: the next one, `step` frames on)."""
+    def first(order):
+        best = (None, None)
+        for i in order[:tries]:
+            f = read(i)
+            if f is None or f.shape[:2] != (768, 1366):
+                continue
+            job, level = char_of(f)
+            if job and level is not None:
+                return job, level
+            best = (best[0] or job, best[1] if best[1] is not None else level)
+        return best
+    job, level = first(list(range(a, b + 1, step)))
+    job2, level2 = first(list(range(b, a - 1, -step)))
+    out = {"job": job or job2, "level": level if level is not None else level2}
+    if level is not None and level2 is not None and level2 != level:
+        out["level_to"] = level2
+    return out
+
+
+def who(line: dict) -> str:
+    """'Spearman lv 31' - a stay's character for people ('' when it was never read)."""
+    lv = "" if line.get("level") is None else f" lv {line['level']}"
+    lv += f"-{line['level_to']}" if lv and line.get("level_to") else ""
+    return ((line.get("job") or "") + lv).strip()
+
+
+def fill_char(again: bool = False, say=print) -> int:
+    """The class and level of the stays filed without them (`again`: of every stay), into the manifest and each
+    stay.json. Returns how many stays still lack one."""
+    lines = load()
+    for l in lines:
+        if not again and l.get("job") and l.get("level") is not None:
+            continue
+        v = fr.Video(stay_dir(l))
+        try:
+            got = char_fields(v.frame, l["arrive"], len(v) - 1)
+        finally:
+            v.close()
+        l.pop("level_to", None)
+        l.update(got)
+        _write_stay(l)
+        say(f"  {l['seg']:24s} {who(l) or 'NOT READ'}")
+    _save(lines)
+    return sum(1 for l in lines if not l.get("job") or l.get("level") is None)
+
+
 # ------------------------------------------------------------------------------------------ step 4: the filing
 def fingerprint(frame: np.ndarray) -> str:
     """A frame's fingerprint: the first 16 hex digits of the sha256 of its pixels (BGR, row by row, as stored)."""
@@ -763,7 +878,8 @@ def _sheet(tiles: list, line: dict, path: Path) -> None:
     cells += [np.zeros((256, 455, 3), np.uint8)] * (9 - len(cells))
     grid = np.vstack([np.hstack(cells[r:r + 3]) for r in (0, 3, 6)])
     top = np.zeros((24, grid.shape[1], 3), np.uint8)
-    cv2.putText(top, f"{map_name(line['map'])} ({line['map']})   {line['stay']}   {line['seg']}"[:150], (6, 17),
+    cv2.putText(top, f"{map_name(line['map'])} ({line['map']})   {line['stay']}   {line['seg']}   {who(line)}"[:150],
+                (6, 17),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
     ok, buf = cv2.imencode(".jpg", np.vstack([top, grid]), [cv2.IMWRITE_JPEG_QUALITY, 85])
     if ok:
@@ -891,7 +1007,7 @@ def route(ses: str, start: datetime, lines: list) -> str:
     for l in lines:
         out.append(f"{l['seg']:>24s}  {l['began'][11:]}  {length(l['t'][1] - l['t'][0]):>7s}  {' '.join(l['labels']):22s} "
                    f"{map_name(l['map'])}" + (f" ({l['map']})" if l["map"] is not None else "")
-                   + f"   -> {l['path']}")
+                   + f"   {who(l)}   -> {l['path']}")
     return "\n".join(out) + "\n"
 
 
@@ -953,6 +1069,8 @@ def add(run: Path, dry: bool = False, full: bool = False, keep: bool = False, sa
     bnds = bounds(segs, len(rows))
     lines = [_line(ses, k, s, b, rows, attack, marks, keys, start, facts, by, dev)
              for k, (s, b) in enumerate(zip(segs, bnds))]
+    for l, s in zip(lines, segs):                            # who played: read off the status bar
+        l.update(char_fields(lambda i: fr.read(run, rows[i][1], shift=0), s["i"][0], s["i"][1]))
     out = root() / "work" / "cuts" / ses
     if out.exists():
         _remove(out)                                         # (an earlier dry run's)
@@ -976,7 +1094,8 @@ def add(run: Path, dry: bool = False, full: bool = False, keep: bool = False, sa
         say(f"  {l['seg']:24s} frames {l['frames'][0]:>6}..{l['frames'][1]:<6} {l['minutes']:6.2f} min  "
             f"{l['group'] or '-':7s} {' '.join(l['labels']):22s} {l['attacks']:4d} attacks  -> {l['path']}"
             + (f"  [{l['how']}]" if l["how"] != "minimap" else "")
-            + (f"  marks {len(l['marks'])}" if l["marks"] else ""))
+            + (f"  marks {len(l['marks'])}" if l["marks"] else "")
+            + f"  {who(l) or 'class / level NOT READ: a picture hud_glyphs.json does not hold yet'}")
     if dry:
         say("  --dry: nothing filed")
         return lines
@@ -1029,6 +1148,10 @@ def add(run: Path, dry: bool = False, full: bool = False, keep: bool = False, sa
         if v is not None:
             v.close()
     namer.ident = None
+    try:
+        lie_sections([ses], say=say)
+    except Problem as e:                                     # (the recording is filed all the same: `lie` redoes it)
+        say(f"  the Lie Detector sections were NOT made: {e}")
     if not keep and run.parent == (root() / "incoming").resolve():
         _remove(run)
         say("  the original in incoming/ is removed: every frame of it is in a stay")
@@ -1036,6 +1159,172 @@ def add(run: Path, dry: bool = False, full: bool = False, keep: bool = False, sa
         say(f"  the original stays as it is: {run}")
     write_index()
     return lines
+
+
+# ------------------------------------------------------------------------------- the Lie Detector sections
+def lie_dirs() -> list:
+    """[(its lie.json as a dict, its folder)] of every section in lie/, in order."""
+    out = [(json.loads(p.read_text(encoding="utf-8")), p.parent) for p in sorted((root() / "lie").glob("*/lie.json"))]
+    return sorted(out, key=lambda x: (x[0]["session"], x[0]["k"]))
+
+
+def _session_frames(ses: str) -> tuple:
+    """Every filed frame of a session in order: ([(which stay, its place in that stay's video, its frames.jsonl
+    row)], [(the stay's line, its Video)])."""
+    order, vids = [], []
+    for l in sorted((l for l in load() if l["session"] == ses), key=lambda l: l["k"]):
+        d = stay_dir(l)
+        v = fr.Video(d)
+        rows = [r for r in map(json.loads, open(d / "frames.jsonl", encoding="utf-8")) if not r.get("drop")]
+        order += [(len(vids), i, r) for i, r in enumerate(rows[:len(v)])]
+        vids.append((l, v))
+    return order, vids
+
+
+def lie_find(order: list, vids: list, seen) -> list:
+    """[(a, b)]: the stretches of `order` with the Lie Detector on screen (first and last frame, inclusive)."""
+    def look(g):
+        f = vids[order[g][0]][1].frame(order[g][1])
+        return f is not None and seen(f)
+    looks, last = [], -1e9
+    for g, (_, _, r) in enumerate(order):
+        if r["t"] - last >= LIE_EVERY_S:
+            last = r["t"]
+            looks.append((g, look(g)))
+    runs = []
+    for j, (g, hit) in enumerate(looks):
+        if not hit:
+            continue
+        if j and looks[j - 1][1]:
+            runs[-1][1] = g
+            continue
+        before = looks[j - 1][0] + 1 if j else 0             # the frames since the look before: read forward once
+        on = [look(x) for x in range(before, g)]
+        a = g
+        while a > before and on[a - 1 - before]:
+            a -= 1
+        runs.append([a, g])
+    for run in runs:
+        while run[1] + 1 < len(order) and look(run[1] + 1):
+            run[1] += 1
+    out = []
+    for a, b in runs:
+        if out and order[a][2]["t"] - order[out[-1][1]][2]["t"] <= LIE_JOIN_S:
+            out[-1] = (out[-1][0], max(b, out[-1][1]))
+        else:
+            out.append((a, b))
+    return out
+
+
+def file_lie(ses: str, k: int, a: int, b: int, order: list, vids: list, keys: list, say=print) -> dict:
+    """One section into lie/ (module docstring): frames `a`..`b` of `order` with the Lie Detector on screen, and
+    LIE_PAD_S around them. Raises Problem; nothing half-made is left."""
+    from maplebrain.runtime.video import VideoWriter
+    ta, tb = order[a][2]["t"], order[b][2]["t"]
+    lo, hi = a, b
+    while lo > 0 and order[lo - 1][2]["t"] >= ta - LIE_PAD_S:
+        lo -= 1
+    while hi + 1 < len(order) and order[hi + 1][2]["t"] <= tb + LIE_PAD_S:
+        hi += 1
+    rows = [r for _, _, r in order[lo:hi + 1]]
+    t0, t1 = rows[0]["t"], rows[-1]["t"]
+    line = vids[order[a][0]][0]                              # the stay it appeared on
+    began = datetime.fromisoformat(line["began"]) + timedelta(seconds=t0 - line["t"][0])
+    place = safe(line["name"]) if line["map"] is not None else "unknown"
+    name = f"{began:%Y-%m-%d_%H%M%S}_{place}_{length(t1 - t0)}_ld{k}"
+    dest = root() / "lie" / name
+    if dest.exists():
+        raise Problem(f"{dest} exists already")
+    dest.mkdir(parents=True)
+    try:
+        vw = VideoWriter(dest, pattern=name + "_%03d.mkv", note={"by": "corpus", "lie": f"{ses}@ld{k}"})
+        picks = {lo + round(j * (hi - lo) / 8) for j in range(9)}
+        tiles = []
+        try:
+            for g in range(lo, hi + 1):
+                s, i, r = order[g]
+                f = vids[s][1].frame(i)
+                if f is None or fingerprint(f) != r.get("h"):
+                    raise Problem(f"frame {r['n']} of {vids[s][0]['seg']} does not read as it was filed")
+                f = np.ascontiguousarray(f)
+                if g in picks:
+                    tiles.append((r["n"], r["t"], cv2.resize(f, (455, 256), interpolation=cv2.INTER_AREA)))
+                if not vw.put(f, r["n"], r["t"], r.get("cur"), wait=True, buttons=r.get("b", 0)):
+                    raise Problem(f"the encoder stopped at frame {r['n']}: {vw.error}")
+        finally:
+            meta = vw.close()
+        if meta["error"] or meta["frames"] != len(rows):
+            raise Problem(f"the encoder: {meta['error']} ({meta['frames']} of {len(rows)} frames written)")
+        (dest / "frames.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8")
+        inside = [(x, raw) for x, raw in keys if t0 <= x.get("t", -1) <= t1]
+        (dest / "keys.jsonl").write_text("".join(raw + "\n" for _, raw in inside), encoding="utf-8")
+        why = read_back(dest)
+        if why:
+            raise Problem(why)
+        log = dest / "ffmpeg.log"
+        if log.exists() and not log.read_text(encoding="utf-8", errors="replace").strip():
+            log.unlink()
+        files = sorted(dest.glob("*.mkv"))
+        stays = sorted({vids[s][0]["seg"] for s, _, _ in order[lo:hi + 1]})
+        info = {"v": 1, "id": f"{ses}@ld{k}", "session": ses, "k": k, "folder": name, "stays": stays,
+                "map": line["map"], "name": line["name"], "group": line["group"],
+                "t": [t0, t1], "seconds": round(t1 - t0, 2), "frames": [rows[0]["n"], rows[-1]["n"]],
+                "n_frames": len(rows), "seen": [ta, tb], "seen_s": round(tb - ta, 2),
+                "seen_frames": [order[a][2]["n"], order[b][2]["n"]],
+                "began": began.isoformat(timespec="seconds"),
+                "key_presses": sum(1 for x, _ in inside if x.get("down")),
+                "clicks": sum(1 for p, q in zip(rows, rows[1:]) if q.get("b", 0) & ~p.get("b", 0)),
+                "held": _held(keys, t0),
+                "files": [{"name": p.name, "bytes": p.stat().st_size, "sha256": _sha(p)} for p in files],
+                "added": datetime.now().isoformat(timespec="seconds")}
+        info["bytes"] = sum(f["bytes"] for f in info["files"])
+        (dest / "lie.json").write_text(json.dumps(info, indent=1), encoding="utf-8")
+        _sheet(tiles, {"t": [t0, t1], "map": line["map"], "stay": name, "seg": info["id"]}, dest / "sheet.jpg")
+        _previewed(dest, preview(dest, info))
+        for p in dest.iterdir():
+            if p.suffix == ".mkv" or p.name in LOCKED:
+                os.chmod(p, stat.S_IREAD)
+    except BaseException:
+        _remove(dest)
+        raise
+    say(f"  {info['id']}: {map_name(line['map'])}, on screen {info['seen_s']:.1f} s from {ta:.1f} s, "
+        f"{info['key_presses']} key press(es), {info['clicks']} click(s) -> lie/{name}")
+    return info
+
+
+def lie_sections(sessions: list = (), again: bool = False, seen=None, say=print) -> list:
+    """The Lie Detector sections of these sessions (default: every filed one not looked through yet) into lie/.
+    Returns the sections made."""
+    have = sorted({l["session"] for l in load()})
+    missing = sorted(set(sessions) - set(have))
+    if missing:
+        raise Problem(f"no such session: {', '.join(missing)}")
+    if seen is None:
+        from maplebrain.perception.liedetector import LieDetector
+        seen = LieDetector.load(ROOT / "assets", background=False).seen
+    made = []
+    for ses in sessions or have:
+        note = root() / "sessions" / ses / "lie.json"
+        if note.exists() and not again:
+            continue
+        for info, d in lie_dirs():
+            if info["session"] == ses:
+                _remove(d)
+        order, vids = _session_frames(ses)
+        try:
+            found = lie_find(order, vids, seen)
+            mine = [file_lie(ses, k, a, b, order, vids, _keys(root() / "sessions" / ses), say)
+                    for k, (a, b) in enumerate(found, 1)]
+        finally:
+            for _, v in vids:
+                v.close()
+        note.parent.mkdir(parents=True, exist_ok=True)
+        note.write_text(json.dumps({"v": 1, "looked": datetime.now().isoformat(timespec="seconds"),
+                                    "frames": len(order), "sections": [x["id"] for x in mine]}, indent=1),
+                        encoding="utf-8")
+        say(f"  {ses}: {len(order)} frames looked through, {len(mine)} Lie Detector section(s)")
+        made += mine
+    return made
 
 
 def write_index() -> None:
@@ -1084,7 +1373,7 @@ def report(stays: bool = False, say=print) -> None:
         say("\nstays (the id tools take; its folder):")
         for l in lines:
             say(f"  {l['seg']:24s} {l['minutes']:6.2f} min {l['group'] or '-':7s} {' '.join(l['labels']):22s} "
-                f"{l['attacks']:4d} attacks  {l['path']}")
+                f"{l['attacks']:4d} attacks  {who(l):16s} {l['path']}")
     # coverage: from the client data (map_cover: a mob type counts on a map with 3+ spawn points of it)
     maps, mobs = map_cover.load()
     if not maps:
@@ -1145,7 +1434,20 @@ def verify(ids: list = (), frames: bool = False, say=print) -> int:
         if why:
             bad += 1
             say(f"  {l['seg']} ({l['path']}): " + "; ".join(why))
-    say(f"verify: {len(lines)} stay(s), {n_files} video file(s)" + (f", {n_frames} frames decoded" if frames else "")
+    n_lie = 0
+    for info, d in ([] if ids else lie_dirs()):              # the Lie Detector sections, the same way
+        n_lie += 1
+        why = [f"{f['name']} is not the file that was filed" for f in info["files"]
+               if not (d / f["name"]).is_file() or (d / f["name"]).stat().st_size != f["bytes"]
+               or _sha(d / f["name"]) != f["sha256"]]
+        if frames and not why:
+            n_frames += info["n_frames"]
+            why += [x for x in [read_back(d)] if x]
+        if why:
+            bad += 1
+            say(f"  {info['id']} (lie/{info['folder']}): " + "; ".join(why))
+    say(f"verify: {len(lines)} stay(s), {n_files} video file(s)"
+        + (f", {n_lie} Lie Detector section(s)" if n_lie else "") + (f", {n_frames} frames decoded" if frames else "")
         + (f": {bad} NOT as filed" if bad else ": all as filed"))
     return bad
 
@@ -1167,12 +1469,28 @@ def main(argv=None) -> int:
     ve = sub.add_parser("verify", help="are the files what was filed (after a move to another drive)?")
     ve.add_argument("stays", nargs="*", help="stay ids SESSION#K (default: every stay)")
     ve.add_argument("--frames", action="store_true", help="decode every frame and compare its fingerprint too")
+    li = sub.add_parser("lie", help="the Lie Detector sections of filed sessions into lie/ (add does it for new ones)")
+    li.add_argument("sessions", nargs="*", help="session names (default: every one not looked through yet)")
+    li.add_argument("--again", action="store_true", help="look through them again, replacing their sections")
+    ch = sub.add_parser("char", help="the class and level of the stays filed without them (after hud_glyphs.json grew)")
+    ch.add_argument("--again", action="store_true", help="read every stay again")
     args = ap.parse_args(argv)
     if args.corpus:
         os.environ["MAPLE_CORPUS"] = str(args.corpus)
     try:
         if args.cmd == "verify":
             return 1 if verify(args.stays, args.frames) else 0
+        if args.cmd == "char":
+            left = fill_char(args.again)
+            print(f"char: {left} stay(s) without a class or a level" if left
+                  else "char: every stay has its class and level")
+            write_index()
+            return 0
+        if args.cmd == "lie":
+            made = lie_sections(args.sessions, args.again)
+            print(f"lie: {len(made)} section(s) made, {len(lie_dirs())} in the corpus")
+            write_index()
+            return 0
         if args.cmd == "add":
             if not args.runs and not args.dev:
                 ap.error("add: a recording folder, or --dev MAP")
