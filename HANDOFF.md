@@ -68,30 +68,46 @@ below).
 **The tracker redesign (step 4, the section below) still waits for the corpus.** 2026-11-18: `data` was rebased
 on `dev` (loot part 1 merged) and the loot tools read frames through the corpus reader (bed4333).
 
-### HOW TO FILE THE USER'S RECORDINGS (read this first in a fresh session; the user, 2026-11-19)
-The user records walks with `python -m maplebrain record --label exploration` (F7 start, F8 stop) and says "more
-recordings". Each finished recording is a folder in `F:\dev\maple-corpus\incoming\`. What Claude does, per folder:
-1. **Is it finished?** Its log.txt ends with the `video: N frames ...` line and the folder's files stopped
-   changing. Never touch one that is still being written, never stop the `record` process, leave
-   `incoming\lie_*.png` (screenshots of Lie Detectors met while no recording ran).
-2. `.venv\Scripts\python -u tools\data\corpus.py add --dry F:\dev\maple-corpus\incoming\<folder>` - checks the
-   video and cuts it into maps. **No by-eye look at the cut sheets any more** (the user, 2026-11-19: "you don't
-   need to verify again after initially cutting them from now on (if the past cuts were OK)" - 22 cuts were
-   looked at, all right). Only read the printed lines: **stop if a stretch is `unknown` / `[None]` or the tool
-   says NOT** - then look at that cut's sheet in `work\cuts\<folder>\`: a map whose minimap is on screen but
-   not named is a recogniser gap to fix BEFORE filing (there is no re-filing; 2026-11-19: maps wider than the
-   minimap window, fixed in nav/identify.py `_scrolled`). A shop / a closed minimap may stay unknown.
-3. The same command without `--dry` files it: every capture into `maps\<map> (<id>)\` (hold-out maps under
-   `holdout\`), every frame read back identical, the Lie Detector sections into `lie\`, class + level into
-   the manifest, the original removed from `incoming\`. If it prints `class / level NOT READ`: add the new
-   digit / class picture to `tools/data/hud_glyphs.json` (`corpus.char_glyphs(frame)` prints it), then
-   `corpus.py char`.
-4. Report in plain words: the maps, time on each, labels, hold-out or not, frames a second / dropped (log.txt),
-   the bank's totals (`corpus.py list`). ~50 s of tool time per recorded minute.
-The tool itself is described at the top of `tools/data/corpus.py` (the same text is `README.txt` in the bank);
+### HOW THE USER'S RECORDINGS GET INTO THE BANK (read this first in a fresh session; 2026-11-19)
+**The recorder files its own recordings.** The user runs `python -m maplebrain record --label exploration`
+(F7 start, F8 stop; chat MINIMIZED - the user's rule since 2026-11-19: the bot plays so, an open chat hides the
+lowest strip of the map). While it records it notices every loading screen (a run of black frames: the game
+always shows one between two maps - measured on 14 changes, confirmed by the user in the game) and starts a new
+video file there. At F8 it starts `tools/data/corpus.py add` on the recording in the background: every piece
+between two loading screens is named with ~3 looks at its minimap and its files are MOVED into
+`maps\<map> (<id>)\` (hold-out maps: `holdout\`); class + level into the manifest; a Lie Detector the
+recorder saw is copied into `lie\`. The result is printed in the recorder's terminal and kept in
+`F:\dev\maple-corpus\work\filing\<recording>.log` (after filing also `sessions\<recording>\filing.log`).
+~0.2 s of tool time per recorded second (it was ~1.3 with the minimap cut done twice and every frame rewritten).
+
+**What Claude does when the user says "more recordings" / "check the recordings":**
+1. `ls F:\dev\maple-corpus\incoming` - a folder still there is either being recorded (never touch it, never
+   stop `record`), being filed (`F:\dev\maple-corpus\.filing` exists), or NOT FILED: read
+   `work\filing\<folder>.log` for why. `incoming\lie_*.png` = Lie Detectors met while no recording ran: leave.
+2. Not filed because a stretch has no map name: `corpus.py add --dry <folder>` draws the frames into
+   `work\cuts\<folder>\` - look at them. A map whose minimap is on screen but not named = a gap in the
+   recogniser (nav/identify.py) to close first, then `corpus.py add <folder>`; a shop / a closed minimap =
+   `corpus.py add --unknown <folder>`. `class / level NOT READ` = a new digit or class: add its picture to
+   `tools/data/hud_glyphs.json` (`corpus.char_glyphs(frame)` prints it), then `corpus.py char`.
+3. Report in plain words: the maps, time on each, labels, hold-out or not, frames a second / dropped (log.txt
+   in `sessions\<recording>\`), the bank's totals (`corpus.py list`).
+A recording made by a recorder started before this change (no pieces), a hunt (`--video`) or an old PNG
+recording: `corpus.py add <folder>` cuts it by the minimap - a look every 10 s, halving between two looks that
+disagree down to the exact frame (0.06-0.12 s per recorded second; the same 27 maps as the old look-a-second
+cut on the four walks in the bank, edges within 9 frames) - and writes every capture again, read back frame by
+frame. `add` STOPS at a stretch without a map name (`--unknown` files it); **no by-eye look at cut sheets any
+more** (the user, 2026-11-19: "you don't need to verify again ... if the past cuts were OK" - 22 were looked
+at, all right); `--dry` draws them when one is wanted.
+The tool is described at the top of `tools/data/corpus.py` (the same text is `README.txt` in the bank);
 `corpus.py list --stays` = what the bank holds, `verify [--frames]` = are the files what was filed.
-Standing words of the user: the bank stays lean (nothing redundant kept: originals go once filed), it lives on
-F:, never C:; say "capture" and "labels".
+Standing words of the user: the bank stays lean (nothing redundant kept), it lives on F:, never C:; say
+"capture" and "labels".
+**OPEN - the live check of the new recorder (the user's next recording):** starting a new video file mid-recording
+restarts the encoder while frames wait in a 2 s queue. Proven offline only (real frames through the same code:
+cuts at the two real loading screens, files 910 / 2129 / 919 frames, the F8 step filed 3 maps right). In that
+recording's log.txt read: `dropped 0`, `queue at most N of 120` (N well under 120), `time between frames ...
+max`, `loading screens: K` = the map changes walked. If frames drop at a loading screen: `old.wait(1.0)` in
+video.py `_roll` is the knob (or a larger BACKLOG).
 
 ### 2026-11-19: Session 1b on the first walk - gates (c) and (f) PASSED, (b) half; the walk is in the bank
 **The user's first walk** (`20261118_232410_1`: 2026-11-18 23:24, 16.4 minutes, recorded with the label

@@ -138,3 +138,39 @@ def test_chunks_must_be_whole_keyframe_intervals(tmp_path):
     cmd = video.encoder_cmd(tmp_path)
     assert cmd[cmd.index("-segment_time") + 1] == "300" and cmd[cmd.index("-g") + 1] == "120"
     assert cmd[cmd.index("-c:v") + 1:cmd.index("-c:v") + 4] == ["hevc_nvenc", "-tune", "lossless"]
+
+
+@needs_encoder
+def test_a_cut_starts_a_new_piece_in_its_own_files_and_every_frame_still_reads(tmp_path):
+    """`put(cut=True)`: the frames before it end their chunk file early, the piece begins in the next file - so a
+    file never holds two pieces (two maps). 200 frames in chunks of 60, cut at frames 50 and 170: the files hold
+    50 | 60, 60 | 30 frames; frames.jsonl marks the cuts and the dark frames; every frame reads back exactly, in
+    order and on jumps over the cuts. A cut on a frame that is dropped waits for the next frame in the video."""
+    frames = _frames(200)
+    vw = video.VideoWriter(tmp_path, gop=30, chunk=60, backlog=300)
+    for i, f in enumerate(frames):
+        assert vw.put(f, i, i / 60, cut=i in (0, 50, 170), dark=i in (48, 49, 50))
+    meta = vw.close()
+    assert meta["error"] is None and meta["frames"] == 200 and meta["counts"] == [50, 60, 60, 30]
+    assert sorted(p.name for p in tmp_path.glob("frames_*.mkv")) == [f"frames_{k:04d}.mkv" for k in range(4)]
+    rows = [json.loads(l) for l in (tmp_path / "frames.jsonl").read_text().splitlines()]
+    assert [r["n"] for r in rows if r.get("cut")] == [0, 50, 170] and [r["n"] for r in rows if r.get("d")] == [48, 49, 50]
+    v = fr.Video(tmp_path)
+    assert len(v) == 200 and all(np.array_equal(v.frame(i), frames[i]) for i in range(200))
+    for i in (199, 49, 50, 0, 170, 169, 110, 109):
+        assert np.array_equal(v.frame(i), frames[i]), i
+    v.close()
+    assert video.is_dark(np.zeros((768, 1366, 3), np.uint8)) and not video.is_dark(frames[0])
+
+
+@needs_encoder
+def test_a_cut_on_a_dropped_frame_goes_to_the_next_frame_in_the_video(tmp_path):
+    _Held.go.clear()
+    vw = _Held(tmp_path, gop=30, chunk=60, backlog=2)
+    f = np.zeros((768, 1366, 3), np.uint8)
+    assert vw.put(f, 0, 0.0) and vw.put(f, 1, 0.1) and not vw.put(f, 2, 0.2, cut=True)      # full: 2 is dropped
+    _Held.go.set()
+    assert vw.put(f, 3, 0.3, wait=True)
+    assert vw.close()["counts"] == [2, 1]
+    rows = [json.loads(l) for l in (tmp_path / "frames.jsonl").read_text().splitlines()]
+    assert rows[2] == {"n": 2, "t": 0.2, "drop": True} and rows[3] == {"n": 3, "t": 0.3, "cut": 1}

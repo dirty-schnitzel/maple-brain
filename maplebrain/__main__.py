@@ -69,6 +69,8 @@ def main(argv=None) -> int:
     c.add_argument("--label", action="append", default=[], metavar="NAME", help="a label for what you set out to "
                    "do (exploration, expiry, pickups; give it again for a second label): kept with each recording "
                    "and written into its captures' names, beside the label the tool works out (farming, traveling)")
+    c.add_argument("--no-file", action="store_true", help="do not file a recording into the corpus when it stops "
+                   "(default: the stop key starts tools/data/corpus.py add on it, in the background)")
     g = sub.add_parser("goto", help="brain-v2 movement test: travel to a platform, or a tour of random goals "
                        "(elevated; clean maps, native window)")
     g.add_argument("out", type=Path)
@@ -122,7 +124,7 @@ def main(argv=None) -> int:
                 ap.error(f"hotkeys must be F1-F12, got {k!r}")
         cfg = Config()
         cfg.keys.start, cfg.keys.stop, cfg.keys.note = a.start_key, a.stop_key, a.note_key
-        return record(a.out or (a.corpus or corpus_root()) / "incoming", cfg, labels=a.label)
+        return record(a.out or (a.corpus or corpus_root()) / "incoming", cfg, labels=a.label, file=not a.no_file)
     if a.cmd == "goto":
         from .config import Config
         from .keyboard import validate

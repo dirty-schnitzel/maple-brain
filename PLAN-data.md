@@ -199,6 +199,15 @@ title; loading screens 0.22-0.60 s, so `KEEP_S` = 2 s stays). Filed: 14 captures
 identical, ~46 minutes of unattended tool time per recorded hour. The bank: 25 captures on 18 maps, 37 minutes -
 **not enough for Session 2**: the walk of section 4 is still to be recorded. Detail: HANDOFF.
 
+**2026-11-19, later - the cut moved into the recorder (the user's idea).** Decision 2 (cut by the minimap,
+afterwards) is replaced for walks: `record` starts a new video file at every loading screen (black frames,
+noticed per frame; no perception runs), and F8 files the recording by itself - each piece named with ~3 looks,
+its files moved, not rewritten (so no frame-by-frame read-back: the files are the recorder's own, checksummed).
+The minimap cut stays for recordings without pieces, with a look every 10 s instead of every second. `add`
+stops at an unnamed stretch instead of filing it as unknown. Also added: `lie\` (every Lie Detector met, with
+keys and mouse), class + level in each capture's line, maps wider than the minimap window recognised. Open: the
+live check of the new recorder on the user's next recording (HANDOFF, top of the corpus section).
+
 ## 6. The validation pass (Sessions 2 and 3)
 Perception runs **unchanged** over the dev group; this pass measures and lists, it fixes nothing.
 1. **Per map, automatic** (`tools/data/replay_all.py`, the live Perceiver on every frame): share of frames with

@@ -20,14 +20,16 @@ class FakeVideo:
     last = None
 
     def __init__(self, out, note=None):
-        self.out, self.note, self.frames, self.buttons = Path(out), note, [], []
+        self.out, self.note, self.frames, self.buttons, self.cuts, self.darks = Path(out), note, [], [], [], []
         self.written = self.dropped = self.queue_max = 0
         self.error, self.closed = None, False
         FakeVideo.last = self
 
-    def put(self, frame, n, t, cursor=None, wait=False, buttons=0):
+    def put(self, frame, n, t, cursor=None, wait=False, buttons=0, cut=False, dark=False):
         self.frames.append((n, t, cursor, frame))
         self.buttons.append(buttons)
+        self.cuts += [n] if cut else []
+        self.darks += [n] if dark else []
         self.written += 1
         return True
 
@@ -68,7 +70,9 @@ def _record(tmp_path, monkeypatch, script, focus_script=None, screen=None, max_r
     monkeypatch.setattr(record, "free_gb", lambda path: free)
     monkeypatch.setattr(record.time, "sleep", lambda s: None)
     monkeypatch.setattr(record, "ASSETS", FX)
-    FakeVideo.last = None
+    filed = []
+    monkeypatch.setattr(record, "file_later", lambda out, say=print: filed.append(Path(out)))
+    FakeVideo.last, FakeVideo.filed = None, filed
     hk = runner.Hotkeys([START, STOP], key_down=Keys(script, quit_after))
     code = record.record(tmp_path / "incoming", Config(), hotkeys=hk, max_recordings=max_recordings, labels=labels)
     return code, holder["kb"], tmp_path / "incoming"
@@ -80,7 +84,7 @@ def test_start_key_records_every_frame_until_the_stop_key_and_sends_no_key(tmp_p
     assert code == 0 and kb.events == []                                 # never a key, not even a release
     (rec,) = list(out.iterdir())
     v = FakeVideo.last
-    assert v.out == rec and v.closed and v.note == {"by": "record"}
+    assert v.out == rec and v.closed and v.note == {"by": "record", "pieces": True} and v.cuts == v.darks == []
     assert len(v.frames) > 10 and [n for n, *_ in v.frames] == list(range(len(v.frames)))      # from 0, in order
     assert all(b[1] > a[1] for a, b in zip(v.frames, v.frames[1:]))      # each with its time
     assert all(f[3].shape == (768, 1366, 3) for f in v.frames)
@@ -186,3 +190,31 @@ def test_lie_watch_sounds_the_siren_until_the_window_is_gone_and_saves_the_frame
 def test_gaps_line_counts_late_frames():
     line = record._gaps([1 / 60] * 98 + [0.034, 0.051])
     assert "p50 16.7" in line and "max 51.0 ms" in line and "2 over 25 ms" in line
+
+
+class LoadingScreen(FakeScreen):
+    """The game's picture with a loading screen: frames 6..11 of every recording are black."""
+
+    def grab(self):
+        f = super().grab()
+        self.k = getattr(self, "k", -1) + 1
+        return f * 0 if 6 <= self.k <= 11 else f
+
+
+def test_a_loading_screen_starts_a_new_piece_and_the_stop_key_files_the_recording(tmp_path, monkeypatch):
+    """Black frames are marked; at the 4th in a row the video is told to start a new piece (one cut for the whole
+    loading screen). When the recording stops, it is handed to the filing - not when it was aborted."""
+    script = lambda name, n: (name == START and 3 <= n <= 4) or (name == STOP and 30 <= n <= 31)  # noqa: E731
+    code, kb, out = _record(tmp_path, monkeypatch, script, screen=LoadingScreen)
+    v = FakeVideo.last
+    assert code == 0 and v.note == {"by": "record", "pieces": True}
+    d = v.darks
+    assert len(d) == 6 and d == list(range(d[0], d[0] + 6)) and v.cuts == [d[3]]
+    assert "loading screens: 1 " in (v.out / "log.txt").read_text()
+    assert FakeVideo.filed == [v.out]
+
+
+def test_a_recording_outside_a_corpus_is_not_filed_by_itself(tmp_path):
+    said = []
+    assert record.file_later(tmp_path / "elsewhere" / "20261119_101500_1", said.append) is None
+    assert "not filed by itself" in said[0]

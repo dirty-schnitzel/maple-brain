@@ -2,7 +2,7 @@
 map with nobody looking at it - the one bank perception, the live map, tracking and later training are tested on.
 
     python tools/data/corpus.py add RUN [RUN ...] [--dry] [--full] [--keep]     file a recording (a `record` walk, a
-                                                                                --video hunt, an old PNG recording)
+                            [--look S] [--unknown]                              --video hunt, an old PNG recording)
     python tools/data/corpus.py add --dev MAP [MAP ...]                         move a map to the dev group
     python tools/data/corpus.py list [--stays]                                  what the corpus holds, what is covered
     python tools/data/corpus.py verify [--frames] [STAY ...]                    are the files what was filed?
@@ -25,7 +25,8 @@ MAPLE_CORPUS or --corpus DIR names another - nothing in it holds a drive letter,
   holdout_uses.jsonl     every time a tool opened a hold-out stay
   labels/SESSION#K/      a stay's by-eye labels: what is where on its frames (labels.json; nobody can make them
                          again). Not the words below.
-  work/SESSION#K/        what tools write for a stay (replays): safe to delete; work/cuts/SESSION = a dry run's sheets
+  work/SESSION#K/        what tools write for a stay (replays): safe to delete; work/cuts/SESSION = a dry run's sheets;
+                         work/filing/SESSION.log = what the filing `record` started said (kept in sessions/ too)
   lie/<section>/         every Lie Detector met, with how the player solved it (the user, 2026-11-19; below)
 
 **A stay** has a permanent id, `SESSION#K` (K = its number in the session): what by-eye labels, gates and tools
@@ -56,8 +57,12 @@ frame of a session is in exactly one stay. Tools get the frames ON the map (`fra
     killed) is repaired without re-encoding: the last chunk rewritten as a finished file (a stream copy), the frame
     count taken from the files.
  2. **cuts it into maps** with the bot's own map recogniser (nav/identify.py: the on-screen minimap against every
-    map's): one look a second. A look names a new map only if the next two frames and the look a second later
-    name it too. A frame where the recogniser finds no minimap window is looked at once more with the window
+    map's): one look every LOOK_S (10 s; `--look S`), and wherever two looks in a row disagree one more halfway
+    between them, again and again until the two frames that disagree are next to each other - the exact frame
+    of a change in ~10 looks (the user, 2026-11-19: a look a second, and every frame of the second around a
+    change, was most of the cut's time). What sparse looks cannot see - a map entered and left again between
+    two looks - is caught in step 4 by its loading screens (`fades`). A look names a new map only if the next
+    two frames and the look a second later name it too. A frame where the recogniser finds no minimap window is looked at once more with the window
     measured on the nearest named frame (`Namer`): it can confirm that frame's map, never name another. Where the name
     changes, the frames between the two looks are named one by one: the old map ends at its last named frame, the
     new one starts at its first, the frames between them (the loading screen) belong to neither. Looks that can't
@@ -65,18 +70,24 @@ frame of a session is in exactly one stay. Tools get the frames ON the map (`fra
     the client's 336 maps (shops, salons, job halls) have no minimap, so "town -> shop -> town" looks like a town
     with a hole; a longer hole is its own stay. Such a stretch is named by the portals when exactly one map
     without a minimap connects the maps before and after it and they do not connect directly; else it stays
-    "unknown": kept, listed, out of the per-map numbers. Never a guessed name. A recording with a log that names
+    "unknown": never a guessed name. `add` STOPS at an unknown stretch and files nothing (a map whose minimap is
+    on screen but not named is a gap in the recogniser to close first: there is no re-filing) - `--dry` shows
+    its frames, `--unknown` files it under maps/_unknown/ (a shop; the minimap closed). A recording with a log that names
     its map (a hunt, an observe run: perception is tied to one map) is one stay on that map; the minimap is still
     looked at and must not name another.
  3. per stay, from keys.jsonl: the attack presses and the time of the first, the presses of the marker key
     (Keys.note) - and from them the label the tool gives it.
  4. **files every stay**: its frames read from the recording in order, written losslessly into the stay's folder,
-    read back and compared frame by frame (the fingerprints). Then the session's small files, the manifest lines,
+    read back and compared frame by frame (the fingerprints). A loading screen INSIDE a stay (DARK_RUN black
+    frames in a row: a channel change, the Cash Shop - or a map the sparse looks missed) is noted in its line
+    (`fades`), and the frame half a second after it must show the stay's map: if not, nothing is filed and
+    `add --look 1` cuts it with a look a second. Then the session's small files, the manifest lines,
     index.txt. Only when every frame of the recording is proven to be in a stay is the original removed - and
     only an original inside incoming/ (--keep: not even that; a folder elsewhere, like a PNG recording under
     runs/, is never touched).
-A sheet per cut (the frames before, between and after it, the minimap corner 1:1) goes to sessions/SESSION/cuts/
-(--dry: work/cuts/SESSION/): looked at by eye once (gate f). `--dry` stops before step 4.
+`--dry` stops before step 4 and draws a sheet per cut (the frames before, between and after it, the minimap
+corner 1:1) into work/cuts/SESSION/ - looked at by eye for the first 22 cuts (gate f: all right); since then
+only when `add` stops. `add` itself cuts once and keeps cuts.json in sessions/SESSION/cuts/.
 
 **The character** (the user, 2026-11-19): every stay's manifest line says who played - `job` (the class as the
 status bar writes it: "Spearman") and `level` (at the stay's start; `level_to` when it ended on another). Read
@@ -103,6 +114,24 @@ apart are one section. It is a COPY: the same frames stay in their stay under ma
                  its start
   sheet.jpg, preview.mp4   for people
 sessions/SESSION/lie.json says the session was looked through and which sections it gave (`lie --again` redoes it).
+
+**A walk recorded since 2026-11-19 is cut while it is recorded** (the user: "cut at the timestamps to have only
+single-map frames inside ... no pass"). The game shows a black loading screen between two maps, always; `record`
+notices it (runtime/video.py `is_dark`, every frame), marks the dark frames in frames.jsonl (`d`) and starts a new
+video file at the DARK_RUN-th of them (`cut`), so no chunk file holds two maps. Its stop key then runs `add` on
+the recording by itself, in the background (runtime/record.py `file_later`; one filing at a time: CORPUS/.filing).
+For such a recording:
+ - step 2 is `cut_pieces`: one stay per piece between two loading screens. Its map: what two of three looks at
+   its first, middle and last frame agree on (`_piece_map`; two maps inside one piece: refused). Its frames ON
+   the map leave out the dark frames and FADE_S of fading beside them; a piece with less than VISIT_S left goes
+   with the stay after it. No search for where a change is: ~3 looks a map.
+ - step 4 is `move_stay`: the stay's chunk files are MOVED into its folder as the recorder wrote them. Nothing is
+   written again, so nothing is read back and frames.jsonl carries no fingerprints (`h`): `check` read the
+   files, their checksums are in the line, `verify --frames` decodes every frame. A filing that fails moves
+   every file back.
+ - the Lie Detector is looked for only around the times the recorder's own log says it saw one (`lie_hints`).
+A recording made before that, a hunt, an old PNG recording, `--recut`, `--keep`, a recording outside incoming/
+or one whose recorder was killed: cut by the minimap (step 2 above) and written again (step 4 above).
 
 **Groups.** A map new to the corpus is `holdout` when crc32(its id as text) % 4 == 0 (about every 4th map), with
 every later recording of it; the 7 maps used before the corpus (DEV_FIRST) and the maps of `add --dev` are `dev`.
@@ -134,10 +163,15 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tools" / "perc"))
 sys.path.insert(0, str(Path(__file__).parent))
 import frames as fr  # noqa: E402
+from maplebrain.runtime.video import DARK_RUN, is_dark  # noqa: E402
 
 MCW = ROOT / "assets" / "mcw"
 DEV_FIRST = (10003061, 10003062, 10004040, 10004041, 10005063, 10005064, 10005065)   # recorded before the corpus
 KEEP_S = 2.0            # an unnamed stretch up to this long is a loading screen / a covered minimap, not a map visit
+LOOK_S = 10.0           # the minimap is looked at this often; between two looks that disagree, halfway, to the frame
+FADE_S = 0.5            # the picture fades into and out of a loading screen: a piece's frames ON the map begin /
+                        # end this far from its dark frames (the fade itself is 0.1-0.25 s)
+VISIT_S = 1.0           # a piece with less than this on its map is no visit: its files go with the stay after it
 CONFIRM = 2             # a look naming a new map counts when this many following frames name it too - and the
                         # look a second later: no map is visited for under a second, a half-drawn minimap is
 NO_MAP = 999999999      # a portal's toMap when it leads nowhere
@@ -151,6 +185,7 @@ SESSION_FILES = ("session.json", "log.txt", "notes.txt", "keys.jsonl", "frames.j
 LOCKED = ("frames.jsonl", "keys.jsonl", "ticks.jsonl")       # read-only in a stay's folder, with its video files
 LIE_EVERY_S = 1.0       # the Lie Detector is looked for this often in a session's filed frames (it stays 10+ s)
 LIE_PAD_S = 3.0         # a section holds this long before the first and after the last frame it is on screen
+LIE_BEFORE_S = 15.0     # the recorder's log says when it saw one: the frames from this long before are looked at
 LIE_JOIN_S = 5.0        # sightings up to this far apart are one section (the announcement, then the mini-game)
 V = 3                   # the manifest line's version (1 = the first layout: whole recordings under recordings/;
                         # 2 = `mode` and `scene` where `labels` is now)
@@ -396,22 +431,29 @@ def check(run: Path, full: bool = False, say=print) -> dict:
         if counted[0] != last:
             say(f"  {files[-1].name}: {counted[0] - last} frame(s) after a hole at its end (the encoder was killed): "
                 "left out")
-        total = chunk * (len(files) - 1) + last
+        counts = None
+        if meta.get("pieces"):                               # cut at its loading screens: every file has its own length
+            counts = [(_packets(f, meta["fps"]) or (0, 0))[0] for f in files[:-1]] + [last]
+            if not all(counts[:-1]):
+                raise Problem("a chunk file before the last does not read")
+        total = sum(counts) if counts else chunk * (len(files) - 1) + last
         if total > listed:
             raise Problem(f"the video holds {total} frames, frames.jsonl lists only {listed}")
         say(f"  the video holds {total} of the {listed} frames listed: the last {listed - total} never reached the "
             "file")
         meta.update(frames=total, closed=True, cut=True, error=None, bytes=sum(f.stat().st_size for f in files),
-                    chunks=len(files))
+                    chunks=len(files), **({"counts": counts} if counts else {}))
         (run / "video.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")
     total = meta["frames"]
     if not cut and total != listed:
         raise Problem(f"the video holds {total} frames, frames.jsonl lists {listed}")
-    if len(files) != max(1, math.ceil(total / chunk)):
-        raise Problem(f"{len(files)} chunk files for {total} frames of {chunk} a chunk")
+    counts = meta.get("counts") or [chunk if k < len(files) - 1 else total - chunk * (len(files) - 1)
+                                    for k in range(max(1, math.ceil(total / chunk)))]
+    if len(files) != len(counts) or sum(counts) != total:
+        raise Problem(f"{len(files)} chunk files for {total} frames ({counts} frames a file)")
     shape = (meta["h"], meta["w"], 3)
     for k, f in enumerate(files):
-        count = chunk if k < len(files) - 1 else total - chunk * (len(files) - 1)
+        count = counts[k]
         tail = k == len(files) - 1 and meta.get("cut")          # (a cut chunk may hold frames after a hole: not read)
         why = _ends(f, count, shape, more=bool(tail))
         if why is None and full:
@@ -488,7 +530,7 @@ class Namer:
             del self.seen[i]
 
 
-def cut(run: Path, rows: list, ident, say=print, name=None) -> tuple:
+def cut(run: Path, rows: list, ident, say=print, name=None, look_s: float = LOOK_S) -> tuple:
     """The recording's frames `rows` [(n, name, t)] cut into maps (module docstring, step 2). Row indexes below.
     -> (segments in order [{"i": [first, last], "map": id or None, "how": "minimap" / "portals" / None}],
         cuts [{"a", "b": the unnamed rows between (b < a: none), "from", "to": maps, "s": seconds, "what"}],
@@ -497,10 +539,22 @@ def cut(run: Path, rows: list, ident, say=print, name=None) -> tuple:
     t = [r[2] for r in rows]
     N = len(rows)
     dts = sorted(b - a for a, b in zip(t, t[1:]))
-    stride = max(1, round(1 / max(dts[len(dts) // 2], 1e-3))) if dts else 1     # frames in a second
-    idx = list(range(0, N, stride))
-    if idx[-1] != N - 1:
-        idx.append(N - 1)
+    dt = max(dts[len(dts) // 2], 1e-3) if dts else 1.0
+    stride = max(1, round(1 / dt))                           # frames in a second
+    looks = sorted(set(range(0, N, max(1, round(look_s / dt)))) | {N - 1})
+    for k, i in enumerate(looks):
+        name(i)
+        if k % 100 == 99:
+            say(f"  ... {k + 1} of {len(looks)} looks")
+    todo, looks = list(zip(looks, looks[1:])), set(looks)
+    while todo:                                              # two looks in a row disagree: one halfway between
+        a, b = todo.pop()                                    # them, until the two frames are next to each other
+        if b - a > 1 and name(a) != name(b):
+            mid = (a + b) // 2
+            looks.add(mid)
+            todo += [(a, mid), (mid, b)]
+    idx = sorted(looks)
+    at = {i: k for k, i in enumerate(idx)}
     named, cur = [], None                                    # the looks that name a map: (row, map)
     for k, i in enumerate(idx):
         m = name(i)
@@ -511,8 +565,6 @@ def cut(run: Path, rows: list, ident, say=print, name=None) -> tuple:
         if m is not None:
             cur = m
             named.append((i, m))
-        if k % 300 == 299:
-            say(f"  ... {k + 1} of {len(idx)} looks")
     if not named:
         return [{"i": [0, N - 1], "map": None, "how": None}], [], name
     for i in idx:                                            # the looks before the first name: once more, now that
@@ -543,7 +595,7 @@ def cut(run: Path, rows: list, ident, say=print, name=None) -> tuple:
     if start > 0:
         hole(0, start - 1, None, m0)
     for (a, p), (b, q) in zip(named, named[1:]):
-        if p == q and (b - a <= stride or t[b] - t[a] <= KEEP_S):
+        if p == q and (at[b] == at[a] + 1 or t[b] - t[a] <= KEEP_S):
             continue                                         # the same map a look later, or a short hole in it
         lo, hi = a, b
         while lo + 1 < b and name(lo + 1) == p:              # the last frame of p's run after look a
@@ -568,6 +620,86 @@ def cut(run: Path, rows: list, ident, say=print, name=None) -> tuple:
     if last < N - 1:
         hole(last + 1, N - 1, p, None)
     return segs, cuts, name
+
+
+def pieces_of(run: Path, rows: list, meta: dict) -> list | None:
+    """The pieces `record` cut the video into at its loading screens (runtime/video.py): [{"i": (first row, last
+    row), "files": the numbers of its chunk files, "head" / "tail": the dark frames it begins / ends with}].
+    None: not recorded so (before 2026-11-19, a hunt), the recorder was killed, or the files do not begin where
+    frames.jsonl marks the cuts - then the minimap cuts it (`cut`)."""
+    if not meta.get("pieces") or not meta.get("counts") or meta.get("cut"):
+        return None
+    flags = {}
+    with open(Path(run) / "frames.jsonl", encoding="utf-8") as f:
+        for r in map(json.loads, f):
+            if not r.get("drop"):
+                flags[r["n"]] = (bool(r.get("d")), bool(r.get("cut")))
+    starts = [0] + [i for i, (n, _, _) in enumerate(rows) if i and flags.get(n, (0, 0))[1]]
+    first, at = {}, 0                                        # the row each chunk file begins with -> its number
+    for k, c in enumerate(meta["counts"]):
+        first[at] = k
+        at += c
+    if at != len(rows) or any(x not in first for x in starts):
+        return None
+    out = []
+    for a, e in zip(starts, starts[1:] + [len(rows)]):
+        dark = [flags.get(rows[i][0], (0, 0))[0] for i in range(a, e)]
+        out.append({"i": (a, e - 1), "files": [k for x, k in sorted(first.items()) if a <= x < e],
+                    "head": next((j for j, d in enumerate(dark) if not d), len(dark)),
+                    "tail": next((j for j, d in enumerate(reversed(dark)) if not d), len(dark))})
+    return out
+
+
+def _piece_map(name, a: int, b: int) -> int | None:
+    """The map rows a..b show - one piece between two loading screens, so one map: looks at its first, middle and
+    last frame, then at two more if fewer than two of them name a map. Two looks that agree name it; fewer: None.
+    Two maps named inside one piece is a map change without a loading screen: Problem (never seen; `add --recut`
+    cuts by the minimap instead)."""
+    got = {}
+    for k, i in enumerate((a, (a + b) // 2, b, (3 * a + b) // 4, (a + 3 * b) // 4)):
+        if k == 3 and len(got) >= 2:
+            break
+        m = name(i)
+        if m is not None:
+            got[i] = m
+        if len(set(got.values())) > 1:
+            raise Problem("two maps inside one piece (no loading screen between them?): "
+                          + ", ".join(f"row {i}: {map_name(m)}" for i, m in sorted(got.items())) + " - `add --recut`")
+    return next(iter(got.values())) if len(got) >= 2 else None
+
+
+def cut_pieces(run: Path, rows: list, pieces: list, ident, say=print, name=None) -> tuple:
+    """The recorder's pieces as stays -> (segments, cuts, the Namer) like `cut`, then per stay the rows its files
+    hold and the numbers of its chunk files. A stay's frames ON the map leave out the dark frames and FADE_S of
+    fading at both ends of its piece; a piece with less than VISIT_S left (two loading screens in a row) is no
+    stay - its files go with the stay after it (the last one's: with the stay before), so every frame of the
+    recording is still in exactly one stay."""
+    name = name or Namer(run, rows, ident)
+    t = [r[2] for r in rows]
+    dts = sorted(b - a for a, b in zip(t, t[1:]))
+    fade = max(1, round(FADE_S / max(dts[len(dts) // 2], 1e-3))) if dts else 1
+    segs, bnds, files, carry = [], [], [], None
+    for p in pieces:
+        a = p["i"][0] + p["head"] + (fade if p["head"] else 0)        # (no fade where no loading screen is:
+        b = p["i"][1] - p["tail"] - (fade if p["tail"] else 0)        # the recording's own start and end)
+        lo, fs = (carry[0], carry[1] + p["files"]) if carry else (p["i"][0], list(p["files"]))
+        if b < a or t[b] - t[a] < VISIT_S:
+            carry = (lo, fs)
+            continue
+        m = _piece_map(name, a, b)
+        segs.append({"i": [a, b], "map": m, "how": "minimap" if m is not None else None})
+        bnds.append((lo, p["i"][1]))
+        files.append(fs)
+        carry = None
+    if carry and segs:
+        bnds[-1], files[-1] = (bnds[-1][0], len(rows) - 1), files[-1] + carry[1]
+    elif carry:                                              # nothing in it is a visit (a second of recording)
+        segs, bnds, files = [{"i": [carry[0], len(rows) - 1], "map": None, "how": None}], \
+            [(carry[0], len(rows) - 1)], [carry[1]]
+    cuts = [{"a": p["i"][1] + 1, "b": q["i"][0] - 1, "from": p["map"], "to": q["map"],
+             "s": round(t[q["i"][0]] - t[p["i"][1]], 2), "what": "loading", "map": None}
+            for p, q in zip(segs, segs[1:])]
+    return segs, cuts, name, bnds, files
 
 
 def sheet(run: Path, rows: list, c: dict, name: Namer, path: Path) -> None:
@@ -904,7 +1036,7 @@ def file_stay(src: Path, rows: list, line: dict, bound: tuple, index: list, keys
     picks = {on + round(j * (n_on - 1) / 8) for j in range(9)}
     extra = {r["n"]: r for r in index}
     vw = VideoWriter(dest, pattern=stem + "_%03d.mkv", note={"by": "corpus", "seg": line["seg"]})
-    prints, tiles = [], []
+    prints, tiles, dark, fades = [], [], [], []
     try:
         for i in range(fa, fb + 1):
             n, name, t = rows[i]
@@ -913,6 +1045,12 @@ def file_stay(src: Path, rows: list, line: dict, bound: tuple, index: list, keys
                 raise Problem(f"frame {name} of {src.name} does not read as a 1366x768 picture")
             f = np.ascontiguousarray(f)
             prints.append(fingerprint(f))
+            if on <= i < on + n_on and is_dark(f):
+                dark.append(n)                               # black, on the map: part of a loading screen?
+            else:
+                if len(dark) >= DARK_RUN:
+                    fades.append([dark[0], dark[-1]])
+                dark = []
             if i in picks:
                 tiles.append((n, t, cv2.resize(f, (455, 256), interpolation=cv2.INTER_AREA)))
             r = extra.get(n) or {}
@@ -945,6 +1083,10 @@ def file_stay(src: Path, rows: list, line: dict, bound: tuple, index: list, keys
                 to = labels_dir(line["seg"]) / rel
                 to.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(src / rel, to)
+    if len(dark) >= DARK_RUN:
+        fades.append([dark[0], dark[-1]])
+    if fades:
+        line["fades"] = fades
     _sheet(tiles, line, dest / "sheet.jpg")
     log = dest / "ffmpeg.log"
     if log.exists() and not log.read_text(encoding="utf-8", errors="replace").strip():
@@ -959,13 +1101,70 @@ def file_stay(src: Path, rows: list, line: dict, bound: tuple, index: list, keys
     return line
 
 
+def move_stay(src: Path, rows: list, line: dict, bound: tuple, fs: list, meta: dict, index: list, keys: list,
+              moved: list) -> dict:
+    """One stay into its folder by MOVING the recording's chunk files number `fs` there (`record` cut them at
+    the loading screens: they hold this stay's frames and no others) - nothing is written again, so there is
+    nothing to read back: the files are the recording's, checked by `check`, and their checksums go into the
+    line. frames.jsonl holds the recorder's lines without fingerprints. `moved` collects (from, to): the way back
+    when the filing fails. Fills in `line` and returns it."""
+    dest = stay_dir(line)
+    if dest.exists():
+        raise Problem(f"{dest} exists already")
+    dest.mkdir(parents=True)
+    fa, fb = bound
+    stem = f"{safe(line['name']) if line['map'] is not None else 'unknown'}_{line['stay']}"
+    for j, k in enumerate(fs):
+        a, b = src / (meta["pattern"] % k), dest / f"{stem}_{j:03d}.mkv"
+        shutil.move(str(a), str(b))
+        moved.append((a, b))
+    counts = [meta["counts"][k] for k in fs]
+    if sum(counts) != fb - fa + 1:
+        raise Problem(f"{line['seg']}: its files hold {sum(counts)} frames, its rows are {fb - fa + 1}")
+    (dest / "video.json").write_text(json.dumps(
+        {"v": 1, "w": meta["w"], "h": meta["h"], "fps": meta["fps"], "gop": meta.get("gop"), "chunk": meta["chunk"],
+         "pattern": stem + "_%03d.mkv", "counts": counts, "frames": sum(counts), "closed": True, "by": "corpus",
+         "seg": line["seg"], "moved": True, "cmd": meta.get("cmd")}, indent=1), encoding="utf-8")
+    lo, hi = rows[fa][0], rows[fb][0]
+    with open(dest / "frames.jsonl", "w", encoding="utf-8") as f:
+        for r in index:
+            if lo <= r["n"] <= hi:
+                f.write(json.dumps(r) + "\n")
+    t_lo, t_hi = rows[fa][2], rows[fb][2]
+    if keys:
+        (dest / "keys.jsonl").write_text("".join(raw + "\n" for k, raw in keys if t_lo <= k.get("t", -1) <= t_hi),
+                                         encoding="utf-8")
+    for rel in WITH_FRAMES:
+        if (src / rel).is_file():
+            shutil.copy2(src / rel, dest / rel)
+    on, n_on = fa + line["arrive"], line["n_frames"]
+    v, tiles = fr.Video(dest), []
+    try:
+        for i in sorted({on + round(j * (n_on - 1) / 8) for j in range(9)}):
+            g = v.frame(i - fa)
+            if g is not None:
+                tiles.append((rows[i][0], rows[i][2], cv2.resize(g, (455, 256), interpolation=cv2.INTER_AREA)))
+    finally:
+        v.close()
+    _sheet(tiles, line, dest / "sheet.jpg")
+    files = sorted(dest.glob("*.mkv"))
+    line["files"] = [{"name": p.name, "bytes": p.stat().st_size, "sha256": _sha(p)} for p in files]
+    line["bytes"] = sum(f["bytes"] for f in line["files"])
+    _write_stay(line)
+    for p in dest.iterdir():
+        if p.suffix == ".mkv" or p.name in LOCKED:
+            os.chmod(p, stat.S_IREAD)
+    return line
+
+
 def read_back(dest: Path) -> str | None:
     """The proof a stay was filed right: every frame of its files decoded again and compared with the fingerprint
-    frames.jsonl holds for it (taken from the original's pixels as they were read). -> why not, or None."""
-    want = [r["h"] for r in map(json.loads, open(dest / "frames.jsonl", encoding="utf-8")) if not r.get("drop")]
+    frames.jsonl holds for it (taken from the original's pixels as they were read). A stay whose files were
+    moved, not written again, has no fingerprints: every frame must decode. -> why not, or None."""
+    want = [r.get("h") for r in map(json.loads, open(dest / "frames.jsonl", encoding="utf-8")) if not r.get("drop")]
     v = fr.Video(dest)
     try:
-        bad = sum(1 for i, h in enumerate(want) if (g := v.frame(i)) is None or fingerprint(g) != h)
+        bad = sum(1 for i, h in enumerate(want) if (g := v.frame(i)) is None or (h and fingerprint(g) != h))
         count = len(v)
     finally:
         v.close()
@@ -1031,8 +1230,46 @@ def file_session(run: Path, ses: str, facts: dict, lines: list, start: datetime,
     return d
 
 
-def add(run: Path, dry: bool = False, full: bool = False, keep: bool = False, say=print) -> list:
-    """File one recording (module docstring). Returns its manifest lines (written unless `dry`)."""
+class _Lock:
+    """One filing at a time (two recordings stopped one after the other each file themselves; both would write
+    the manifest): CORPUS/.filing, made by whoever files, waited for by the others. One older than 2 hours is a
+    crashed filing's and is taken over."""
+
+    def __enter__(self):
+        import time
+        self.path = root() / ".filing"
+        root().mkdir(parents=True, exist_ok=True)
+        end = time.time() + 2 * 3600
+        while True:
+            try:
+                os.close(os.open(self.path, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
+                return self
+            except FileExistsError:
+                try:
+                    old = time.time() - self.path.stat().st_mtime > 2 * 3600
+                except OSError:
+                    continue
+                if old or time.time() > end:
+                    self.path.unlink(missing_ok=True)
+                else:
+                    time.sleep(1.0)
+
+    def __exit__(self, *exc):
+        self.path.unlink(missing_ok=True)
+
+
+def add(run: Path, dry: bool = False, full: bool = False, keep: bool = False, say=print, look_s: float = LOOK_S,
+        unknown: bool = False, recut: bool = False) -> list:
+    """File one recording (module docstring). Returns its manifest lines (written unless `dry`). `look_s`: the
+    minimap is looked at this often; `unknown`: stretches nobody could name are filed too (else: nothing is);
+    `recut`: cut by the minimap even when the recorder cut the video at its loading screens."""
+    if dry:
+        return _add(run, dry, full, keep, say, look_s, unknown, recut)
+    with _Lock():
+        return _add(run, dry, full, keep, say, look_s, unknown, recut)
+
+
+def _add(run: Path, dry: bool, full: bool, keep: bool, say, look_s: float, unknown: bool, recut: bool) -> list:
     import time
     from maplebrain.nav.identify import MapIdentifier
     run = Path(run).resolve()
@@ -1052,7 +1289,12 @@ def add(run: Path, dry: bool = False, full: bool = False, keep: bool = False, sa
     facts = json.loads((run / "session.json").read_text(encoding="utf-8")) if (run / "session.json").exists() else {}
     start = began_at(run, facts, meta)
     ident = MapIdentifier.load(MCW)
-    segs, cuts, namer = cut(run, rows, ident, say)
+    pieces = None if recut or png else pieces_of(run, rows, meta)
+    files = None                                             # per stay the chunk files that hold it and no other
+    if pieces:                                               # the recorder cut it at its loading screens
+        segs, cuts, namer, bnds, files = cut_pieces(run, rows, pieces, ident, say)
+    else:
+        segs, cuts, namer = cut(run, rows, ident, say, look_s=look_s)
     logged = fr._log_map(run)
     if logged is not None:                                   # a hunt / an observe run: one map, and its log names it
         other = sorted({s["map"] for s in segs if s["map"] not in (None, logged)})
@@ -1066,7 +1308,7 @@ def add(run: Path, dry: bool = False, full: bool = False, keep: bool = False, sa
     by = ("record" if (facts.get("by") or meta.get("by")) == "record" else
           "bot" if ticks and not (run / "keys.jsonl").exists() else "observe" if ticks else meta.get("by"))
     dev = dev_maps()
-    bnds = bounds(segs, len(rows))
+    bnds = bnds if files else bounds(segs, len(rows))
     lines = [_line(ses, k, s, b, rows, attack, marks, keys, start, facts, by, dev)
              for k, (s, b) in enumerate(zip(segs, bnds))]
     for l, s in zip(lines, segs):                            # who played: read off the status bar
@@ -1074,7 +1316,7 @@ def add(run: Path, dry: bool = False, full: bool = False, keep: bool = False, sa
     out = root() / "work" / "cuts" / ses
     if out.exists():
         _remove(out)                                         # (an earlier dry run's)
-    for k, c in enumerate(cuts):
+    for k, c in enumerate(cuts if dry else []):              # (the sheets: for eyes, so only when asked)
         sheet(run, rows, c, namer, out / f"cut_{k:03d}_{rows[max(c['a'] - 1, 0)][0]:06d}.png")
     out.mkdir(parents=True, exist_ok=True)
     (out / "cuts.json").write_text(json.dumps(
@@ -1084,7 +1326,8 @@ def add(run: Path, dry: bool = False, full: bool = False, keep: bool = False, sa
     looked = Counter("named" if m is not None else "no name" for m in namer.seen.values())
     if getattr(namer, "held", 0):
         looked["of them by the window measured on a frame beside it"] = namer.held
-    say(f"  cut: {len(namer.seen)} frames looked at ({dict(looked)}), {len(cuts)} cut(s)"
+    say((f"  {len(pieces)} piece(s) between loading screens, " if files else "  cut: ")
+        + f"{len(namer.seen)} frames looked at ({dict(looked)}), {len(cuts)} cut(s)"
         + (f"; sheets in {out}" if cuts and dry else ""))
     for c in cuts:
         say(f"    frames {rows[min(c['a'], len(rows) - 1)][0]}..{rows[max(c['b'], 0)][0]} ({c['s']:.2f} s): "
@@ -1096,6 +1339,14 @@ def add(run: Path, dry: bool = False, full: bool = False, keep: bool = False, sa
             + (f"  [{l['how']}]" if l["how"] != "minimap" else "")
             + (f"  marks {len(l['marks'])}" if l["marks"] else "")
             + f"  {who(l) or 'class / level NOT READ: a picture hud_glyphs.json does not hold yet'}")
+    lost = [l for l in lines if l["map"] is None]
+    if lost and not unknown:
+        why = (f"{len(lost)} stretch(es) without a map name ({', '.join(l['seg'] for l in lost)}): `add --dry` draws "
+               f"their frames into {out}; a map whose minimap is on screen there = a gap in the recogniser to close "
+               "first, a shop or a closed minimap = `add --unknown`")
+        if not dry:
+            raise Problem(why)
+        say(f"  add would STOP: {why}")
     if dry:
         say("  --dry: nothing filed")
         return lines
@@ -1108,13 +1359,21 @@ def add(run: Path, dry: bool = False, full: bool = False, keep: bool = False, sa
         for d in (stay_dir(l), labels_dir(l["seg"])):        # is ever taken for this recording's)
             if d.exists():
                 raise Problem(f"{d} exists already")
-    made, shown, proofs, t0 = [], [], [], time.perf_counter()
+    made, shown, proofs, moved, t0 = [], [], [], [], time.perf_counter()
+    move = bool(files) and not keep and run.parent == (root() / "incoming").resolve()
     reader = ThreadPoolExecutor(1)                           # a stay is read back while the next one is written
     try:
-        for l, b in zip(lines, bnds):
+        if move:                                             # (let go of the recording's files: they are moved)
+            for v in [fr._VIDEOS.pop(k) for k in list(fr._VIDEOS)]:
+                if v is not None:
+                    v.close()
+        for k, (l, b) in enumerate(zip(lines, bnds)):
             made += [stay_dir(l), labels_dir(l["seg"])]
-            file_stay(run, rows, l, b, index, keys, len(lines) == 1, say)
-            proofs.append((l, reader.submit(read_back, stay_dir(l))))
+            if move:
+                move_stay(run, rows, l, b, files[k], meta, index, keys, moved)
+            else:
+                file_stay(run, rows, l, b, index, keys, len(lines) == 1, say)
+                proofs.append((l, reader.submit(read_back, stay_dir(l))))
             if shown and shown[-1][1] is not None:
                 shown[-1][1].wait()                          # (one preview at a time beside the encoder)
             shown.append((stay_dir(l), preview(stay_dir(l), l, speed)))
@@ -1124,6 +1383,15 @@ def add(run: Path, dry: bool = False, full: bool = False, keep: bool = False, sa
                 raise Problem(f"{l['seg']}: {why}")
         if sum(l["n_file"] for l in lines) != len(rows):
             raise Problem(f"{sum(l['n_file'] for l in lines)} frames filed, the recording holds {len(rows)}")
+        times, row_of = [r[2] for r in rows], {r[0]: i for i, r in enumerate(rows)}
+        for l in lines if look_s > 1 and not move else []:   # a loading screen inside a stay: still its map after?
+            for n0, n1 in l.get("fades", []) if l["map"] is not None else []:
+                i = min(bisect.bisect_left(times, times[row_of[n1]] + 0.5), len(rows) - 1)
+                if namer(i) != l["map"]:
+                    raise Problem(f"{l['seg']}: a loading screen at frames {n0}..{n1} inside the stay, and frame "
+                                  f"{rows[i][0]} after it shows {map_name(namer(i)) if namer(i) else 'no map name'}"
+                                  f", not {map_name(l['map'])} - a map change the looks every {look_s:g} s did "
+                                  "not see: `add --look 1`")
         made.append(root() / "sessions" / ses)
         file_session(run, ses, facts, lines, start, out)
         _save(load() + lines)
@@ -1133,6 +1401,10 @@ def add(run: Path, dry: bool = False, full: bool = False, keep: bool = False, sa
             if p is not None and p.poll() is None:
                 p.kill()
                 p.wait()
+        for a, b in reversed(moved):                         # (the moved files go back where they were)
+            if b.exists():
+                os.chmod(b, stat.S_IWRITE)
+                shutil.move(str(b), str(a))
         for d in made:
             if d.exists():
                 _remove(d)
@@ -1141,8 +1413,9 @@ def add(run: Path, dry: bool = False, full: bool = False, keep: bool = False, sa
     n_prev = sum(_previewed(d, p) for d, p in shown)
     took = time.perf_counter() - t0
     secs = rows[-1][2] - rows[0][2]
-    say(f"  filed: {len(lines)} stay(s), {len(rows)} frames, every one read back identical; "
-        f"{sum(l['bytes'] for l in lines) / 1e9:.2f} GB; {n_prev} preview(s); took {took:.0f} s"
+    say(f"  filed: {len(lines)} stay(s), {len(rows)} frames, "
+        + ("their files moved as recorded; " if move else "every one read back identical; ")
+        + f"{sum(l['bytes'] for l in lines) / 1e9:.2f} GB; {n_prev} preview(s); took {took:.0f} s"
         + (f" = {took / secs:.2f} s per recorded second" if secs > 1 else ""))
     for v in [fr._VIDEOS.pop(k) for k in list(fr._VIDEOS)]:  # (let go of the recording's files)
         if v is not None:
@@ -1155,6 +1428,9 @@ def add(run: Path, dry: bool = False, full: bool = False, keep: bool = False, sa
     if not keep and run.parent == (root() / "incoming").resolve():
         _remove(run)
         say("  the original in incoming/ is removed: every frame of it is in a stay")
+        log = root() / "work" / "filing" / f"{ses}.log"      # (what `record` kept of this filing: in sessions/ now)
+        if log.exists() and (root() / "sessions" / ses).is_dir():
+            shutil.copy2(log, root() / "sessions" / ses / "filing.log")
     else:
         say(f"  the original stays as it is: {run}")
     write_index()
@@ -1181,13 +1457,37 @@ def _session_frames(ses: str) -> tuple:
     return order, vids
 
 
-def lie_find(order: list, vids: list, seen) -> list:
-    """[(a, b)]: the stretches of `order` with the Lie Detector on screen (first and last frame, inclusive)."""
+def lie_hints(d: Path) -> list | None:
+    """When the recorder itself saw the Lie Detector (`record` looks once a second and says so in log.txt):
+    [(seconds first seen, seconds gone)] on the recording's clock - only around those the frames are looked at.
+    None: no recorder's log to go by (a hunt, an old recording): every second is looked at."""
+    try:
+        if json.loads((d / "session.json").read_text(encoding="utf-8")).get("by") != "record":
+            return None
+        said = (d / "log.txt").read_text(encoding="utf-8", errors="replace").splitlines()
+    except (OSError, ValueError):
+        return None
+    out, on = [], None
+    for x in said:
+        m = re.match(r"\s*([\d.]+)s (LIE DETECTOR on screen|lie detector window gone)", x)
+        if m and m[2].startswith("LIE"):
+            on = float(m[1]) if on is None else on
+        elif m and on is not None:
+            out.append((on, float(m[1])))
+            on = None
+    return out + ([(on, 1e9)] if on is not None else [])
+
+
+def lie_find(order: list, vids: list, seen, hints: list | None = None) -> list:
+    """[(a, b)]: the stretches of `order` with the Lie Detector on screen (first and last frame, inclusive).
+    `hints` (`lie_hints`): only the frames from LIE_BEFORE_S before to LIE_JOIN_S after each are looked at."""
     def look(g):
         f = vids[order[g][0]][1].frame(order[g][1])
         return f is not None and seen(f)
     looks, last = [], -1e9
     for g, (_, _, r) in enumerate(order):
+        if hints is not None and not any(a - LIE_BEFORE_S <= r["t"] <= b + LIE_JOIN_S for a, b in hints):
+            continue
         if r["t"] - last >= LIE_EVERY_S:
             last = r["t"]
             looks.append((g, look(g)))
@@ -1244,9 +1544,10 @@ def file_lie(ses: str, k: int, a: int, b: int, order: list, vids: list, keys: li
             for g in range(lo, hi + 1):
                 s, i, r = order[g]
                 f = vids[s][1].frame(i)
-                if f is None or fingerprint(f) != r.get("h"):
+                if f is None or (r.get("h") and fingerprint(f) != r["h"]):
                     raise Problem(f"frame {r['n']} of {vids[s][0]['seg']} does not read as it was filed")
                 f = np.ascontiguousarray(f)
+                rows[g - lo] = r if r.get("h") else {**r, "h": fingerprint(f)}
                 if g in picks:
                     tiles.append((r["n"], r["t"], cv2.resize(f, (455, 256), interpolation=cv2.INTER_AREA)))
                 if not vw.put(f, r["n"], r["t"], r.get("cur"), wait=True, buttons=r.get("b", 0)):
@@ -1312,7 +1613,8 @@ def lie_sections(sessions: list = (), again: bool = False, seen=None, say=print)
                 _remove(d)
         order, vids = _session_frames(ses)
         try:
-            found = lie_find(order, vids, seen)
+            hints = lie_hints(root() / "sessions" / ses)
+            found = lie_find(order, vids, seen, hints) if hints != [] else []
             mine = [file_lie(ses, k, a, b, order, vids, _keys(root() / "sessions" / ses), say)
                     for k, (a, b) in enumerate(found, 1)]
         finally:
@@ -1322,7 +1624,9 @@ def lie_sections(sessions: list = (), again: bool = False, seen=None, say=print)
         note.write_text(json.dumps({"v": 1, "looked": datetime.now().isoformat(timespec="seconds"),
                                     "frames": len(order), "sections": [x["id"] for x in mine]}, indent=1),
                         encoding="utf-8")
-        say(f"  {ses}: {len(order)} frames looked through, {len(mine)} Lie Detector section(s)")
+        say(f"  {ses}: " + (f"{len(order)} frames looked through" if hints is None else
+                            f"the recorder saw the Lie Detector {len(hints)} time(s)")
+            + f", {len(mine)} Lie Detector section(s)")
         made += mine
     return made
 
@@ -1462,6 +1766,13 @@ def main(argv=None) -> int:
     a.add_argument("--full", action="store_true", help="the check decodes every frame (minutes per hour recorded)")
     a.add_argument("--keep", action="store_true", help="leave the original in incoming/ (default: removed once every "
                    "frame of it is proven to be in a stay)")
+    a.add_argument("--look", type=float, default=LOOK_S, metavar="S", help="seconds between two looks at the "
+                   f"minimap (default {LOOK_S:g}; 1 after add stopped at a loading screen inside a stay)")
+    a.add_argument("--recut", action="store_true", help="cut by the minimap even when the recorder cut the video "
+                   "at its loading screens (then every stay is written again, not moved)")
+    a.add_argument("--brief", action="store_true", help="do not print the corpus' report afterwards")
+    a.add_argument("--unknown", action="store_true", help="file stretches nobody could name too (maps/_unknown): "
+                   "without it add stops at one and files nothing")
     a.add_argument("--dev", type=int, nargs="+", default=None, metavar="MAP",
                    help="move these maps to the dev group (before their first gate)")
     ls = sub.add_parser("list", help="what the corpus holds and what is covered")
@@ -1499,11 +1810,12 @@ def main(argv=None) -> int:
             bad = 0
             for run in args.runs:
                 try:
-                    add(run, args.dry, args.full, args.keep)
+                    add(run, args.dry, args.full, args.keep, look_s=args.look, unknown=args.unknown,
+                        recut=args.recut)
                 except Problem as e:
                     bad += 1
                     print(f"  NOT ADDED: {e}")
-            if args.runs and not args.dry:
+            if args.runs and not args.dry and not args.brief:
                 print()
                 report()
             return 1 if bad else 0

@@ -1,13 +1,21 @@
 """`python -m maplebrain record [OUT]`: the user plays, everything the game shows is recorded (PLAN-data.md
 sections 4-5). Nothing is pressed, and **no perception runs**: the bot's perception is tied to one map, a walk
-crosses many, and the corpus replays perception offline anyway (tools/data/corpus.py cuts the recording into its
-maps afterwards, by the minimap).
+crosses many, and the corpus replays perception offline anyway.
+
+**A walk is cut into its maps while it is recorded** (the user, 2026-11-19): the game shows a black loading
+screen between two maps, always, and a black frame costs nothing to notice (video.is_dark, every frame). At the
+DARK_RUN-th black frame in a row the video starts a new piece (video.py), so no video file holds two maps.
+**The stop key files the recording**: tools/data/corpus.py add runs in its own process (below normal priority,
+its words in CORPUS/work/filing/RECORDING.log and, once it is done, here) - it names every piece's map with a few
+looks at the minimap and MOVES the files into their maps' folders; the next recording can start at once.
 
 Stays loaded like `serve`: the start key (F7) starts a recording, the stop key (F8) ends it, Ctrl+C in the console
 quits. Each recording is its own folder OUT/<date_time>_<k>:
-  frames_0000.mkv ...   every frame the capture hands out, lossless (runtime/video.py), 5-minute chunk files
+  frames_0000.mkv ...   every frame the capture hands out, lossless (runtime/video.py): a new file at every
+                        loading screen and after 5 minutes
   frames.jsonl          per frame: its number (from 0), its time, the mouse (where it is in the frame, which
-                        buttons are held); "drop" when it is not in the video
+                        buttons are held), "d" on a loading screen's dark frames, "cut" where a piece begins;
+                        "drop" when it is not in the video
   session.json          the facts of the day, written by the recorder (runtime/session.py): the config (which key
                         does what, the weapon), the code's commit, the client data's build, the wall clock at t = 0
   keys.jsonl            the player's keys with their times (runtime/keylog.py, the same clock) - whatever is typed
@@ -22,6 +30,8 @@ The Lie Detector is looked for once a second on its own thread (the siren, as `w
 frame of it is saved. The loop itself only grabs and queues: it never waits for the encoder, the disk or a look.
 """
 import shutil
+import subprocess
+import sys
 import threading
 import time
 import traceback
@@ -34,7 +44,7 @@ from ..humanize import Humanizer
 from ..keyboard import FocusLost, Keyboard, foreground_title
 from . import session, window
 from .runner import ASSETS, Hotkeys, _picture, chirp, lie_alarm
-from .video import VideoWriter
+from .video import DARK_RUN, VideoWriter, is_dark
 
 MIN_FREE_GB = 30            # no recording starts on a drive with less room than this (an hour is 20-40 GB)
 STOP_FREE_GB = 5            # ... and a running one ends before the drive is full
@@ -96,6 +106,42 @@ class LieWatch:
         self._thread.join(5.0)
 
 
+def file_later(out: Path, say=print):
+    """The recording `out` (CORPUS/incoming/NAME) files itself: `corpus.py add` in its own process, below normal
+    priority, out of reach of the console's Ctrl+C; what it says goes to CORPUS/work/filing/NAME.log and, when it
+    is done, through `say`. -> the process (None: `out` is not in a corpus' incoming folder - said, not filed)."""
+    out = Path(out)
+    tool = Path(__file__).resolve().parents[2] / "tools" / "data" / "corpus.py"
+    if out.parent.name != "incoming" or not tool.exists():
+        say(f"not filed by itself (not in a corpus' incoming folder): python tools/data/corpus.py add {out}")
+        return None
+    root = out.parent.parent
+    log = root / "work" / "filing" / f"{out.name}.log"
+    log.parent.mkdir(parents=True, exist_ok=True)
+    flags = (getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0) | getattr(subprocess, "BELOW_NORMAL_PRIORITY_CLASS", 0)
+             | getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    with open(log, "w", encoding="utf-8") as f:
+        proc = subprocess.Popen([sys.executable, "-u", str(tool), "--corpus", str(root), "add", "--brief", str(out)],
+                                stdin=subprocess.DEVNULL, stdout=f, stderr=subprocess.STDOUT, cwd=str(tool.parents[2]),
+                                creationflags=flags)
+    say(f"filing {out.name} in the background (its words: {log})")
+
+    def report():
+        code = proc.wait()
+        try:
+            said = [x.rstrip() for x in log.read_text(encoding="utf-8", errors="replace").splitlines() if x.strip()]
+        except OSError:
+            said = []
+        keep = [x for x in said if "#" in x.split("frames")[0] or "filed" in x or "NOT" in x or "Lie Detector" in x]
+        for x in keep or said[-5:]:
+            say(f"filing {out.name}: {x.strip()}")
+        if code != 0:
+            say(f"filing {out.name}: NOT FILED - it stays in {out.parent}; tell Claude (the whole of it: {log})")
+
+    threading.Thread(target=report, name="filing", daemon=True).start()
+    return proc
+
+
 def _native(screen) -> str | None:
     """Why the picture can't be recorded as it is, or None: the video is the game's own 1366x768 pixels."""
     box, cols = getattr(screen, "box", None), getattr(screen, "cols", None)
@@ -134,12 +180,13 @@ def record_one(out: Path, cfg: Config, kb, screen, lie, hz, until, where: str = 
 
     say(f"recording -> {out} ({where}); {free_gb(out):.0f} GB free on the drive")
     from .keylog import KeyLogger
-    vw = VideoWriter(out, note={"by": "record"})
+    vw = VideoWriter(out, note={"by": "record", "pieces": True})
     keylog = KeyLogger(out / "keys.jsonl", t0, focused=kb.focused).start()        # the same clock as frames.jsonl
     say("recording your keys -> keys.jsonl" + (f" - FAILED: {keylog.error}" if keylog.error else "")
         + f"; marker key {cfg.keys.note.upper()} (optional: one line per press in notes.txt afterwards)")
     watch = LieWatch(lie, say, out)
     status, n, active, dt, last, next_room = "ok", 0, 0.0, [], None, 0.0
+    black, loads = 0, 0                                      # dark frames in a row; loading screens so far
     try:
         while (reason := until()) is None:
             try:
@@ -151,7 +198,11 @@ def record_one(out: Path, cfg: Config, kb, screen, lie, hz, until, where: str = 
                 if not kb.focused():
                     raise FocusLost()
                 window.guard(screen)                 # aimed before and after: the frame is the whole game picture
-                vw.put(frame, n, now - t0, screen.cursor(), buttons=mouse())
+                dark = is_dark(frame)
+                black = black + 1 if dark else 0
+                cut = black == DARK_RUN                      # a loading screen: the next map's files begin here
+                loads += cut
+                vw.put(frame, n, now - t0, screen.cursor(), buttons=mouse(), cut=cut, dark=dark)
                 n += 1
                 if last is not None:
                     dt.append(now - last)
@@ -168,7 +219,7 @@ def record_one(out: Path, cfg: Config, kb, screen, lie, hz, until, where: str = 
                         break
             except FocusLost as e:
                 say(window.pause_line(e, foreground_title).replace("; keys released", "; recording paused"))
-                last = None                          # (the pause is not a frame gap)
+                last, black = None, 0                # (the pause is not a frame gap)
                 if window.wait_back(screen, kb.focused, hz, say, lambda: until() is None, e):
                     say("resumed")
         else:
@@ -196,6 +247,7 @@ def record_one(out: Path, cfg: Config, kb, screen, lie, hz, until, where: str = 
         f"{vw.written} in the video, {vw.dropped} dropped")
     say(_gaps(dt))
     say(vw.summary(active))
+    say(f"loading screens: {loads} (the video starts a new file at each: {loads + 1} piece(s))")
     if watch.seen:
         say(f"lie detector seen {watch.seen} time(s)")
     log.close()
@@ -203,7 +255,7 @@ def record_one(out: Path, cfg: Config, kb, screen, lie, hz, until, where: str = 
 
 
 def record(out_root: Path, cfg: Config, hotkeys: Hotkeys | None = None, poll_s: float = 0.03,
-           max_recordings: int | None = None, labels=()) -> int:
+           max_recordings: int | None = None, labels=(), file: bool = True) -> int:
     """Stay loaded: cfg.keys.start starts a recording, cfg.keys.stop ends it; Ctrl+C in the console quits.
     `labels`: the words the player gave these recordings (`--label exploration`: what they set out to do), kept
     in each recording's session.json and, once it is filed, in the names of its captures. `max_recordings`: for
@@ -270,8 +322,11 @@ def record(out_root: Path, cfg: Config, hotkeys: Hotkeys | None = None, poll_s: 
             chirp(True)
             status = record_one(out, cfg, kb, screen, lie, hz, until, _picture(screen, cols), facts)
             chirp(False)
-            say(f"recording #{done} ended: {status} -> {out}; {start_key.upper()} to start another; then "
-                f"`python tools/data/corpus.py add {out}`")
+            say(f"recording #{done} ended: {status} -> {out}; {start_key.upper()} to start another")
+            if file and not status.startswith("aborted"):
+                file_later(out, say)
+            else:
+                say(f"not filed: python tools/data/corpus.py add {out}")
             if status == QUIT:
                 break
     except KeyboardInterrupt:

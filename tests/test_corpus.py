@@ -373,7 +373,7 @@ class _Cut:
         self.seen[i] = self.luma[i] = 1
         return next((s["map"] for s in self.segs if s["i"][0] <= i <= s["i"][1]), None)
 
-    def cut(self, run, rows, ident, say=print, name=None):
+    def cut(self, run, rows, ident, say=print, name=None, look_s=None):
         return self.segs, self.cuts, self
 
 
@@ -407,7 +407,8 @@ def test_a_walk_through_two_maps_is_filed_as_two_stays_each_under_its_map(home, 
     v.close()
     route = (home / "sessions" / "20261118_101500_4" / "route.txt").read_text()
     assert a["stay"] in route and b["stay"] in route and route.index(a["stay"]) < route.index(b["stay"])
-    assert list((home / "sessions" / "20261118_101500_4" / "cuts").glob("cut_000_*.png"))    # the cut's sheet
+    cuts = home / "sessions" / "20261118_101500_4" / "cuts"  # what was cut where; sheets only with --dry
+    assert (cuts / "cuts.json").exists() and not list(cuts.glob("*.png"))
     assert corpus.verify(frames=True, say=lambda s: None) == 0
     fr._VIDEOS.clear()
 
@@ -575,3 +576,123 @@ def test_the_class_and_level_are_read_off_the_status_bar():
     assert got == {"job": "Spearman", "level": 31, "level_to": 33}
     assert corpus.who(dict(got)) == "Spearman lv 31-33" and corpus.who({}) == ""
     assert corpus.char_fields(frames.get, 30, 60) == {"job": "Spearman", "level": 31}
+
+
+# ------------------------------------------------------------- a walk the recorder cut at its loading screens
+def _walk(run: Path, parts: list, keys: list = ()) -> list:
+    """A walk as `record` writes it since 2026-11-19: 8 black frames (a loading screen) between two parts, the
+    video cut into a new piece at the 4th of them, the dark frames marked. Returns the frames in order."""
+    from maplebrain.runtime import video
+    seq = []
+    for k, part in enumerate(parts):
+        seq += ([np.zeros((768, 1366, 3), np.uint8)] * 8 if k else []) + list(part)
+    vw, black = video.VideoWriter(run, gop=30, chunk=60, note={"by": "record", "pieces": True}), 0
+    for i, f in enumerate(seq):
+        dark = video.is_dark(f)
+        black = black + 1 if dark else 0
+        vw.put(f, i, i / 60, cursor=(100, 50), wait=True, cut=black == video.DARK_RUN, dark=dark)
+    vw.close()
+    (run / "keys.jsonl").write_text("".join(json.dumps({"t": t, "key": k, "down": True}) + "\n" for t, k in keys))
+    (run / "session.json").write_text(json.dumps({"v": 2, "by": "record", "labels": ["exploration"],
+                                                  "epoch": 1795000500.0}))
+    (run / "log.txt").write_text("   0.00s recording -> here\n   5.10s stopped by F8\n")
+    return seq
+
+
+def _maps(monkeypatch, *maps):
+    """The pieces' maps, scripted in order (the fixture frames all show Ant Tunnel IV)."""
+    todo = list(maps)
+    monkeypatch.setattr(corpus, "_piece_map", lambda name, a, b: todo.pop(0))
+
+
+@needs_encoder
+def test_a_walk_cut_by_the_recorder_is_filed_by_moving_its_files(home, monkeypatch):
+    """Two maps with a loading screen between them: the recorder began a new video file at the loading screen, so
+    filing names the two pieces and MOVES their files - nothing is written again. Each stay's frames ON the map
+    leave out the dark frames and half a second of fading beside them; every frame is still in one stay."""
+    frames = _frames(300)
+    run = home / "incoming" / "20261119_101500_1"
+    seq = _walk(run, [frames[:150], frames[150:]], keys=[(0.5, "q"), (3.5, "left")])
+    assert json.loads((run / "video.json").read_text())["counts"] == [60, 60, 33, 60, 60, 35]
+    _maps(monkeypatch, ANT4, REAL_HOLD)
+    said = []
+    a, b = corpus.add(run, say=said.append)
+    assert any("2 piece(s) between loading screens" in s for s in said) and any("moved as recorded" in s for s in said)
+    assert (a["map"], a["frames"], a["file_frames"], a["n_file"], a["arrive"]) == (ANT4, [0, 119], [0, 152], 153, 0)
+    assert (b["map"], b["frames"], b["file_frames"], b["n_file"], b["arrive"]) == \
+        (REAL_HOLD, [188, 307], [153, 307], 155, 35)
+    assert a["labels"] == ["exploration", "traveling"] and b["path"].startswith("holdout/") and not run.exists()
+    da, db = home / a["path"], home / b["path"]
+    assert [f["name"] for f in a["files"]] == [f"Ant Tunnel IV_{a['stay']}_{j:03d}.mkv" for j in range(3)]
+    assert len(b["files"]) == 3 and all((db / f["name"]).stat().st_size == f["bytes"] for f in b["files"])
+    v = fr.Video(da)
+    assert len(v) == 153 and np.array_equal(v.frame(0), seq[0]) and np.array_equal(v.frame(119), seq[119])
+    assert not v.frame(152).any()                            # its files end with the loading screen's first frames
+    v.close()
+    rows = [json.loads(l) for l in (db / "frames.jsonl").read_text().splitlines()]
+    assert rows[0] == {"n": 153, "t": round(153 / 60, 4), "cur": [100, 50], "d": 1, "cut": 1} and "h" not in rows[40]
+    assert [json.loads(l)["key"] for l in (db / "keys.jsonl").read_text().splitlines()] == ["left"]
+    c = fr.clip(b["seg"], holdout=True, tool="t")            # a tool gets the frames ON the map, exactly
+    got = c.frames()
+    assert len(got) == 120 and got[0][0] == 188 and np.array_equal(c.read("000188.png"), seq[188])
+    assert np.array_equal(c.read("000307.png"), seq[307])
+    assert (da / "sheet.jpg").exists() and (home / "sessions" / "20261119_101500_1" / "route.txt").exists()
+    assert corpus.verify(say=lambda s: None) == 0 and corpus.verify(frames=True, say=lambda s: None) == 0
+    assert not (home / ".filing").exists()                   # (the lock of the filing is gone)
+    fr._VIDEOS.clear()
+
+
+@needs_encoder
+def test_a_filing_by_moving_that_fails_puts_every_file_back(home, monkeypatch):
+    frames = _frames(240)
+    run = home / "incoming" / "20261119_101500_2"
+    _walk(run, [frames[:120], frames[120:]])
+    before = sorted((p.name, p.stat().st_size) for p in run.iterdir())
+    _maps(monkeypatch, ANT4, DARK)
+    real, calls = corpus._write_stay, []
+
+    def fail_on_the_second(line):
+        calls.append(line["seg"])
+        if len(calls) == 2:
+            raise corpus.Problem("the disk is full")
+        real(line)
+
+    monkeypatch.setattr(corpus, "_write_stay", fail_on_the_second)
+    with pytest.raises(corpus.Problem, match="disk is full"):
+        corpus.add(run, say=lambda s: None)
+    assert sorted((p.name, p.stat().st_size) for p in run.iterdir()) == before          # as it was
+    assert corpus.load() == [] and not list((home / "maps").rglob("*.mkv")) and not (home / "sessions").exists()
+    monkeypatch.setattr(corpus, "_write_stay", real)
+    _maps(monkeypatch, ANT4, DARK)
+    assert [l["map"] for l in corpus.add(run, say=lambda s: None)] == [ANT4, DARK]       # and it files again
+    fr._VIDEOS.clear()
+
+
+def test_a_piece_too_short_to_be_a_visit_goes_with_the_stay_after_it():
+    """Two loading screens half a second apart (a map passed through): the piece between them is no stay; its
+    files open the next stay's. A piece's map: the one two looks agree on - two maps in one piece is refused."""
+    rows = [(i, f"{i:06d}.png", i / 60) for i in range(701)]
+    pieces = [{"i": (0, 299), "files": [0], "head": 0, "tail": 3},
+              {"i": (300, 330), "files": [1], "head": 5, "tail": 3},
+              {"i": (331, 700), "files": [2, 3], "head": 6, "tail": 0}]
+    name = lambda i: ANT4 if i < 300 else DARK               # noqa: E731
+    segs, cuts, _, bnds, files = corpus.cut_pieces(Path("."), rows, pieces, None, name=name)
+    assert [(s["i"], s["map"]) for s in segs] == [([0, 266], ANT4), ([367, 700], DARK)]
+    assert bnds == [(0, 299), (300, 700)] and files == [[0], [1, 2, 3]]
+    assert [(c["what"], c["a"], c["b"], c["from"], c["to"]) for c in cuts] == [("loading", 267, 366, ANT4, DARK)]
+    one = [{"i": (0, 700), "files": [0], "head": 0, "tail": 0}]
+    with pytest.raises(corpus.Problem, match="two maps inside one piece"):
+        corpus.cut_pieces(Path("."), rows, one, None, name=lambda i: ANT4 if i < 200 else DARK)
+    segs, *_ = corpus.cut_pieces(Path("."), rows, one, None, name=lambda i: ANT4 if i == 350 else None)
+    assert segs[0]["map"] is None                            # one look alone names nothing
+
+
+def test_the_lie_detector_is_looked_for_only_where_the_recorder_saw_it(tmp_path):
+    (tmp_path / "session.json").write_text(json.dumps({"by": "record"}))
+    (tmp_path / "log.txt").write_text("   0.00s recording -> x\n 703.78s LIE DETECTOR on screen -> siren until "
+                                      "its window is gone (the recording goes on)\n 726.01s lie detector window gone\n")
+    assert corpus.lie_hints(tmp_path) == [(703.78, 726.01)]
+    (tmp_path / "log.txt").write_text("   0.00s recording -> x\n  10.00s stopped by F8\n")
+    assert corpus.lie_hints(tmp_path) == []                  # the recorder watched and saw none: nothing to look at
+    (tmp_path / "session.json").write_text(json.dumps({"by": "bot"}))
+    assert corpus.lie_hints(tmp_path) is None                # no recorder's log: every second is looked at
