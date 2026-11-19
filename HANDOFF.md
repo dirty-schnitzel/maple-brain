@@ -68,6 +68,31 @@ below).
 **The tracker redesign (step 4, the section below) still waits for the corpus.** 2026-11-18: `data` was rebased
 on `dev` (loot part 1 merged) and the loot tools read frames through the corpus reader (bed4333).
 
+### HOW TO FILE THE USER'S RECORDINGS (read this first in a fresh session; the user, 2026-11-19)
+The user records walks with `python -m maplebrain record --label exploration` (F7 start, F8 stop) and says "more
+recordings". Each finished recording is a folder in `F:\dev\maple-corpus\incoming\`. What Claude does, per folder:
+1. **Is it finished?** Its log.txt ends with the `video: N frames ...` line and the folder's files stopped
+   changing. Never touch one that is still being written, never stop the `record` process, leave
+   `incoming\lie_*.png` (screenshots of Lie Detectors met while no recording ran).
+2. `.venv\Scripts\python -u tools\data\corpus.py add --dry F:\dev\maple-corpus\incoming\<folder>` - checks the
+   video and cuts it into maps. **No by-eye look at the cut sheets any more** (the user, 2026-11-19: "you don't
+   need to verify again after initially cutting them from now on (if the past cuts were OK)" - 22 cuts were
+   looked at, all right). Only read the printed lines: **stop if a stretch is `unknown` / `[None]` or the tool
+   says NOT** - then look at that cut's sheet in `work\cuts\<folder>\`: a map whose minimap is on screen but
+   not named is a recogniser gap to fix BEFORE filing (there is no re-filing; 2026-11-19: maps wider than the
+   minimap window, fixed in nav/identify.py `_scrolled`). A shop / a closed minimap may stay unknown.
+3. The same command without `--dry` files it: every capture into `maps\<map> (<id>)\` (hold-out maps under
+   `holdout\`), every frame read back identical, the Lie Detector sections into `lie\`, class + level into
+   the manifest, the original removed from `incoming\`. If it prints `class / level NOT READ`: add the new
+   digit / class picture to `tools/data/hud_glyphs.json` (`corpus.char_glyphs(frame)` prints it), then
+   `corpus.py char`.
+4. Report in plain words: the maps, time on each, labels, hold-out or not, frames a second / dropped (log.txt),
+   the bank's totals (`corpus.py list`). ~50 s of tool time per recorded minute.
+The tool itself is described at the top of `tools/data/corpus.py` (the same text is `README.txt` in the bank);
+`corpus.py list --stays` = what the bank holds, `verify [--frames]` = are the files what was filed.
+Standing words of the user: the bank stays lean (nothing redundant kept: originals go once filed), it lives on
+F:, never C:; say "capture" and "labels".
+
 ### 2026-11-19: Session 1b on the first walk - gates (c) and (f) PASSED, (b) half; the walk is in the bank
 **The user's first walk** (`20261118_232410_1`: 2026-11-18 23:24, 16.4 minutes, recorded with the label
 `exploration` on commit daec2b0 = the assets rebuilt from that day's client patch) went down the whole Ant Tunnel:
@@ -118,6 +143,14 @@ The Cave of Evil Eye I -> II -> III -> IV -> Drake Hunting Ground** = 14 maps, 1
   picture to hud_glyphs.json (`corpus.char_glyphs(frame)` prints it), then `corpus.py char`. All 25 captures:
   Spearman lv 31. Why not in the names: tools pick captures by the manifest, a level changes inside a capture,
   the paths are long already.
+- **2026-11-19, later: two more recordings filed** (`20261119_122901_1`: Construction Site North of Kerning
+  City, Sunset Sky; `20261119_123331_2`: Kerning City Construction Site, L Forest I-III, Kerning City Middle
+  Forest I, 3-Way Road-Split, Forest West of Henesys, A Hill West of Henesys). In the second, two maps came out
+  `unknown` with the minimap in plain sight: **a canvas wider than the minimap window scrolls sideways** and
+  `MapIdentifier.fits` skipped it. Now `_scrolled`: the window's picture is searched for in the wide canvas,
+  the part found is scored like any other (0.56-0.72 against 0.3 for the runner-up on those two maps; narrower
+  maps unchanged at 0.93-0.99). **Side effect for the bot:** F7 now recognises wide maps it used to refuse;
+  whether the locator / perception work on them is untested. Bank: 35 captures, 28 maps, 47 minutes, 14.9 GB.
 - **Enough for Session 2?** No: 18 maps / 37 minutes, all but 4 in one dungeon. The plan's walk (section 4) is
   hours across the popular maps; Session 2 (the validation pass) starts when the user says the walk is done.
   More walks: `python -m maplebrain record [--label NAME]`, then `corpus.py add --dry` -> the sheets -> `add`.

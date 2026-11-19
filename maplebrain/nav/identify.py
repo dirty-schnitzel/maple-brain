@@ -203,7 +203,12 @@ class MapIdentifier:
         best = {}
         for k, c in self.canvases.items():
             ch, cw = c.bgr.shape[:2]
-            if cw > win.w + WIDTH_TOL or ch < win.h - 2:
+            if ch < win.h - 2:
+                continue
+            if cw > win.w + WIDTH_TOL:                           # wider than the window: it scrolls sideways too
+                at = self._scrolled(frame, gray, win, c)
+                if at is not None:
+                    best[k] = at
                 continue
             x = _centred_x(gray, win, cw)
             if x is None:
@@ -214,6 +219,27 @@ class MapIdentifier:
             if part.n >= self.min_opaque:
                 best[k] = (_corr(frame, part, x, win.y), x, win.y - row)
         return best
+
+    def _scrolled(self, frame, gray, win: Window, c: _Canvas) -> tuple | None:
+        """A canvas wider than the window (Kerning City Construction Site: 284 px in a ~210 px window; 3-Way
+        Road-Split) fills it and scrolls sideways with the player - and up and down when it is taller too. Where:
+        the window's picture searched for in the canvas (plain correlation: a guess); the part found there is then
+        scored like every other canvas (`_corr`), so a wrong guess is a low score, never a wrong map.
+        -> (score, the canvas' screen x, its screen y) or None."""
+        ch = c.bgr.shape[0]
+        h = min(ch, win.h)
+        view = np.ascontiguousarray(gray[:h, :win.w])
+        if view.shape[1] < win.w or view.std() < 1e-6:
+            return None
+        r = cv2.matchTemplate(c.gray, view, cv2.TM_CCOEFF_NORMED)
+        _, _, _, (col, row) = cv2.minMaxLoc(np.nan_to_num(r, nan=-1.0, posinf=-1.0, neginf=-1.0))
+        o = c.opaque[row:row + h, col:col + win.w]
+        part = _Canvas(np.ascontiguousarray(c.bgr[row:row + h, col:col + win.w]),
+                       np.ascontiguousarray(c.mask[row:row + h, col:col + win.w]), int(o.sum()),
+                       c.gray[row:row + h, col:col + win.w], o)
+        if part.n < self.min_opaque:
+            return None
+        return _corr(frame, part, win.x, win.y), win.x - col, win.y - row
 
     def identify(self, frames) -> MapMatch:
         """One frame or a list of them (taken a moment apart): scores averaged over the frames where the window was
