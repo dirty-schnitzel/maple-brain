@@ -41,6 +41,12 @@ key = last pressed). The model holds predictions, not only observations.
 5. Branch; steps with gates; new in shadow beside old; switch when it matches or beats the old.
 
 ## Order: Knowledge -> Execution -> Brain
+**2026-11-21, the user's recalibration (HANDOFF "START HERE"): two things come before this order** - the tracker
+redone so that it is ready for ML, and a simulator (a viewer of the live state with real assets + an engine that
+takes our input and trains an AI). Whether the Execution and Brain reworks below happen at all depends on a question
+the user left open: a full FSM or a cloned-behaviour AI. Game rules come from v83 code (HeavenClient, Cosmic), not
+from guesses or measurements (the user, 2026-11-20).
+
 Start after perception step 3 is done (through 3.4, the switch on clean maps).
 
 ### 1. Knowledge

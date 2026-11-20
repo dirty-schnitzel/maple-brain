@@ -2,6 +2,9 @@
 **Status: OK'd by the user 2026-11-17 (proposed the same day by Fable, max effort; plan session: measure +
 prototype). NEXT = Session 1. Nothing of it is built in maplebrain/ yet; nothing reads drops until the tracker /
 loot-behaviour sessions. The three recordings of section 13 are still to come (the user: soon).**
+**2026-11-21: section 13's scenes 1-2 are ANSWERED from the user's 30-minute Line 1 capture (a drop lies 2 minutes
+and fades out in place; our own pickups: the result block in section 13); scene 3 (windows over drops) is DROPPED
+by the user ("inventory will come much later down the line and is not a part of tracking").**
 **Session 1 (2026-11-17): S1-S3 DONE, S4 gate NOT MET on synth (false: 36 window icons; identity: 2 = pictures with
 identical opaque pixels) - numbers, pictures and options in HANDOFF "Session 1 state"; the user's call.**
 **AMENDED by the user 2026-11-17 (after S4; these override sections 4, 5, 8, 10 where they differ):**
@@ -83,6 +86,8 @@ p50 (p10 0.4, p90 37.1).
 **Expiry: not seen.** The longest drop lay 122.0 s (a Dexterity Potion, 094333_1 t 27.5-149.5) and went while in
 view - a timer or a pickup, the footage cannot say; three drops of 111248_1 aged 112.6 / 112.5 / 74.1 s went
 within 0.2 s of each other = a pickup, not a per-drop timer. -> section 13.
+**2026-11-21: seen (section 13's result block).** A drop left alone lies 2 minutes and then fades out where it lies
+over ~1 s; the game removes expired drops in rounds ~10.1 s apart, so it is gone 120-130 s after the kill.
 **Draw order** (by eye on the frames looked at + the data): a drop is over mobs, players, pets and death effects;
 under damage digits, front scenery of its foothold's layer (a ladder's top post), the game's windows / tooltips /
 megaphone bars / chat balloons / minimap / quickslots; a later drop is over an earlier one (piles: 2-4 items
@@ -349,6 +354,34 @@ pickup worked). Out of scope here.
    (each tab), equipment, the skill window, a shop NPC if one is near, hover an item for its tooltip.
 None of the three blocks Session 1 (data + synthetic truth). Session 2 (labels) takes them into its picked frames
 when they exist (3 = its window-icon class); 1 and 2 feed the tracker and the loot-behaviour sessions.
+
+**Result 2026-11-21: scenes 1 and 2 answered without staging them, scene 3 dropped (the user).** The capture:
+`20261121_000219_2#0`, Line 1 <Area 1>, 30.6 minutes of the user's normal farming at 60 frames a second, no pet out,
+other players on the map, the reduced graphics settings; 835 presses of `q`, 679 of the pickup key `z`. Perception
+replayed over every 3rd frame (36,694 rows -> `F:\dev\maple-corpus\work\20261121_000219_2#0\replay\loot3.jsonl`),
+resting drops linked by item + map place (`tools/loot/life_capture.py`): 537 drops, 513 seen landing.
+- **How long a drop lies: 2 minutes.** Of the drops seen landing that went while their place was in view, with no
+  pickup key near that moment and us far away (> 150 px): **40, every one 118.5-128.5 s after it came to rest**
+  (p10 120.2, p50 123.8, p90 127.2). They go in rounds: 28 moments, 25 of the 27 gaps between them a multiple of
+  ~10.1 s. So: a drop turns 120 s old, the next round removes it = gone 120-130 s after the kill. The same on the
+  drops we did not watch go: the oldest seen lying 128.8 s, the youngest found gone by 124.7 s.
+- **Nobody else takes them: 0 drops left alone went before 118 s** in 30 minutes on a shared map (agrees with the
+  user's fact that drops are private).
+- **What expiry looks like (by eye, 3 drops on 2 sheets of every frame, `tools/loot/end_sheet.py`):** the drop
+  stays where it lies and fades out evenly over ~1 s (half see-through at ~0.5 s); a meso keeps turning while it
+  fades; drops of one round fade together. The exact-colour sighting ends with the fade's first frame.
+- **Our own pickup, no pet (by eye, 1 sheet + the numbers):** the drop hops up toward us at full opacity for ~0.5 s,
+  then fades in ~0.15 s - as section 3 measured on the older footage. Press by press: a drop went right after 309
+  of the 679 presses; our feet were within 50 px of the drop's place on 95 % of them (p50 14, p90 40, p99 83), at
+  the drop's own height (our feet - its bottom: p5 -1, p50 +1, p95 +4 px). A press does not always take: on 96
+  first taps nothing went although a drop lay at our feet's height (10 of them within 10 px) - why (mid-swing, a
+  drop just landed, ...) is the rules write-up's question (docs/game_rules.md, topic H), not measured.
+- **The rule for the tracker (the user, 2026-11-21):** "expect the loot to be there for 2 mins (max loot decay
+  time) and if it disappears then update the model" - a drop stays in the model from its first resting sighting
+  until its place is seen without it, or until it is 130 s old when we never look there again. Expiry and pickup
+  need no telling apart for the model; "we took it" (the scoreboard) = our pickup key in that moment, within reach.
+- Linking artefacts met (2 of 537): two drops of one item landing on the same spot read as one drop of 248 s and
+  one of 133 s.
 
 ## 14. Prompts
 **Session 1 (Opus, high):**

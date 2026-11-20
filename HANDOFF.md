@@ -1,5 +1,9 @@
-# maplebrain — session handoff (updated 2026-11-17)
+# maplebrain — session handoff (updated 2026-11-21)
 **Read this file top to bottom; it holds only the current state.** NEXT SESSION = "START HERE NEXT SESSION" below:
+**2026-11-21: the planning was recalibrated with the user (the first section below): next = the tracker, redone
+from scratch so that it is ready for ML, and a simulator; before the tracker's plan session come two preparation
+sessions (the rules write-up, the kept replay of the bank). The corpus work (PLAN-data.md) is done as far as it
+goes: `data` = `dev`.**
 2026-11-17 the OLD PERCEPTION IS DELETED (branch `perception-only` off `perception`; the user merges): the scene
 camera + the fit are the only mob perception, clean maps + the native window only, a lost camera pauses the
 hunt. Before it: the perception redesign (**PLAN-perception.md**) steps 0-3 DONE and live-checked (3.4's hunt:
@@ -19,6 +23,238 @@ and declined (below); VM work parked on `vnc-keys`. 2026-11-09 edge ghosts fixed
 `main` = `dev` = 5998a33, pushed. 2026-11-08 attack per press built + live (`runs/v2/press1`; the user: "the most significant change in bot
 behavior since start"), speed regression test, brain v3 planned; 2026-11-07 map recognition measures the minimap
 window; 2026-11-05 M2 combat live, brain v2 split into parts; M1 movement done.
+
+## START HERE NEXT SESSION (2026-11-21): the recalibration - tracking ready for ML + a simulator; next = the rules write-up
+**The user's goal (2026-11-19):** "have a great perception / tracking / data model in order to feed that into an
+ai to see how many hours of farming on a specific map with a specific class and style are needed to teach it to
+farm a map efficiently and humanlike. Then benchmark different models at the same job". **Priorities
+(2026-11-20):** "good tracking ready for ML applications, and a simulator that can 1 - show the current state of
+the game live just like livemap but with real assets, 2 - take our input and be used to train AI". **Left open by
+the user:** a full FSM or a cloned-behaviour AI. It does not change the order below; both get scored in the
+simulator once it exists.
+
+### Decided by the user
+- **v83 is the rulebook (2026-11-20):** "no guessing or measuring v83 client is more than good enough, the server
+  behavior hasn't changed that much over the years and certainly would not affect bot behavior - all the concepts
+  are the same". Game rules come from v83 code + our client files, never from guesses, and measuring them from
+  footage is not a precondition. Sources: HeavenClient (github.com/gmh5225/MapleStory-HeavenClient: the movement
+  of our character AND of the mobs - the client simulates both) and Cosmic (github.com/P0nk/Cosmic: the server's
+  side - respawn, EXP, drops). Both online and AGPL-3.0 on 2026-11-20, neither cloned on this PC. The project's
+  2026-11-03 reading is in HISTORY.md (grep v83 / HeavenClient / Cosmic: Physics.img = v83 exactly, live walk /
+  jump numbers matched, first notes on Mob.cpp).
+- **Graphics settings (2026-11-21): small damage numbers, own skill effects 20 %, other players' 0 %.** The
+  standard from now on; the tracker is designed on footage at these settings. Captures at them: the two Line 1
+  captures below (no label says so; checked by eye against a normal-settings capture: no burst over our character
+  at `q`, smaller digits) and `20261119_210307_1#0` (label `new-settings`). Everything older = normal settings.
+- **Not wanted now:** the two bot hunts for PLAN-data gate (b)'s tick cost; loot scene 3 of PLAN-loot.md section
+  13 (windows over drops: "inventory will come much later down the line and is not a part of tracking").
+- **Drops in the tracker:** "expect the loot to be there for 2 mins (max loot decay time) and if it disappears
+  then update the model" - a drop stays in the model from its first resting sighting until its place is seen
+  without it, or until it is 130 s old when we never look there again.
+
+### The footage for the tracker is recorded (2026-11-21)
+`20261121_000219_2#0`: **Line 1 <Area 1>, 30.6 minutes of the user's farming, one stay** - 110,082 frames at 60.0
+a second, 0 dropped, 10.8 GB, filed by itself in 195 s; 835 presses of `q`, 679 of `z` (pickup), 130 of `e`, 30
+of `w`, potions 62 MP / 25 HP; no pet, other players on the map, one 1.2 s pause at 1,476 s (the game lost focus).
+`20261120_235747_1#0`: the same map, 4.2 minutes, 0 dropped. Bank: 19 recordings, 50 captures, 93 minutes,
+31.9 GB (F: ~240 GB free). Before these two the longest farming capture at the full rate was 2.9 minutes.
+**Loot scenes 1-2 were answered from the 30-minute capture** (PLAN-loot.md section 13's result block): a drop left
+alone lies 2 minutes (40 of 40 went 118.5-128.5 s after coming to rest, removed in rounds ~10.1 s apart; none
+earlier), it fades out in place over ~1 s; our own pickup = a hop up toward us for ~0.5 s, then a short fade, from
+within ~50 px at the drop's height. Tools: `tools/loot/life_capture.py`, `end_sheet.py`; the replay rows (every
+3rd frame) are in `F:\dev\maple-corpus\work\20261121_000219_2#0\replay\loot3.jsonl`.
+
+### Proposed by Claude in these sessions (the user works along it; not OK'd as a whole)
+- **One description of the game's state, three programs around it:** the tracker (the game's screen -> the
+  state), the simulator's engine (the state + our input -> the next state, by the v83 rules), the viewer (the
+  state -> a picture with real assets = PLAN-livemap.md, prototype `tools/livemap/proto.py`). The user's use 1 of
+  the simulator = tracker + viewer, use 2 = the engine. The rules serve both sides: for the engine they are how
+  the world advances, for the tracker how a mob can have moved between two frames.
+- **What "ready for ML" asks of the tracker** (input for PLAN-tracker.md): (1) the same tracks live and from a
+  replayed recording - inputs = the frame's facts + the key log + map data, nothing from the scripted brain,
+  nothing tied to one class (read what happened to the mob, not what our weapon should have done); (2) a
+  hindsight twin (looks both ways in time on a recording) = the truth the live tracker is graded on and the
+  labeller of the user's play, never an input of the AI - prototyped in `tools/perc/track/oracle.py`, `score.py`;
+  (3) facts, not verdicts: seen or not, covered by what, for how long, how see-through - in place of today's
+  timeouts (lose_s 0.5, fight_s 1.2, covered_s / hidden_s 2.0); (4) one identity per mob with its history (hits
+  taken, age), identity switches per mob life as a gate number; (5) events as outputs (spawned, hit, died by our
+  last hit or not, dropped, picked up, we got hurt) = the training labels and the scoreboard, kills counted the
+  same way for the user, the scripted bot and any model; (6) the whole map with memory (per platform: last seen
+  when, how many, the respawn rule) and a slot for everything that moves: mobs, drops, other players, us (our
+  facing is still a belief from the keys); (7) perception one-way (today the tracker calls back for a second
+  look), so each frame's facts are computed once and a tracker change re-runs in seconds.
+- **Parked until the FSM-or-clone decision:** REWORKS.md's Execution and Brain reworks, v3 steps 4-6 (the FSM
+  path); hours of recordings on one map, the dataset builder, the training code (the clone path). Parked without
+  a date: Perion's moving clouds, wide maps, by-eye validation of every map (PLAN-data Sessions 2-3: only its
+  automatic half runs, inside prompt 2 below), the one gate list on the bank, the CPU mode.
+
+### The order from here
+1. **Opus: the rules write-up** -> `docs/game_rules.md` (prompt 1). No GPU, no design decisions. Branch `rules`;
+   the user merges it into `dev` (the tracker and the simulator both read the doc).
+2. **Opus: one replay of the bank, kept** + today's tracker scored on it -> `REPORT-track-before.md` (prompt 2).
+   About an hour of GPU: best while the user is not recording. Branch `tracker`.
+3. **Fable (max): the tracker plan session** -> `PLAN-tracker.md`, PROPOSED until the user's OK (prompt 3).
+4. **Opus: the tracker built in shadow** beside today's, switched when it matches or beats it. Beside it, at any
+   time: the viewer (PLAN-livemap.md Session 1 - its prompt says "from the current head of `perception`": use
+   `dev`), then the engine's own plan session (the engine outputs the tracker's state description).
+5. **FSM or clone**, decided on what both score in the simulator and live.
+
+**Prompt 1 - the rules write-up (Opus, high):**
+```
+You are the executor of the rules write-up. Read HANDOFF.md's START HERE first: it holds the decisions this
+prompt rests on. Goal of this session: ONE file, docs/game_rules.md - the game's rules as v83 code has them, in
+our units, each tied to the client-file field it reads. It is the rulebook for two later jobs: the tracker
+redesign (how a mob can move, be thrown, die and respawn between two frames) and the simulator's engine (how the
+world advances from our input). No code is written in this session.
+
+The user's rule (2026-11-20): v83 is the rulebook - "no guessing or measuring". Take every rule from the sources
+below. Where no source has a rule, write NOT FOUND and put a question for me in the list at the end; never fill
+a gap with a guess, and do not propose measuring it from footage.
+
+Sources
+1. HeavenClient, a v83 client re-implementation (C++): https://github.com/gmh5225/MapleStory-HeavenClient - the
+   movement of our character AND of the mobs (the client simulates both), the camera, drops in flight, damage
+   numbers.
+2. Cosmic, a GMS v83 server emulator (Java): https://github.com/P0nk/Cosmic - respawning, which client moves a
+   mob (the "controller") and aggro, damage and its checks, EXP, drops (lifetime, ownership), potions, levels.
+3. https://github.com/neeerp/RustMS/issues/295 - v83 player physics read out of the original client's movement
+   code.
+4. Our client files (Classic World): C:\Users\Yoav\dev\cw-data\export\ (XML: Map\Physics.img.xml, Mob\, Skill\,
+   Afterimage\, Character\, Item\, Etc\) and what `assets build` made of them in assets/mcw/ (assets/README.md).
+5. What the project already read: HISTORY.md (grep v83, HeavenClient, Cosmic, CVecCtrl) and the section "Game
+   rules from open-source code" in C:\Users\Yoav\.claude\plans\read-handoff-read-relevant-rustling-castle.md.
+Clone 1 and 2 with `git clone --depth 1` into NEW empty folders C:\Users\Yoav\dev\v83-ref\HeavenClient and
+C:\Users\Yoav\dev\v83-ref\Cosmic (outside the repo). They are reading material only: build nothing, run nothing
+from them, execute none of their scripts. Write each clone's commit hash at the top of the doc.
+
+What every rule entry holds
+- the rule in plain words, in game terms (the reader knows the game, not the code);
+- the formula and its constants, converted to pixels and seconds (say how: e.g. the client's update step in ms);
+- where it is: repository, file, function, line range;
+- which client-file field feeds it - our name in assets/mcw and the client's name (e.g. mob.json info.speed);
+- what our code does today for the same thing (file:line) and one word: same / differs / missing.
+
+Topics (a section each; add what the sources hold beyond them)
+A. Our character's movement: walking (force, drag, top speed, the speed stat), slopes, stopping, the jump (force,
+   the jump stat), control in the air, falling (gravity, the fall-speed cap), dropping through a platform
+   (down + jump), ropes and ladders (when a grab succeeds, climbing speed, jumping off), lying down, map edges.
+B. Being hit: touching a mob (bodyAttack, PADamage against our defence, the miss chance), the knockback (which
+   way, how far, how long), the time we cannot be hit again, a mob's own attacks (attack / skill entries).
+C. Mobs' movement: speed from speed / flySpeed; when a mob decides and the odds (stand, left, right, jump);
+   platform ends and its walk range (walkAreaX1/X2), fs; jumpers; flyers; which animation plays when and for how
+   long (frame delays).
+D. A mob that was hit: the knockback rule (pushed), its force and length, the hit pose's length, turning on the
+   attacker and following (aggro: whom it follows, for how long; the "controller" - which player's client moves
+   the mob - and when it changes), HP, death (the die animation, when the body is gone).
+E. Spawning: mobTime, mobRate, the map's mob cap, how often the server refills and how many per round, which
+   spawn points, how a new mob appears (summonType, the fade-in), the first spawn on an empty map.
+F. Our attacks: from a key press to the hit (the swing's length from the weapon's attack speed and the stance -
+   check it against brain/reach.py's (10 + attackSpeed) / 16; when in the swing the hit lands), which mobs a
+   plain attack and each skill hits (how many, the box from Afterimage / the skill's lt-rb), the damage range
+   from the character's stats (the spear / polearm formulas, mastery), the mob's defence (PDDamage), hit or miss
+   (accuracy, eva, level difference), the damage digits.
+   Skills: the character is a Spearman, level 31; the keys w and e are skills the code does not know. List every
+   Warrior (100) and Spearman (130) skill the client files hold with its box, mob count, MP cost and timing, so I
+   can say which key is which. The export holds Skill\000-400.img.xml only: if 130 is not in it, say so
+   (extending the export = tools/cwdata/export.ps1, memory cw-client-data-harepacker - only if it is a small job).
+G. EXP and levels: the EXP of a kill (exp), the share by damage dealt and in a party, the level table.
+H. Drops: when a drop appears after a death, its flight and where it lands, how long it lies, who may take it
+   and when that changes, the pickup's reach and its animation, when a press of the pickup key takes nothing, a
+   pet's pickup, meso amounts. Drop TABLES are server data: say where Cosmic keeps them, copy none. Seen on our
+   own footage (PLAN-loot.md section 13's result): a drop lies 120-130 s and goes in rounds ~10 s apart - write
+   what the code says next to it.
+I. Potions and recovery: what the potions on my keys restore (Item data), natural HP / MP recovery.
+J. The camera: how the view follows the character and where it stops (vrBounds), so "what the screen shows" can
+   be worked out from where we stand.
+K. Clocks: the client's update step, the server's periods that show on screen (respawn, drop expiry).
+
+Three tables at the end
+1. Every field of mob.json `info`, of map.json (the spawns and `info`) and of Physics.img -> the rule that reads
+   it, or "no rule found reads it".
+2. Our code against the rules: nav/sim.py and config.Nav, perception/world.py TrackCfg (gate_x, vmax, hit_s ...),
+   the brain's constants (SWING_LAND_S, moves.LAG), tests/test_brain_v2.py FakeMobs. No code changes.
+3. Questions for me: every NOT FOUND, every place the two sources disagree, every Classic World field v83 code
+   does not know. One known already: HISTORY.md says HeavenClient's Mob.cpp has an aggro flag but no chase.
+
+Not in this session: a simulator, a tracker, anything under maplebrain/, measuring from footage, the game's own
+binary or its anti-cheat, a private server.
+
+House rules: branch `rules` off `dev`; Python = .venv\Scripts\python.exe; a `record` or `watch` process may be
+running - never stop it; nothing is ever pressed into the game; no sed on repo files (CRLF: the Edit tool); both
+sources are AGPL-3.0 - write the rules in your own words, quote a constant or one line at most, always with its
+file reference; define each term in game terms the first time it appears. Commit and push the branch, no Claude
+attribution. No pytest is needed for a doc. Be terse in chat: the doc carries the detail.
+
+Done means: every topic has its section or a plain NOT FOUND; every number has a source reference and units;
+the three tables exist; HANDOFF has one paragraph on what the doc holds and what is open. Then report: the
+topics covered, the NOT FOUND list, the questions for me. A source that cannot be cloned or lacks a whole topic:
+say so and go on with the rest.
+```
+
+**Prompt 2 - the kept replay and the "before" numbers (Opus, high):**
+```
+You are the executor of the tracker's preparation: one replay of the bank, kept, and today's tracker scored on
+it. Read HANDOFF.md's START HERE first. Nothing in maplebrain/ changes in this session: it measures.
+Branch `tracker`: `git branch -f tracker dev` first (it has no commits of its own), then check it out.
+
+Why: the tracker is redesigned next, in a plan session. REWORKS.md's rule: the gate exists before the design.
+The planner needs (a) perception's per-frame output on the bank's 60-frames-a-second footage, stored, so tracker
+prototypes run in seconds without the GPU; (b) which captures perception is sound on; (c) today's tracker scored
+against the hindsight truth - the "before" numbers.
+
+The material
+- The bank: F:\dev\maple-corpus (`python tools\data\corpus.py list --stays`). Take every capture of the dev group
+  recorded at the full rate (n_frames / (minutes * 60) > 45) on a map with a clean scene model, labels farming or
+  traveling; not the two `bot` hunts, not the old every-3rd-frame recordings. NEVER the hold-out group (the tools
+  refuse it without --holdout: do not pass it). The long one is the design capture: 20261121_000219_2#0 (Line 1
+  <Area 1>, 30.6 minutes, the settings the user keeps); 20261120_235747_1#0 is its 4-minute twin.
+- tools/perc/track/ (untracked, written by the plan session that was stopped on 2026-11-17): load.py (a run's
+  ticks -> the fit's mobs per tick, tracklets), dump.py (per frame everything a tracker could ask: the fit's mobs,
+  today's tracks and looks, the patches, and two bitmaps - where the frame shows the expected scene / where a mob
+  could show), oracle.py (the hindsight truth: the fit's own mobs linked, then stitched across their unseen
+  moments looking both ways in time = "chains"), score.py (a tracker's tracks against the chains: HELD /
+  DEAD-LIVE / GHOST / SWITCHES / FOUND), e10_basics.py, e12_why.py. Read each file's docstring. They were written
+  for PNG run folders with a ticks.jsonl (dump.py still calls replay.saved_frames, which is gone).
+
+Steps
+1. Port tools/perc/track/ to bank captures: a capture's id SESSION#K through tools/perc/frames.py `clip` (as
+   tools/perc/replay/run.py does); a `record` capture has no ticks.jsonl - its "ticks" are a replay of every
+   frame. Outputs under F:\dev\maple-corpus\work\SESSION#K\track\ (never in the repo, never on C:). Commit the
+   folder.
+2. The kept replay: the live Perceiver, unchanged, over EVERY frame of each chosen capture (the live rate),
+   written once: per frame the camera, our place, the fit's mobs, the looks at today's tracks, today's tracks,
+   the drops, the patches, the two bitmaps. Say per capture: frames, seconds of GPU time, GB written. The game
+   may be running and a `record` process is loaded: while the user is recording (a folder in
+   F:\dev\maple-corpus\incoming), wait.
+3. Per capture, automatic (PLAN-data.md section 6 item 1): the share of frames with the scene camera found, the
+   share of the known scenery's pixels the scene explains, mobs tracked, the tick's ms. PLAN-data's stop rules
+   become a verdict per capture (camera lost on > 1 % of the frames, or < 95 % explained -> "not sound": listed,
+   left out of step 4), not a stop of the session.
+4. Today's tracker against the chains (score.py), per sound capture and pooled, at the live rate: HELD by gap
+   length, DEAD-LIVE, GHOST, SWITCHES, FOUND; e12_why.py's classes of why a chain is lost.
+5. The truth's own check, by eye (the reference is your judgment, never a tool's agreement): 40 stitched gaps and
+   20 chain ends picked at random over the sound captures, each as a sheet of frames around it - is it the same
+   mob across the gap, did it really die / leave / get covered? Report right / wrong / can't tell.
+6. REPORT-track-before.md (repo root): the tables of 3-5 in plain words, each term defined in game terms the
+   first time; what the kept replay holds and how to load it; anything that surprised you. HANDOFF: one paragraph.
+
+Rules: no change to perception or the tracker, no threshold tuned, nothing fixed - list what you find. Python =
+.venv\Scripts\python.exe; long jobs with run_in_background; never stop `record` / `watch`; nothing pressed into
+the game; no sed on repo files (CRLF); pytest + the 'bot speed' line before the commit (it must not move: nothing
+on the bot's path changed); commit + push `tracker`, no Claude attribution. A step that cannot work as written:
+stop that step with the numbers and go on with the others.
+```
+
+**Prompt 3 - the tracker plan session (Fable, max):**
+```
+Tracker plan session. Read HANDOFF.md's START HERE, then docs/game_rules.md, REPORT-track-before.md,
+PLAN-perception.md step 4, PLAN-loot.md (drops are part of this rework: section 13's result and my rule for
+them), REWORKS.md's recipe, tools/perc/track/. Design the tracker from scratch as the state an AI learns from
+and is scored by, and the one state description three programs share (the tracker, the simulator's engine, the
+viewer). Experiments first, on the kept replay (no GPU needed for prototypes), dev group only. Then
+PLAN-tracker.md: PROPOSED, with per-step gates on footage, stop rules and ready-to-paste Opus prompts. Build
+nothing in maplebrain/. Ask me game-knowledge questions directly.
+```
 
 ## Edge ghosts at Ant Tunnel IV's right wall (2026-11-09, DONE: fix e68066e on main + dev; live-checked `runs/v2/air1/fix3`)
 **Seen:** `runs/v2/20261109_003124_1` (no frames) 362-382 s: 17 presses + "kill #56" at a "Zombie Mushroom" that isn't
@@ -58,7 +294,10 @@ find mobs, fight them like a player, pick up loot, use potions, and **navigate p
 later ropes/ladders)**. Vision-only: reads the screen, sends key presses; never reads memory or packets.
 The user supervises every run at the PC. Botting is against Nexon's ToS (ban risk); the user accepted it.
 
-## START HERE NEXT SESSION: PLAN-data.md Session 1 is BUILT (branch `data`); the first walk is filed; the two hunts and more walks are the user's
+## Earlier START HERE (2026-11-19): the corpus - PLAN-data.md Session 1 is BUILT (branch `data`); the first walk is filed
+**2026-11-21: the two hunts for gate (b)'s tick cost are NOT wanted now (the user: "--video while serve is not
+important atm"); more walks are welcome but nothing waits for them. Current next steps: the first section of this
+file.**
 **State 2026-11-17 (branch `data` off `dev`, pushed; the user merges):** the recorder, the video writer / reader,
 the corpus tool and the ported tools are built and tested; gates (a), (d), (e) PASSED; **2026-11-19: (c) and (f)
 PASSED on the user's first walk, (b) in its recording half** - the two hunts for the tick cost are still owed
