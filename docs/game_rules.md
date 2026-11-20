@@ -26,6 +26,17 @@ marked **(source's own design)** and listed in table 3.
 **The export was extended (a small job):** `tools/cwdata/export.ps1` now also writes `Skill\130.img.xml` (Spearman)
 and `String\Skill.img.xml` (skill names). Re-run clean ("failed: 0", 57 s). `assets build` was not re-run.
 
+## Decided by the user (2026-11-21)
+
+- **Our character's speeds: our values are the rule** (question 1). The user: Classic World raised the base jump
+  and move speed, so where our fitted numbers differ from v83's (`Nav.jump_vx` 155 px/s against the source's cap
+  at 125, `Nav.jump_reach`, the rope-leap numbers of `config.py:98-115`) ours stand. The v83 formulas of
+  section A stay as the shape of the rule; its constants are not to be copied over ours.
+- **The swing length: ours for now**, `(10 + attackSpeed) / 16` (question 10) - to be recalculated from the
+  tracker once it exists.
+- **Server data is parked:** nothing further on Cosmic's side (respawn numbers, aggro, drop lifetime, EXP
+  tables: sections D2, E, G, H and their questions) until a job needs it. The questions stay listed, unanswered.
+
 ## Units and conversions
 
 - Map pixels = screen pixels (sprites are 1:1). x grows right, **y grows down**. A mob's or character's position is
@@ -820,7 +831,7 @@ HC reads none of Physics.img (its constants are in `Physics.cpp:22-28` and `Play
 # Table 3. Questions for the user
 
 **NOT FOUND in any source**
-1. **The jump's sideways speed.** RU: holding a direction adds 80 % of the top walking speed, capped at the
+1. **ANSWERED: our values (see "Decided by the user").** The jump's sideways speed. RU: holding a direction adds 80 % of the top walking speed, capped at the
    walking speed (125 px/s at 100 %). Our `Nav.jump_vx` is 155 px/s, fitted on footage. Is the character's speed
    stat above 100 % (shoes, a skill)? If not, the two disagree and the engine needs your call.
 2. **Air control:** RU's account says a held direction "accelerates at 200 px/s^2 toward 8.9 px/s". Whether a
@@ -837,7 +848,7 @@ HC reads none of Physics.img (its constants are in `Physics.cpp:22-28` and `Play
 8. **`mobRate`:** stored by CO, read by nothing.
 9. **Which attack stance** a spear's plain attack plays and with what odds (HC: `stabT1` or `swingP1`, 50 / 50;
    the data has five more).
-10. **The swing-length factor:** HC `/ (1.7 - attackSpeed / 10)` vs our `(10 + attackSpeed) / 16`, which is in
+10. **ANSWERED: ours for now, recalculated with tracking.** The swing-length factor: HC `/ (1.7 - attackSpeed / 10)` vs our `(10 + attackSpeed) / 16`, which is in
     neither source. The live polearm swing ends (0.89-0.92 s) fit both; with the spear (attackSpeed 6, or 4
     under Booster) they differ by ~70-80 ms. Which is the rule?
 11. **Spear / polearm damage:** both sources use x 5.0 for every hit; the stab (x 3.0 polearm, x 5.0 spear) /

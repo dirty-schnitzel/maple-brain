@@ -77,6 +77,10 @@ HeavenClient's approximated physics (top speed (speed + 100) x 0.625 px/s, a dec
 ~27 px in 0.25 s); the walk range `rx0`/`rx1`, `fs`, `summonType`, `mobRate` are read by no source; Cosmic's
 respawn numbers (a round every 10 s, 75 % of the spawn points with one player) are that emulator's config and
 design; Classic World's skill list is not v83's; which skills are on `w` / `e`. No pytest (a doc).
+**The user's answers (2026-11-21):** Classic World raised the base jump and move speed, so our fitted movement
+values stand over v83's constants (`Nav.jump_vx` 155 etc.); the swing length stays `(10 + attackSpeed) / 16` for
+now, to be recalculated with the tracker; **no further work on server data (Cosmic: respawn, aggro, drop
+lifetime, EXP) until a job needs it.**
 
 ### Proposed by Claude in these sessions (the user works along it; not OK'd as a whole)
 - **One description of the game's state, three programs around it:** the tracker (the game's screen -> the
