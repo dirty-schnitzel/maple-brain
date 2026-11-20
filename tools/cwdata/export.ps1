@@ -264,7 +264,7 @@ foreach ($img in $ms.WzDirectory.WzImages) {
 # attack boxes (brain-v2 reach): Character\Afterimage (per weapon type: lt/rb per attack stance) + the 1st-job skills
 foreach ($sub in 'Afterimage', 'Skill') { if (Test-Path "$Out\$sub") { Remove-Item -Recurse -Force "$Out\$sub" } }
 foreach ($i in (Open-Bms "$D\Character\Afterimage\Afterimage_000.wz").WzDirectory.WzImages) { Save-Xml $i "$Out\Afterimage\$($i.Name).xml" }
-foreach ($i in (Open-Ms "$D\Packs\Skill_00000.ms").WzDirectory.WzImages | ? Name -in '000.img', '100.img', '200.img', '300.img', '400.img') {
+foreach ($i in (Open-Ms "$D\Packs\Skill_00000.ms").WzDirectory.WzImages | ? Name -in '000.img', '100.img', '130.img', '200.img', '300.img', '400.img') {
   Save-Xml $i "$Out\Skill\$($i.Name).xml" }
 "attack boxes: $((Get-ChildItem "$Out\Afterimage").Count) weapon types"
 
@@ -284,7 +284,7 @@ $weapons | ConvertTo-Json | Set-Content -Encoding utf8 "$Out\Character\weapons.j
 
 # names
 foreach ($s in Get-ChildItem "$D\String" -Filter '*_000.wz' -Recurse) {
-  foreach ($i in (Open-Bms $s.FullName).WzDirectory.WzImages | ? Name -in 'Mob.img', 'Map.img') { Save-Xml $i "$Out\String\$($i.Name).xml" }
+  foreach ($i in (Open-Bms $s.FullName).WzDirectory.WzImages | ? Name -in 'Mob.img', 'Map.img', 'Skill.img') { Save-Xml $i "$Out\String\$($i.Name).xml" }
 }
 
 "failed: $($fails.Count)"; $fails | % { "  $_" }

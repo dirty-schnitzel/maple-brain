@@ -64,6 +64,20 @@ earlier), it fades out in place over ~1 s; our own pickup = a hop up toward us f
 within ~50 px at the drop's height. Tools: `tools/loot/life_capture.py`, `end_sheet.py`; the replay rows (every
 3rd frame) are in `F:\dev\maple-corpus\work\20261121_000219_2#0\replay\loot3.jsonl`.
 
+### The rules write-up is DONE (2026-11-21, branch `rules`, the user merges it into `dev`)
+**`docs/game_rules.md`** holds the game's rules as v83 code has them, in px and seconds, each with its source
+line and the client-file field it reads: sections A-K (our movement, being hit, mobs' movement, a mob that was
+hit, spawning, our attacks + every Warrior / Spearman skill in the client files, EXP, drops, potions, the camera,
+clocks) and three tables (every mob.json / map.json / Physics.img field -> its rule; our code against the rules;
+the questions). Sources cloned to `C:\Users\Yoav\dev\v83-ref\` (HeavenClient 0daa69d, Cosmic fec53bc; reading
+only). `tools/cwdata/export.ps1` now also exports `Skill\130.img.xml` and `String\Skill.img.xml` (re-run clean;
+`assets build` not re-run). Open = table 3 of the doc, 21 questions; the ones that shape the next sessions: how
+a mob with aggro moves and attacks is in no source (HeavenClient has the flag only); mob movement exists only in
+HeavenClient's approximated physics (top speed (speed + 100) x 0.625 px/s, a decision every > 1.6 s, knockback
+~27 px in 0.25 s); the walk range `rx0`/`rx1`, `fs`, `summonType`, `mobRate` are read by no source; Cosmic's
+respawn numbers (a round every 10 s, 75 % of the spawn points with one player) are that emulator's config and
+design; Classic World's skill list is not v83's; which skills are on `w` / `e`. No pytest (a doc).
+
 ### Proposed by Claude in these sessions (the user works along it; not OK'd as a whole)
 - **One description of the game's state, three programs around it:** the tracker (the game's screen -> the
   state), the simulator's engine (the state + our input -> the next state, by the v83 rules), the viewer (the
