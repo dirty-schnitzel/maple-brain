@@ -9,7 +9,10 @@ the camera, exact to the pixel.
 Build (`python -m maplebrain assets scene [MAP ...]`, from the client export; NOT in git: assets/scene/<map>/):
   scene.png   tiles + objects composited in draw order, PREMULTIPLIED BGRA, map coordinates from (x0, y0)
   anim.png    255 where an animated object draws (any frame): its pixels are unknown (only if the map has one)
-  scene.json  {x0, y0, w, h, backs: [{file, x, y, rx, ry, cx, cy, type, a, front, flip, origin, known}], ...}
+  scene.json  {x0, y0, w, h, backs: [{file, x, y, rx, ry, cx, cy, type, a, front, flip, origin, blend, known}],
+              cloud, ...}   blend 1 = an ADDED layer: frame = min(255, under + colour x alpha), it covers nothing
+              (Ellinia's light rays; PLAN-moving-scenery.md measurement 2). cloud 1 = the client draws its weather
+              clouds (MapHelper.img/weather/cloud) over the field: Perion's region
   ../backs/<set>/<back|ani>_<no>.png   the background pictures (shared between maps)
 Run time: `Scene.load(map_id)`; `expected(C)` -> the scene for camera C (map = screen + C) + which pixels are
 known; `register(frame, C_guess)` -> the camera. Torch tensors (GPU when there is one).
@@ -151,15 +154,17 @@ def build_scene(img: dict, m: dict, parts: _Parts) -> tuple:
             continue
         im, origin, _ = fr[0]
         typ = int(b.get("type", 0))
+        node = parts.node("Back", b["bS"], [kind, b.get("no", 0)]) or {}       # the picture's (an ani: its node's)
+        blend = int(node.get("blend", 0) or 0)
         backs.append({"set": b["bS"], "kind": kind, "no": int(b.get("no", 0)), "file": f"{b['bS']}/{kind}_{b.get('no', 0)}.png",
                       "x": int(b.get("x", 0)), "y": int(b.get("y", 0)), "rx": int(b.get("rx", 0)), "ry": int(b.get("ry", 0)),
                       "cx": int(b.get("cx", 0)), "cy": int(b.get("cy", 0)), "type": typ, "a": int(b.get("a", 255)),
                       "front": int(b.get("front", 0)), "flip": int(b.get("f", 0)), "origin": [int(origin[0]), int(origin[1])],
-                      "size": [im.shape[1], im.shape[0]],
+                      "size": [im.shape[1], im.shape[0]], "blend": blend,
                       "known": int(kind == "back" and typ not in MOVING)})
     out = np.clip(canvas + 0.5, 0, 255).astype(np.uint8)
     meta = {"x0": x0, "y0": y0, "w": x1 - x0, "h": y1 - y0, "objects": n_obj, "tiles": n_tile,
-            "animated": int(n_anim), "backs": backs}
+            "animated": int(n_anim), "backs": backs, "cloud": int((img.get("info") or {}).get("cloud", 0) or 0)}
     return out, (anim if n_anim else None), meta
 
 
@@ -214,11 +219,13 @@ def build_scenes(export: Path, assets: Path, map_ids=None, out: Path = ROOT, log
             cv2.imwrite(str(d / "anim.png"), anim)
         elif (d / "anim.png").exists():
             (d / "anim.png").unlink()
-        for b in meta["backs"]:
+        for b in meta["backs"]:                                     # always copied: a fixed export replaces it
             dst = out / "backs" / b["file"]
-            if not dst.exists():
-                dst.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(export / "Map" / "Back" / "png" / b["set"] / b["kind"] / f"{b['no']}.png", dst)
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            src = export / "Map" / "Back" / "png" / b["set"] / b["kind"]
+            src = (src / f"{b['no']}.png" if b["kind"] == "back"    # an animated back: its first frame (ani\<no>\<n>)
+                   else min((src / str(b["no"])).glob("*.png"), key=lambda p: int(p.stem)))
+            shutil.copyfile(src, dst)
         (d / "scene.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")
         n += 1
         log(f"map {mid}: {meta['w']}x{meta['h']}, {meta['objects']} objects ({meta['animated']} animated), "
@@ -279,7 +286,7 @@ class Scene:
         for b, t in self.backs:
             if bool(b["front"]) != bool(front):
                 continue
-            key = (b["rx"], b["ry"]) if b["known"] else None
+            key = (b["rx"], b["ry"]) if b["known"] and not b.get("blend") else None    # ADDED layers: one by one
             if key is not None and runs and runs[-1][0] == key:
                 runs[-1][1].append((b, t))
             else:
@@ -370,6 +377,9 @@ class Scene:
             a = plane[..., 3:4] / 255.0
             if not b["known"]:
                 unknown = unknown | (a[..., 0] > 0.02)
+                return
+            if b.get("blend"):                                        # ADDED (Ellinia's light rays): covers nothing
+                out = (out + plane[..., :3]).clamp(max=255)
                 return
             out = out * (1 - a) + plane[..., :3]
             cover = cover * (1 - a[..., 0]) + a[..., 0]

@@ -158,6 +158,78 @@ def test_build_composites_layers_in_draw_order_flags_animated_objects_and_lists_
     assert [(b["rx"], b["ry"], b["known"], b["front"]) for b in meta["backs"]] == [(-10, -20, 1, 0), (0, 0, 0, 1)]
 
 
+def test_build_keeps_a_pictures_blend_and_the_maps_cloud_flag():
+    """PLAN-moving-scenery.md step 1: a background picture's `blend` (1 = ADDED to what is under it: Ellinia's light
+    rays) and the map's info `cloud` (the client draws its weather clouds over the field) go into scene.json."""
+    red = np.zeros((20, 30, 4), np.uint8)
+    red[..., 2], red[..., 3] = 200, 255
+    nodes = {("Back", "sky", ("back", 0)): {"_size": [30, 20], "origin": [15, 10]},
+             ("Back", "sky", ("back", 1)): {"_size": [30, 20], "origin": [15, 10], "blend": 1, "a0": 235}}
+
+    class Parts(sc._Parts):
+        def __init__(self):
+            pass
+
+        def node(self, kind, name, path):
+            return nodes.get((kind, name, tuple(path)))
+
+        def pic(self, kind, name, path):
+            return red, None
+
+    m = {"footholds": {"1": {"x1": 0, "y1": 100, "x2": 400, "y2": 100}}}
+    back = {"0": {"bS": "sky", "no": 0, "type": 3}, "1": {"bS": "sky", "no": 1, "type": 0}}
+    _, _, meta = sc.build_scene({"back": back, "info": {"cloud": 1}}, m, Parts())
+    assert [b["blend"] for b in meta["backs"]] == [0, 1] and meta["cloud"] == 1
+    assert all(b["known"] for b in meta["backs"])                                # an ADDED layer is known
+    _, _, meta = sc.build_scene({"back": back}, m, Parts())
+    assert meta["cloud"] == 0
+
+
+def test_an_added_layer_adds_its_colour_times_alpha_and_covers_nothing():
+    """Ellinia's light rays (blend 1, measured: the frame = min(255, under + colour x alpha) on 86-95 % of their
+    free pixels within 1 level): the picture under it shows through brightened, an ADDED layer alone over nothing
+    leaves the pixel unknown, and it is never pre-composed with the layers laid over (same parallax or not)."""
+    sky = np.zeros((60, 80, 4), np.uint8)
+    sky[..., :3], sky[..., 3] = (220, 100, 30), 255
+    ray = np.zeros((60, 80, 4), np.uint8)
+    ray[..., :3], ray[..., 3] = (100, 100, 100), 128                             # + 50 a level, 255 at most
+    ray[:, 40:, 3] = 0
+    backs = [_back(rx=-10, ry=-10, type=3), _back(rx=-10, ry=-10, type=3, blend=1), _back(rx=-10, ry=-10, type=3)]
+    s = sc.Scene({"x0": -100, "y0": -50, "w": 900, "h": 700, "backs": backs[:2]}, np.zeros((700, 900, 4), np.uint8),
+                 [sky, ray], device="cpu")
+    assert [it[0] for it in s.groups[0]] == ["one", "one"]                       # not grouped with the sky
+    C = (0, 0)
+    exp, known = s.expected(C, w=400, h=300)
+    px, _ = sc.back_pos(backs[0], C)
+    cols = (np.arange(400) - px) % 80
+    e = exp.numpy()
+    assert known.all()
+    lit, dark = np.flatnonzero(cols < 40)[0], np.flatnonzero(cols >= 40)[0]
+    assert np.allclose(e[10, lit], (255, 150.2, 80.2), atol=0.5)                 # 220 + 100 x 128 / 255 -> 255 at most
+    assert np.allclose(e[10, dark], (220, 100, 30), atol=0.5)
+    e0, _ = s.expected(C, w=400, h=300, pre=False)
+    assert (e0 - exp).abs().max() < 0.5
+    alone = sc.Scene({"x0": -100, "y0": -50, "w": 900, "h": 700, "backs": [backs[1]]}, np.zeros((700, 900, 4), np.uint8),
+                     [ray], device="cpu")
+    assert not alone.expected(C, w=400, h=300)[1].any()                          # nothing under it: not covered
+    three = sc.Scene({"x0": -100, "y0": -50, "w": 900, "h": 700, "backs": backs}, np.zeros((700, 900, 4), np.uint8),
+                     [sky, ray, sky], device="cpu")
+    assert [it[0] for it in three.groups[0]] == ["one", "one", "one"]
+
+
+def test_the_two_flat_pictures_have_their_real_colours():
+    """Pixel format 1537 (RGB565, one pixel per 16x16 block): export.ps1 shifted a byte left by 8 (= 0) until
+    2026-11-21 and wrote the Henesys-side forests' sky as (0, 28, 255). The file holds 0x44FF = RGB (66, 158, 255),
+    exactly the frame's sky; Perion's sky 0x543D = (82, 134, 239)."""
+    import cv2
+    for f, bgr in (("back_midForest/back_0.png", (255, 158, 66)), ("back_dryRock/back_0.png", (239, 134, 82))):
+        p = sc.ROOT / "backs" / f
+        if not p.exists():
+            pytest.skip(f"needs python -m maplebrain assets scene ({p})")
+        im = cv2.imread(str(p), cv2.IMREAD_UNCHANGED)
+        assert (im[..., :3] == bgr).all() and (im[..., 3] == 255).all(), f
+
+
 def test_pre_composed_parallax_groups_draw_what_the_layers_draw_one_by_one():
     """Layers of one parallax (same rx / ry) are drawn once at load into one plane (PLAN-perception.md step 2):
     the expected picture must not change - tiled and untiled layers, half-transparent ones, a flipped one, a

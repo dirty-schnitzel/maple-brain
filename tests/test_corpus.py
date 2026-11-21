@@ -334,7 +334,11 @@ def test_add_files_a_recording_under_its_map_and_tools_read_its_frames(home, cap
     said = capsys.readouterr().out
     assert "1 session(s), 1 stay(s)" in said and "Dungeon / Ant Tunnel IV" in said and line["path"] in said
     if (ROOT / "assets" / "scene").exists():                 # (the coverage is counted from the scene models)
-        assert "mob types: 2 of 51 on clean maps" in said and "background sets: 1 of 13" in said
+        import map_cover                                     # the totals follow the local scene build
+        maps, _ = map_cover.load()
+        have = set().union(*[map_cover.items(m) for m in maps.values() if m["clean"]])
+        n_mob, n_set = (sum(x[0] == k for x in have) for k in ("mob", "set"))   # 2026-11-21: 60 / 14
+        assert f"mob types: 2 of {n_mob} on clean maps" in said and f"background sets: 1 of {n_set}" in said
         assert "not seen yet on a clean map" in said and "Stirge (lv 20): " in said
     # verify: the files are what was filed - until one byte of one changes
     assert corpus.verify(say=lambda s: None) == 0 and corpus.verify(frames=True, say=lambda s: None) == 0
