@@ -4444,3 +4444,31 @@ stays where you were hit; other players' drops are invisible to us (no party loo
 Everything older is in **HISTORY.md** (moved verbatim 2026-11-08, nothing deleted): sessions 6-23 in full, the old
 brain v1 (SEEK -> ENGAGE -> LOOT, zones, loot by sight, rests), its run history and open issues, the tracker / GPU /
 client-data work, the trained-model brain plan (dropped for an algorithm), and the brain-v2 plan with M0-M5 details.
+
+## 2026-11-21 - the CLAUDE.md skim (moved from HANDOFF.md)
+Done the same day: the user's review is commits 46217cb and 34c2050. The block as it stood:
+
+**First in the next session, before anything else (the user, 2026-11-21): skim CLAUDE.md together.** It was
+written on 2026-11-21 from the old handoff's stable sections and from Claude's memory, the user has not read it
+yet, and it is loaded into every session from now on. Go through it section by section - a few plain lines each,
+the rules in their own words - and ask what is wrong or missing; correct CLAUDE.md (or the `.claude/rules/` file
+the point belongs in) on the spot. The places where the writer had to choose:
+- **Git:** "work on a side branch; commit and push there without asking once pytest is green; a docs-only commit
+  needs no pytest; the user merges into `dev` and `main`". Open: may a session commit handoff and doc changes
+  straight on `dev`, as sessions did until now?
+- **Parallel sessions:** "leave files you did not create alone"; a second session that edits code works in its
+  own worktree; the speed line's A/B "with a WIP commit or a worktree" (the old text said `git stash`, but the
+  stash is shared between sessions).
+- **Left out as outdated:** the 2560x1440 / fullscreen window notes, "ask before committing" (replaced by the
+  user's 2026-11-16 rule), "an algorithm (not learning) decides where and what" (FSM or clone is open now), two
+  test gotchas that no longer match the code.
+- **Taken from memory and REWORKS.md, not from the old handoff:** the Lie Detector as an account flag that
+  measures nothing; "not arguments against a design: account risk, being reported"; the pinned bench for the
+  speed line.
+- Two proposals of the review are still unanswered: commit subjects under 72 characters with the details in
+  the body, and `/goal` for executor sessions (claude_architecture.md, section 4).
+
+When the skim is done, delete only this paragraph with its list (from "First in the next session" down to this
+line) and row 0 of the table - the rest of START HERE stays - and go on with step 2.
+
+Row 0 of the order table: `| 0 | Skim CLAUDE.md with the user (the block above) | any | FIRST | - |`

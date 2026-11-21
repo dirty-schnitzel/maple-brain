@@ -117,8 +117,8 @@ simulator once it exists.
 ## Branches (2026-11-21)
 - `dev` holds everything: the rules write-up (`rules`) and this file layout (`claude-arch`,
   claude_architecture.md) were merged into it on 2026-11-21, fast-forward, on the user's word. Both branches can
-  be deleted; the worktree folder can go once the session that built it is closed
-  (`git worktree remove .claude\worktrees\claude-arch`).
+  be deleted; the `claude-arch` worktree is already removed. One other worktree is registered: `wt64`, detached
+  at 64f9713, in another session's scratchpad - not this layout's; leave it to that session.
 - `data` is merged into `dev`. `tracker` is an old pointer: step 2 resets it to `dev`.
 - `main` has not moved since 2026-11-09 (02a639a) and has no CLAUDE.md. Parked: `vnc-keys` (the VM attempt).
 
