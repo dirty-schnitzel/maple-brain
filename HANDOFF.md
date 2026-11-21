@@ -46,9 +46,11 @@ simulator once it exists.
   (Cosmic: respawn, aggro, drop lifetime, EXP) until a job needs it.**
 - **PLAN-data's camera stop rule (2026-11-21):** counted from the first fix after a portal to the exit fade (the
   ~1 s blind start and the fade do not count) - OK'd as read in REPORT-track-before.md section 3.
-- **Moving backgrounds (2026-11-21):** "effectively ignore moving backgrounds as efficiently as possible" -> its
-  own plan, `PLAN-moving-scenery.md` (PROPOSED, goal + facts + the planner's prompt), beside the tracker plan;
-  until it is done the tracker is designed on the 13 sound captures.
+- **Moving scenery = two problems (2026-11-21).** (1) Moving backgrounds BEHIND the mobs (sky clouds, light
+  rays, portals): filter them out of perception -> `PLAN-moving-scenery.md` (PROPOSED, goal + facts + the
+  planner's prompt), beside the tracker plan; until it is done the tracker is designed on the 13 sound captures.
+  (2) Perion's clouds IN FRONT of the mobs: priority 2, after the tracker (the user's first idea: more sensitive
+  mob detection on those maps, at the price of more false positives).
 
 ### What the next sessions build on
 - **The footage for the tracker (recorded 2026-11-21).** `20261121_000219_2#0`: **Line 1 <Area 1>, 30.6 minutes
