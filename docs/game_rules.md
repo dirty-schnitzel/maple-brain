@@ -660,6 +660,13 @@ differ, so HC's and CO's per-skill code does not apply by id (table 3). Values: 
 - Ours: `maplebrain/scene.py` finds the camera from the picture each frame (exact to the pixel) and uses
   `vrBounds` only for the rendered area (`scene.py:35, 98-100`) - the follow rule is **missing** (not needed by
   perception; the engine and the viewer need it).
+- **How the scenery is drawn over that view** (for the viewer): **HC** places a background at
+  `rx x (centre - view) / 100` (our `scene.py` uses the same formula with the client's integer arithmetic), moves a
+  back of type 4-7 along the map by `rx / 16` px per 8 ms step (= 7.8 x rx px a second), and reads the map's
+  `cloud` flag without drawing anything (`MapBackgrounds.cpp:54-153`, `MapInfo.cpp:41`). On Classic World footage
+  the moving backs go at `5 x rx` px a second, their row is rounded differently from a still back's, the `cloud`
+  flag means 7 weather cloud pictures drifting over the field, and a back picture with `blend 1` is added to what
+  is under it - **measured, not from a source**: PLAN-moving-scenery.md, "What was measured" 2-4 (added 2026-11-21).
 
 ---
 

@@ -4481,3 +4481,53 @@ Row 0 of the order table: `| 0 | Skim CLAUDE.md with the user (the block above) 
   rays) although the map counts as clean; not investigated.
 - `data` is merged into `dev`. `tracker` is an old pointer: step 2 resets it to `dev`.
 - Step 2 (`docs/prompts/tracker-before.md`, Opus high) DONE 2026-11-21 on `tracker`: REPORT-track-before.md.
+
+## 2026-11-21 - the moving-scenery plan session (moved from HANDOFF.md)
+
+Row P0 of the order table, as it stood: `| **P0** | **The moving-scenery plan session: a design for both moving backgrounds behind the mobs and Perion's clouds in front of them -> `PLAN-moving-scenery.md` filled, PROPOSED until the user's OK.** The ideas in it are optional (the user: a fresh look) | Fable, max | **NEXT**, on `dev`. GPU prototypes: not while the user records | the block at the bottom of `PLAN-moving-scenery.md` |`
+DONE 2026-11-21: the plan is filled (PROPOSED), its tools are on branch `moving-scenery` (e25a820).
+
+- **Moving scenery = two problems, one plan, P0 (2026-11-21).** (1) Moving backgrounds BEHIND the mobs (sky
+  clouds, light rays, portals): they should stop bothering perception; (2) Perion's clouds IN FRONT of the mobs:
+  mobs found through them, or "covered by cloud" as a fact. `PLAN-moving-scenery.md` = goal + facts + the
+  planner's prompt; the ideas from the conversation that set it are marked OPTIONAL - the user wants a Fable max
+  session to take a fresh look and design a solution for both. The tracker is designed on the 13 sound captures
+  until it is built.
+- **The Victoria Road forest maps are "clean" yet not sound** (REPORT-track-before.md section 3): moving clouds
+  in the sky (Henesys side), the light rays (The Field South of Ellinia), an animated portal - 80-93 % of the
+  scenery explained, against >= 95.6 % on caves / dungeons / the subway. Not investigated further.
+  (Investigated 2026-11-21: nothing moves there - PLAN-moving-scenery.md, "What was measured" 2.)
+- Parked without a date (the list as it stood): Perion's moving clouds, wide maps, by-eye validation of every map
+  (PLAN-data Sessions 2-3: only its automatic half runs, inside step 2's prompt), the one gate list on the bank,
+  the CPU mode.
+- **The footage for the tracker (recorded 2026-11-21).** `20261121_000219_2#0`: **Line 1 <Area 1>, 30.6 minutes
+  of the user's farming, one stay** - 110,082 frames at 60.0 a second, 0 dropped, 10.8 GB; 835 presses of `q`,
+  679 of `z` (pickup), 130 of `e`, 30 of `w`, potions 62 MP / 25 HP; no pet, other players on the map, one 1.2 s
+  pause at 1,476 s (the game lost focus). `20261120_235747_1#0`: the same map, 4.2 minutes, 0 dropped. Bank: 19
+  recordings, 50 captures, 93 minutes, 31.9 GB (F: ~240 GB free). Before these two the longest farming capture
+  at the full rate was 2.9 minutes.
+- **Loot scenes 1-2 were answered from the 30-minute capture** (PLAN-loot.md section 13's result block): a drop
+  left alone lies 2 minutes (40 of 40 went 118.5-128.5 s after coming to rest, removed in rounds ~10.1 s apart;
+  none earlier), it fades out in place over ~1 s; our own pickup = a hop up toward us for ~0.5 s, then a short
+  fade, from within ~50 px at the drop's height. Tools: `tools/loot/life_capture.py`, `end_sheet.py`; the replay
+  rows (every 3rd frame) are in `F:\dev\maple-corpus\work\20261121_000219_2#0\replay\loot3.jsonl`.
+- **`docs/game_rules.md`**: the game's rules as v83 code has them, in px and seconds, each with
+  its source line and the client-file field it reads - sections A-K (our movement, being hit, mobs' movement, a
+  mob that was hit, spawning, our attacks + every Warrior / Spearman skill in the client files, EXP, drops,
+  potions, the camera, clocks) and three tables (every mob.json / map.json / Physics.img field -> its rule; our
+  code against the rules; the questions). `tools/cwdata/export.ps1` now also exports `Skill\130.img.xml` and
+  `String\Skill.img.xml` (re-run clean; `assets build` not re-run). **Open = its table 3, 21 questions.** The
+  ones that shape the next sessions: how a mob with aggro moves and attacks is in no source (HeavenClient has
+  the flag only); mob movement exists only in HeavenClient's approximated physics (top speed (speed + 100) x
+  0.625 px/s, a decision every > 1.6 s, knockback ~27 px in 0.25 s); the walk range `rx0`/`rx1`, `fs`,
+  `summonType`, `mobRate` are read by no source; Cosmic's respawn numbers (a round every 10 s, 75 % of the spawn
+  points with one player) are that emulator's config and design; Classic World's skill list is not v83's; which
+  skills are on `w` / `e`.
+- The kept replay's tools, as listed: `tools/perc/track/` (`score.py --pool`, `e12_why.py`, `sound.py`,
+  `sheets.py`, `oracle.py`).
+- `dev` holds everything: the rules write-up (`rules`) and this file layout (`claude-arch`,
+  claude_architecture.md) were merged into it on 2026-11-21, fast-forward, on the user's word. Both branches can
+  be deleted; the `claude-arch` worktree is already removed. One other worktree is registered: `wt64`, detached
+  at 64f9713, in another session's scratchpad - not this layout's; leave it to that session.
+- `tracker` (step 2: the ported `tools/perc/track/`, REPORT-track-before.md) was merged into `dev` on 2026-11-21,
+  fast-forward, on the user's word; both point at the same commit. `data` is merged into `dev`.

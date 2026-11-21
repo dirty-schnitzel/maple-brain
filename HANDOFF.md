@@ -2,10 +2,10 @@
 
 This file is already in your context: CLAUDE.md imports it, so there is no need to read it again. It holds only
 what is true NOW and what comes NEXT. The `handoff` skill rewrites it at the end of a session - it is never
-appended to. Everything older is in HISTORY.md (grep it; the handoff as it stood until 2026-11-21 is its last
-block). Rules that stay true: CLAUDE.md and .claude/rules/. Plans and their progress: PLAN-*.md.
+appended to. Everything older is in HISTORY.md (grep it; what left this file on 2026-11-21 is its last
+blocks). Rules that stay true: CLAUDE.md and .claude/rules/. Plans and their progress: PLAN-*.md.
 
-## START HERE (2026-11-21): P0 the moving-scenery plan session, then the tracker plan
+## START HERE (2026-11-21): the user's OK on PLAN-moving-scenery.md, then its step 1; the tracker plan
 
 **The user's goal (2026-11-19):** "have a great perception / tracking / data model in order to feed that into an
 ai to see how many hours of farming on a specific map with a specific class and style are needed to teach it to
@@ -20,8 +20,9 @@ simulator once it exists.
 |---|---|---|---|---|
 | 1 | The rules write-up -> `docs/game_rules.md` | Opus, high | DONE 2026-11-21, merged into `dev` | - |
 | 2 | One replay of the bank, kept, + today's tracker scored on it -> `REPORT-track-before.md` | Opus, high | DONE 2026-11-21, merged into `dev` | - |
-| **P0** | **The moving-scenery plan session: a design for both moving backgrounds behind the mobs and Perion's clouds in front of them -> `PLAN-moving-scenery.md` filled, PROPOSED until the user's OK.** The ideas in it are optional (the user: a fresh look) | Fable, max | **NEXT**, on `dev`. GPU prototypes: not while the user records | the block at the bottom of `PLAN-moving-scenery.md` |
-| 3 | The tracker plan session -> `PLAN-tracker.md`, PROPOSED until the user's OK | Fable, max | after P0, and after the user has written the tracker's definition and goals into its prompt (Waiting on the user) | `docs/prompts/tracker-plan.md` |
+| P0 | The moving-scenery plan session -> `PLAN-moving-scenery.md` | Fable, max | DONE 2026-11-21: the plan is filled, **PROPOSED until the user's OK**; its tools are on branch `moving-scenery` | - |
+| **P0.1-5** | **The plan's steps 1-5, one executor session each:** 1 the pictures right (the forest maps sound), 2-3 moving backs drawn and followed (40 maps hunt), 4-5 Perion's clouds followed and undone (42 maps hunt). Steps 4-5 need the user's Perion recording | Opus | **NEXT, after the OK**; branch `moving-scenery` | `PLAN-moving-scenery.md`, "Session prompts" |
+| 3 | The tracker plan session -> `PLAN-tracker.md`, PROPOSED until the user's OK | Fable, max | after the user has written the tracker's definition and goals into its prompt (Waiting on the user) | `docs/prompts/tracker-plan.md` |
 | 4 | The tracker built in shadow beside today's, switched when it matches or beats it. Beside it, at any time: the viewer (PLAN-livemap.md Session 1 - its prompt says "from the current head of `perception`": use `dev`), then the engine's own plan session (the engine outputs the tracker's state description) | Opus | after 3 | PLAN-tracker.md, PLAN-livemap.md |
 | 5 | FSM or clone, decided on what both score in the simulator and live | - | open | - |
 
@@ -47,47 +48,40 @@ simulator once it exists.
   (Cosmic: respawn, aggro, drop lifetime, EXP) until a job needs it.**
 - **PLAN-data's camera stop rule (2026-11-21):** counted from the first fix after a portal to the exit fade (the
   ~1 s blind start and the fade do not count) - OK'd as read in REPORT-track-before.md section 3.
-- **Moving scenery = two problems, one plan, P0 (2026-11-21).** (1) Moving backgrounds BEHIND the mobs (sky
-  clouds, light rays, portals): they should stop bothering perception; (2) Perion's clouds IN FRONT of the mobs:
-  mobs found through them, or "covered by cloud" as a fact. `PLAN-moving-scenery.md` = goal + facts + the
-  planner's prompt; the ideas from the conversation that set it are marked OPTIONAL - the user wants a Fable max
-  session to take a fresh look and design a solution for both. The tracker is designed on the 13 sound captures
-  until it is built.
+- **Moving scenery = two problems, one plan, P0 (2026-11-21).** (1) Moving backgrounds BEHIND the mobs: they
+  should stop bothering perception; (2) Perion's clouds IN FRONT of the mobs: mobs found through them, or
+  "covered by cloud" as a fact. The tracker is designed on the 13 sound captures until the plan is built.
 
 ### What the next sessions build on
-- **The footage for the tracker (recorded 2026-11-21).** `20261121_000219_2#0`: **Line 1 <Area 1>, 30.6 minutes
-  of the user's farming, one stay** - 110,082 frames at 60.0 a second, 0 dropped, 10.8 GB; 835 presses of `q`,
-  679 of `z` (pickup), 130 of `e`, 30 of `w`, potions 62 MP / 25 HP; no pet, other players on the map, one 1.2 s
-  pause at 1,476 s (the game lost focus). `20261120_235747_1#0`: the same map, 4.2 minutes, 0 dropped. Bank: 19
-  recordings, 50 captures, 93 minutes, 31.9 GB (F: ~240 GB free). Before these two the longest farming capture
-  at the full rate was 2.9 minutes.
-- **Loot scenes 1-2 were answered from the 30-minute capture** (PLAN-loot.md section 13's result block): a drop
-  left alone lies 2 minutes (40 of 40 went 118.5-128.5 s after coming to rest, removed in rounds ~10.1 s apart;
-  none earlier), it fades out in place over ~1 s; our own pickup = a hop up toward us for ~0.5 s, then a short
-  fade, from within ~50 px at the drop's height. Tools: `tools/loot/life_capture.py`, `end_sheet.py`; the replay
-  rows (every 3rd frame) are in `F:\dev\maple-corpus\work\20261121_000219_2#0\replay\loot3.jsonl`.
-- **`docs/game_rules.md`**: the game's rules as v83 code has them, in px and seconds, each with
-  its source line and the client-file field it reads - sections A-K (our movement, being hit, mobs' movement, a
-  mob that was hit, spawning, our attacks + every Warrior / Spearman skill in the client files, EXP, drops,
-  potions, the camera, clocks) and three tables (every mob.json / map.json / Physics.img field -> its rule; our
-  code against the rules; the questions). `tools/cwdata/export.ps1` now also exports `Skill\130.img.xml` and
-  `String\Skill.img.xml` (re-run clean; `assets build` not re-run). **Open = its table 3, 21 questions.** The
-  ones that shape the next sessions: how a mob with aggro moves and attacks is in no source (HeavenClient has
-  the flag only); mob movement exists only in HeavenClient's approximated physics (top speed (speed + 100) x
-  0.625 px/s, a decision every > 1.6 s, knockback ~27 px in 0.25 s); the walk range `rx0`/`rx1`, `fs`,
-  `summonType`, `mobRate` are read by no source; Cosmic's respawn numbers (a round every 10 s, 75 % of the spawn
-  points with one player) are that emulator's config and design; Classic World's skill list is not v83's; which
+- **`PLAN-moving-scenery.md` (PROPOSED 2026-11-21: measured and prototyped, nothing built in `maplebrain/`).**
+  The forest maps hold no moving scenery: one flat picture's colour is exported wrong (the sky) and Ellinia's
+  light rays are an ADDED layer - both right, 9 of 9 forest captures are sound. A moving back keeps its exact
+  colours and goes `5 x rx` px a second along the map: drawn in and followed each frame, the fit finds what
+  stands in front of it (+27 % sightings on Kerning's construction site, none lost). Perion's clouds in front =
+  the client's 7 weather cloud pictures (42 maps), each cloud at its own constant opacity and speed, never
+  opaque: undone, the fit finds the mobs under them (174 of 174 test mobs). About +3 ms a frame on Perion. After
+  steps 1-5, 82 of the 95 refused maps hunt. Tools: `tools/perc/scenery/` on branch `moving-scenery`; results
+  and by-eye sheets: `F:\dev\maple-corpus\work\scenery\`.
+- **The footage for the tracker:** `20261121_000219_2#0`, Line 1 <Area 1>, 30.6 minutes of the user's farming
+  in one stay (110,082 frames at 60 a second, 0 dropped), and `20261120_235747_1#0` (the same map, 4.2 minutes) -
+  both at today's graphics settings. Bank: 19 recordings, 50 captures, 93 minutes, 31.9 GB (`corpus.py list`).
+- **Loot scenes 1-2 are answered** (PLAN-loot.md section 13's result block): a drop left alone lies 2 minutes
+  and fades out in place; our own pickup = a hop up toward us, then a short fade.
+- **`docs/game_rules.md`**: the game's rules as v83 code has them, in px and seconds, each with its source line
+  and the client-file field it reads (sections A-K, three tables). **Open = its table 3, 21 questions.** The ones
+  that shape the next sessions: how a mob with aggro moves and attacks is in no source; mob movement exists only
+  in HeavenClient's approximated physics; the walk range `rx0`/`rx1`, `fs`, `summonType`, `mobRate` are read by
+  no source; Cosmic's respawn numbers are that emulator's own; Classic World's skill list is not v83's; which
   skills are on `w` / `e`.
 - **The kept replay + the "before" numbers (`REPORT-track-before.md`, branch `tracker`).** Today's Perceiver,
   unchanged, over every frame of 23 captures (204,131 frames, 2.5 GB) in `F:\dev\maple-corpus\work\SESSION#K\track\`:
   per frame the camera, us, the fit's mobs, today's tracks and looks, drops, patches and the two bitmaps - a
   prototype runs from it with no GPU (`tools/perc/track/dump.py`, `load.ticks`). Perception is **sound on 13
-  captures** (caves, dungeons, both Line 1); **not sound on every Victoria Road forest map** (sky / clouds / light
-  rays: 80-93 % explained) nor on Cave of Evil Eye III (camera lost). Today's tracker, pooled over the 13: FOUND
+  captures** (caves, dungeons, both Line 1); not sound on the 9 forest captures (PLAN-moving-scenery.md's step 1
+  makes them sound) nor on Cave of Evil Eye III (camera lost). Today's tracker, pooled over the 13: FOUND
   96.4 %, HELD 96.8 % across <= 0.1 s but 31 % across 0.6-1.5 s, **64 % of mob lives on one track**, ghosts 1.4 %,
   an unwitnessed death stays "alive" p90 5.9 s. The truth checked by eye on 60 cases: gaps 21 right / 0 wrong / 19
-  can't tell (mostly off screen), ends 15 / 3 / 2. Tools: `tools/perc/track/` (`score.py --pool`, `e12_why.py`,
-  `sound.py`, `sheets.py`, `oracle.py`).
+  can't tell (mostly off screen), ends 15 / 3 / 2. Tools: `tools/perc/track/`.
 
 ### Proposed by Claude in the planning sessions (the user works along it; not OK'd as a whole)
 - **One description of the game's state, three programs around it:** the tracker (the game's screen -> the
@@ -110,8 +104,8 @@ simulator once it exists.
   look), so each frame's facts are computed once and a tracker change re-runs in seconds.
 - **Parked until the FSM-or-clone decision:** REWORKS.md's Execution and Brain reworks, v3 steps 4-6 (the FSM
   path); hours of recordings on one map, the dataset builder, the training code (the clone path). Parked without
-  a date: Perion's moving clouds, wide maps, by-eye validation of every map (PLAN-data Sessions 2-3: only its
-  automatic half runs, inside step 2's prompt), the one gate list on the bank, the CPU mode.
+  a date: wide maps, by-eye validation of every map (PLAN-data Sessions 2-3: only its automatic half runs,
+  inside step 2's prompt), the one gate list on the bank, the CPU mode.
 
 ## Open items (not scheduled; the detail is in the named file, or in HISTORY.md under the quoted words)
 - **A lost scene camera** releases every key until it is found again, even on a 1-tick miss: to be handled as
@@ -120,9 +114,8 @@ simulator once it exists.
   `q` / `c` until they are.
 - **Wide maps:** F7 now recognises maps whose minimap scrolls sideways; whether the locator and perception work
   on them is untested.
-- **The Victoria Road forest maps are "clean" yet not sound** (REPORT-track-before.md section 3): moving clouds
-  in the sky (Henesys side), the light rays (The Field South of Ellinia), an animated portal - 80-93 % of the
-  scenery explained, against >= 95.6 % on caves / dungeons / the subway. Not investigated further.
+- **Left unknown by PLAN-moving-scenery.md:** animated objects (76 maps, under 0.8 % of the play area) and
+  portals (its optional step 7); why a few moving backs creep against their law (followed each frame: harmless).
 - **The scene camera waits ~1 s on every map entry** (the map is on screen before our character is drawn; the
   first seed needs our tag), and **after a 6.4 s hole in a recording it never came back** (Cave of Evil Eye III,
   `20261118_232410_1#11`: 22 s blind). REPORT-track-before.md, "What surprised me" 1-2.
@@ -137,15 +130,17 @@ simulator once it exists.
   unfocused, and there is no capture watchdog; a phone alert on a Lie Detector.
 
 ## Branches (2026-11-21)
-- `dev` holds everything: the rules write-up (`rules`) and this file layout (`claude-arch`,
-  claude_architecture.md) were merged into it on 2026-11-21, fast-forward, on the user's word. Both branches can
-  be deleted; the `claude-arch` worktree is already removed. One other worktree is registered: `wt64`, detached
-  at 64f9713, in another session's scratchpad - not this layout's; leave it to that session.
-- `tracker` (step 2: the ported `tools/perc/track/`, REPORT-track-before.md) was merged into `dev` on 2026-11-21,
-  fast-forward, on the user's word; both point at the same commit. `data` is merged into `dev`.
+- `dev` holds everything: `rules`, `claude-arch`, `tracker` and `data` are merged into it (2026-11-21, on the
+  user's word) and can be deleted. One worktree is registered that is not this layout's: `wt64`, detached at
+  64f9713, in another session's scratchpad - leave it to that session.
+- `moving-scenery` (e25a820, off `dev`, pushed, not merged): `tools/perc/scenery/` only - the plan session's
+  measurements and prototypes. The plan's executor steps continue on it.
 - `main` has not moved since 2026-11-09 (02a639a) and has no CLAUDE.md. Parked: `vnc-keys` (the VM attempt).
 
 ## Waiting on the user
+- **PLAN-moving-scenery.md: the OK** (or changes) and its three questions (its last section). **A recording:
+  Perion Street Corner, 5+ minutes of farming at today's settings** (the first ~20 s standing still, the whole
+  map crossed once) - needed before the plan's step 4; step 1 can start without it.
 - **Define the tracker and its goals explicitly, before step 3 runs.** The user's own words, written into
   `docs/prompts/tracker-plan.md`: what the tracker is, what it must output, how good it must be. Today that
   prompt has no goals of its own - it inherits the 7 points under "Proposed by Claude", never OK'd as a whole.

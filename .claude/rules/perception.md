@@ -30,6 +30,8 @@ paths:
   players' 0 %. The recorder cannot read the game's settings: an older capture is at the normal settings.
 - **The tracker is about to be redesigned** (HANDOFF.md): don't tune or extend `world.py`'s timeouts for the
   long term. Drops are part of that redesign; `drops.py` runs in shadow and nothing reads it yet.
-- Not explained yet: The Field South of Ellinia - about 20 % of the play area is off the scene model (light
-  rays) although the map counts as clean. Pixel counts of "unexplained" there need a paired before / after.
+- Until PLAN-moving-scenery.md's step 1 is built, two pictures are drawn wrong on maps that count as clean:
+  Ellinia's light rays (an ADDED layer laid over instead: ~20 % of the play area off on The Field South of
+  Ellinia) and the Henesys-side forests' sky (the export writes the wrong colour). Pixel counts of "unexplained"
+  there need a paired before / after. Nothing moves on those maps.
 - The plan and its measured experiments: PLAN-perception.md; drops: PLAN-loot.md.
