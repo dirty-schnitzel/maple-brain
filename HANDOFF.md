@@ -137,4 +137,9 @@ simulator once it exists.
 - `main` has not moved since 2026-11-09 (02a639a) and has no CLAUDE.md. Parked: `vnc-keys` (the VM attempt).
 
 ## Waiting on the user
-Nothing blocks. More walks for the bank are welcome (`python -m maplebrain record --label NAME`, chat minimized).
+- Merge `tracker` into `dev` (or run step 3 on `tracker`).
+- Two readings of PLAN-data's stop rules made in step 2 (REPORT-track-before.md section 3), to confirm or change:
+  "explained" = map places the scene model misses most of the time they are in view (what moves over the
+  scenery does not count); the camera counted from its first fix after a portal (read literally, 5 more cave
+  captures would be "not sound" for their first second).
+- More walks for the bank are welcome (`python -m maplebrain record --label NAME`, chat minimized).
