@@ -1,10 +1,10 @@
 # maplebrain
 
-A vision-only mob farmer for MapleStory Classic World (official GMS Classic, launched 2026-10-21): it reads the
-screen and sends key presses, never memory or packets. The user supervises every run at the PC. Botting is against
-Nexon's ToS; the ban risk is the user's call. **The goal is the knowledge and the software, not the game** (the
-user, 2026-11-15): perception, tracking and a data model good enough to teach an AI to farm a map, then to
-benchmark models at that job.
+A MapleStory end-to-end human-emulation project, on MapleStory Classic World (official GMS Classic, launched
+2026-10-21). The goal is twofold (the user, 2026-11-21): to create the most realistic software in the world that
+automatically plays in a 2D combat game setting, specifically MapleStory; and to assess the viability and
+effectiveness of AI models and other software solutions in mimicking human gameplay. The focus is strictly the
+software and its performance: the loss of characters, items or play time is secondary.
 
 The current state and the next step are in HANDOFF.md, loaded at the end of this file. Where everything else
 lives: the last section.
@@ -13,38 +13,18 @@ lives: the last section.
 - Senior Python test-automation dev (Windows, infra, security QA). Wants evidence - logs, frames, numbers - and
   test-first fixes. Watches every live run and says what they saw. Their game knowledge fixes designs: ask game
   questions directly.
-- Reports are short: what was found, the fix, the command to run. Give each term one plain sentence the first
-  time it appears, in game terms ("REST = an item lying on a platform"), never a plan's shorthand alone.
-- The live loop: the user places the character and says go -> a short run (about 3 minutes, frames saved) ->
-  log.txt / ticks.jsonl / frames -> reproduce offline or as a test -> fix -> pytest green -> the next run.
+- Reports are short: what was found, the fix, the command.
 - Hard problems run as two kinds of session. A planner (Fable, max) measures and prototypes first, then writes
   PLAN-<topic>.md with a gate per step, stop rules and session prompts: PROPOSED until the user's OK, nothing
-  built in maplebrain/. An executor (Opus) follows the plan's steps and gates exactly and stops with numbers
+  built in maplebrain/. An executor (Opus, or Fable at medium) follows the plan's steps and gates exactly and stops with numbers
   when one fails - no workarounds. Redoing a whole pillar: REWORKS.md first.
 - Do no work that a later step of the plan replaces.
-- Decided, not to be re-argued: no fixed timings anywhere (every press and wait is randomised); attack every
-  mob, no kill-steal avoidance; decisive like a player; no left-right-left-right; plain attack by default; better
-  evidence and simpler mechanics over new rule layers; game rules come from v83 code and our client files
-  (docs/game_rules.md), never from guesses, and measuring them from footage is not a precondition.
-- Not arguments against a design: account risk, being reported, "the scripted one works" (the user, 2026-11-15).
-
-## Rules that protect the account and the user's time
-- `maplebrain watch` is the Lie Detector siren. It runs all session, between runs too: never stop it. Never
-  stop `record` either, and never touch a recording that is still being written.
-- Before a live test, stop a running `run` / `serve` only - picked by command line, without asking:
-  `Get-CimInstance Win32_Process -Filter "Name='python.exe'" | ? { $_.CommandLine -match 'maplebrain (run|serve)' } | % { Stop-Process -Id $_.ProcessId -Force }`
-- Input that does not look like normal play (probes, test patterns): say what it will do and where before
-  starting it. Only input a real hand on a real keyboard could make: a key is pressed for real or not at all.
-- No anti-cheat evasion (hiding the injected flag, hardware spoofing); nothing that reads the game's memory or
-  packets; never touch the game's or the anti-cheat's processes.
-- The Lie Detector is an account flag, not a reaction to behaviour (the user, 2026-11-16): never a metric, never
-  evidence that a change is wrong. The bot does not answer it: the siren calls the user. A reported miss is
-  checked frame by frame before any explanation is offered.
 
 ## Git
-- Work on a side branch; commit and push there without asking once pytest is green (a docs-only commit needs no
-  pytest). The user merges into `dev` and `main`. Never commit to or rewrite `main`. A big change starts on a
-  new branch.
+- Code: work on a side branch; commit and push there without asking once pytest is green. The user merges into
+  `dev` and `main`. Never commit to or rewrite `main`. A big change starts on a new branch.
+- Docs only (HANDOFF.md, CLAUDE.md, `.claude/rules/`, plans, `docs/`): commit and push straight on `dev`, no
+  pytest needed.
 - No Claude attribution of any kind in commits or PRs. The commit email stays the GitHub no-reply address set in
   .git/config.
 - Other sessions may be working in this folder at the same time. Leave files you did not create alone, and do
@@ -99,10 +79,6 @@ A hunt writes `<out>\<date_time>_<n>\`: log.txt, ticks.jsonl, frames. Analysis t
   (`bench.py --baseline`) only for a deliberate speed change, in the same commit. One GPU job at a time while a
   speed number is being measured.
 - A live run shows that a change works; replays of recorded footage decide whether it is better.
-- The reference for detection and tracking accuracy is a look by eye (labels, `tools/perc/label_eval.py`), never
-  another tool's agreement.
-- Kills are counted by our last hit. EXP is shared by damage and by party: never a kill count or a quality
-  number. Lie Detector counts measure nothing.
 - To prove a test catches a bug: revert the fix, see the test fail, restore.
 
 ## Editing gotchas

@@ -20,6 +20,8 @@ paths:
 - **Replays decide.** A change to perception is judged by the same recorded frames before and after
   (`tools/perc/replay/gate.py`, `tools/perc/replay/README.md`); a live run only shows that it works. Reference
   recordings are lossless (PNG or the bank's video): JPEG is useless for colour-exact work.
+- **Kills are counted by our last hit.** EXP is shared by damage and by party: never a kill count or a quality
+  number.
 - **Bot speed:** report the `bot speed` line after every change here. When it looks far off, check the machine
   before the code (CLAUDE.md, "Measuring").
 - **The chat is minimized** in play and in every recording: its rectangle shows game world, so it is not masked.
