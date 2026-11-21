@@ -27,7 +27,8 @@ the point belongs in) on the spot. The places where the writer had to choose:
 - Two proposals of the review are still unanswered: commit subjects under 72 characters with the details in
   the body, and `/goal` for executor sessions (claude_architecture.md, section 4).
 
-When the skim is done, remove this block and go on with step 2 below.
+When the skim is done, delete only this paragraph with its list (from "First in the next session" down to this
+line) and row 0 of the table - the rest of START HERE stays - and go on with step 2.
 
 **The user's goal (2026-11-19):** "have a great perception / tracking / data model in order to feed that into an
 ai to see how many hours of farming on a specific map with a specific class and style are needed to teach it to
