@@ -4472,3 +4472,12 @@ When the skim is done, delete only this paragraph with its list (from "First in 
 line) and row 0 of the table - the rest of START HERE stays - and go on with step 2.
 
 Row 0 of the order table: `| 0 | Skim CLAUDE.md with the user (the block above) | any | FIRST | - |`
+
+## 2026-11-21 - the kept replay of the bank (moved from HANDOFF.md)
+
+- **`tools/perc/track/`** (untracked in the main folder, left by the tracker plan session that was stopped on
+  2026-11-17): the hindsight truth and the scoring prototypes. Step 2's prompt ports and commits it.
+- **The Field South of Ellinia:** about 20 % of the play area is off the scene model (the background's light
+  rays) although the map counts as clean; not investigated.
+- `data` is merged into `dev`. `tracker` is an old pointer: step 2 resets it to `dev`.
+- Step 2 (`docs/prompts/tracker-before.md`, Opus high) DONE 2026-11-21 on `tracker`: REPORT-track-before.md.

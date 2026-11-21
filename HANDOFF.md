@@ -5,7 +5,7 @@ what is true NOW and what comes NEXT. The `handoff` skill rewrites it at the end
 appended to. Everything older is in HISTORY.md (grep it; the handoff as it stood until 2026-11-21 is its last
 block). Rules that stay true: CLAUDE.md and .claude/rules/. Plans and their progress: PLAN-*.md.
 
-## START HERE (2026-11-21): the kept replay of the bank
+## START HERE (2026-11-21): the tracker plan session
 
 **The user's goal (2026-11-19):** "have a great perception / tracking / data model in order to feed that into an
 ai to see how many hours of farming on a specific map with a specific class and style are needed to teach it to
@@ -19,8 +19,8 @@ simulator once it exists.
 | # | Session | Run as | Status | Prompt |
 |---|---|---|---|---|
 | 1 | The rules write-up -> `docs/game_rules.md` | Opus, high | DONE 2026-11-21, merged into `dev` | - |
-| 2 | One replay of the bank, kept, + today's tracker scored on it -> `REPORT-track-before.md` | Opus, high | NEXT. About an hour of GPU: best while the user is not recording. Branch `tracker` | `docs/prompts/tracker-before.md` |
-| 3 | The tracker plan session -> `PLAN-tracker.md`, PROPOSED until the user's OK | Fable, max | after 2 | `docs/prompts/tracker-plan.md` |
+| 2 | One replay of the bank, kept, + today's tracker scored on it -> `REPORT-track-before.md` | Opus, high | DONE 2026-11-21 on `tracker` (pushed, not merged) | - |
+| 3 | The tracker plan session -> `PLAN-tracker.md`, PROPOSED until the user's OK | Fable, max | NEXT. On `tracker`, or on `dev` once the user merged it (the report and `tools/perc/track/` are only there) | `docs/prompts/tracker-plan.md` |
 | 4 | The tracker built in shadow beside today's, switched when it matches or beats it. Beside it, at any time: the viewer (PLAN-livemap.md Session 1 - its prompt says "from the current head of `perception`": use `dev`), then the engine's own plan session (the engine outputs the tracker's state description) | Opus | after 3 | PLAN-tracker.md, PLAN-livemap.md |
 | 5 | FSM or clone, decided on what both score in the simulator and live | - | open | - |
 
@@ -69,8 +69,16 @@ simulator once it exists.
   `summonType`, `mobRate` are read by no source; Cosmic's respawn numbers (a round every 10 s, 75 % of the spawn
   points with one player) are that emulator's config and design; Classic World's skill list is not v83's; which
   skills are on `w` / `e`.
-- **`tools/perc/track/`** (untracked in the main folder, left by the tracker plan session that was stopped on
-  2026-11-17): the hindsight truth and the scoring prototypes. Step 2's prompt ports and commits it.
+- **The kept replay + the "before" numbers (`REPORT-track-before.md`, branch `tracker`).** Today's Perceiver,
+  unchanged, over every frame of 23 captures (204,131 frames, 2.5 GB) in `F:\dev\maple-corpus\work\SESSION#K\track\`:
+  per frame the camera, us, the fit's mobs, today's tracks and looks, drops, patches and the two bitmaps - a
+  prototype runs from it with no GPU (`tools/perc/track/dump.py`, `load.ticks`). Perception is **sound on 13
+  captures** (caves, dungeons, both Line 1); **not sound on every Victoria Road forest map** (sky / clouds / light
+  rays: 80-93 % explained) nor on Cave of Evil Eye III (camera lost). Today's tracker, pooled over the 13: FOUND
+  96.4 %, HELD 96.8 % across <= 0.1 s but 31 % across 0.6-1.5 s, **64 % of mob lives on one track**, ghosts 1.4 %,
+  an unwitnessed death stays "alive" p90 5.9 s. The truth checked by eye on 60 cases: gaps 21 right / 0 wrong / 19
+  can't tell (mostly off screen), ends 15 / 3 / 2. Tools: `tools/perc/track/` (`score.py --pool`, `e12_why.py`,
+  `sound.py`, `sheets.py`, `oracle.py`).
 
 ### Proposed by Claude in the planning sessions (the user works along it; not OK'd as a whole)
 - **One description of the game's state, three programs around it:** the tracker (the game's screen -> the
@@ -103,8 +111,13 @@ simulator once it exists.
   `q` / `c` until they are.
 - **Wide maps:** F7 now recognises maps whose minimap scrolls sideways; whether the locator and perception work
   on them is untested.
-- **The Field South of Ellinia:** about 20 % of the play area is off the scene model (the background's light
-  rays) although the map counts as clean; not investigated.
+- **The Victoria Road forest maps are "clean" yet not sound** (REPORT-track-before.md section 3): moving clouds
+  in the sky (Henesys side), the light rays (The Field South of Ellinia), an animated portal - 80-93 % of the
+  scenery explained, against >= 95.6 % on caves / dungeons / the subway. Not investigated further.
+- **The scene camera waits ~1 s on every map entry** (the map is on screen before our character is drawn; the
+  first seed needs our tag), and **after a 6.4 s hole in a recording it never came back** (Cave of Evil Eye III,
+  `20261118_232410_1#11`: 22 s blind). REPORT-track-before.md, "What surprised me" 1-2.
+- **The chat was open** in the 2026-11-18/19 exploration captures (mobs behind it seen through it or lost).
 - **PLAN-data.md:** a walk cut in the wrong place has no `refile` command (a fix by hand); "ONE gate list" on
   the bank instead of four lists of `runs/` paths is agreed as a future plan session - until then the PNG
   recordings under `runs/` stay.
@@ -119,7 +132,8 @@ simulator once it exists.
   claude_architecture.md) were merged into it on 2026-11-21, fast-forward, on the user's word. Both branches can
   be deleted; the `claude-arch` worktree is already removed. One other worktree is registered: `wt64`, detached
   at 64f9713, in another session's scratchpad - not this layout's; leave it to that session.
-- `data` is merged into `dev`. `tracker` is an old pointer: step 2 resets it to `dev`.
+- `tracker` = `dev` + step 2 (the ported `tools/perc/track/`, REPORT-track-before.md, this handoff), pushed; for
+  the user to merge into `dev`. `data` is merged into `dev`.
 - `main` has not moved since 2026-11-09 (02a639a) and has no CLAUDE.md. Parked: `vnc-keys` (the VM attempt).
 
 ## Waiting on the user
