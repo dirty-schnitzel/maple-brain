@@ -2,7 +2,7 @@
 
 Decided with the user on 2026-11-21, after a review of the repo and of 117 past sessions. This file is the plan
 and its state: come back to it to see what was decided, what is built, what is still to do, and how to tell
-whether it works. Built on branch `claude-arch` (off `rules`); the user merges.
+whether it works. Built on branch `claude-arch` (off `rules`) and merged into `dev` on 2026-11-21.
 
 ## 1. Why
 
@@ -154,8 +154,7 @@ tried on this machine yet.
 
 ## 8. Merging
 
-1. Merge `rules` into `dev` (already planned), then `claude-arch` into `dev`: it contains `rules`, so it merges
-   clean.
+1. Done 2026-11-21: `rules` and `claude-arch` are in `dev` (fast-forward; the user: "merge all").
 2. A branch that was made before the split and added a paragraph to the old HANDOFF.md will conflict on that
    file. Keep the new HANDOFF.md and file the paragraph with the `handoff` skill (state -> HANDOFF.md, results
    -> the plan or a report, the rest -> HISTORY.md).
@@ -166,7 +165,9 @@ tried on this machine yet.
 - [x] 0. This file.
 - [x] 1. The split: CLAUDE.md, HANDOFF.md, `.claude/rules/`, HISTORY.md, `docs/prompts/`.
 - [x] 2. The `handoff` skill and the `run-analyst` agent (+ `corpus-check`, `session_stats.py`).
-- [ ] The user reviews and merges `claude-arch` (section 8).
+- [x] Merged into `dev` (2026-11-21, section 8).
+- [ ] The first session on the new layout skims CLAUDE.md with the user (HANDOFF.md, START HERE: the user asked
+      for it as that session's first directive) and settles the open points listed there.
 - [ ] First sessions on the new layout: no "read handoff" at the start; "update handoff" at the end; HANDOFF.md
       still under 150 lines afterwards.
 - [ ] First live run: its logs and frames go through `run-analyst`.
