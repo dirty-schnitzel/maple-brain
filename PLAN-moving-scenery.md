@@ -2,8 +2,8 @@
 
 **Status: PROPOSED (2026-11-21, the plan session: measured and prototyped, nothing built in `maplebrain/`).**
 Waiting on the user's OK, and on footage for steps 4-6 (the last section). Priority: **P0**, before the tracker
-plan session. Tools and their README: `tools/perc/scenery/` on branch `moving-scenery`; results, sheets and cached
-cameras: `F:\dev\maple-corpus\work\scenery\`.
+plan session. Tools and their README: `tools/perc/scenery/` (merged into `dev` 2026-11-21; the steps below work
+on branch `moving-scenery`); results, sheets and cached cameras: `F:\dev\maple-corpus\work\scenery\`.
 
 ## In short
 - **The Victoria Road forest maps have no moving scenery.** Two things were drawn wrong: the export decodes one

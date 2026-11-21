@@ -4531,3 +4531,9 @@ DONE 2026-11-21: the plan is filled (PROPOSED), its tools are on branch `moving-
   at 64f9713, in another session's scratchpad - not this layout's; leave it to that session.
 - `tracker` (step 2: the ported `tools/perc/track/`, REPORT-track-before.md) was merged into `dev` on 2026-11-21,
   fast-forward, on the user's word; both point at the same commit. `data` is merged into `dev`.
+
+## 2026-11-21 - `moving-scenery` merged into `dev` (moved from HANDOFF.md)
+
+- `moving-scenery` (e25a820, off `dev`, pushed, not merged): `tools/perc/scenery/` only - the plan session's
+  measurements and prototypes. The plan's executor steps continue on it.
+  (Merged into `dev` the same day, on the user's word: `/handoff push everything to dev`.)

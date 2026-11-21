@@ -20,7 +20,7 @@ simulator once it exists.
 |---|---|---|---|---|
 | 1 | The rules write-up -> `docs/game_rules.md` | Opus, high | DONE 2026-11-21, merged into `dev` | - |
 | 2 | One replay of the bank, kept, + today's tracker scored on it -> `REPORT-track-before.md` | Opus, high | DONE 2026-11-21, merged into `dev` | - |
-| P0 | The moving-scenery plan session -> `PLAN-moving-scenery.md` | Fable, max | DONE 2026-11-21: the plan is filled, **PROPOSED until the user's OK**; its tools are on branch `moving-scenery` | - |
+| P0 | The moving-scenery plan session -> `PLAN-moving-scenery.md` | Fable, max | DONE 2026-11-21: the plan is filled, **PROPOSED until the user's OK**; its tools are merged into `dev` | - |
 | **P0.1-5** | **The plan's steps 1-5, one executor session each:** 1 the pictures right (the forest maps sound), 2-3 moving backs drawn and followed (40 maps hunt), 4-5 Perion's clouds followed and undone (42 maps hunt). Steps 4-5 need the user's Perion recording | Opus | **NEXT, after the OK**; branch `moving-scenery` | `PLAN-moving-scenery.md`, "Session prompts" |
 | 3 | The tracker plan session -> `PLAN-tracker.md`, PROPOSED until the user's OK | Fable, max | after the user has written the tracker's definition and goals into its prompt (Waiting on the user) | `docs/prompts/tracker-plan.md` |
 | 4 | The tracker built in shadow beside today's, switched when it matches or beats it. Beside it, at any time: the viewer (PLAN-livemap.md Session 1 - its prompt says "from the current head of `perception`": use `dev`), then the engine's own plan session (the engine outputs the tracker's state description) | Opus | after 3 | PLAN-tracker.md, PLAN-livemap.md |
@@ -60,8 +60,8 @@ simulator once it exists.
   stands in front of it (+27 % sightings on Kerning's construction site, none lost). Perion's clouds in front =
   the client's 7 weather cloud pictures (42 maps), each cloud at its own constant opacity and speed, never
   opaque: undone, the fit finds the mobs under them (174 of 174 test mobs). About +3 ms a frame on Perion. After
-  steps 1-5, 82 of the 95 refused maps hunt. Tools: `tools/perc/scenery/` on branch `moving-scenery`; results
-  and by-eye sheets: `F:\dev\maple-corpus\work\scenery\`.
+  steps 1-5, 82 of the 95 refused maps hunt. Tools: `tools/perc/scenery/` (its README); results and by-eye
+  sheets: `F:\dev\maple-corpus\work\scenery\`.
 - **The footage for the tracker:** `20261121_000219_2#0`, Line 1 <Area 1>, 30.6 minutes of the user's farming
   in one stay (110,082 frames at 60 a second, 0 dropped), and `20261120_235747_1#0` (the same map, 4.2 minutes) -
   both at today's graphics settings. Bank: 19 recordings, 50 captures, 93 minutes, 31.9 GB (`corpus.py list`).
@@ -133,8 +133,8 @@ simulator once it exists.
 - `dev` holds everything: `rules`, `claude-arch`, `tracker` and `data` are merged into it (2026-11-21, on the
   user's word) and can be deleted. One worktree is registered that is not this layout's: `wt64`, detached at
   64f9713, in another session's scratchpad - leave it to that session.
-- `moving-scenery` (e25a820, off `dev`, pushed, not merged): `tools/perc/scenery/` only - the plan session's
-  measurements and prototypes. The plan's executor steps continue on it.
+- `moving-scenery` (the plan session's `tools/perc/scenery/`) was merged into `dev` on 2026-11-21 on the user's
+  word; both point at the same commit. The plan's executor steps continue on it.
 - `main` has not moved since 2026-11-09 (02a639a) and has no CLAUDE.md. Parked: `vnc-keys` (the VM attempt).
 
 ## Waiting on the user
