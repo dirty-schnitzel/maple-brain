@@ -18,6 +18,7 @@ lives: the last section.
   PLAN-<topic>.md with a gate per step, stop rules and session prompts: PROPOSED until the user's OK, nothing
   built in maplebrain/. An executor (Opus, or Fable at medium) follows the plan's steps and gates exactly and stops with numbers
   when one fails - no workarounds. Redoing a whole pillar: REWORKS.md first.
+- An executor session whose gates Claude can check itself is started with `/goal <condition>`.
 - Do no work that a later step of the plan replaces.
 
 ## Git
@@ -25,6 +26,7 @@ lives: the last section.
   `dev` and `main`. Never commit to or rewrite `main`. A big change starts on a new branch.
 - Docs only (HANDOFF.md, CLAUDE.md, `.claude/rules/`, plans, `docs/`): commit and push straight on `dev`, no
   pytest needed.
+- Commit subjects stay under 72 characters; the details go in the body.
 - No Claude attribution of any kind in commits or PRs. The commit email stays the GitHub no-reply address set in
   .git/config.
 - Other sessions may be working in this folder at the same time. Leave files you did not create alone, and do

@@ -67,9 +67,9 @@ comments and the user's own words all say "handoff".
 | Hooks | **none** (the user, 2026-11-21) | the three proposed (block stopping `watch`, block `sed -i`, block commits on `main`) were declined. Reconsider when a written rule keeps being broken: a hook is a script Claude Code runs itself, so it can enforce what text only advises |
 | `live-test`, `assets-update` skills | not built | optional; build one when its procedure is next retyped |
 
-Not decided yet (proposed in the review, no answer): commit subjects under 72 characters with the details in the
-body (today's run to 1,300 characters, and the last five are loaded into every session); `/goal <condition>` for
-executor sessions whose gates Claude can check itself.
+Decided by the user on 2026-11-21 (both are in CLAUDE.md): commit subjects under 72 characters with the details
+in the body (they ran to 1,300 characters, and the last five are loaded into every session); `/goal <condition>`
+for executor sessions whose gates Claude can check itself.
 
 ## 5. Models, effort and context
 
