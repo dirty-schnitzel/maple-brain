@@ -44,6 +44,11 @@ simulator once it exists.
   movement values stand over v83's constants (`Nav.jump_vx` 155 etc.); the swing length stays
   `(10 + attackSpeed) / 16` for now, to be recalculated with the tracker; **no further work on server data
   (Cosmic: respawn, aggro, drop lifetime, EXP) until a job needs it.**
+- **PLAN-data's camera stop rule (2026-11-21):** counted from the first fix after a portal to the exit fade (the
+  ~1 s blind start and the fade do not count) - OK'd as read in REPORT-track-before.md section 3.
+- **Moving backgrounds (2026-11-21):** "effectively ignore moving backgrounds as efficiently as possible" -> its
+  own plan, `PLAN-moving-scenery.md` (PROPOSED, goal + facts + the planner's prompt), beside the tracker plan;
+  until it is done the tracker is designed on the 13 sound captures.
 
 ### What the next sessions build on
 - **The footage for the tracker (recorded 2026-11-21).** `20261121_000219_2#0`: **Line 1 <Area 1>, 30.6 minutes
@@ -137,9 +142,7 @@ simulator once it exists.
 - `main` has not moved since 2026-11-09 (02a639a) and has no CLAUDE.md. Parked: `vnc-keys` (the VM attempt).
 
 ## Waiting on the user
-- Merge `tracker` into `dev` (or run step 3 on `tracker`).
-- Two readings of PLAN-data's stop rules made in step 2 (REPORT-track-before.md section 3), to confirm or change:
-  "explained" = map places the scene model misses most of the time they are in view (what moves over the
-  scenery does not count); the camera counted from its first fix after a portal (read literally, 5 more cave
-  captures would be "not sound" for their first second).
+- The "explained" reading of PLAN-data's stop rule (REPORT-track-before.md section 3), to confirm or change:
+  map places the scene model misses on more than half of the frames that show them (what moves over the
+  scenery does not count). PLAN-moving-scenery.md assumes it.
 - More walks for the bank are welcome (`python -m maplebrain record --label NAME`, chat minimized).
