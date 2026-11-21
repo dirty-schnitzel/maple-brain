@@ -5,7 +5,7 @@ what is true NOW and what comes NEXT. The `handoff` skill rewrites it at the end
 appended to. Everything older is in HISTORY.md (grep it; the handoff as it stood until 2026-11-21 is its last
 block). Rules that stay true: CLAUDE.md and .claude/rules/. Plans and their progress: PLAN-*.md.
 
-## START HERE (2026-11-21): the tracker plan session
+## START HERE (2026-11-21): P0 the moving-scenery plan session, then the tracker plan
 
 **The user's goal (2026-11-19):** "have a great perception / tracking / data model in order to feed that into an
 ai to see how many hours of farming on a specific map with a specific class and style are needed to teach it to
@@ -19,8 +19,9 @@ simulator once it exists.
 | # | Session | Run as | Status | Prompt |
 |---|---|---|---|---|
 | 1 | The rules write-up -> `docs/game_rules.md` | Opus, high | DONE 2026-11-21, merged into `dev` | - |
-| 2 | One replay of the bank, kept, + today's tracker scored on it -> `REPORT-track-before.md` | Opus, high | DONE 2026-11-21 on `tracker` (pushed, not merged) | - |
-| 3 | The tracker plan session -> `PLAN-tracker.md`, PROPOSED until the user's OK | Fable, max | NEXT. On `tracker`, or on `dev` once the user merged it (the report and `tools/perc/track/` are only there) | `docs/prompts/tracker-plan.md` |
+| 2 | One replay of the bank, kept, + today's tracker scored on it -> `REPORT-track-before.md` | Opus, high | DONE 2026-11-21, merged into `dev` | - |
+| **P0** | **The moving-scenery plan session: a design for both moving backgrounds behind the mobs and Perion's clouds in front of them -> `PLAN-moving-scenery.md` filled, PROPOSED until the user's OK.** The ideas in it are optional (the user: a fresh look) | Fable, max | **NEXT**, on `dev`. GPU prototypes: not while the user records | the block at the bottom of `PLAN-moving-scenery.md` |
+| 3 | The tracker plan session -> `PLAN-tracker.md`, PROPOSED until the user's OK | Fable, max | after P0, and after the user has written the tracker's definition and goals into its prompt (Waiting on the user) | `docs/prompts/tracker-plan.md` |
 | 4 | The tracker built in shadow beside today's, switched when it matches or beats it. Beside it, at any time: the viewer (PLAN-livemap.md Session 1 - its prompt says "from the current head of `perception`": use `dev`), then the engine's own plan session (the engine outputs the tracker's state description) | Opus | after 3 | PLAN-tracker.md, PLAN-livemap.md |
 | 5 | FSM or clone, decided on what both score in the simulator and live | - | open | - |
 
@@ -46,11 +47,12 @@ simulator once it exists.
   (Cosmic: respawn, aggro, drop lifetime, EXP) until a job needs it.**
 - **PLAN-data's camera stop rule (2026-11-21):** counted from the first fix after a portal to the exit fade (the
   ~1 s blind start and the fade do not count) - OK'd as read in REPORT-track-before.md section 3.
-- **Moving scenery = two problems (2026-11-21).** (1) Moving backgrounds BEHIND the mobs (sky clouds, light
-  rays, portals): filter them out of perception -> `PLAN-moving-scenery.md` (PROPOSED, goal + facts + the
-  planner's prompt), beside the tracker plan; until it is done the tracker is designed on the 13 sound captures.
-  (2) Perion's clouds IN FRONT of the mobs: priority 2, after the tracker (the user's first idea: more sensitive
-  mob detection on those maps, at the price of more false positives).
+- **Moving scenery = two problems, one plan, P0 (2026-11-21).** (1) Moving backgrounds BEHIND the mobs (sky
+  clouds, light rays, portals): they should stop bothering perception; (2) Perion's clouds IN FRONT of the mobs:
+  mobs found through them, or "covered by cloud" as a fact. `PLAN-moving-scenery.md` = goal + facts + the
+  planner's prompt; the ideas from the conversation that set it are marked OPTIONAL - the user wants a Fable max
+  session to take a fresh look and design a solution for both. The tracker is designed on the 13 sound captures
+  until it is built.
 
 ### What the next sessions build on
 - **The footage for the tracker (recorded 2026-11-21).** `20261121_000219_2#0`: **Line 1 <Area 1>, 30.6 minutes
@@ -139,11 +141,14 @@ simulator once it exists.
   claude_architecture.md) were merged into it on 2026-11-21, fast-forward, on the user's word. Both branches can
   be deleted; the `claude-arch` worktree is already removed. One other worktree is registered: `wt64`, detached
   at 64f9713, in another session's scratchpad - not this layout's; leave it to that session.
-- `tracker` = `dev` + step 2 (the ported `tools/perc/track/`, REPORT-track-before.md, this handoff), pushed; for
-  the user to merge into `dev`. `data` is merged into `dev`.
+- `tracker` (step 2: the ported `tools/perc/track/`, REPORT-track-before.md) was merged into `dev` on 2026-11-21,
+  fast-forward, on the user's word; both point at the same commit. `data` is merged into `dev`.
 - `main` has not moved since 2026-11-09 (02a639a) and has no CLAUDE.md. Parked: `vnc-keys` (the VM attempt).
 
 ## Waiting on the user
+- **Define the tracker and its goals explicitly, before step 3 runs.** The user's own words, written into
+  `docs/prompts/tracker-plan.md`: what the tracker is, what it must output, how good it must be. Today that
+  prompt has no goals of its own - it inherits the 7 points under "Proposed by Claude", never OK'd as a whole.
 - The "explained" reading of PLAN-data's stop rule (REPORT-track-before.md section 3), to confirm or change:
   map places the scene model misses on more than half of the frames that show them (what moves over the
   scenery does not count). PLAN-moving-scenery.md assumes it.
