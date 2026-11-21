@@ -11,7 +11,8 @@ paths:
   (maplestory.io) had bugs and is gone: never bring it back. What the files hold: `assets/README.md`.
 - **The steps after a game patch:** `assets/README.md`. In short: the copy of the client's Data folder at
   `C:\Users\Yoav\dev\cw-data\Data` (never open the install itself) -> `$env:DOTNET_ReadyToRun=0; pwsh -NoProfile
-  -File tools\cwdata\export.ps1` -> `python -m maplebrain assets build` -> read `changes.txt`, run pytest.
+  -File tools\cwdata\export.ps1` -> `python -m maplebrain assets build` -> `python -m maplebrain assets scene`
+  (every map: `assets/scene` is not in git, a partial build goes unnoticed) -> read `changes.txt`, run pytest.
 - **Export gotchas:** the key is `WzMapleVersion.BMS` (GMS / EMS report success and give garbled names); pwsh
   needs `DOTNET_ReadyToRun=0` or it crashes; call MapleLib from PowerShell, don't compile C# against it.
 - **Game rules** (how we and the mobs move, hits, spawning, drops, EXP) come from v83 code - HeavenClient for
