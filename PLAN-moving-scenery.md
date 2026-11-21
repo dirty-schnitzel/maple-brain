@@ -9,8 +9,14 @@ Two different problems; this plan is only the first:
 1. **Moving backgrounds - drawn BEHIND the mobs** (drifting sky clouds, light rays, animated objects, portals).
    They never cover a mob, so once perception knows them they simply stop bothering it. **This plan.**
 2. **Perion's clouds - drawn IN FRONT of the mobs** (they obstruct them). Not this plan: priority 2, after the
-   tracker. The user's first idea for it: more sensitive mob detection on those maps, at the price of possibly
-   more false positives.
+   tracker. Ideas for it (2026-11-21): the user's - a fallback detector, more sensitive, run only on the fuzzy /
+   covered areas (after the map is subtracted, a see-through cloud is a pale patch with the mob's outline under
+   it); Claude's variant - the cloud is a known picture with a known alpha moving at a known speed, so once its
+   place on the frame is found (its drift phase is not known: fitted per layer, like the camera) it can be
+   undone, behind = (frame - cloud x alpha) / (1 - alpha), with each pixel's detection threshold set by how
+   thick the cloud is there; near-opaque parts = the fact "covered by cloud" for the tracker. The user's
+   fallback stays for when the cloud cannot be placed exactly. It builds on this plan's "where is a moving layer
+   on this frame".
 
 The line between the two is the draw order: behind the mobs or in front of them. The client files probably say
 which (a back entry's `front` flag); step 1 checks that against footage. A moving layer in front of the mobs on
