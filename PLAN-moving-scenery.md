@@ -1,6 +1,7 @@
 # PLAN-moving-scenery: perception on maps whose scenery moves
 
-**Status: PROPOSED (2026-11-21, the plan session: measured and prototyped, nothing built in `maplebrain/`).**
+**Status: OK'd by the user 2026-11-21 ("execute moving-scenery plan"); step 1 DONE 2026-11-21 (below the steps
+table), step 2 next.** Measured and prototyped by the plan session (2026-11-21).
 Waiting on the user's OK, and on footage for steps 4-6 (the last section). Priority: **P0**, before the tracker
 plan session. Tools and their README: `tools/perc/scenery/` (merged into `dev` 2026-11-21; the steps below work
 on branch `moving-scenery`); results, sheets and cached cameras: `F:\dev\maple-corpus\work\scenery\`.
@@ -208,6 +209,32 @@ gate names one, the executor gives it a `--live` switch (maplebrain's code in pl
 | **5** | **Clouds undone; Perion hunts** (42 maps). The Perceiver: the frame undone before the difference picture, the fit and the drop finder; design 4's two changes in the fit; sightings and looks carry the cloud numbers. `clean_meta`: `cloud` maps count. `tools/perc/synth/`: mobs under clouds, a fixed-seed set in pytest. The kept replay made for the Perion captures | Synthetic, >= 500 placements: found >= 99 % in every thickness class up to 0.8, 0 false. The two old captures: sightings >= 1,540 / 940 (prototype 1,568 / 979; today's picture 1,375 / 631). By eye on the new capture: 40 random sightings under a cloud (thickness >= 0.2) + 40 any: 0 ghosts. Sound: camera >= 99 %, model >= 95 %. Our name tag found as often as on the Line 1 design capture (within 1 point). Perceiver p50 on Perion <= Line 1's + 3.5 ms. **The user's live check:** a 3-minute hunt on Perion Street Corner |
 | **6** | **The kinds without footage** (13 maps; after the user records them): type 6 backs (subway), bobbing backs (beach), `back_dryRock2`. First `phase.py` on the new footage: the same law? Then scene.json + the follow for them | As steps 2-3, on the new captures |
 | **7** | *Optional, measured first:* animated objects (one of N known frames, in step with each other) and portals as known layers. Measure on the kept replay how many of the fit's informative pixels are unknown because animated, and where a mob was lost by eye | Done only if some capture loses > 2 % of those pixels or a mob; else left |
+
+### Step 1 - DONE 2026-11-21 (branch `moving-scenery`, e6f8554): gate MET
+Built: `export.ps1` (`[int]` before the shift; `Map\MapHelper\png\weather\cloud\0..6` + `portal\...`, 85 pictures,
+the clouds identical to `export_helper.ps1`'s), `scene.py` (`blend` per back, `cloud` per map, the ADDED layer in
+`_backs` / `_compose`; `build_scenes` now always copies the back pictures - it skipped existing files, so a re-export
+never replaced the wrong sky - and an animated back's first frame), tests in `test_scene.py`. `assets scene` for every
+map: 233 scenes (205 before: the 2026-11-18 patch's 28 maps had never been built; 15 of them clean); on the 205 the
+back lists and the clean verdict are unchanged, the back pictures differ in the 2 fixed ones only.
+| Gate | Result |
+|---|---|
+| 9 forest captures sound (model >= 95 %) | **all 9**: Field S of Ellinia 99.5 / 99.4, Forest S of Ellinia 99.7 / 98.7, Rain-Forest 98.6, L Forest I 97.7, L Forest III 98.5, Kerning Middle Forest I 96.3, Forest W of Henesys 97.9 % (the prototype's within 0.2); camera 100 % first fix to exit fade on all |
+| Forest S of Ellinia: no Axe Stump where `run_fit.py` says Stump | **0**: on its 1,655 frames (every 3rd) the live picture and the prototype give the same 6,789 sightings, 0 different either way |
+| The 13 sound captures: SAME | `gate.py` (6 clips): **SAME**, 100.0 / 100.0 % on every clip |
+| bench not slower | A/B same moment: 14.2 ms before, 13.9-14.1 after (pytest green, bot speed 13.9 ms) |
+Found on the way (not a gate):
+- **The local scenes were a stale build:** only the 5 maps of the gate's clips (Line 1, Transfer Area, Ant Tunnel IV,
+  Dark Cave, Dangerous Steam) had the fit's front planes (`layers/`, step 3.2 of PLAN-perception); every other map
+  was an older build without them - the live bot and the kept replay ran so there. Built now. Effect: the forest
+  captures' sightings +1 % (Field S of Ellinia) to +62 % (Rain-Forest: 9,115 -> 14,779); Ant Tunnel I re-made as a
+  sample: +7 % sightings (11,705 -> 12,535), 58 track ids (60), still sound (95.9 %). **The kept replay of 7 of the 13
+  sound captures** (Ant Tunnel II / III, Deep Ant Tunnel II, Evil Eye I / IV, Drake Hunting Ground, Dungeon Southern
+  Forest III) **and Evil Eye III is still the stale build's**, so REPORT-track-before.md's pooled numbers mix two
+  builds. Old replays kept beside the new: `track_before_step1\` (the 9 forest), `track_stale_scene\` (Ant Tunnel I).
+- ms: the expected picture on the two Ellinia maps +0.6-0.75 ms (2.44 -> 3.03, 3.31 -> 4.06: their 5 ADDED layers are
+  drawn one by one and split a group); the other forest maps unchanged (1.10 -> 1.10). Step 2's layer loop replaces
+  this. The Perceiver on the forest captures: 15.6-20.1 ms p50 (the replay's whole call, this machine).
 
 **Stop rules** - the executor stops with the numbers, no workaround, when:
 - a gate's number is missed, or any of the 13 sound captures' tracks come out CHANGED;

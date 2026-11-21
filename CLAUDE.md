@@ -55,6 +55,7 @@ lives: the last section.
 .venv\Scripts\python -m maplebrain record [--label NAME]              # the user plays -> the bank (F7 / F8); no perception, nothing pressed
 .venv\Scripts\python -m maplebrain goto OUT [--to P [X]]              # movement test
 .venv\Scripts\python -m maplebrain assets build                       # client export -> assets/mcw (assets/README.md)
+.venv\Scripts\python -m maplebrain assets scene                       # -> assets/scene, every map (not in git)
 .venv\Scripts\python tools\data\corpus.py list [--stays]              # what the bank holds
 .venv\Scripts\python tools\data\unpack.py RUN [frames] [--out DIR]    # PNG files out of a video
 .venv\Scripts\python tools\perf\bench.py [--baseline]                 # tick speed against the baseline

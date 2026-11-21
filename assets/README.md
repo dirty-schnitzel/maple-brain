@@ -57,7 +57,11 @@ x1.00, width x0.98, 1 px). The live Snail matches `hit1_0.png` exactly.
    resolved). Key `WzMapleVersion.BMS`; mobs are in the encrypted pack `Packs\Mob_00000.ms`.
 3. **Build** (~7 s): `.venv\Scripts\python -m maplebrain assets build` -> `assets/mcw`, rebuilt from
    scratch next to the old one and swapped in; prints and writes `changes.txt`.
-4. `.venv\Scripts\python -m pytest`, then commit `assets/mcw` (it's in git: the diff shows the patch).
+4. **The scene models** (~5 min, EVERY map - no map list): `.venv\Scripts\python -m maplebrain assets scene` ->
+   `assets/scene` (not in git, so nothing shows when it is stale: until 2026-11-21 only the 5 maps of the replay
+   gate's clips had been rebuilt since 2026-11-16, every other map lacked the fit's front planes and the
+   2026-11-18 patch's 28 maps had none).
+5. `.venv\Scripts\python -m pytest`, then commit `assets/mcw` (it's in git: the diff shows the patch).
 
 ## After a game patch
 

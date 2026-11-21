@@ -30,8 +30,10 @@ paths:
   players' 0 %. The recorder cannot read the game's settings: an older capture is at the normal settings.
 - **The tracker is about to be redesigned** (HANDOFF.md): don't tune or extend `world.py`'s timeouts for the
   long term. Drops are part of that redesign; `drops.py` runs in shadow and nothing reads it yet.
-- Until PLAN-moving-scenery.md's step 1 is built, two pictures are drawn wrong on maps that count as clean:
-  Ellinia's light rays (an ADDED layer laid over instead: ~20 % of the play area off on The Field South of
-  Ellinia) and the Henesys-side forests' sky (the export writes the wrong colour). Pixel counts of "unexplained"
-  there need a paired before / after. Nothing moves on those maps.
+- PLAN-moving-scenery.md's step 1 (2026-11-21, branch `moving-scenery` until the user merges it) draws the
+  Henesys-side forests' sky in its real colour (the export fix + `assets scene`) and Ellinia's light rays as
+  ADDED (`blend`). On code without it the rays are laid over (~20 % of the play area off on The Field South of
+  Ellinia): pixel counts of "unexplained" there need a paired before / after. Nothing moves on those maps.
+- **A kept replay or a gate is only as current as the local `assets/scene`** (not in git): after a scene rebuild,
+  a replay made before it is of another build (HANDOFF.md, open items).
 - The plan and its measured experiments: PLAN-perception.md; drops: PLAN-loot.md.

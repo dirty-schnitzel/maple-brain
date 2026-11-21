@@ -4537,3 +4537,16 @@ DONE 2026-11-21: the plan is filled (PROPOSED), its tools are on branch `moving-
 - `moving-scenery` (e25a820, off `dev`, pushed, not merged): `tools/perc/scenery/` only - the plan session's
   measurements and prototypes. The plan's executor steps continue on it.
   (Merged into `dev` the same day, on the user's word: `/handoff push everything to dev`.)
+
+## 2026-11-21 - moving-scenery step 1; finished items (moved from HANDOFF.md)
+| 1 | The rules write-up -> `docs/game_rules.md` | Opus, high | DONE 2026-11-21, merged into `dev` | - |
+| 2 | One replay of the bank, kept, + today's tracker scored on it -> `REPORT-track-before.md` | Opus, high | DONE 2026-11-21, merged into `dev` | - |
+| P0 | The moving-scenery plan session -> `PLAN-moving-scenery.md` | Fable, max | DONE 2026-11-21: the plan is filled, **PROPOSED until the user's OK**; its tools are merged into `dev` | - |
+
+- **Loot scenes 1-2 are answered** (PLAN-loot.md section 13's result block): a drop left alone lies 2 minutes
+  and fades out in place; our own pickup = a hop up toward us, then a short fade.
+
+- **Left unknown by PLAN-moving-scenery.md:** animated objects (76 maps, under 0.8 % of the play area) and
+  portals (its optional step 7); why a few moving backs creep against their law (followed each frame: harmless).
+
+- **PLAN-loot.md:** part 1 (perceive drops) is done and merged; part 2 (use them) is inside the tracker rework.
