@@ -4550,3 +4550,45 @@ DONE 2026-11-21: the plan is filled (PROPOSED), its tools are on branch `moving-
   portals (its optional step 7); why a few moving backs creep against their law (followed each frame: harmless).
 
 - **PLAN-loot.md:** part 1 (perceive drops) is done and merged; part 2 (use them) is inside the tracker rework.
+
+## 2026-11-22 - another bot reviewed: maplestory-automation
+
+- **What it is:** github.com/jeffreycao1998/maplestory-automation, cloned for reading only to
+  `C:\Users\Yoav\dev\maplestory-automation` (no licence: ideas, never code). A Magic Claw training bot for GMS
+  Classic World, built by Claude subagents in 3 days (2026-10-23..25, 47 commits): 12.6k lines (5.6k of them the
+  app: GUI, setup wizard, updater), 637 test functions, never run against the game ("Claude never runs the bot
+  against the live game"). Perception: OpenCV template matching of client sprites, 8 templates a tick, a 15 Hz
+  loop; on its one labelled frame 3 of 6 mobs at 256 ms a frame (4 of 6 with all 14 templates; its own report:
+  fails its 90 % gate). Tracking: none (last frame's boxes only narrow the next search). Navigation: the minimap
+  dot in minimap fractions; jump / drop links typed in by hand or proposed from a measured jump. Keys: SendInput
+  scan codes, fixed tap lengths, its random reaction delay (0.08-0.20 s) off by default.
+- **Verdict given (2026-11-22):** ours better on perception, tracking, navigation, execution and speed; theirs
+  better as an installable product (setup wizard, updater, OCR) and in its key-release plumbing.
+- **The ideas taken, each in the phase the user put it in** ("1,2,3 are the best 4,5 nice to have"):
+  1. *Perception, to plan and execute (the wide maps):* `src/maplebot/perception/map_reference.py` places a
+     scrolling minimap on the map's saved minimap picture: several textured patches must agree on one shift
+     (`configs/map-tracking.yaml`: 17 px patches scoring >= 0.92, at least 4 agreeing within 1.5 px), else the
+     place is unknown - never the last one. Ours (`nav/localize.py`) measures the window and follows a tall
+     map's rows (Ant Tunnel IV); sideways scrolling is untested.
+  2. *The Execution rework:* `src/maplebot/controls/controller.py`: a key is counted as held before the OS call
+     and forgotten only once its release succeeded; pause takes the same lock that presses keys, so a tick in
+     flight cannot press again after it; a release at interpreter exit; after a resume our facing is unknown again.
+  3. *The tracker / data model:* `src/maplebot/behavior/targeting.py` casts only at a mob whose feet sit at our
+     platform's height at the mob's x (from the footholds), and not when another platform explains its feet as
+     well: a mob on the platform below is out of reach even when it looks level with us.
+  4. *The Execution rework:* the same controller's dead-man thread (`_watch_movement`): a movement key held and no
+     tick for the set time -> everything released, "Movement input lease expired: capture/decision loop stalled".
+     Ours: `runtime/keys.py` holds the brain's keys, and auto-repeats the last one, until the game loses focus;
+     the hunt loop (grab -> perceive -> brain) is one thread, and dxcam's `get_latest_frame()` waits forever for a
+     new frame. The recorder never blocks it (queues). The release time: from the longest normal tick of live
+     hunts (`total_ms` in ticks.jsonl). Closes the keys half of "there is no capture watchdog".
+  5. *Perception, lower priority (nice to have):* `src/maplebot/perception/interruptions.py` pauses on any large
+     window in the middle of the screen (a crude shape test). Ours finds only the Lie Detector (4 title pictures);
+     the client's own UI pictures, cut 1:1 the same way, would find other windows: a stop + siren, and "covered by
+     a window" for the tracker. Asked, not answered: which windows pop up uninvited while farming in Classic World.
+- **Offered, not placed by the user:** a stop when HP stays unreadable (`brain/v2/reflexes.py` skips the potion
+  and the HP stop while `hp_now` is None; theirs: `supervisor/watchdogs.py`); a wider ledge margin while a mob is
+  within 100 px (their knockback margin, `behavior/machine.py`), asked as a game question.
+- **Already ours, not taken again:** a hold-out group scored once (PLAN-data); the brain against the user's own
+  keys on footage (PLAN-data's limits, above); reaction delays (the "humanness report" offer, above);
+  fall-through footholds (`docs/game_rules.md` question 3).

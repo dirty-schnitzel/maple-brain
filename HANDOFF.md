@@ -19,7 +19,7 @@ simulator once it exists.
 | # | Session | Run as | Status | Prompt |
 |---|---|---|---|---|
 | **P0.1-5** | **The plan's steps 1-5, one executor session each:** 1 the pictures right (the forest maps sound), 2-3 moving backs drawn and followed (40 maps hunt), 4-5 Perion's clouds followed and undone (42 maps hunt). Steps 4-5 need the user's Perion recording | Opus (high) | step 1 DONE 2026-11-21 (gate met, on `moving-scenery`, not yet in `dev`); **NEXT: step 2** (no footage needed); branch `moving-scenery` | `PLAN-moving-scenery.md`, "Session prompts" |
-| 3 | The tracker plan session -> `PLAN-tracker.md`, PROPOSED until the user's OK | Fable, max | after the user has written the tracker's definition and goals into its prompt (Waiting on the user) | `docs/prompts/tracker-plan.md` |
+| 3 | The tracker plan session -> `PLAN-tracker.md`, PROPOSED until the user's OK. Take along: per mob, on our platform or not (Open items, "Ideas from another bot") | Fable, max | after the user has written the tracker's definition and goals into its prompt (Waiting on the user) | `docs/prompts/tracker-plan.md` |
 | 4 | The tracker built in shadow beside today's, switched when it matches or beats it. Beside it, at any time: the viewer (PLAN-livemap.md Session 1 - its prompt says "from the current head of `perception`": use `dev`), then the engine's own plan session (the engine outputs the tracker's state description) | Opus | after 3 | PLAN-tracker.md, PLAN-livemap.md |
 | 5 | FSM or clone, decided on what both score in the simulator and live | - | open | - |
 
@@ -100,12 +100,17 @@ simulator once it exists.
   when, how many, the respawn rule) and a slot for everything that moves: mobs, drops, other players, us (our
   facing is still a belief from the keys); (7) perception one-way (today the tracker calls back for a second
   look), so each frame's facts are computed once and a tracker change re-runs in seconds.
-- **Parked until the FSM-or-clone decision:** REWORKS.md's Execution and Brain reworks, v3 steps 4-6 (the FSM
-  path); hours of recordings on one map, the dataset builder, the training code (the clone path). Parked without
-  a date: wide maps, by-eye validation of every map (PLAN-data Sessions 2-3: only its automatic half runs,
-  inside step 2's prompt), the one gate list on the bank, the CPU mode.
+- **Parked until the FSM-or-clone decision:** REWORKS.md's Execution and Brain reworks (Execution takes two ideas
+  from another bot: Open items), v3 steps 4-6 (the FSM path); hours of recordings on one map, the dataset builder,
+  the training code (the clone path). Parked without a date: by-eye validation of every map (PLAN-data Sessions
+  2-3: only its automatic half runs, inside step 2's prompt), the one gate list on the bank, the CPU mode.
 
 ## Open items (not scheduled; the detail is in the named file, or in HISTORY.md under the quoted words)
+- **Ideas from another bot, each for its phase (the user, 2026-11-22; HISTORY.md, "maplestory-automation"):**
+  perception, to plan and execute: a scrolling minimap placed by several patches agreeing on one shift (the wide
+  maps, below); the Execution rework: key-release locking, and a dead-man release (no tick ended for ~1 s -> every
+  key up; today a hung loop keeps our keys held); the tracker / data model: per mob, on our platform or not, from
+  foothold heights; perception, lower priority: any client window over the world -> a stop + "covered by a window".
 - **The local scenes were stale until 2026-11-21** (PLAN-moving-scenery.md step 1, "Found on the way"): only
   the gate clips' 5 maps had the fit's front planes, so every other map's live hunts and replays ran without them;
   all 233 built now (+7 % sightings on Ant Tunnel I, up to +62 % on the forests).
@@ -114,7 +119,7 @@ simulator once it exists.
 - **`w` and `e` are skills the code does not know** (not in `Keys`); the bank's farming label counts only
   `q` / `c` until they are.
 - **Wide maps:** F7 now recognises maps whose minimap scrolls sideways; whether the locator and perception work
-  on them is untested.
+  on them is untested. To plan and execute (the user, 2026-11-22), with the other bot's minimap idea above.
 - **The scene camera waits ~1 s on every map entry** (the map is on screen before our character is drawn; the
   first seed needs our tag), and **after a 6.4 s hole in a recording it never came back** (Cave of Evil Eye III,
   `20261118_232410_1#11`: 22 s blind). REPORT-track-before.md, "What surprised me" 1-2.
