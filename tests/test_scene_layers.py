@@ -19,17 +19,18 @@ def split(s, d, C, L, w=sc.W, h=sc.PLAY_H):
     Scene.split did until 3.3."""
     behind, front = (torch.from_numpy(cv2.imread(str(d / "layers" / f"{k}_{L}.png"), cv2.IMREAD_UNCHANGED)).to(s.dev)
                      for k in ("behind", "front"))
-    z3 = torch.zeros((h, w, 3), device=s.dev)
-    z1 = torch.zeros((h, w), device=s.dev)
     unk = torch.zeros((h, w), dtype=torch.bool, device=s.dev)
-    B, cov, unk = s._backs(C, w, h, 0, z3, z1, unk)
+    acc, unk = s._backs(C, w, h, 0, torch.zeros((h, w, 4), device=s.dev), unk)
+    B, cov = acc[..., :3], acc[..., 3]
     bc = s._crop(C, w, h, behind).float()
     a = bc[..., 3] / 255.0
     B = B * (1 - a[..., None]) + bc[..., :3]
     cov = cov * (1 - a) + a
     unk = unk & (a < 0.98)
     fc = s._crop(C, w, h, front).float()
-    F, A, unk_f = s._backs(C, w, h, 1, fc[..., :3], fc[..., 3] / 255.0, torch.zeros_like(unk))
+    fc[..., 3] /= 255.0
+    facc, unk_f = s._backs(C, w, h, 1, fc, torch.zeros_like(unk))
+    F, A = facc[..., :3], facc[..., 3]
     known = (cov > 0.98) & ~unk & ~unk_f
     an = s._anim(C, w, h)
     if an is not None:

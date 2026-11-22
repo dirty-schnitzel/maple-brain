@@ -37,6 +37,11 @@ drawn for a camera; **undone** = the frame with the clouds taken out again.
 | `fastpipe.py CAP [--clouds FILE]` | `FastMovers.step` (all movers x 7 places in one batch, sample pixels, a peak rule), `FastClouds.step / layer / undo` (followed clouds, one batch); agreement with the slow reference + ms per part |
 | `cloudtrack.py CAP [--fit] [--tolvote]` | The clouds FOLLOWED over time, end to end: follow -> the cloud layer -> new clouds by the coarse finder only where the frame is still whitened -> the frame undone -> the fit; sheets of random mobs for a look by eye |
 
+## Gates: maplebrain's code against the reference (the plan's executor steps)
+| Tool | Step | What it checks |
+|---|---|---|
+| `live2.py CAP` | 2 | `scene.MoverFollow` + `Scene.expected(C, X)` against `proto.MScene` on every frame: the picture at the reference's places (levels), the share of the reference's mover-frames the live follow finds on its own and on the same pixel, frame = expected (`shows`), the ms -> `live2_<cap>.json` |
+
 ## What they showed (the numbers are in the plan)
 1. The Victoria Road forest maps have no moving scenery: one picture's colour is decoded wrong by the export
    (the sky), and Ellinia's light rays are ADDED to the picture, not laid over it. With both right, 9 of 9 forest

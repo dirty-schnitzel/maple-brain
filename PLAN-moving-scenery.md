@@ -1,7 +1,7 @@
 # PLAN-moving-scenery: perception on maps whose scenery moves
 
 **Status: OK'd by the user 2026-11-21 ("execute moving-scenery plan"); step 1 DONE 2026-11-21 (below the steps
-table), step 2 next.** Measured and prototyped by the plan session (2026-11-21).
+table); step 2 built 2026-11-23, its gate missed on 2 numbers - waiting on the user's call (under step 2).** Measured and prototyped by the plan session (2026-11-21).
 Waiting on the user's OK, and on footage for steps 4-6 (the last section). Priority: **P0**, before the tracker
 plan session. Tools and their README: `tools/perc/scenery/` (merged into `dev` 2026-11-21; the steps below work
 on branch `moving-scenery`); results, sheets and cached cameras: `F:\dev\maple-corpus\work\scenery\`.
@@ -235,6 +235,44 @@ Found on the way (not a gate):
 - ms: the expected picture on the two Ellinia maps +0.6-0.75 ms (2.44 -> 3.03, 3.31 -> 4.06: their 5 ADDED layers are
   drawn one by one and split a group); the other forest maps unchanged (1.10 -> 1.10). Step 2's layer loop replaces
   this. The Perceiver on the forest captures: 15.6-20.1 ms p50 (the replay's whole call, this machine).
+
+### Step 2 - built 2026-11-23 (branch `moving-scenery`): gate MISSED on 2 numbers, stopped
+Built: `scene.py` - scene.json `mover {v: 5 x rx}` per type 4 back (`assets scene` re-run, 233 maps); `mover_pos` (the
+row rule); `Scene.expected(C, X)`: every layer outside the pre-composed groups drawn only in its screen rectangle
+(`_Draw`: colour, alpha, 1 - alpha; a tiled axis stored repeated, so a piece is a slice), colour and cover in one
+(h, w, 4) buffer, a mover at its place or its rows unknown; `MoverFollow` (fastpipe's FastMovers: +-3 px, one batch,
+the peak rule; plus a full look over the period for a mover never found / lost 1 s, one a frame, the same peak
+rule). `config.Perception.mover_*`. `clean_meta` unchanged: nothing hunts on these maps. Tests in `test_scene.py`.
+Gate tool `tools/perc/scenery/live2.py` (every frame; the live follow on its own, never reset from the reference).
+| Gate | HG III | Kerning site | 3-Way | Perion St. Corner |
+|---|---|---|---|---|
+| expected at the reference's places (<= 0.5 level) | 0.10 | 0.07 | 0.09 | 0.00 |
+| follow finds of the reference's mover-frames (>= 85 %) | 100.0 | 88.2 | 90.8 | 87.0 |
+| ... on the same pixel (100 %) | 100 | 100 | 100 | 100 |
+| frame = expected (>= 95 / 94 / 93 %) | **95.5** | **94.3** | **92.2 MISSED** (reference's places: 93.5) | (83.0; clouds) |
+| ms p50 expected (<= 1.2) | 0.53 | 1.01 | 1.08 | 1.00 |
+| ms p50 follow (<= 1.0) | 0.94 | 0.93 | 0.90 | **1.76 MISSED** (frames without a full look 0.95) |
+The 13 sound captures: `gate.py` (6 clips) **SAME**, 100.0 % on every clip; on 125 clean maps x 14 cameras the
+expected picture is bit-identical to step 1's. `expected` on Line 1 0.79 -> 0.55 ms, Transfer Area 0.70 -> 0.46 (A/B,
+same moment). pytest green, bot speed 13.7 ms (step 1: 13.9). GPU memory: +70-210 MB per loaded scene (the repeated
+pictures; the card has 16 GB).
+**The two misses:**
+- **3-Way: acquisition.** Mover 6 (`back_vicportTown/back_9`, mostly behind later layers) is found by the reference
+  from frame 0, by the live full look only at 12.1 s: 12 s with its rows unknown. Once found, every mover coasts
+  within 0.9 px of the reference. The reference's full search scores only the pixels the later layers leave visible
+  (share >= 0.5); the live full look scores against the tiles only, and over a whole period (900 places) a mostly
+  hidden mover does not stand out. fastpipe never had an acquisition (it started from the reference's places).
+- **Perion: full looks at 6 frames a second.** Two of its movers (`back_dryRock/back_2`, `/back_3`) are never
+  visible on the capture (the reference never finds them either); each gets a full look (2.5 ms) once a second -
+  at 6 frames a second that is 49 % of the frames, at 60 it would be ~3 %.
+- Also found: `back_vicportTown/back_6` (3-Way's region) has no opaque pixel (alpha <= 238): neither the live
+  follow nor the reference can follow it; its rows stay unknown. `back_vicportTown/back_7` (175 opaque pixels) is
+  found by the live follow on 895 frames the reference refuses (its minimum is 300 px): all within 0.5 px of its
+  law. Samples are each pixel once (repeated samples false-locked on a synthetic test, 12 of 40 frames).
+**For the user to decide:** (1) the acquisition - score the full look on the pixels the movers already found and the
+static layers after it leave visible (the reference's rule, ~ +1 ms when it runs), or accept 92.2 % on 3-Way; (2) the
+follow's ms gate on 6-a-second footage - count it on frames without a full look, or retry a never-seen mover less
+often (e.g. only when its rows come on screen).
 
 **Stop rules** - the executor stops with the numbers, no workaround, when:
 - a gate's number is missed, or any of the 13 sound captures' tracks come out CHANGED;

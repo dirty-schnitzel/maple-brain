@@ -342,10 +342,9 @@ class Fitter:
         if not self.front_backs:
             return valid
         torch = self.torch
-        z1 = torch.zeros(valid.shape, device=self.dev)
-        _, cov, _ = self.scene._backs(C, SW, PLAY_H, 1, torch.zeros((*valid.shape, 3), device=self.dev), z1,
-                                      torch.zeros_like(valid))
-        return valid & (cov < self.cfg.front_max)
+        acc, _ = self.scene._backs(C, SW, PLAY_H, 1, torch.zeros((*valid.shape, 4), device=self.dev),
+                                   torch.zeros_like(valid))
+        return valid & (acc[..., 3] < self.cfg.front_max)
 
     def hints(self, tracks, mobs, r: int = 20) -> list:
         """Step 4's evidence (3.3, in shadow): each confirmed track on screen (world.Track: live / hit / hidden /

@@ -48,6 +48,13 @@ class Perception:
                                     # within this many levels - native PNG frames are exact (+-4); the bench's JPEG 30
     scene_diff: bool = True         # scene camera found: D = frame - expected scene -> FrameFacts.patches (step 3.1;
                                     # nothing reads them yet); tolerance = scene_tol
+    mover_samples: int = 4000       # scene.MoverFollow (PLAN-moving-scenery.md design 2): opaque pixels of a mover's
+                                    # picture looked at per place tried; a sample matches within scene_tol levels
+    mover_near: int = 3             # ... places tried each frame: its law's prediction +- this many px
+    mover_peak: tuple = (30, 15, 4.0)  # ... found = the best place's matching samples >= [0] and >= the next best
+                                    # + max([1], [2] x sqrt(next best)) (the prototype's peak rule, fastpipe.py)
+    mover_lost_s: float = 1.0       # ... never found, or not found for this long: every place of its period is tried
+                                    # (one mover a frame), again at most this often; found by the same peak rule
     minimap_every_s: float = 1.0   # the scene camera holding and our tag seen: the minimap is read this often (the
                                     # camera's seed); every tick otherwise (step 2.6)
     lie_gpu: bool = True            # the Lie Detector look on the uploaded frame (liedetector.GpuLieLook, ~3.5 ms each
