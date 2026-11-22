@@ -68,6 +68,9 @@ Start after perception step 3 is done (through 3.4, the switch on clean maps).
   This is also the baseline and the training signal for the learned motor layer, the long-term goal.
 - **Sim gaps to close:** slopes, air control, knockback, and mobs (known speed, bound to their footholds) -> a sim
   of the whole scene, not only us. That sim is what later grades the brain offline, with no input sent in public.
+- **Take along (the user, 2026-11-22):** two ideas from another bot (HISTORY.md, "maplestory-automation"): its
+  key-release locking as a checklist for the KeyDriver, and a dead-man release - no tick ended for ~1 s -> every
+  key up (today the KeyDriver holds and auto-repeats our keys while a hung loop sees nothing).
 - **Gate:** per-verb success rate and time to target (sim + recorded live runs); prediction-gap distribution on
   recordings; timing distributions vs the user's own play; bench time.
 
