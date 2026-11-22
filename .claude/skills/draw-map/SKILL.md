@@ -20,10 +20,7 @@ The tool is `tools/nav/map_graph.py` (its docstring says how the graph is made).
 - Output: `runs\map_graph\<map id>[_<N>p_s<seed>][_no-<groups>].png` (printed); `--out` elsewhere.
 
 ## Steps
-1. Run it; look at the PNG yourself (Read) before reporting.
-2. Report: the path, platforms shown / reachable, edges, what stands out (one-way links, the hub, platforms left
-   out because nothing leads there). Remind once, when a wide floor is in the picture: a cost is counted from
-   the MIDDLE of the source platform, so costs out of a wide floor are mostly walking at `Nav.walk_speed`
-   (a placeholder, 125 px/s); the bot's routes start from where it stands.
-3. Big maps (60+ platforms, e.g. Perion town's stair steps) make a picture too tall to read: suggest
+1. Run it and give the user the printed path, the seed (when `--platforms`) and nothing more. Do NOT open or
+   read the picture (the user, 2026-11-23: "no need to look at picture just run the tool").
+2. Big maps (60+ platforms, e.g. Perion town's stair steps) make a picture too tall to read: suggest
    `--platforms`.
