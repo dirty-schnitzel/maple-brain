@@ -2,6 +2,8 @@
 
 Node = a platform (its foothold id), all the same size. Rows = heights (top row = highest; a floor that spans most
 of the map gets a row of its own), evenly spaced, left to right as in the map - not the real places.
+--layout map instead puts each node at its platform's middle on the map, one scale for both axes (equal heights
+stay level, the order and the relative distances are kept), over a grey bar = the platform's extent.
 Edge = one move that touches no third platform (ropes in between are fine), coloured by its group:
   drop       drop through / walk off an edge (down)
   jump       a jump (up, or across)
@@ -13,7 +15,7 @@ Number = NavMap.route's seconds from the MIDDLE of the source platform: on a wid
 (a real route starts from where we stand). Walk speed is Nav.walk_speed, a placeholder (config.py).
 Platforms nothing leads to (scenery, or a way up navmap does not model) are left out and named under the picture.
 
-  python tools/nav/map_graph.py MAP [--platforms N] [--seed S] [--hide drop,jump] [--8bit | --banner] [--out PNG]
+  python tools/nav/map_graph.py MAP [--platforms N] [--seed S] [--hide drop,jump] [--layout rows|map] [--8bit | --banner] [--out PNG]
 
 MAP = a map id or a name ("Line 1 <Area 1>", or a part of one that names a single map).
 --platforms N keeps N platforms, picked arbitrarily: grown from a random platform along the edges (either
@@ -221,22 +223,52 @@ def _curve(a, b, bend):
              (1 - t) ** 2 * y1 + 2 * (1 - t) * t * cy + t * t * y2) for t in (k / 60 for k in range(61))]
 
 
-def draw(map_id: int, out: Path, n: int | None = None, seed=None, hide=()) -> Path:
+def map_positions(boxes: dict, top: float, width: int = 1500, max_h: int = 1600, margin: int = 80):
+    """--layout map: each platform where it is on the map, one scale for both axes (never above 1:1), so equal
+    heights stay level, the left-to-right order and the relative distances are kept.
+
+    boxes = {id: (left, right, y)} in map px; -> ({id: (x, y)} = the platform's middle, {id: (x_left, x_right)},
+    the picture's width, the drawing's height)."""
+    x0 = min(l for l, _, _ in boxes.values())
+    x1 = max(r for _, r, _ in boxes.values())
+    y0 = min(y for _, _, y in boxes.values())
+    y1 = max(y for _, _, y in boxes.values())
+    s = min(1.0, (width - 2 * margin) / max(x1 - x0, 1), max_h / max(y1 - y0, 1))
+    pos = {i: (margin + ((l + r) / 2 - x0) * s, top + (y - y0) * s) for i, (l, r, y) in boxes.items()}
+    span = {i: (margin + (l - x0) * s, margin + (r - x0) * s) for i, (l, r, _) in boxes.items()}
+    return pos, span, max(width, round((x1 - x0) * s) + 2 * margin), (y1 - y0) * s
+
+
+def draw(map_id: int, out: Path, n: int | None = None, seed=None, hide=(), mode: str = "rows") -> Path:
     name, nm, nodes, E, dropped, n_reach = graph(map_id, n, seed, hide)
-    rows = layout(nm, nodes)
-    ROWH, GAP, R, TOP = 135, 300, 30, 150
-    W = max(1500, max(map(len, rows)) * GAP + 100)
-    H = TOP + ROWH * (len(rows) - 1) + 230
-    pos = {i: (W / 2 + (j - (len(row) - 1) / 2) * GAP, TOP + r * ROWH)
-           for r, row in enumerate(rows) for j, i in enumerate(row)}
+    R, TOP, span = 30, 150, {}
+    if mode == "map":
+        R = 17                                            # real places can be close: smaller nodes
+        boxes = {i: (nm.platforms[i].left, nm.platforms[i].right, ymid(nm, i)) for i in nodes}
+        pos, span, W, h = map_positions(boxes, TOP)
+        H = round(TOP + h + 230)
+    else:
+        rows = layout(nm, nodes)
+        ROWH, GAP = 135, 300
+        W = max(1500, max(map(len, rows)) * GAP + 100)
+        H = TOP + ROWH * (len(rows) - 1) + 230
+        pos = {i: (W / 2 + (j - (len(row) - 1) / 2) * GAP, TOP + r * ROWH)
+               for r, row in enumerate(rows) for j, i in enumerate(row)}
     img = Image.new("RGB", (W, H), "white")
     d = ImageDraw.Draw(img)
+    for i, (xl, xr) in span.items():                   # map layout: the platform's real extent behind its node
+        d.line([(xl, pos[i][1]), (xr, pos[i][1])], fill=(205, 205, 205), width=8)
     labels = []
     for (a, b), (c, g) in sorted(E.items(), key=lambda kv: -kv[1][0]):
         pa, pb = pos[a], pos[b]
         L = math.hypot(pb[0] - pa[0], pb[1] - pa[1])
         bend = min(max(0.15 * L, 30), 45) if (b, a) in E else min(0.06 * L, 25)
-        pts = [p for p in _curve(pa, pb, bend) if math.dist(p, pa) > R and math.dist(p, pb) > R + 2]
+        if L == 0:                                        # map layout: two platforms with one middle
+            continue
+        curve = _curve(pa, pb, bend)
+        pts = [p for p in curve if math.dist(p, pa) > R and math.dist(p, pb) > R + 2]
+        if len(pts) < 2:                                  # map layout: nodes that touch - the whole curve
+            pts = curve
         col = COLOUR[g]
         d.line(pts, fill=col, width=2)
         (ex, ey), (fx, fy) = pts[-2], pts[-1]
@@ -250,7 +282,7 @@ def draw(map_id: int, out: Path, n: int | None = None, seed=None, hide=()) -> Pa
         w, h = d.textbbox((0, 0), s, font=f)[2:]
         d.rounded_rectangle([x - w / 2 - 3, y - h / 2 - 3, x + w / 2 + 3, y + h / 2 + 3], 4, fill="white", outline=col)
         d.text((x - w / 2, y - h / 2 - 1), s, font=f, fill=col)
-    f = _font(17, True)
+    f = _font(12 if mode == "map" else 17, True)
     for i, (x, y) in pos.items():
         d.ellipse([x - R, y - R, x + R, y + R], fill=(245, 245, 245), outline=(30, 30, 30), width=3)
         w, h = d.textbbox((0, 0), str(i), font=f)[2:]
@@ -258,7 +290,8 @@ def draw(map_id: int, out: Path, n: int | None = None, seed=None, hide=()) -> Pa
     total = f"{len(nodes)} of {n_reach}" if len(nodes) < n_reach else len(nodes)
     d.text((40, 30), f"{name}  (map {map_id})", font=_font(30, True), fill=(20, 20, 20))
     sub = f"{total} platforms, {len(E)} directed edges" + (f", seed {seed}" if len(nodes) < n_reach else "") + \
-          (f"; hidden: {', '.join(hide)}" if hide else "") + ". Node = platform (its foothold id); rows = height."
+          (f"; hidden: {', '.join(hide)}" if hide else "") + ". Node = platform (its foothold id); " + \
+          ("placed as on the map, to scale; grey bar = the platform's extent." if mode == "map" else "rows = height.")
     d.text((40, 72), sub, font=_font(15), fill=(70, 70, 70))
     d.text((40, 94), "Edge = one move that touches no third platform (ropes in between are OK); number = "
            "NavMap.route seconds from the middle of the source platform.", font=_font(15), fill=(70, 70, 70))
@@ -286,6 +319,9 @@ def main(argv=None):
                     help="8-bit text art instead of the PNG: printed, and saved as a .txt")
     ap.add_argument("--banner", action="store_true",
                     help="--8bit, saved into the session banner's folder as <map name>.txt (replaces that map's)")
+    ap.add_argument("--layout", choices=("rows", "map"), default="rows",
+                    help="the PNG's node places: rows (by height, evenly spaced; the default) or map (as on the map, "
+                         "to scale)")
     ap.add_argument("--out", type=Path, help="the PNG or .txt (default runs/map_graph/<map id>.png / .txt)")
     a = ap.parse_args(argv)
     hide = tuple(h.strip() for h in a.hide.split(",") if h.strip())
@@ -298,12 +334,13 @@ def main(argv=None):
     out = a.out or (banner_file(map_name(map_id)) if a.banner else
                     ROOT / "runs" / "map_graph" / (f"{map_id}" + (f"_{a.platforms}p_s{seed}" if a.platforms else "")
                                                    + (f"_no-{'-'.join(hide)}" if hide else "")
+                                                   + ("_map" if a.layout == "map" and not a.eightbit else "")
                                                    + (".txt" if a.eightbit else ".png")))
     if a.eightbit:
         sys.stdout.reconfigure(encoding="utf-8")
         print(draw_8bit(map_id, out, a.platforms, seed, hide) + str(out))
     else:
-        print(draw(map_id, out, a.platforms, seed, hide))
+        print(draw(map_id, out, a.platforms, seed, hide, a.layout))
 
 
 if __name__ == "__main__":

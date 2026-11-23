@@ -1,13 +1,13 @@
 ---
 name: draw-map
-description: Draw a map's platform graph (navmap) as an abstract directed graph picture - nodes = platforms, edges = moves with their cost in seconds. Use when the user says "draw <map>", "draw the graph of <map>", "show the map as a graph", optionally with a number of platforms ("only 10 platforms"), edge groups to hide ("hide drops", "without jumps"), as 8-bit art ("8bit", "8-bit", "pixel art"), or for the session banner ("add it to the banner", "show it at session start").
+description: Draw a map's platform graph (navmap) as an abstract directed graph picture - nodes = platforms, edges = moves with their cost in seconds. Use when the user says "draw <map>", "draw the graph of <map>", "show the map as a graph", optionally with a number of platforms ("only 10 platforms"), edge groups to hide ("hide drops", "without jumps"), as 8-bit art ("8bit", "8-bit", "pixel art"), with the platforms where they are on the map ("as on the map", "keep the real places", "map layout"), or for the session banner ("add it to the banner", "show it at session start").
 ---
 # Draw a map as a platform graph
 
 The tool is `tools/nav/map_graph.py` (its docstring says how the graph is made). Run from the repo root:
 
 ```powershell
-.venv\Scripts\python tools\nav\map_graph.py MAP [--platforms N] [--seed S] [--hide GROUPS] [--8bit | --banner] [--out PNG]
+.venv\Scripts\python tools\nav\map_graph.py MAP [--platforms N] [--seed S] [--hide GROUPS] [--layout rows|map] [--8bit | --banner] [--out PNG]
 ```
 
 - `MAP`: a map id or name; a part of a name works when it names one map (several: the tool lists them - ask
@@ -17,6 +17,9 @@ The tool is `tools/nav/map_graph.py` (its docstring says how the graph is made).
 - `hide` -> `--hide`, comma separated, from: `drop` (drop downs and walking off an edge), `jump`, `rope_up`,
   `rope_down`, `rope_leap` (a rope, then a jump off it), `walk`. "hide ropes" = `rope_up,rope_down,rope_leap`.
   Hidden groups lose their edges only; the platforms stay.
+- "as on the map" / "real places" -> `--layout map`: each platform at its place on the map, to scale (the same
+  height stays level, the order and the distances are kept), a grey bar = its extent; the file ends `_map.png`.
+  The default `--layout rows` = rows by height, evenly spaced. `--8bit` / `--banner` always use rows.
 - `8bit` / "8-bit" / "pixel art" -> `--8bit`: the same pick as one-colour text art (rings = platforms, lines =
   moves, no numbers) instead of the PNG, printed with a caption; the art alone saved as a `.txt`.
 - Output: `runs\map_graph\<map id>[_<N>p_s<seed>][_no-<groups>].png` (or `.txt` with `--8bit`; the path is

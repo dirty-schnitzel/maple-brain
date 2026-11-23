@@ -5,7 +5,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools" / "nav"))
 
-from map_graph import BANNER, banner_file, pixel_art  # noqa: E402
+from map_graph import BANNER, banner_file, map_positions, pixel_art  # noqa: E402
 
 ROWS = [[1], [2, 3]]                                     # one platform on top, two below it
 
@@ -32,3 +32,20 @@ def test_banner_file_is_the_short_map_name():
 
 def test_pixel_art_without_moves_is_rings_only():
     assert pixel_art(ROWS, []) == ["        █▀█", "        ▀▀▀", " █▀█           █▀█", " ▀▀▀           ▀▀▀"]
+
+
+def test_map_positions_keep_levels_order_and_distances():
+    # three platforms on one floor (y 500), one above the middle one (y 300); a map 2800 px wide
+    boxes = {1: (0, 400, 500), 2: (1000, 1400, 500), 3: (2400, 2800, 500), 4: (1100, 1300, 300)}
+    pos, span, width, height = map_positions(boxes, top=150)
+    assert pos[1][1] == pos[2][1] == pos[3][1] > pos[4][1]            # the same level stays level, up stays up
+    assert pos[1][0] < pos[2][0] < pos[3][0]                          # the order along the map
+    assert pos[4][0] == pos[2][0]                                     # straight above stays straight above
+    s = (pos[3][0] - pos[1][0]) / 2400                                # one scale for x and y
+    assert abs((pos[2][0] - pos[1][0]) - 1000 * s) < 1e-9 and abs((pos[2][1] - pos[4][1]) - 200 * s) < 1e-9
+    assert span[2] == (pos[2][0] - 200 * s, pos[2][0] + 200 * s) and width == 1500 and height == 200 * s
+
+
+def test_map_positions_never_enlarge_a_small_map():
+    pos, _, width, _ = map_positions({1: (0, 100, 0), 2: (300, 400, 0)}, top=0)
+    assert pos[2][0] - pos[1][0] == 300 and width == 1500
