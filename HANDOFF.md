@@ -19,7 +19,7 @@ in the tracker, the data model first, no simulator engine now - "Proposed by Cla
 | # | Session | Run as | Status | Prompt |
 |---|---|---|---|---|
 | **P0.1-5** | **The plan's steps 1-5, one executor session each:** 1 the pictures right (the forest maps sound), 2-3 moving backs drawn and followed (40 maps hunt), 4-5 Perion's clouds followed and undone (42 maps hunt). Steps 4-5 need the user's Perion recording | Opus (high) | **steps 1-5 DONE 2026-11-23**, the numbers each missed gate fell short on ACCEPTED by the user (PLAN-moving-scenery.md's status); merged into `dev` 2026-11-23 (9085f5b). Steps 6-7 wait for footage | `PLAN-moving-scenery.md`, "Session prompts" |
-| 3 | The tracker plan session, in two parts: (1) the data model -> `docs/state_model.md`, stop for the user's OK; (2) the tracker that fills it -> `PLAN-tracker.md`, PROPOSED until the user's OK. Take along: per mob, on our platform or not (Open items, "Ideas from another bot") | Fable, max | **Part 1 WRITTEN 2026-11-23: `docs/state_model.md`, PROPOSED - waits for the user's OK and its 4 questions** (the measuring tools: `tools/model/`, branch `tracker-plan`). Part 2 (experiments on the kept replay, then PLAN-tracker.md) after the OK: the same session, or a fresh one with the same prompt | `docs/prompts/tracker-plan.md` |
+| 3 | The tracker plan session, in two parts: (1) the data model -> `docs/state_model.md`, stop for the user's OK; (2) the tracker that fills it -> `PLAN-tracker.md`, PROPOSED until the user's OK. Take along: per mob, on our platform or not (Open items, "Ideas from another bot") | Fable, max | **Part 1 WRITTEN 2026-11-23: `docs/state_model.md`, its 4 questions ANSWERED the same day** (its last section; the measuring tools: `tools/model/`, branch `tracker-plan`). **NEXT = Part 2** (experiments on the kept replay, then PLAN-tracker.md), on the user's word - not started | `docs/prompts/tracker-plan.md` |
 | 4 | The tracker built in shadow beside today's, switched when it matches or beats it. Beside it, at any time: the viewer (PLAN-livemap.md Session 1 - its prompt says "from the current head of `perception`": use `dev`). No engine session | Opus | after 3 | PLAN-tracker.md, PLAN-livemap.md |
 | 4b | Wide maps: plan, then execute, the scrolling minimap placed by several agreeing patches (Open items, "Ideas from another bot") | Fable, max -> Opus | after the tracker (the user, 2026-11-22) | - |
 | 5 | FSM or clone, decided on what both score in live runs, counted by the tracker's events | - | open | - |
@@ -156,8 +156,8 @@ in the tracker, the data model first, no simulator engine now - "Proposed by Cla
 - `main` has not moved since 2026-11-09 (02a639a) and has no CLAUDE.md. Parked: `vnc-keys` (the VM attempt).
 
 ## Waiting on the user
-- **The OK on `docs/state_model.md`** and its 4 questions: mobs out of view kept 4 s or not at all, players'
-  memory, the two HUD readers that do not exist (potions left, buff icons), the profile file.
+- **The word to start Part 2 of the tracker plan** (`docs/state_model.md`: its questions are answered, the OK
+  on the whole not yet said).
 - PLAN-moving-scenery.md's questions (its last section), if any are still open; footage for its steps 6-7.
 - The "explained" reading of PLAN-data's stop rule (REPORT-track-before.md section 3), to confirm or change:
   map places the scene model misses on more than half of the frames that show them (what moves over the

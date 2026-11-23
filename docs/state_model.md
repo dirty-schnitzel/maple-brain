@@ -1,7 +1,8 @@
 # The state model: the game at one instant
 
-**Status: PROPOSED 2026-11-23 (the tracker plan session, Part 1: `docs/prompts/tracker-plan.md`). Waits for the
-user's OK; nothing of it is built. Part 2 (the tracker that fills it, `PLAN-tracker.md`) starts after the OK.**
+**Status: PROPOSED 2026-11-23 (the tracker plan session, Part 1: `docs/prompts/tracker-plan.md`). Its four
+questions are answered (last section); nothing of it is built. Part 2 (the tracker that fills it,
+`PLAN-tracker.md`) starts on the user's word.**
 Every number below was measured in this session; the commands are at the end. Tools: `tools/model/`.
 
 ## In short
@@ -128,8 +129,8 @@ Targets are proposals; "today" is `world.py` on the 13 sound captures (REPORT-tr
 | `act`, `act_until` | what the character does: stand, walk, air, climb, swing (with the key), hit (thrown), dead; until when a swing lasts - **a belief** for the swing | place + motion + our key + the MP step that confirms a cast (0.1 s after the key, p50) | swings: an MP step follows the key on casts that cost MP -> >= 99 % |
 | `hp`, `hp_max`, `mp`, `mp_max` | the HUD's numbers | HUD digits | read on 100 % of 110,082 frames, 0 misreads (a value that changes and comes straight back) -> 0 per 100,000 |
 | `exp`, `level` | EXP points; the level | HUD digits; the level's digits are read today only offline (`corpus.py char_of`) | as HP |
-| `potions.hp`, `potions.mp` | potions left, a count | **not read today** (only "the slot holds something"): the quickslot's digits | a new reader; 100 labelled frames -> exact |
-| `buffs` | [(skill, until)] the buffs running | a cast seen (key + MP step) + the skill's length from the client files; the buff icons are **not read today** | 20 casts by eye against the icon -> within 1 s |
+| `slots` | for each of the 8 hotkeys (Shift, Ins, Home, PgUp, Ctrl, Del, End, PgDn): the item on it and its amount, tracked (the user, 2026-11-23: "read every item and it's amount on the hotkeys ... and track them") | **not read today** (only "the slot holds something", two keys): a new reader - the slot's icon against the item pictures, the amount's digits | 100 labelled frames -> item and amount exact; an amount's step fits the key pressed (a potion drunk = -1) |
+| `buffs` | [(skill, until)] the buffs running | a cast seen (key + MP step) + the skill's length from the client files. The buff icons are not read (the user, 2026-11-23: "no need for perception") | 20 casts by eye against the icon -> within 1 s |
 | `cooldowns` | [(skill, ready at)] | a cast seen + the skill's `cooltime` | as buffs |
 
 **Every mob**
@@ -177,13 +178,14 @@ No timers on what can be seen. The rules, by why a thing is not seen:
    every stretch where the frame shows the scenery its body would cover. Seen again inside it: the same `id`.
    Nothing left of it: it is gone (event `mob_gone`, how = unseen). A mob that walked behind a cloud is still
    behind it; a mob that died behind it is found gone the moment the cloud, or the mob's whole range, is clear.
-2. **Out of view** (the screen scrolled, or it walked off): kept **4 s** (proposed; today's `offscreen_s`), so a
+2. **Out of view** (the screen scrolled, or it walked off): kept **4 s** (OK'd 2026-11-23; today's `offscreen_s`), so a
    mob at the screen's edge keeps its id when the view swings back - 13 of the 19 gaps the truth could not judge
    were mobs off screen for up to 3.4 s. After that it leaves the state with event `mob_left` (not a death).
    Nothing longer: the user looks again on arrival.
 3. **Drops** do not move: a drop stays - covered or out of view - until its place is seen without it, or until
    it is 130 s old (the user's rule, 2026-11-21).
-4. **Players**: kept through a cover of up to 1 s (proposed); out of view = gone (`player_left`).
+4. **Players**: kept through a cover of up to 1 s (OK'd 2026-11-23: "players move a lot"); out of view = gone
+   (`player_left`).
 5. **Blind frames** (no camera): everything stays as it was, `cover = blind`; no thing begins or ends.
 Each thing's history is in its own fields (section 2: `born_t`, `born_how`, `hits`, `last_hit_*`, `seen_share`,
 `unseen_s`, and `x`, `y` = where it was last seen). How it left is in its last event.
@@ -243,7 +245,9 @@ the stream, so a recording replays the same values at the same frames. What is c
 and the seconds table, the reach boxes) remembers which values it was built from and is rebuilt when one moved -
 the edges on a worker thread (section 1). No restart, no code edit.
 **The profile:** one small file the user edits (keys -> actions and skills with their levels, the weapon), re-read
-when it changes; a recording stores it with the session (today `session.json` stores the whole config).
+when it changes; a recording stores it with the session (today `session.json` stores the whole config). OK'd
+2026-11-23 "for now"; later a script fills it: the equipment / stats windows opened in the game, the values read
+by perception (not part of this plan).
 
 | Value | Changes when | Set by | Evidence that it works |
 |---|---|---|---|
@@ -290,13 +294,13 @@ when it changes; a recording stores it with the session (today `session.json` st
 
 ---
 
-## Open for the user
-1. **Out of view: 4 s** for mobs, then forgotten - or nothing at all?
-2. **Players: no memory** beyond a 1 s cover - enough for "where they are and which mobs they are killing"?
-3. **Potions left, buff icons:** two HUD readers that do not exist. Build them (a step in PLAN-tracker.md), or
-   leave potions as "the slot holds something" and buffs as "cast seen + length"?
-4. **The profile file** for keys, skills and the weapon, edited by you and re-read live - or another way to
-   tell the bot your skills?
+## Decided by the user (2026-11-23, the four questions this document ended on)
+1. **Mobs out of view: 4 s**, then forgotten ("4s ok").
+2. **Players: a 1 s cover, nothing more** ("yes 1s enough players move a lot").
+3. **Buffs: cast seen + length, no perception. The hotkeys: every item and its amount on all 8 keys** (Shift, Ins,
+   Home, PgUp, Ctrl, Del, End, PgDn), read and tracked - further than potions alone. A step of PLAN-tracker.md.
+4. **The profile file: good for now**; later a script that fills it from the game's equipment / stats windows.
+Not yet said: the OK on the document as a whole.
 
 ## Commands (from the repo root, `.venv\Scripts\python`)
 ```powershell
