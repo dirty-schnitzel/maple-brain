@@ -58,7 +58,8 @@ Part 1 - the data model, before any tracker design. Write docs/state_model.md an
    has no distance limit, so drop edges can be wrong (docs/game_rules.md A6, question 3); (3) platform_at
    scans every platform: ~18 us a call on a median map, ~121 us on the largest (311 platforms) - ~20 things a
    frame = up to ~2.5 ms a frame there; (4) building the edges takes 0.1 s on a median map, 4.5 s on the
-   largest - fine at load, not for a rebuild mid-run; (5) the edges are our character's moves only: mobs follow other rules (turn at edges, never walk off), flyers have no node, portals are no edges.
+   largest - fine at load, not for a rebuild mid-run; (5) the edges are our character's moves only: mobs
+   follow other rules (turn at edges, never walk off), flyers have no node, portals are no edges.
 2. Things and where they are: every mob, drop, other player and us - what it is, which thing of the previous
    frames it is, how it is seen (clear, or covered by what). Position = the node + the place along it
    (platform + x; rope + height), with the raw map (x, y) beside it as the measurement the placement is read
