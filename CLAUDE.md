@@ -18,6 +18,10 @@ lives: the last section.
   PLAN-<topic>.md with a gate per step, stop rules and session prompts: PROPOSED until the user's OK, nothing
   built in maplebrain/. An executor (Opus, or Fable at medium) follows the plan's steps and gates exactly and stops with numbers
   when one fails - no workarounds. Redoing a whole pillar: REWORKS.md first.
+- Discussing a plan session before it runs, Claude helps the user structure it: the goal in the user's words,
+  the requirements (what it must output, how good, how fast), what is decided and what is left to the session,
+  the user's game knowledge it needs, and what the user supplies first (footage, answers). Claude asks for a
+  missing piece rather than filling it in.
 - An executor session whose gates Claude can check itself is started with `/goal <condition>`.
 - Do no work that a later step of the plan replaces.
 
