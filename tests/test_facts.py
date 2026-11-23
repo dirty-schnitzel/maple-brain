@@ -56,9 +56,13 @@ def test_fit_fields_round_trip_and_older_records_read():
                    drops=[{"item": 9000001, "f": 2, "box": [400, 300, 25, 24], "feet": [412, 324], "kind": "rest",
                            "n_op": 380, "seen": 380, "absent": 0, "under": 0, "front": 0, "mob": 0, "ring": [400, 410],
                            "dy": 3, "fh": 12, "layer": 1, "votes": 210, "n_fseen": 300}],
-                   drops_ms={"launch": 0.25, "fetch": 0.07, "pick": 0.1, "feat": 9000, "feat2": 40, "cands": 3})
-    assert f.v == VERSION == 5
+                   drops_ms={"launch": 0.25, "fetch": 0.07, "pick": 0.1, "feat": 9000, "feat2": 40, "cands": 3},
+                   movers=[(1, 517.0, True, 0.91), (3, None, False, 0.0)], movers_ms=0.84)
+    assert f.v == VERSION == 6
     assert FrameFacts.from_dict(json.loads(json.dumps(f.as_dict()))) == f
+    for v in (1, 2, 4, 5):
+        old = FrameFacts.from_dict({"t": 0.0, "v": v})
+        assert old.movers is None and old.movers_ms is None
     for v in (1, 2, 4):
         old = FrameFacts.from_dict({"t": 0.0, "v": v})
         assert old.drops is None and old.drops_ms is None

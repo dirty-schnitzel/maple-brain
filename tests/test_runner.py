@@ -175,8 +175,9 @@ def test_a_hunt_waits_for_the_scene_camera_at_the_start(tmp_path, monkeypatch, h
 
 
 def test_no_hunt_without_a_clean_scene_or_a_native_window(tmp_path, monkeypatch):
-    """The user's call 2026-11-17: maps without a clean scene (Perion's clouds) or a non-native window -> the hunt
-    refuses to start, with a clear message."""
+    """The user's call 2026-11-17: maps without a clean scene (since PLAN-moving-scenery.md step 5: backgrounds the
+    model does not follow, e.g. the subway's deeper lines) or a non-native window -> the hunt refuses to start, with
+    a clear message."""
     def unclean(rig, say=None, frames=3, save_to=None):
         _clean_map(rig)
         rig.kit.clean, rig.kit.why = False, "moving / animated backgrounds (not covered by the scene model yet)"

@@ -9,7 +9,11 @@ the camera, exact to the pixel.
 Build (`python -m maplebrain assets scene [MAP ...]`, from the client export; NOT in git: assets/scene/<map>/):
   scene.png   tiles + objects composited in draw order, PREMULTIPLIED BGRA, map coordinates from (x0, y0)
   anim.png    255 where an animated object draws (any frame): its pixels are unknown (only if the map has one)
-  scene.json  {x0, y0, w, h, backs: [{file, x, y, rx, ry, cx, cy, type, a, front, flip, origin, known}], ...}
+  scene.json  {x0, y0, w, h, backs: [{file, x, y, rx, ry, cx, cy, type, a, front, flip, origin, blend, known,
+              [mover]}], cloud, ...}   blend 1 = an ADDED layer: frame = min(255, under + colour x alpha), it covers
+              nothing (Ellinia's light rays; PLAN-moving-scenery.md measurement 2). cloud 1 = the client draws its
+              weather clouds (MapHelper.img/weather/cloud) over the field: Perion's region. mover {v} = a type 4 back
+              whose place on the map moves v = 5 x rx px a second (measurement 3)
   ../backs/<set>/<back|ani>_<no>.png   the background pictures (shared between maps)
 Run time: `Scene.load(map_id)`; `expected(C)` -> the scene for camera C (map = screen + C) + which pixels are
 known; `register(frame, C_guess)` -> the camera. Torch tensors (GPU when there is one).
@@ -20,9 +24,12 @@ WOFF 683 (half the width), HOFF 468 (768 - 300: the old 800x600 client's centre,
 toward zero. Measured layer by layer on 7 maps (tools/perc/redesign/exp_backfit.py, rx -2 .. -80): every position
 exact. (First fitted as 682 on Ant Tunnel IV alone: that recording was captured 1 px off, capture.game_columns.)
 Tiled types repeat every cx / cy px (0 = the picture's size). Moving types (4-7: clouds) and animated backs have no
-fixed place: their pixels are unknown.
+fixed place: their pixels are unknown - except a mover (type 4) whose place MoverFollow found on the frame:
+`expected(C, X)` draws it there (`mover_pos`: x = X - Cx, the row with a floored parallax term). A map with movers
+is still not `clean` (PLAN-moving-scenery.md step 2: nothing hunts there yet).
 """
 import json
+import math
 import shutil
 from pathlib import Path
 
@@ -34,6 +41,8 @@ W, H, PLAY_H = 1366, 768, 700
 WOFF, HOFF = 683, 468          # the client's "screen centre" in the background formula (measured, see above)
 PAD = 200                      # px of map rendered around the footholds / vrBounds
 H_TILED, V_TILED, MOVING = (1, 3, 4, 6, 7), (2, 3, 5, 6, 7), (4, 5, 6, 7)
+MOVER_SPEED = 5.0              # a type 4 back's place on the map moves 5 x rx px a second (PLAN-moving-scenery.md
+                               # measurement 3: fitted 4.994-5.012 x rx on 15 layers of 4 maps)
 
 
 # ------------------------------------------------------------------ build (from the client export)
@@ -151,15 +160,20 @@ def build_scene(img: dict, m: dict, parts: _Parts) -> tuple:
             continue
         im, origin, _ = fr[0]
         typ = int(b.get("type", 0))
-        backs.append({"set": b["bS"], "kind": kind, "no": int(b.get("no", 0)), "file": f"{b['bS']}/{kind}_{b.get('no', 0)}.png",
-                      "x": int(b.get("x", 0)), "y": int(b.get("y", 0)), "rx": int(b.get("rx", 0)), "ry": int(b.get("ry", 0)),
-                      "cx": int(b.get("cx", 0)), "cy": int(b.get("cy", 0)), "type": typ, "a": int(b.get("a", 255)),
-                      "front": int(b.get("front", 0)), "flip": int(b.get("f", 0)), "origin": [int(origin[0]), int(origin[1])],
-                      "size": [im.shape[1], im.shape[0]],
-                      "known": int(kind == "back" and typ not in MOVING)})
+        node = parts.node("Back", b["bS"], [kind, b.get("no", 0)]) or {}       # the picture's (an ani: its node's)
+        blend = int(node.get("blend", 0) or 0)
+        entry = {"set": b["bS"], "kind": kind, "no": int(b.get("no", 0)), "file": f"{b['bS']}/{kind}_{b.get('no', 0)}.png",
+                 "x": int(b.get("x", 0)), "y": int(b.get("y", 0)), "rx": int(b.get("rx", 0)), "ry": int(b.get("ry", 0)),
+                 "cx": int(b.get("cx", 0)), "cy": int(b.get("cy", 0)), "type": typ, "a": int(b.get("a", 255)),
+                 "front": int(b.get("front", 0)), "flip": int(b.get("f", 0)), "origin": [int(origin[0]), int(origin[1])],
+                 "size": [im.shape[1], im.shape[0]], "blend": blend,
+                 "known": int(kind == "back" and typ not in MOVING)}
+        if kind == "back" and typ == 4:                             # a mover: its place on the map moves with time
+            entry["mover"] = {"v": MOVER_SPEED * entry["rx"]}
+        backs.append(entry)
     out = np.clip(canvas + 0.5, 0, 255).astype(np.uint8)
     meta = {"x0": x0, "y0": y0, "w": x1 - x0, "h": y1 - y0, "objects": n_obj, "tiles": n_tile,
-            "animated": int(n_anim), "backs": backs}
+            "animated": int(n_anim), "backs": backs, "cloud": int((img.get("info") or {}).get("cloud", 0) or 0)}
     return out, (anim if n_anim else None), meta
 
 
@@ -180,6 +194,27 @@ def build_layers(img: dict, m: dict, parts: _Parts, layers) -> dict:
     return out
 
 
+def build_clouds(export: Path, out: Path = ROOT) -> int:
+    """The client's 7 weather cloud pictures (MapHelper.img/weather/cloud/0..6: what a map whose info says `cloud`
+    draws over the field, PLAN-moving-scenery.md measurement 4) -> out/clouds/<k>.png (straight-alpha BGRA) +
+    clouds.json {"origins": [[x, y] per picture]}. Returns how many."""
+    from .gamedata import load_xml
+    src = Path(export) / "Map" / "MapHelper" / "png" / "weather" / "cloud"
+    xml = Path(export) / "Map" / "MapHelper.img.xml"
+    if not src.exists() or not xml.exists():
+        raise FileNotFoundError(f"{src} / {xml} missing - export.ps1 exports MapHelper.img (since 2026-11-21)")
+    node = ((load_xml(xml).get("weather") or {}).get("cloud")) or {}
+    d = Path(out) / "clouds"
+    d.mkdir(parents=True, exist_ok=True)
+    origins, k = [], 0
+    while (src / f"{k}.png").exists():
+        shutil.copyfile(src / f"{k}.png", d / f"{k}.png")
+        origins.append([int(v) for v in ((node.get(str(k)) or {}).get("origin") or (0, 0))])
+        k += 1
+    (d / "clouds.json").write_text(json.dumps({"origins": origins}), encoding="utf-8")
+    return k
+
+
 def build_scenes(export: Path, assets: Path, map_ids=None, out: Path = ROOT, log=print) -> int:
     """Render the scenes of `map_ids` (default: every map with mob spawns) into `out`. Returns how many."""
     from .gamedata import load_xml
@@ -190,6 +225,7 @@ def build_scenes(export: Path, assets: Path, map_ids=None, out: Path = ROOT, log
     if map_ids is None:
         map_ids = [int(i) for i, e in man["maps"].items() if e.get("mobs")]
     parts, n = _Parts(export, load_xml), 0
+    log(f"weather clouds: {build_clouds(export, out)} pictures -> {out / 'clouds'}")
     for mid in map_ids:
         src = next((export / "Map").glob(f"Map?/{int(mid):09d}.img.xml"), None)
         mj = assets / "maps" / str(mid) / "map.json"
@@ -214,11 +250,13 @@ def build_scenes(export: Path, assets: Path, map_ids=None, out: Path = ROOT, log
             cv2.imwrite(str(d / "anim.png"), anim)
         elif (d / "anim.png").exists():
             (d / "anim.png").unlink()
-        for b in meta["backs"]:
+        for b in meta["backs"]:                                     # always copied: a fixed export replaces it
             dst = out / "backs" / b["file"]
-            if not dst.exists():
-                dst.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(export / "Map" / "Back" / "png" / b["set"] / b["kind"] / f"{b['no']}.png", dst)
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            src = export / "Map" / "Back" / "png" / b["set"] / b["kind"]
+            src = (src / f"{b['no']}.png" if b["kind"] == "back"    # an animated back: its first frame (ani\<no>\<n>)
+                   else min((src / str(b["no"])).glob("*.png"), key=lambda p: int(p.stem)))
+            shutil.copyfile(src, dst)
         (d / "scene.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")
         n += 1
         log(f"map {mid}: {meta['w']}x{meta['h']}, {meta['objects']} objects ({meta['animated']} animated), "
@@ -233,6 +271,66 @@ def back_pos(b: dict, C, woff: int = WOFF, hoff: int = HOFF) -> tuple:
     ox = b["size"][0] - b["origin"][0] if b.get("flip") else b["origin"][0]
     return (b["x"] + woff + int(b["rx"] * (int(C[0]) + woff) / 100) - ox,
             b["y"] + hoff + int(b["ry"] * (int(C[1]) + hoff) / 100) - b["origin"][1])
+
+
+def mover_pos(b: dict, C, X: float, hoff: int = HOFF) -> tuple:
+    """Screen (x, y) of a mover's picture's top-left (its left edge repeats every cx) for camera C, its place on the
+    map `X` = where the picture's left edge is (PLAN-moving-scenery.md measurement 3): x = X - Cx; the row is the
+    static formula's with another rounding - the parallax term is sign(u) x floor(ry x |u| / 100), u = Cy + HOFF (no
+    exception in ~9,000 layer-frames, ry -16..+4, both signs of u)."""
+    u = int(C[1]) + hoff
+    return (int(round(X)) - int(C[0]),
+            b["y"] + hoff + (1 if u >= 0 else -1) * math.floor(b["ry"] * abs(u) / 100) - b["origin"][1])
+
+
+class _Draw:
+    """One background layer, ready to be drawn only where it is on screen (PLAN-moving-scenery.md design 1): its
+    premultiplied colour, alpha and 1 - alpha in one (H, W, 5) float tensor, padded with nothing (or cut) to its
+    period on a tiled axis, so a camera's piece is a slice (untiled) or one index_select (tiled) per axis. The
+    arithmetic is Scene._back_plane's over the whole screen, restricted to the rectangle the layer can touch: the
+    same float operations on the same values (outside it the full-screen draw adds 0 x 1)."""
+
+    def __init__(self, b: dict, t, torch):
+        ph, pw = t.shape[:2]
+        a = t[..., 3:4] / 255.0
+        g = torch.cat([t[..., :3], a, 1 - a], dim=2)
+        self.px = (b["cx"] or pw) if b["type"] in H_TILED else None
+        self.py = (b["cy"] or ph) if b["type"] in V_TILED else None
+        H_, W_ = self.py or ph, self.px or pw
+        if (H_, W_) != (ph, pw):
+            pad = torch.zeros((H_, W_, 5), device=t.device)
+            pad[..., 4] = 1
+            pad[:min(H_, ph), :min(W_, pw)] = g[:min(H_, ph), :min(W_, pw)]
+            g = pad
+        # a tiled axis repeated to cover a whole screen + one period: a screen's piece is then a slice, no gather
+        g = g.repeat(-(-(H + H_) // H_) if self.py else 1, -(-(W + W_) // W_) if self.px else 1, 1)
+        self.g, self.h, self.w = g.contiguous(), H_, W_
+        self.rows_any = (t[..., 3] / 255.0 > 0.02).any(dim=1)          # (ph,) a row the picture draws on somewhere
+
+    def piece(self, sx: int, sy: int, w: int, h: int, torch):
+        """(y0, y1, x0, x1, (y1-y0, x1-x0, 5) tensor) of the layer on a (h, w) screen with its top-left at (sx, sy),
+        or None when it is off screen. Screen row r shows picture row (r - sy) mod period: the repeated picture from
+        row (-sy) mod period on (a screen larger than W x H: gathered)."""
+        g = self.g
+        if self.py is None:
+            y0, y1 = max(0, sy), min(h, sy + self.h)
+            if y1 <= y0:
+                return None
+            g = g[y0 - sy:y1 - sy]
+        else:
+            y0, y1, o = 0, h, (-sy) % self.py
+            g = g[o:o + h] if o + h <= g.shape[0] else \
+                g[:self.py].index_select(0, (torch.arange(h, device=g.device) - sy) % self.py)
+        if self.px is None:
+            x0, x1 = max(0, sx), min(w, sx + self.w)
+            if x1 <= x0:
+                return None
+            g = g[:, x0 - sx:x1 - sx]
+        else:
+            x0, x1, o = 0, w, (-sx) % self.px
+            g = g[:, o:o + w] if o + w <= g.shape[1] else \
+                g[:, :self.px].index_select(1, (torch.arange(w, device=g.device) - sx) % self.px)
+        return y0, y1, x0, x1, g
 
 
 class Scene:
@@ -270,31 +368,35 @@ class Scene:
     def _compose(self, front: int) -> list:
         """The known background layers (front or not), in draw order, with runs of the same parallax (rx, ry) drawn
         ONCE at load into one picture over every camera the map allows (the rendered area's: vrBounds are inside it)
-        -> [("group", (rx, ry), plane (H', W', 4) premultiplied colour + alpha 0..1, fp16, (U0, V0), layers) |
-        ("one", b, t)]. A group moves as one: its layers keep their places relative to each other, so a camera's
+        -> [("group", (rx, ry), plane (H', W', 4) premultiplied colour + alpha 0..1, fp16, (U0, V0), [(b, t, i)]) |
+        ("one", b, t, i)] (i = the layer's index in `backs`; a "one" gets its _Draw). A group moves as one: its layers keep their places relative to each other, so a camera's
         picture of it is a crop of the plane at -shift - (U0, V0). Unknown layers stay one by one (only their mask
         is used). Line 1 <Area 1>: 29 layers -> 4 groups, Transfer Area 36 -> 3 (16-22 ms -> one crop each)."""
         torch = self.torch
+        if not hasattr(self, "_draws"):
+            self._draws = {}                                          # back index -> _Draw (the layers drawn alone)
         runs = []
-        for b, t in self.backs:
+        for i, (b, t) in enumerate(self.backs):
             if bool(b["front"]) != bool(front):
                 continue
-            key = (b["rx"], b["ry"]) if b["known"] else None
+            key = (b["rx"], b["ry"]) if b["known"] and not b.get("blend") else None    # ADDED layers: one by one
             if key is not None and runs and runs[-1][0] == key:
-                runs[-1][1].append((b, t))
+                runs[-1][1].append((b, t, i))
             else:
-                runs.append((key, [(b, t)]))
+                runs.append((key, [(b, t, i)]))
         cams = [(self.x0 + i * (self.meta["w"] - W), self.y0 + j * (self.meta["h"] - H)) for i in (0, 1) for j in (0, 1)]
         out = []
         for key, layers in runs:
             if key is None or len(layers) == 1:
-                out += [("one", b, t) for b, t in layers]
+                for b, t, i in layers:
+                    self._draws[i] = _Draw(b, t, torch)
+                    out.append(("one", b, t, i))
                 continue
             sh = [self._shift(*key, c) for c in cams]                 # monotonic in C: the corners bound it
             U0, V0 = -max(s[0] for s in sh), -max(s[1] for s in sh)
             pw, ph = W - min(s[0] for s in sh) - U0, H - min(s[1] for s in sh) - V0
             g = torch.zeros((ph, pw, 4), device=self.dev)
-            for b, t in layers:
+            for b, t, _ in layers:
                 bx, by = back_pos(b, (0, 0), self.woff, self.hoff)
                 s0 = self._shift(*key, (0, 0))
                 plane = self._layer_plane(b, t, bx - s0[0] - U0, by - s0[1] - V0, pw, ph)
@@ -321,9 +423,12 @@ class Scene:
 
     @staticmethod
     def clean_meta(meta: dict) -> bool:
-        """No moving or animated backgrounds (95 of 206 maps have some: Perion's clouds, deferred by the user
-        2026-11-16): only such maps get the scene camera; the others keep today's camera (camshift + minimap)."""
-        return all(b["known"] for b in meta["backs"])
+        """Every background layer known or a mover behind the field (MoverFollow finds its place:
+        PLAN-moving-scenery.md step 3): only such maps are hunted. The weather clouds (`cloud`: Perion's region)
+        count since step 5 (perception/clouds.py follows them, the frame is undone). Refused: type 5-7 and animated
+        backs (the subway's deeper lines, the beach: step 6) and a mover drawn in FRONT of the mobs (map 80003000's
+        back_darkMountain/back_4: not in the plan's design)."""
+        return all(b["known"] or (b.get("mover") is not None and not b["front"]) for b in meta["backs"])
 
     @property
     def clean(self) -> bool:
@@ -361,35 +466,63 @@ class Scene:
             out[y0 - ay:y1 - ay, x0 - ax:x1 - ax] = canvas[y0:y1, x0:x1]
         return out
 
-    def _backs(self, C, w: int, h: int, front: int, out, cover, unknown, pre: bool = True):
-        """Draw the background layers (`front` or not) over (out premultiplied bgr, cover, unknown) for camera C ->
-        the three updated. `pre`: from the pre-composed groups (`_compose`); False = layer by layer."""
-        def draw(b, t):
-            nonlocal out, cover, unknown
-            plane = self._back_plane(b, t, C, w, h)
-            a = plane[..., 3:4] / 255.0
-            if not b["known"]:
-                unknown = unknown | (a[..., 0] > 0.02)
-                return
-            out = out * (1 - a) + plane[..., :3]
-            cover = cover * (1 - a[..., 0]) + a[..., 0]
+    def _backs(self, C, w: int, h: int, front: int, acc, unknown, pre: bool = True, X: dict | None = None):
+        """Draw the background layers (`front` or not) for camera C over `acc` ((h, w, 4) float: the premultiplied
+        bgr, and in channel 3 how much known scenery covers the pixel - one blend draws both) and `unknown` ((h, w)
+        bool), both changed in place -> the two. `pre`: the pre-composed groups (`_compose`) and every other layer
+        only where it is on screen (_Draw); False = layer by layer over the whole screen (the reference). `X`: back
+        index -> a mover's place on the map (MoverFollow); a mover without one leaves every row it can draw on
+        unknown (it can be anywhere along them)."""
+        torch = self.torch
 
-        for item in self.groups[front] if pre else [("one", b, t) for b, t in self.backs if bool(b["front"]) == bool(front)]:
+        def draw(b, t, i, full):
+            mv = b.get("mover") is not None
+            x = X.get(i) if mv and X is not None else None
+            if mv and x is None:                                      # a mover never found
+                ra = self._draws[i].rows_any
+                sy = mover_pos(b, C, 0, self.hoff)[1]
+                r0, r1 = max(0, sy), min(h, sy + len(ra))
+                if r1 > r0:
+                    unknown[r0:r1] |= ra[r0 - sy:r1 - sy, None]
+                return
+            sx, sy = mover_pos(b, C, x, self.hoff) if mv else back_pos(b, C, self.woff, self.hoff)
+            if full:
+                pl = self._layer_plane(b, t, sx, sy, w, h)
+                a = pl[..., 3:4] / 255.0
+                y0, y1, x0, x1, ca, ia = 0, h, 0, w, torch.cat([pl[..., :3], a], dim=2), 1 - a
+            else:
+                piece = self._draws[i].piece(sx, sy, w, h, torch)
+                if piece is None:
+                    return
+                y0, y1, x0, x1, g = piece
+                ca, ia = g[..., :4], g[..., 4:5]
+            a = ca[..., 3]
+            if not b["known"] and not mv:                             # moving / animated kinds not followed yet
+                unknown[y0:y1, x0:x1] |= a > 0.02
+                return
+            dst = acc[y0:y1, x0:x1]
+            if b.get("blend"):                                        # ADDED (Ellinia's light rays): covers nothing
+                dst[..., :3].add_(ca[..., :3]).clamp_(max=255)
+                return
+            dst.mul_(ia).add_(ca)                                     # colour and cover: x (1 - a) + (colour, a)
+            if mv:                                                    # an opaque mover hides what is behind it
+                unknown[y0:y1, x0:x1] &= a < 0.98
+
+        for item in self.groups[front] if pre else [("one", b, t, i) for i, (b, t) in enumerate(self.backs)
+                                                    if bool(b["front"]) == bool(front)]:
             if item[0] == "one":
-                draw(item[1], item[2])
+                draw(*item[1:], full=not pre)
                 continue
             _, key, g, (U0, V0), layers = item
             sx, sy = self._shift(*key, C)
             u, v = -sx - U0, -sy - V0                                 # the plane's column / row at screen (0, 0)
             if u < 0 or v < 0 or u + w > g.shape[1] or v + h > g.shape[0]:
-                for b, t in layers:                                   # a camera outside the rendered area
-                    draw(b, t)
+                for b, t, i in layers:                                # a camera outside the rendered area
+                    draw(b, t, i, full=True)
                 continue
-            crop = g[v:v + h, u:u + w].float()
-            a = crop[..., 3:4]
-            out = out * (1 - a) + crop[..., :3]
-            cover = cover * (1 - a[..., 0]) + a[..., 0]
-        return out, cover, unknown
+            crop = g[v:v + h, u:u + w].float()                        # (colour, alpha) as acc holds them
+            acc.mul_(1 - crop[..., 3:4]).add_(crop)
+        return acc, unknown
 
     def _anim(self, C, w: int, h: int):
         """(h, w) bool: where an animated object draws (unknown), or None."""
@@ -404,27 +537,26 @@ class Scene:
             an[y0 - ay:y1 - ay, x0 - ax:x1 - ax] = self.anim[y0:y1, x0:x1]
         return an
 
-    def expected(self, C, w: int = W, h: int = PLAY_H, pre: bool = True) -> tuple:
-        """What the frame's top `h` rows show for camera C where nothing moves: (bgr float tensor (h, w, 3), known
-        bool tensor (h, w)). Known = covered by fixed scenery (opaque tiles / objects, or fixed backgrounds) and
-        not by an animated object, a moving / animated background or a `front` background that isn't fixed.
-        `pre`: background layers from the pre-composed groups (`_compose`); False = layer by layer (the reference,
-        tests/test_scene.py)."""
+    def expected(self, C, w: int = W, h: int = PLAY_H, pre: bool = True, X: dict | None = None) -> tuple:
+        """What the frame's top `h` rows show for camera C: (bgr float tensor (h, w, 3), known bool tensor (h, w)).
+        Known = covered by scenery whose place is known (opaque tiles / objects, fixed backgrounds, movers at their
+        place `X`: back index -> its place on the map, MoverFollow.places) and not by an animated object, a mover
+        without a place, another moving / animated background or a `front` background that isn't fixed.
+        `pre`: the pre-composed groups (`_compose`) and every other layer drawn only where it is on screen; False =
+        layer by layer over the whole screen (the reference, tests/test_scene.py)."""
         torch = self.torch
-        out = torch.zeros((h, w, 3), device=self.dev)
-        cover = torch.zeros((h, w), device=self.dev)                 # how much fixed scenery covers the pixel
+        acc = torch.zeros((h, w, 4), device=self.dev)                # bgr + how much known scenery covers the pixel
         unknown = torch.zeros((h, w), dtype=torch.bool, device=self.dev)
-        out, cover, unknown = self._backs(C, w, h, 0, out, cover, unknown, pre)
+        self._backs(C, w, h, 0, acc, unknown, pre, X)
         sc = self._crop(C, w, h).float()
         a = sc[..., 3:4] / 255.0
-        out = out * (1 - a) + sc[..., :3]
-        cover = cover * (1 - a[..., 0]) + a[..., 0]
+        acc.mul_(1 - a).add_(torch.cat([sc[..., :3], a], dim=2))
         unknown &= a[..., 0] < 0.98                                  # an unknown back behind opaque scenery: hidden
         an = self._anim(C, w, h)
         if an is not None:
             unknown |= an
-        out, cover, unknown = self._backs(C, w, h, 1, out, cover, unknown, pre)
-        return out, (cover > 0.98) & ~unknown
+        self._backs(C, w, h, 1, acc, unknown, pre, X)
+        return acc[..., :3].contiguous(), (acc[..., 3] > 0.98) & ~unknown
 
     # ---- the camera
     def marks(self, C, w: int = W, h: int = PLAY_H, n: int = 6000, margin: int = 48):
@@ -587,3 +719,173 @@ class SceneCamera:
         self.step = (0, 0) if self.C is None else (C[0] - self.C[0], C[1] - self.C[1])
         self.C = C
         return C
+
+
+class MoverFollow:
+    """Where each mover is on the map, frame after frame (PLAN-moving-scenery.md design 2; ported from the
+    prototype tools/perc/scenery/fastpipe.py FastMovers). A mover's opaque pixels show their own colours wherever
+    nothing is drawn over them, and its place X (the picture's left edge on the map, mod its period) moves by its law
+    (`v` = 5 x rx px a second: scene.json `mover`). Each frame every mover found before is looked for at the law's
+    prediction +- `mover_near` px - all movers x places in one batch - on a fixed set of sample pixels (opaque
+    pixels of its picture) that no tile / object covers there. Found = the best place stands out against the others
+    (a peak rule: a mover mostly hidden behind later layers still shows its visible part, so its share is diluted,
+    its peak is not); else it coasts on its law. A mover never found, or lost for `mover_lost_s`, gets the full look:
+    every place of its period, one mover a frame, again at most every `mover_lost_s`. Nothing is guessed: `places()`
+    gives None for a mover never found (Scene.expected leaves its rows unknown)."""
+
+    def __init__(self, scene: Scene, cfg=None, seed: int = 0):
+        from .config import Perception
+        cfg = cfg or Perception()
+        torch = scene.torch
+        self.scene, self.torch, self.dev = scene, torch, scene.dev
+        self.tol, self.near, self.peak, self.lost_s = cfg.scene_tol, cfg.mover_near, cfg.mover_peak, cfg.mover_lost_s
+        n = cfg.mover_samples
+        gen = torch.Generator().manual_seed(seed)
+        self.idx, px, py, col, per, v = [], [], [], [], [], []
+        for i, (b, t) in enumerate(scene.backs):
+            if b.get("mover") is None:
+                continue
+            tc = t.cpu()
+            period = b["cx"] or tc.shape[1]
+            op = tc[..., 3] >= 254.5                                   # opaque (the entry's `a` is in t already)
+            op[:, period:] = False                                     # cut to its period: never drawn
+            yy, xx = op.nonzero(as_tuple=True)
+            if len(yy) == 0:                                           # see-through: its colours are never its own
+                continue
+            pick = torch.randperm(len(yy), generator=gen)[:n]          # each pixel once: a repeated sample would
+            self.idx.append(i)                                         # count one chance match many times
+            px.append(xx[pick])
+            py.append(yy[pick])
+            col.append(tc[yy[pick], xx[pick], :3].round().short())
+            per.append(period)
+            v.append(float(b["mover"]["v"]))
+        self.M = M = len(self.idx)
+        if not M:
+            return
+        N = max(len(p) for p in px)                                    # fewer opaque pixels: padded with samples
+        for k in range(M):                                             # far above the screen (never on it)
+            pad = N - len(px[k])
+            px[k] = torch.cat([px[k], torch.zeros(pad, dtype=px[k].dtype)])
+            py[k] = torch.cat([py[k], torch.full((pad,), -10 ** 6, dtype=py[k].dtype)])
+            col[k] = torch.cat([col[k], torch.zeros((pad, 3), dtype=col[k].dtype)])
+        self.px, self.py = torch.stack(px).to(self.dev), torch.stack(py).to(self.dev)             # (M, N)
+        self.col = torch.stack(col).to(self.dev)                                                  # (M, N, 3) int16
+        self.cx = torch.tensor(per, device=self.dev)
+        self.v = torch.tensor(v, dtype=torch.float64, device=self.dev)
+        self.off = torch.arange(-self.near, self.near + 1, device=self.dev)
+        self.X = torch.zeros(M, dtype=torch.float64, device=self.dev)
+        ch, cw = scene.canvas.shape[:2]                # tiles / objects (over every back), padded by a screen: any
+        self.tiles = torch.zeros((ch + 2 * H, cw + 2 * W), dtype=torch.bool, device=self.dev)   # camera's = a slice
+        self.tiles[H:H + ch, W:W + cw] = scene.canvas[..., 3] > 0
+        self.t = None
+        self.seen = np.zeros(M, bool)                  # found at least once
+        self.found = np.zeros(M, bool)                 # found on the last frame
+        self.share = np.zeros(M)                       # of its free samples, the share matching at its place
+        self.last_found = np.full(M, -np.inf)
+        self.last_full = np.full(M, -np.inf)
+        self.fulls = 0                                 # full looks made
+        self._Xc = np.zeros(M)                         # X on the CPU (one transfer a frame)
+        self._sub, self._tops = {}, {}
+
+    def _subset(self, rows: np.ndarray):
+        """(rows tensor, px, py, col, cx) of the movers `rows`, cached per set."""
+        key = rows.tobytes()
+        if key not in self._sub:
+            r = self.torch.from_numpy(rows).to(self.dev)
+            self._sub[key] = (r, self.px[r], self.py[r], self.col[r], self.cx[r])
+        return self._sub[key]
+
+    def _hits(self, f, C, rows: np.ndarray, cand):
+        """Matching and free samples (J, K) of movers `rows` (J,) at places `cand` (J, K) on frame `f` (h, w, 3)."""
+        torch, sc = self.torch, self.scene
+        h, w = f.shape[:2]
+        _, px, py, col, cx = self._subset(rows)
+        key = (int(C[1]), rows.tobytes())
+        if key not in self._tops:                      # the rows depend on Cy only
+            if len(self._tops) > 256:
+                self._tops.clear()
+            self._tops[key] = torch.tensor([mover_pos(sc.backs[self.idx[j]][0], C, 0, sc.hoff)[1] for j in rows],
+                                           device=self.dev)
+        tops = self._tops[key]
+        sx = (cand[:, :, None] - int(C[0]) + px[:, None, :]) % cx[:, None, None]                 # (J, K, N)
+        sy = (tops[:, None] + py)[:, None, :].expand_as(sx)
+        ok = (sx < w) & (sy >= 0) & (sy < h)
+        sxc, syc = sx.clamp(max=w - 1), sy.clamp(0, h - 1)
+        got = f[syc, sxc].short()                                                                 # (J, K, N, 3)
+        ax, ay = int(C[0]) - sc.x0 + W, int(C[1]) - sc.y0 + H
+        if 0 <= ax <= self.tiles.shape[1] - w and 0 <= ay <= self.tiles.shape[0] - h:
+            tiles = self.tiles[ay:ay + h, ax:ax + w]
+        else:                                          # a camera far outside the map: nothing there
+            tiles = torch.zeros((h, w), dtype=torch.bool, device=self.dev)
+        free = ok & ~tiles[syc, sxc]
+        hit = free & ((got - col[:, None]).abs().amax(dim=3) <= self.tol)
+        return hit.sum(dim=2).float(), free.sum(dim=2).float()
+
+    def _peak(self, hits):
+        """(best index (J,), found (J,)) by the peak rule over each row of `hits` (J, K)."""
+        torch = self.torch
+        ar = torch.arange(hits.shape[0], device=self.dev)
+        best = hits.argmax(dim=1)
+        bh = hits[ar, best]
+        rest = hits.clone()
+        rest[ar, best] = -1
+        second = rest.amax(dim=1)
+        p0, p1, p2 = self.peak
+        found = (bh >= p0) & (bh >= second + torch.clamp(p2 * second.clamp(min=0).sqrt(), min=p1))
+        return best, found
+
+    def update(self, frame, C, t: float) -> dict:
+        """The movers' places on this frame. `frame`: uint8 BGR tensor on the scene's device (>= PLAY_H rows); `C`:
+        the scene camera; `t`: the frame's time in seconds. -> places()."""
+        if not self.M:
+            return {}
+        torch = self.torch
+        f = frame[:PLAY_H]
+        X = (self.X + self.v * (t - self.t)) % self.cx if self.t is not None else self.X.clone()   # the law
+        self.t = t
+        found = np.zeros(self.M, bool)
+        share = np.zeros(self.M)
+        seen = np.flatnonzero(self.seen)
+        if len(seen):
+            rows, _, _, _, cx = self._subset(seen)
+            cand = X[rows].round().long()[:, None] + self.off[None, :]
+            hits, n = self._hits(f, C, seen, cand)
+            best, ok = self._peak(hits)
+            ar = torch.arange(len(seen), device=self.dev)
+            X[rows] = torch.where(ok, (cand[ar, best] % cx).double(), X[rows])
+            sh = hits[ar, best] / n[ar, best].clamp(min=1)
+            pack = torch.cat([ok.double(), sh.double(), X]).cpu().numpy()          # the frame's one transfer
+            J = len(seen)
+            found[seen], share[seen], self._Xc = pack[:J] > 0.5, pack[J:2 * J], pack[2 * J:].copy()
+        else:
+            self._Xc = X.cpu().numpy().copy()
+        lost = ~found & (~self.seen | (t - self.last_found >= self.lost_s)) & (t - self.last_full >= self.lost_s)
+        if lost.any():                                 # the full look: the one waiting longest
+            j = int(np.flatnonzero(lost)[np.argmin(self.last_full[lost])])
+            self.last_full[j] = t
+            self.fulls += 1
+            one = np.array([j])
+            per = int(self.cx[j])
+            hs, ns = [], []
+            for k in range(0, per, 256):
+                h_, n_ = self._hits(f, C, one, torch.arange(k, min(per, k + 256), device=self.dev)[None, :])
+                hs.append(h_)
+                ns.append(n_)
+            hits, n = torch.cat(hs, dim=1), torch.cat(ns, dim=1)
+            best, ok = self._peak(hits)
+            b = int(best[0])
+            sh = float(hits[0, b] / n[0, b].clamp(min=1))
+            if bool(ok[0]):
+                X[j], self._Xc[j] = float(b), float(b)
+                found[j], share[j] = True, sh
+        self.X = X
+        self.found, self.share = found, share
+        self.last_found[found] = t
+        self.seen |= found
+        return self.places()
+
+    def places(self) -> dict:
+        """back index -> the mover's place on the map (float px), None = never found."""
+        if not self.M:
+            return {}
+        return {i: (float(self._Xc[j]) if self.seen[j] else None) for j, i in enumerate(self.idx)}

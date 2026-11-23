@@ -3,7 +3,8 @@
 #   Map\*.img.xml                    Map.wz's top images (Physics, ...)
 #   Map\Map<N>\<9-digit id>.img.xml  every map (footholds, ladderRope, life, portal, miniMap, info)
 #   Map\minimap\<9-digit id>.png     every map's miniMap canvas, links resolved
-#   Mob\<7-digit id>.img.xml         every mob (info + per-frame origin/lt/rb/head/delay)
+#   Map\Obj|Tile|Back\...            the scenery (scene model); Map\MapHelper\png\... weather clouds + portals
+#   Mob\<7-digit id>.img.xml        every mob (info + per-frame origin/lt/rb/head/delay)
 #   Mob\png\<7-digit id>\<anim>_<n>.png  every frame of every animation, links resolved, as stored (facing left)
 #   Afterimage\<weapon>.img.xml     attack boxes per weapon type (lt/rb per stance); Skill\<job>.img.xml skills
 #   String\Map.img.xml, Mob.img.xml  names
@@ -52,7 +53,9 @@ function Get-BlockBitmap($c) {
   $bmp = [Drawing.Bitmap]::new([int]$png.Width, [int]$png.Height, [Drawing.Imaging.PixelFormat]::Format32bppArgb)
   $g = [Drawing.Graphics]::FromImage($bmp)
   for ($y = 0; $y -lt $bh; $y++) { for ($x = 0; $x -lt $bw; $x++) {
-    $v = $b[2 * ($y * $bw + $x)] -bor ($b[2 * ($y * $bw + $x) + 1] -shl 8)
+    # [int] first: a [byte] shifted left by 8 stays a byte (0) - the sky came out (0, 28, 255) instead of
+    # (66, 158, 255) before 2026-11-21 (PLAN-moving-scenery.md, measurement 2)
+    $v = [int]$b[2 * ($y * $bw + $x)] -bor ([int]$b[2 * ($y * $bw + $x) + 1] -shl 8)
     $r5 = ($v -shr 11) -band 31; $g6 = ($v -shr 5) -band 63; $b5 = $v -band 31
     $col = [Drawing.Color]::FromArgb(255, ($r5 -shl 3) -bor ($r5 -shr 2), ($g6 -shl 2) -bor ($g6 -shr 4), ($b5 -shl 3) -bor ($b5 -shr 2))
     $br = [Drawing.SolidBrush]::new($col); $g.FillRectangle($br, 16 * $x, 16 * $y, 16, 16); $br.Dispose()
@@ -140,6 +143,16 @@ function Export-Sets([string]$glob, [string]$dest, [string[]]$only = $null) {
 #   Map\Back\<set>.img.xml + Map\Back\png\<set>\back\<no>.png, ani\<no>\<n>.png: the backgrounds (the scene model,
 #   PLAN-perception.md step 1: tiles + objects + backs = what the frame shows where nothing moves)
 foreach ($kind in 'Obj', 'Tile', 'Back') { Export-Sets "$D\Map\$kind\$($kind)_*.wz" "$Out\Map\$kind" }
+
+# MapHelper.img (its xml is among Map.wz's top images above): the pictures the client draws over a map on its own
+# (PLAN-moving-scenery.md): weather\cloud\0..6 = the clouds drifting over the field of a map whose info says
+# `cloud` (Perion's region), portal\... = the portals
+#   Map\MapHelper\png\weather\cloud\<n>.png, Map\MapHelper\png\portal\<editor|game>\...\<n>.png
+$mh = (Open-Bms "$D\Map\Map_000.wz").WzDirectory.WzImages | ? Name -eq 'MapHelper.img'
+$script:nPart = 0
+Export-Canvases $mh.GetFromPath('weather/cloud') $mh "$Out\Map\MapHelper\png\weather\cloud"
+Export-Canvases $mh.GetFromPath('portal') $mh "$Out\Map\MapHelper\png\portal"
+"MapHelper: $script:nPart pictures (weather clouds, portals)"
 
 # for the scene model's later steps (PLAN-perception.md step 5: occluders, effects):
 #   Npc\<id>.img.xml + Npc\png\<id>\<anim>\<n>.png, Pet\<id>.img.xml + Pet\png\..., Effect\BasicEff.img.xml + png

@@ -21,8 +21,10 @@ PLAY_H, SW = 700, 1366
 
 
 def recording() -> list:
-    inc = Path(corpus_root()) / "incoming"
-    return [p.name for p in inc.iterdir() if p.is_dir()] if inc.exists() else []
+    """The folders of incoming/ still being recorded: those the filer has no log of yet (one it could not file stays
+    in incoming/ with its log in work/filing/, finished)."""
+    inc, logs = Path(corpus_root()) / "incoming", Path(corpus_root()) / "work" / "filing"
+    return [p.name for p in inc.iterdir() if p.is_dir() and not (logs / f"{p.name}.log").exists()] if inc.exists() else []
 
 
 def guard():

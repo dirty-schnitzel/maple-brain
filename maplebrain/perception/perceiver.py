@@ -9,6 +9,10 @@ camera, no mobs that tick (obs.scene_cam None) - the hunt pauses on it (runtime/
 Drops (PLAN-loot.md, in shadow - nothing reads them): with the camera found, the drop pass (perception/drops.py, ONE
 DropFinder per process, MapKit.drops) is launched on its own CUDA stream right after the expected scene and read after
 the fit and the tracker (it needs the fit's explained pixels and the characters' tags) -> FrameFacts.drops.
+Moving scenery (PLAN-moving-scenery.md): the moving backgrounds followed (scene.MoverFollow) and drawn into the expected
+scene; on a weather-cloud map the clouds followed (perception/clouds.py) and taken out of the frame before D, the fit
+and the drops (a cloud too thick to undo: those pixels not valid) -> FrameFacts.movers / clouds, the fit's cloud
+numbers per sighting and look.
 """
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor
@@ -66,9 +70,15 @@ class MapKit:
     why: str = ""                           # no scene camera on this map: why (the hunt refuses to start)
 
     @property
-    def clean(self) -> bool:
+    def perceive(self) -> bool:
         """The map has the scene camera + the fit: the only mob perception there is."""
         return self.scene is not None and self.fitter is not None
+
+    @property
+    def clean(self) -> bool:
+        """... and a hunt may start here: the same since PLAN-moving-scenery.md step 5 (a weather-cloud map's
+        clouds are followed and undone)."""
+        return self.perceive
 
     @property
     def names(self) -> dict:
@@ -114,12 +124,19 @@ class Perceiver:
             self.tag_gpu = GpuTagLook(self_template, self.dev)
             if lie_detector is not None and cfg.perception.lie_gpu:     # its look on the uploaded frame (step 2.8)
                 lie_detector.use_gpu(self.dev)
-        self.world = self.scene_cam = self.fitter = self.drops = None
-        if kit is not None and kit.clean and self.dev is not None:
+        self.world = self.scene_cam = self.fitter = self.drops = self.movers = self.clouds = None
+        if kit is not None and kit.perceive and self.dev is not None:
             from ..scene import SceneCamera
             from .world import World
             self.world = World(kit.nav, kit.mobs, cover=kit.cover)
             self.scene_cam = SceneCamera(kit.scene, tol=cfg.perception.scene_tol)
+            # the moving backgrounds' places (PLAN-moving-scenery.md step 3): None on a map without one
+            if any(b.get("mover") is not None for b, _ in kit.scene.backs):
+                from ..scene import MoverFollow
+                self.movers = MoverFollow(kit.scene, cfg.perception)
+            if kit.scene.meta.get("cloud"):             # the weather clouds: followed, undone (steps 4-5)
+                from .clouds import Clouds
+                self.clouds = Clouds(self.dev, cfg.perception)
             self.fitter = kit.fitter
             if kit.drops is not None:                   # drops (PLAN-loot.md, in shadow): this map's footholds and
                 self.drops = kit.drops                  # front planes
@@ -306,22 +323,40 @@ class Perceiver:
             return
         f.scene_cam, f.scene_share = exact, round(sc.share, 3)
         obs.scene_cam, obs.cam_src = exact, "exact"
-        ek = sc.scene.expected(exact)                   # ONE expected scene a tick: D, the fit and the drops (3.3)
+        X = None
+        if self.movers is not None:                     # the moving backgrounds' places, then drawn into the scene
+            t = time.perf_counter()
+            X = self.movers.update(self.frame_u8, exact, obs.t)
+            mv = self.movers
+            f.movers = [(i, None if X[i] is None else round(X[i], 2), bool(mv.found[j]), round(float(mv.share[j]), 3))
+                        for j, i in enumerate(mv.idx)]
+            f.movers_ms = round(1000 * (time.perf_counter() - t), 2)
+            self._mark("movers")
+        ek = sc.scene.expected(exact, X=X)              # ONE expected scene a tick: D, the fit and the drops (3.3)
+        fu, cloud = self.frame_u8, None
+        if self.clouds is not None:                     # PLAN-moving-scenery.md steps 4-5: the weather clouds
+            on = self.clouds.update(self.frame_u8, ek[0], ek[1] & self._world_ui(frame.shape), exact, obs.t)
+            f.clouds, f.clouds_ms = self.clouds.facts(), dict(self.clouds.ms)
+            if on:                                      # ... undone: D, the fit and the drops see the frame without
+                fu, thick = self.clouds.undo(self.frame_u8)     # them; too thick to undo -> not valid
+                ek = (ek[0], ek[1] & ~thick)
+                cloud = (self.clouds.A[..., 0].float(), thick)
+            self._mark("clouds")
         drops = self.drops is not None and self.cfg.perception.drops
         if drops:                                       # the drop pass starts on its own CUDA stream; read after the
             t = time.perf_counter()                     # fit and the tracker (part `drops` = its main-thread ms)
-            self.drops.launch(self.frame_u8, exact, ek[0], ek[1], self._world_ui(frame.shape))
+            self.drops.launch(fu, exact, ek[0], ek[1], self._world_ui(frame.shape))
             self._aside("drops", t)
         d_list = None
         if self.cfg.perception.scene_diff:
             # D (step 3.1): the unexplained pixels' blobs on the GPU, their list from a reader thread while the
             # tracker runs -> FrameFacts.patches
-            blob = sc.scene.diff(self.frame_u8, exact, tol=sc.tol, mask=sc._mask_t(ui), ek=ek)
+            blob = sc.scene.diff(fu, exact, tol=sc.tol, mask=sc._mask_t(ui), ek=ek)
             d_list = self.readers.submit(_patches, blob)
             self._mark("diff")
         # step 3.4: the fit's mobs are the sightings; its look at each unseen track's predicted feet is the search
         # around tracks
-        mobs = self._fit_mobs(self.frame_u8, exact, ek, me_s, frame.shape)
+        mobs = self._fit_mobs(fu, exact, ek, me_s, frame.shape, cloud)
         hits, f.fit_hints = [self.fitter.hit(m.type, m.pose, m.facing, m.feet) for m in mobs], []
         self._look_ms = 0.0
         f.tags = tags.result()
@@ -380,12 +415,13 @@ class Perceiver:
         feet = ([me_s] if me_s is not None else []) + [(x + w / 2, y) for x, y, w, h in tags or []]
         return self.drops.fetch(mob, [(cx - 42, fy - 90, cx + 42, fy + 22) for cx, fy in feet], mob_boxes)
 
-    def _fit_mobs(self, frame_u8, C, ek, me_s, shape) -> list:
-        """The fit (perception/fit.py) on the uploaded frame with this tick's expected scene `ek` (D's), ui =
-        `_world_ui`, our body box kept out of the fade search -> [FitMob], facts.fit / fit_ms. Part `fit`."""
+    def _fit_mobs(self, frame_u8, C, ek, me_s, shape, cloud=None) -> list:
+        """The fit (perception/fit.py) on the uploaded frame (on a cloud map: undone, `cloud` = (alpha, too thick))
+        with this tick's expected scene `ek` (D's), ui = `_world_ui`, our body box kept out of the fade search ->
+        [FitMob], facts.fit / fit_ms. Part `fit`."""
         f, fz = self.facts, self.fitter
         me = None if me_s is None else (me_s[0] - 40, me_s[1] - 85, me_s[0] + 40, me_s[1] + 30)
-        mobs = fz.fit(frame_u8, C, ek[0], ek[1], self._world_ui(shape), me)
+        mobs = fz.fit(frame_u8, C, ek[0], ek[1], self._world_ui(shape), me, cloud=cloud)
         f.fit, f.fit_ms = [m.to_dict() for m in mobs], round(fz.ms["fit"], 2)
         self._mark("fit")
         return mobs
