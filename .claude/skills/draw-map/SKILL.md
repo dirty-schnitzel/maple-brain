@@ -1,6 +1,6 @@
 ---
 name: draw-map
-description: Draw a map's platform graph (navmap) as an abstract directed graph picture - nodes = platforms, edges = moves with their cost in seconds. Use when the user says "draw <map>", "draw the graph of <map>", "show the map as a graph", optionally with a number of platforms ("only 10 platforms"), edge groups to hide ("hide drops", "without jumps"), as 8-bit art ("8bit", "8-bit", "pixel art"), with the platforms where they are on the map ("as on the map", "keep the real places", "map layout"), or for the session banner ("add it to the banner", "show it at session start").
+description: Draw a map's platform graph (navmap) as an abstract directed graph picture - nodes = platforms, edges = moves with their cost in seconds. Use when the user says "draw <map>", "draw the graph of <map>", "show the map as a graph", optionally with a number of platforms ("only 10 platforms"), edge groups to hide ("hide drops", "without jumps"), as 8-bit art ("8bit", "8-bit", "pixel art"), with the platforms where they are on the map ("as on the map", "keep the real places", "map layout"), of N random maps ("10 random maps"), or for the session banner ("add it to the banner", "show it at session start").
 ---
 # Draw a map as a platform graph
 
@@ -8,6 +8,8 @@ The tool is `tools/nav/map_graph.py` (its docstring says how the graph is made).
 
 ```powershell
 .venv\Scripts\python tools\nav\map_graph.py MAP [--platforms N] [--seed S] [--hide GROUPS] [--layout rows|map] [--8bit | --banner] [--out PNG]
+.venv\Scripts\python tools
+av\map_graph.py --random N [the same options, no --seed / --out / --banner]
 ```
 
 - `MAP`: a map id or name; a part of a name works when it names one map (several: the tool lists them - ask
@@ -16,10 +18,13 @@ The tool is `tools/nav/map_graph.py` (its docstring says how the graph is made).
   the edges, so they hang together). Say the seed it printed in the file name; `--seed S` repeats a pick.
 - `hide` -> `--hide`, comma separated, from: `drop` (drop downs and walking off an edge), `jump`, `rope_up`,
   `rope_down`, `rope_leap` (a rope, then a jump off it), `walk`. "hide ropes" = `rope_up,rope_down,rope_leap`.
-  Hidden groups lose their edges only; the platforms stay.
+  Hidden groups lose their edges only; the platforms stay. Plurals work: "hide drops" -> `--hide drops`.
+- "N random maps" -> `--random N` in place of MAP: maps with at least 5 platforms (or `--platforms`) and an
+  edge left after `--hide`, each with its own seed. With `--8bit` every picture is printed again at the end:
+  paste that block. Example: `--random 10 --hide drops --8bit --platforms 5 --layout map`.
 - "as on the map" / "real places" -> `--layout map`: each platform at its place on the map, to scale (the same
   height stays level, the order and the distances are kept), a grey bar = its extent; the file ends `_map.png`.
-  The default `--layout rows` = rows by height, evenly spaced. `--8bit` / `--banner` always use rows.
+  The default `--layout rows` = rows by height, evenly spaced. `--8bit` follows `--layout` too (the art is then about 40 x 32 pixels).
 - `8bit` / "8-bit" / "pixel art" -> `--8bit`: the same pick as one-colour text art (rings = platforms, lines =
   moves, no numbers) instead of the PNG, printed with a caption; the art alone saved as a `.txt`.
 - Output: `runs\map_graph\<map id>[_<N>p_s<seed>][_no-<groups>].png` (or `.txt` with `--8bit`; the path is

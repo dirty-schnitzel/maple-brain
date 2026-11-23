@@ -5,7 +5,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools" / "nav"))
 
-from map_graph import BANNER, banner_file, map_positions, pixel_art  # noqa: E402
+from map_graph import BANNER, banner_file, map_positions, pixel_art, pixel_art_map  # noqa: E402
 
 ROWS = [[1], [2, 3]]                                     # one platform on top, two below it
 
@@ -49,3 +49,13 @@ def test_map_positions_keep_levels_order_and_distances():
 def test_map_positions_never_enlarge_a_small_map():
     pos, _, width, _ = map_positions({1: (0, 100, 0), 2: (300, 400, 0)}, top=0)
     assert pos[2][0] - pos[1][0] == 300 and width == 1500
+
+
+def test_pixel_art_map_keeps_levels_and_order():
+    # two platforms on one floor at the map's two ends, one above the left one
+    art = pixel_art_map({1: (0, 200, 400), 2: (2600, 2800, 400), 3: (0, 200, 200)}, [(1, 2), (1, 3)])
+    assert art == [                                     # the upper one on top, the floor's two at its two ends
+        " █▀█",
+        " ███                                   ▄▄▄",
+        " █▄█" + "▀" * 35 + "█▄█",
+    ]

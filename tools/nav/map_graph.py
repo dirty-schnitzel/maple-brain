@@ -16,11 +16,14 @@ Number = NavMap.route's seconds from the MIDDLE of the source platform: on a wid
 Platforms nothing leads to (scenery, or a way up navmap does not model) are left out and named under the picture.
 
   python tools/nav/map_graph.py MAP [--platforms N] [--seed S] [--hide drop,jump] [--layout rows|map] [--8bit | --banner] [--out PNG]
+  python tools/nav/map_graph.py --random 10 --hide drops --8bit --platforms 5 --layout map
 
 MAP = a map id or a name ("Line 1 <Area 1>", or a part of one that names a single map).
 --platforms N keeps N platforms, picked arbitrarily: grown from a random platform along the edges (either
 direction), so the piece hangs together; --seed makes the pick repeatable. Edges between the kept ones are the
-full map's direct moves. --hide leaves those edge groups out (the platforms stay).
+full map's direct moves. --hide leaves those edge groups out (the platforms stay; plurals such as "drops" work).
+--random N draws N random maps (at least 5 platforms, or --platforms, and an edge left) with the other options,
+each with its own seed; with --8bit all the pictures are printed together at the end.
 --8bit draws the same pick as one-colour 8-bit text art (rings = platforms, lines = moves, no numbers):
 printed with a caption, and the art alone saved as a .txt. --banner does the same into the session banner's
 folder, .claude/skills/draw-map/8bit/<map name>.txt: the maple-banner mod shows a random file of it at session
@@ -158,10 +161,23 @@ def pixel_art(rows: list, edges, gap: int = 14, row_h: int = 4) -> list:
     height = (len(rows) - 1) * row_h + 3
     pos = {i: (round((width - 1) / 2 + (j - (len(row) - 1) / 2) * gap), 1 + r * row_h)
            for r, row in enumerate(rows) for j, i in enumerate(row)}
+    return _pixels(pos, edges, width, height)
+
+
+def pixel_art_map(boxes: dict, edges, width: int = 42, height: int = 32) -> list:
+    """pixel_art with the platforms placed as on the map (map_positions, boxes = {id: (left, right, y)}), scaled
+    into about `width` x `height` pixels; close platforms' rings may touch."""
+    pos, _, w, h = map_positions(boxes, top=1, width=width, max_h=height, margin=1)
+    pos = {i: (round(x), round(y)) for i, (x, y) in pos.items()}
+    return _pixels(pos, edges, w + 1, max(y for _, y in pos.values()) + 2)
+
+
+def _pixels(pos: dict, edges, width: int, height: int) -> list:
+    """Rings at `pos` (pixel x, y), 1 px lines between them, as half-block text lines."""
     g = [[False] * width for _ in range(height + height % 2)]
     for a, b in {tuple(sorted(e)) for e in edges}:
         (x0, y0), (x1, y1) = pos[a], pos[b]
-        n = max(abs(x1 - x0), abs(y1 - y0))
+        n = max(abs(x1 - x0), abs(y1 - y0), 1)
         for k in range(n + 1):
             g[round(y0 + (y1 - y0) * k / n)][round(x0 + (x1 - x0) * k / n)] = True
     for x, y in pos.values():
@@ -197,11 +213,16 @@ def banner_file(name: str) -> Path:
     return BANNER / f"{short_name(name)}.txt"
 
 
-def draw_8bit(map_id: int, out: Path, n: int | None = None, seed=None, hide=()) -> str:
-    """pixel_art of the same pick as draw(): the art alone written to `out` (UTF-8, the session banner's format:
-    .claude/skills/draw-map/8bit/<map name>.txt), returned with a caption under it."""
+def draw_8bit(map_id: int, out: Path, n: int | None = None, seed=None, hide=(), mode: str = "rows") -> str:
+    """pixel_art (or pixel_art_map) of the same pick as draw(): the art alone written to `out` (UTF-8, the session
+    banner's format: .claude/skills/draw-map/8bit/<map name>.txt), returned with a caption under it."""
     name, nm, nodes, E, _, _ = graph(map_id, n, seed, hide)
-    art = "\n".join(pixel_art(layout(nm, nodes), E)) + "\n"
+    if mode == "map":
+        boxes = {i: (nm.platforms[i].left, nm.platforms[i].right, ymid(nm, i)) for i in nodes}
+        rows = pixel_art_map(boxes, E)
+    else:
+        rows = pixel_art(layout(nm, nodes), E)
+    art = "\n".join(rows) + "\n"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(art, encoding="utf-8", newline="\n")
     return art + f" neuromaple · {name}\n"
@@ -309,9 +330,32 @@ def draw(map_id: int, out: Path, n: int | None = None, seed=None, hide=(), mode:
     return out
 
 
+ALIAS = {"drops": "drop", "walk_off": "drop", "walkoff": "drop", "jumps": "jump", "walks": "walk",
+         "ropes_up": "rope_up", "ropes_down": "rope_down", "rope_leaps": "rope_leap", "leap": "rope_leap"}
+
+
+def random_maps(count: int, n: int | None, hide=(), assets: Path = ASSETS):
+    """`count` random map ids whose graph has at least max(n, 5) platforms and an edge left after `hide`."""
+    ids = sorted(int(p.parent.name) for p in (assets / "maps").glob("*/map.json"))
+    random.shuffle(ids)
+    for mid in ids:
+        if count == 0:
+            return
+        try:
+            _, _, _, E, _, n_reach = graph(mid, n, random.randrange(10_000), hide, assets)
+        except Exception:                                 # no navmap (towns' insides, cut scenes)
+            continue
+        if n_reach >= max(n or 0, 5) and E:
+            count -= 1
+            yield mid
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("map", help="a map id or name")
+    ap.add_argument("map", nargs="?", help="a map id or name (none with --random)")
+    ap.add_argument("--random", type=int, metavar="N",
+                    help="N random maps instead of MAP, each with its own seed; with --8bit every art is printed "
+                         "again at the end")
     ap.add_argument("--platforms", type=int, help="keep this many platforms, picked arbitrarily")
     ap.add_argument("--seed", type=int, help="makes the --platforms pick repeatable (default: random)")
     ap.add_argument("--hide", default="", help="edge groups to leave out, comma separated: " + ", ".join(GROUPS))
@@ -324,23 +368,34 @@ def main(argv=None):
                          "to scale)")
     ap.add_argument("--out", type=Path, help="the PNG or .txt (default runs/map_graph/<map id>.png / .txt)")
     a = ap.parse_args(argv)
-    hide = tuple(h.strip() for h in a.hide.split(",") if h.strip())
+    hide = tuple(dict.fromkeys(ALIAS.get(h.strip().replace(" ", "_").replace("-", "_"), h.strip())
+                               for h in a.hide.split(",") if h.strip()))
     bad = [h for h in hide if h not in GROUPS]
     if bad:
         ap.error(f"unknown group(s) {bad}: the groups are {', '.join(GROUPS)}")
-    map_id = find_map(a.map)
-    seed = a.seed if a.seed is not None else (random.randrange(10_000) if a.platforms else None)
+    if (a.map is None) == (a.random is None):
+        ap.error("give a MAP or --random N")
+    if a.random is not None and (a.seed is not None or a.out or a.banner):
+        ap.error("--random picks its own maps and seeds: no --seed, --out or --banner")
     a.eightbit = a.eightbit or a.banner
-    out = a.out or (banner_file(map_name(map_id)) if a.banner else
-                    ROOT / "runs" / "map_graph" / (f"{map_id}" + (f"_{a.platforms}p_s{seed}" if a.platforms else "")
-                                                   + (f"_no-{'-'.join(hide)}" if hide else "")
-                                                   + ("_map" if a.layout == "map" and not a.eightbit else "")
-                                                   + (".txt" if a.eightbit else ".png")))
     if a.eightbit:
         sys.stdout.reconfigure(encoding="utf-8")
-        print(draw_8bit(map_id, out, a.platforms, seed, hide) + str(out))
-    else:
-        print(draw(map_id, out, a.platforms, seed, hide, a.layout))
+    arts = []
+    for map_id in random_maps(a.random, a.platforms, hide) if a.random else [find_map(a.map)]:
+        seed = a.seed if a.seed is not None else (random.randrange(10_000) if a.platforms else None)
+        out = a.out or (banner_file(map_name(map_id)) if a.banner else
+                        ROOT / "runs" / "map_graph" / (f"{map_id}" + (f"_{a.platforms}p_s{seed}" if a.platforms else "")
+                                                       + (f"_no-{'-'.join(hide)}" if hide else "")
+                                                       + ("_map" if a.layout == "map" else "")
+                                                       + (".txt" if a.eightbit else ".png")))
+        if a.eightbit:
+            art = draw_8bit(map_id, out, a.platforms, seed, hide, a.layout)
+            arts.append(f"--- {map_id}" + (f", seed {seed}" if seed is not None else "") + f"\n{art}")
+            print(art + str(out))
+        else:
+            print(draw(map_id, out, a.platforms, seed, hide, a.layout))
+    if a.random and arts:
+        print("\n========== the 8-bit pictures ==========\n" + "\n".join(arts))
 
 
 if __name__ == "__main__":
