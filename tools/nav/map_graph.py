@@ -13,20 +13,23 @@ Number = NavMap.route's seconds from the MIDDLE of the source platform: on a wid
 (a real route starts from where we stand). Walk speed is Nav.walk_speed, a placeholder (config.py).
 Platforms nothing leads to (scenery, or a way up navmap does not model) are left out and named under the picture.
 
-  python tools/nav/map_graph.py MAP [--platforms N] [--seed S] [--hide drop,jump] [--8bit] [--out PNG]
+  python tools/nav/map_graph.py MAP [--platforms N] [--seed S] [--hide drop,jump] [--8bit | --banner] [--out PNG]
 
 MAP = a map id or a name ("Line 1 <Area 1>", or a part of one that names a single map).
 --platforms N keeps N platforms, picked arbitrarily: grown from a random platform along the edges (either
 direction), so the piece hangs together; --seed makes the pick repeatable. Edges between the kept ones are the
 full map's direct moves. --hide leaves those edge groups out (the platforms stay).
 --8bit draws the same pick as one-colour 8-bit text art (rings = platforms, lines = moves, no numbers):
-printed, and saved as a .txt.
+printed with a caption, and the art alone saved as a .txt. --banner does the same into the session banner's
+folder, .claude/skills/draw-map/8bit/<map name>.txt: the maple-banner mod shows a random file of it at session
+start, titled by its file name.
 """
 import argparse
 import heapq
 import json
 import math
 import random
+import re
 import sys
 from pathlib import Path
 
@@ -38,6 +41,7 @@ if str(ROOT) not in sys.path:
 from maplebrain.nav.navmap import NavMap  # noqa: E402
 
 ASSETS = ROOT / "assets" / "mcw"
+BANNER = ROOT / ".claude" / "skills" / "draw-map" / "8bit"  # the maple-banner mod picks one at session start
 GROUPS = ("drop", "jump", "rope_up", "rope_down", "rope_leap", "walk")
 COLOUR = {"drop": (52, 110, 200), "jump": (40, 150, 80), "rope_up": (220, 120, 20),
           "rope_down": (150, 100, 50), "rope_leap": (150, 70, 180), "walk": (120, 120, 120)}
@@ -116,7 +120,7 @@ def pick(edges: dict, nodes: list, n: int, seed) -> list:
 def graph(map_id: int, n: int | None = None, seed=None, hide=(), assets: Path = ASSETS):
     """(name, navmap, kept platforms, edges shown, platforms left out as unreachable, reachable count)."""
     nm = NavMap.for_map(map_id, assets)
-    name = json.loads((assets / "maps" / str(map_id) / "map.json").read_text(encoding="utf-8"))["name"]
+    name = map_name(map_id, assets)
     E = platform_edges(nm)
     reach = {b for _, b in E}
     E = {k: v for k, v in E.items() if k[0] in reach and k[1] in reach}
@@ -166,13 +170,39 @@ def pixel_art(rows: list, edges, gap: int = 14, row_h: int = 4) -> list:
     return ["".join(half[g[y][x], g[y + 1][x]] for x in range(width)).rstrip() for y in range(0, len(g), 2)]
 
 
+def map_name(map_id: int, assets: Path = ASSETS) -> str:
+    return json.loads((assets / "maps" / str(map_id) / "map.json").read_text(encoding="utf-8"))["name"]
+
+
+SHORT = {"Hunting Ground": "HG", "Construction Site": "CS", "City": ""}
+ROMAN = {"I": 1, "II": 2, "III": 3, "IV": 4, "V": 5, "VI": 6, "VII": 7, "VIII": 8, "IX": 9, "X": 10}
+
+
+def short_name(name: str) -> str:
+    """A map's name for the banner: phrases of SHORT abbreviated, a last Roman numeral as a digit, glued to an
+    abbreviation ("Henesys Hunting Ground I" -> "Henesys HG1"), and without what Windows refuses in a file name."""
+    for long, short in SHORT.items():
+        name = re.sub(rf"\b{long}\b", short, name)
+    words = re.sub(r'[<>:"/\\|?*]', " ", name).split()
+    if len(words) > 1 and words[-1] in ROMAN:
+        digit = str(ROMAN[words.pop()])
+        words[-1] += digit if words[-1] in SHORT.values() else " " + digit
+    return " ".join(words)
+
+
+def banner_file(name: str) -> Path:
+    """The session banner's picture of a map: BANNER/<short name>.txt (the banner's title is the file name)."""
+    return BANNER / f"{short_name(name)}.txt"
+
+
 def draw_8bit(map_id: int, out: Path, n: int | None = None, seed=None, hide=()) -> str:
-    """pixel_art of the same pick as draw(), with a caption; written to `out` (UTF-8) and returned."""
+    """pixel_art of the same pick as draw(): the art alone written to `out` (UTF-8, the session banner's format:
+    .claude/skills/draw-map/8bit/<map name>.txt), returned with a caption under it."""
     name, nm, nodes, E, _, _ = graph(map_id, n, seed, hide)
-    art = "\n".join(pixel_art(layout(nm, nodes), E) + [f" maplebrain · {name}"]) + "\n"
+    art = "\n".join(pixel_art(layout(nm, nodes), E)) + "\n"
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(art, encoding="utf-8")
-    return art
+    out.write_text(art, encoding="utf-8", newline="\n")
+    return art + f" neuromaple · {name}\n"
 
 
 def _font(size, bold=False):
@@ -254,6 +284,8 @@ def main(argv=None):
     ap.add_argument("--hide", default="", help="edge groups to leave out, comma separated: " + ", ".join(GROUPS))
     ap.add_argument("--8bit", dest="eightbit", action="store_true",
                     help="8-bit text art instead of the PNG: printed, and saved as a .txt")
+    ap.add_argument("--banner", action="store_true",
+                    help="--8bit, saved into the session banner's folder as <map name>.txt (replaces that map's)")
     ap.add_argument("--out", type=Path, help="the PNG or .txt (default runs/map_graph/<map id>.png / .txt)")
     a = ap.parse_args(argv)
     hide = tuple(h.strip() for h in a.hide.split(",") if h.strip())
@@ -262,9 +294,11 @@ def main(argv=None):
         ap.error(f"unknown group(s) {bad}: the groups are {', '.join(GROUPS)}")
     map_id = find_map(a.map)
     seed = a.seed if a.seed is not None else (random.randrange(10_000) if a.platforms else None)
-    out = a.out or ROOT / "runs" / "map_graph" / (f"{map_id}" + (f"_{a.platforms}p_s{seed}" if a.platforms else "")
-                                                  + (f"_no-{'-'.join(hide)}" if hide else "")
-                                                  + (".txt" if a.eightbit else ".png"))
+    a.eightbit = a.eightbit or a.banner
+    out = a.out or (banner_file(map_name(map_id)) if a.banner else
+                    ROOT / "runs" / "map_graph" / (f"{map_id}" + (f"_{a.platforms}p_s{seed}" if a.platforms else "")
+                                                   + (f"_no-{'-'.join(hide)}" if hide else "")
+                                                   + (".txt" if a.eightbit else ".png")))
     if a.eightbit:
         sys.stdout.reconfigure(encoding="utf-8")
         print(draw_8bit(map_id, out, a.platforms, seed, hide) + str(out))

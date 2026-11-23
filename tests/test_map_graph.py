@@ -5,7 +5,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools" / "nav"))
 
-from map_graph import pixel_art  # noqa: E402
+from map_graph import BANNER, banner_file, pixel_art  # noqa: E402
 
 ROWS = [[1], [2, 3]]                                     # one platform on top, two below it
 
@@ -21,6 +21,13 @@ def test_pixel_art_draws_rings_and_lines():
 
 def test_pixel_art_a_two_way_move_is_one_line():
     assert pixel_art(ROWS, [(1, 2), (2, 1), (1, 3)]) == pixel_art(ROWS, [(1, 2), (1, 3)])
+
+
+def test_banner_file_is_the_short_map_name():
+    assert banner_file("Henesys Hunting Ground I") == BANNER / "Henesys HG1.txt"
+    assert banner_file("Kerning City Construction Site") == BANNER / "Kerning CS.txt"
+    assert banner_file("Ant Tunnel IV") == BANNER / "Ant Tunnel 4.txt"
+    assert banner_file("Line 1 <Area 1>") == BANNER / "Line 1 Area 1.txt"  # what Windows refuses is dropped
 
 
 def test_pixel_art_without_moves_is_rings_only():
