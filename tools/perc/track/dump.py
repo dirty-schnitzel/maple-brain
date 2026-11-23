@@ -13,7 +13,7 @@ refused (no --holdout here on purpose). Output: OUT/track/ with OUT = CORPUS/wor
         cam, cam_src     the tracker's camera / where it came from
         me, me_map, map_pos     our tag on screen (x, y, w, h), our feet on the map (tag + camera), the minimap's
         mobs             today's tracker (world.py): Track.as_dict per track - the baseline
-        facts            FrameFacts.as_dict (v5): fit (the fit's mobs), fit_hints (the looks at today's tracks the
+        facts            FrameFacts.as_dict (v5, v6 since 2026-11-23: + movers): fit (the fit's mobs), fit_hints (the looks at today's tracks the
                          fit did not find), patches (D's blobs), drops, tags (players' name tags), hp / mp / exp,
                          tag, scene_share, ...
         explained        shows / world pixels (below) on this frame (None: no camera)
@@ -60,6 +60,13 @@ CAPTURES = [
     "20261119_123331_2#1", "20261119_123331_2#3", "20261119_123331_2#4", "20261119_123331_2#6",
     "20261119_204522_1#1", "20261119_204522_1#3", "20261119_204522_1#4", "20261119_204522_1#5",
     "20261119_204522_1#7",
+    # PLAN-moving-scenery.md step 3 (2026-11-23): the maps whose backgrounds move sideways (movers followed)
+    "20261119_122901_1#0",       # Construction Site North of Kerning City
+    "20261119_123331_2#0",       # Kerning City Construction Site
+    "20261119_123331_2#5",       # 3-Way Road-Split
+    "20261119_123331_2#7",       # A Hill West of Henesys
+    "20261119_125726_3#0", "20261119_125726_3#1", "20261119_125726_3#2",     # Henesys Hunting Ground I-III
+    "20261119_204522_1#0",       # The Hill East of Henesys
 ]
 
 
@@ -104,9 +111,11 @@ def bits_rows(cap, packed: bool = False):
 
 
 def recording() -> list:
+    """The folders of incoming/ still being recorded: those the filer has no log of yet (a recording it could not
+    file - no map name - stays in incoming/ with its log in work/filing/, finished)."""
     from maplebrain.config import CORPUS
-    inc = Path(CORPUS) / "incoming"
-    return [p.name for p in inc.iterdir() if p.is_dir()] if inc.exists() else []
+    inc, logs = Path(CORPUS) / "incoming", Path(CORPUS) / "work" / "filing"
+    return [p.name for p in inc.iterdir() if p.is_dir() and not (logs / f"{p.name}.log").exists()] if inc.exists() else []
 
 
 def dump(cap, t0: float, t1: float, force: bool) -> None:

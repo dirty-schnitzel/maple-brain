@@ -114,12 +114,16 @@ class Perceiver:
             self.tag_gpu = GpuTagLook(self_template, self.dev)
             if lie_detector is not None and cfg.perception.lie_gpu:     # its look on the uploaded frame (step 2.8)
                 lie_detector.use_gpu(self.dev)
-        self.world = self.scene_cam = self.fitter = self.drops = None
+        self.world = self.scene_cam = self.fitter = self.drops = self.movers = None
         if kit is not None and kit.clean and self.dev is not None:
             from ..scene import SceneCamera
             from .world import World
             self.world = World(kit.nav, kit.mobs, cover=kit.cover)
             self.scene_cam = SceneCamera(kit.scene, tol=cfg.perception.scene_tol)
+            # the moving backgrounds' places (PLAN-moving-scenery.md step 3): None on a map without one
+            if any(b.get("mover") is not None for b, _ in kit.scene.backs):
+                from ..scene import MoverFollow
+                self.movers = MoverFollow(kit.scene, cfg.perception)
             self.fitter = kit.fitter
             if kit.drops is not None:                   # drops (PLAN-loot.md, in shadow): this map's footholds and
                 self.drops = kit.drops                  # front planes
@@ -306,7 +310,16 @@ class Perceiver:
             return
         f.scene_cam, f.scene_share = exact, round(sc.share, 3)
         obs.scene_cam, obs.cam_src = exact, "exact"
-        ek = sc.scene.expected(exact)                   # ONE expected scene a tick: D, the fit and the drops (3.3)
+        X = None
+        if self.movers is not None:                     # the moving backgrounds' places, then drawn into the scene
+            t = time.perf_counter()
+            X = self.movers.update(self.frame_u8, exact, obs.t)
+            mv = self.movers
+            f.movers = [(i, None if X[i] is None else round(X[i], 2), bool(mv.found[j]), round(float(mv.share[j]), 3))
+                        for j, i in enumerate(mv.idx)]
+            f.movers_ms = round(1000 * (time.perf_counter() - t), 2)
+            self._mark("movers")
+        ek = sc.scene.expected(exact, X=X)              # ONE expected scene a tick: D, the fit and the drops (3.3)
         drops = self.drops is not None and self.cfg.perception.drops
         if drops:                                       # the drop pass starts on its own CUDA stream; read after the
             t = time.perf_counter()                     # fit and the tracker (part `drops` = its main-thread ms)

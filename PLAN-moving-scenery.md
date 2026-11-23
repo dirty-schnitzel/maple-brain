@@ -1,7 +1,8 @@
 # PLAN-moving-scenery: perception on maps whose scenery moves
 
 **Status: OK'd by the user 2026-11-21 ("execute moving-scenery plan"); step 1 DONE 2026-11-21 (below the steps
-table); step 2 built 2026-11-23, its gate missed on 2 numbers - waiting on the user's call (under step 2).** Measured and prototyped by the plan session (2026-11-21).
+table); step 2 DONE 2026-11-23 (its 2 missed numbers accepted by the user: "all good continue"); step 3 built
+2026-11-23 (2 misses + the user's live check owed: under step 3); step 4's footage recorded 2026-11-23.** Measured and prototyped by the plan session (2026-11-21).
 Waiting on the user's OK, and on footage for steps 4-6 (the last section). Priority: **P0**, before the tracker
 plan session. Tools and their README: `tools/perc/scenery/` (merged into `dev` 2026-11-21; the steps below work
 on branch `moving-scenery`); results, sheets and cached cameras: `F:\dev\maple-corpus\work\scenery\`.
@@ -236,7 +237,7 @@ Found on the way (not a gate):
   drawn one by one and split a group); the other forest maps unchanged (1.10 -> 1.10). Step 2's layer loop replaces
   this. The Perceiver on the forest captures: 15.6-20.1 ms p50 (the replay's whole call, this machine).
 
-### Step 2 - built 2026-11-23 (branch `moving-scenery`): gate MISSED on 2 numbers, stopped
+### Step 2 - DONE 2026-11-23 (branch `moving-scenery`, def0574): gate missed on 2 numbers, ACCEPTED by the user
 Built: `scene.py` - scene.json `mover {v: 5 x rx}` per type 4 back (`assets scene` re-run, 233 maps); `mover_pos` (the
 row rule); `Scene.expected(C, X)`: every layer outside the pre-composed groups drawn only in its screen rectangle
 (`_Draw`: colour, alpha, 1 - alpha; a tiled axis stored repeated, so a piece is a slice), colour and cover in one
@@ -269,10 +270,43 @@ pictures; the card has 16 GB).
   follow nor the reference can follow it; its rows stay unknown. `back_vicportTown/back_7` (175 opaque pixels) is
   found by the live follow on 895 frames the reference refuses (its minimum is 300 px): all within 0.5 px of its
   law. Samples are each pixel once (repeated samples false-locked on a synthetic test, 12 of 40 frames).
-**For the user to decide:** (1) the acquisition - score the full look on the pixels the movers already found and the
+**Decided (the user, 2026-11-23, "all good continue"):** both numbers accepted as they are; nothing changed.
+The two options that were put to the user, kept for a later look: (1) the acquisition - score the full look on the pixels the movers already found and the
 static layers after it leave visible (the reference's rule, ~ +1 ms when it runs), or accept 92.2 % on 3-Way; (2) the
 follow's ms gate on 6-a-second footage - count it on frames without a full look, or retry a never-seen mover less
 often (e.g. only when its rows come on screen).
+
+### Step 3 - built 2026-11-23 (branch `moving-scenery`): gate met on the five captures with a camera; 2 misses
+Built: `Scene.clean_meta` - a mover behind the field counts as known; refused stay the cloud maps, type 5-7 /
+animated backs and a mover drawn in FRONT (map 80003000's `back_darkMountain/back_4`, found on the way: not in this
+plan's design). 174 of 233 scenes clean (125 before). The Perceiver: `MoverFollow` after the camera, its places into
+the one `expected` a tick; part `movers`. FrameFacts v6: `movers` [(back, X, found, share)] + `movers_ms`. The kept
+replay of the 8 captures (`dump.py` CAPTURES). Gate tool `tools/perc/scenery/live3.py` (live sightings vs
+run_fit.py's A / B + the by-eye sheet). `dump.py` / `msl.py`: a folder in incoming/ with a filing log is no longer
+taken for a recording (two unfiled recordings of 2026-11-23 01:21 kept every GPU tool waiting).
+| Capture | camera (fix to fade) | model | sightings live / B (every 3rd frame) | ms p50 (kept replay) |
+|---|---|---|---|---|
+| Construction Site N of Kerning | 100.00 % | 99.1 % | 13,187 / 13,214 = 99.8 % | 18.5 |
+| A Hill West of Henesys | 100.00 % | **94.4 %** (the open chat: footage) | 3,042 / 3,042 = 100.0 % | 16.3 |
+| Henesys Hunting Ground I | 100.00 % | 96.3 % | 5,895 / 5,864 = 100.5 % | 17.1 |
+| Henesys Hunting Ground II | 100.00 % | 98.2 % | 3,751 / 3,751 = 100.0 % | 16.6 |
+| Henesys Hunting Ground III | 100.00 % | 98.5 % | 11,481 / 11,502 = 99.8 % | 17.1 |
+| Kerning City Construction Site / 3-Way Road-Split / The Hill East of Henesys | **0 %** | - | - | - |
+- Sightings: 37,356 live vs B 37,373 (100.0 %); today's picture (A) 33,838: +3,518. By eye, 40 random live
+  sightings A does not give (`work\scenery\live3_sheet_0..3.png`): 33 real mobs, **0 ghosts**, 7 can't tell (under
+  the open chat 2, the minimap 1, only feet at the screen's top edge 2, mostly behind a beam / cloth 2).
+- The Perceiver, the same moment (900 frames each, alternated twice): sound Ant Tunnel IV 14.2 / Line 1 14.5 ms;
+  HG III 15.5 (+1.1, in the gate); **Construction Site N of Kerning 16.4 (+2.0: missed by ~0.5 ms;** 5 movers,
+  `movers` 1.3-1.4 ms in the Perceiver - 0.9 alone - and a heavier D).
+- The 13 sound: `gate.py` SAME, 100.0 % on every clip. pytest green; bot speed 15.4 ms on a slower machine moment
+  (A/B the same moment: this tree 15.1 / 14.9, step 2's commit 15.2 / 14.8 - unchanged).
+- **The three without a camera: the minimap, not the movers.** The scene camera starts from the minimap's seed
+  (our map place - our screen place): Kerning City Construction Site reads the dot on 347 frames but the seed never
+  registers (off by > 48 px?), 3-Way Road-Split reads the dot on 2,058 frames but the locator gives no map place,
+  The Hill East of Henesys no dot at all. `cam.py`'s whole-map search finds the camera on 3-Way on 99 % of the
+  frames. = HANDOFF's "wide maps" item (the user, 2026-11-23: its plan runs after the tracker).
+- **Owed: the user's live check** - a 3-minute hunt on a Henesys Hunting Ground (HG III: camera, model and ms in
+  the gate).
 
 **Stop rules** - the executor stops with the numbers, no workaround, when:
 - a gate's number is missed, or any of the 13 sound captures' tracks come out CHANGED;

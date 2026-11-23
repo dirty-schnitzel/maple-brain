@@ -113,13 +113,16 @@ def _map_name(map_id: int) -> str:
 
 def _load_scene(map_id: int):
     """The scene model for the scene camera (PLAN-perception.md steps 1-2) -> (Scene, "") or (None, why): no
-    `assets scene` for the map, or moving / animated backgrounds (not covered yet: Perion's clouds)."""
+    `assets scene` for the map, or scenery the model does not follow yet (Scene.clean_meta: Perion's weather
+    clouds, backgrounds that move both ways / bob / are animated; sideways movers ARE followed since
+    PLAN-moving-scenery.md step 3)."""
     from ..scene import Scene
     if not Scene.have(map_id):
         return None, f"no scene model (python -m maplebrain assets scene {map_id})"
     scene = Scene.load(map_id)
     if not scene.clean:
-        return None, "moving / animated backgrounds (not covered by the scene model yet)"
+        return None, ("weather clouds over the field (PLAN-moving-scenery.md steps 4-5)" if scene.meta.get("cloud")
+                      else "backgrounds the scene model does not follow yet (PLAN-moving-scenery.md step 6)")
     return scene, ""
 
 

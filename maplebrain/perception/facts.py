@@ -17,10 +17,12 @@ v4 (2026-11-17, the old perception deleted): - `scene_shift`, `plat_shift` (phas
 (those keys ignored; missing new ones None).
 v5 (2026-11-17, PLAN-loot.md S8, in shadow: nothing reads them): + `drops` (perception/drops.py: one dict a sighting -
 item class, meso frame, box, feet, kind rest / weak, the pixel counts, ring, foothold) and `drops_ms`.
+v6 (2026-11-23, PLAN-moving-scenery.md step 3): + `movers` (scene.MoverFollow: per moving background, its place on
+the map, found on this frame or coasting on its law, the share of its samples matching) and `movers_ms`.
 """
 from dataclasses import asdict, dataclass, field, fields
 
-VERSION = 5
+VERSION = 6
 
 
 @dataclass
@@ -50,13 +52,18 @@ class FrameFacts:
     drops: list | None = None             # [drops.DropFinder.fetch dicts] item pictures on screen; None: not run
                                           # (no scene camera / perception.drops off)
     drops_ms: dict | None = None          # ... the main thread's ms (launch / fetch / pick) + feature counts
+    movers: list | None = None            # [(back index, place X on the map or None = never found, found on this
+                                          # frame, share)] the moving backgrounds (scene.MoverFollow); None: the map
+                                          # has none / no camera. Not found = coasting on its law; X None = its rows
+                                          # are unknown to the scene model now
+    movers_ms: float | None = None        # ... MoverFollow.update's ms
 
     def as_dict(self) -> dict:
         return asdict(self)
 
     @classmethod
     def from_dict(cls, d: dict) -> "FrameFacts":
-        if d.get("v") not in (1, 2, 3, 4, VERSION):
+        if d.get("v") not in (1, 2, 3, 4, 5, VERSION):
             raise ValueError(f"FrameFacts v{d.get('v')} (this code reads v1-v{VERSION})")
 
         def tup(v):
@@ -68,4 +75,6 @@ class FrameFacts:
         kw["tags"] = [tuple(x) for x in kw.get("tags") or []]
         if kw.get("patches") is not None:
             kw["patches"] = [tuple(x) for x in kw["patches"]]
+        if kw.get("movers") is not None:
+            kw["movers"] = [tuple(x) for x in kw["movers"]]
         return cls(**kw)
