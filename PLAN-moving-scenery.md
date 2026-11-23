@@ -4,8 +4,8 @@
 table); step 2 DONE 2026-11-23 (its 2 missed numbers accepted by the user: "all good continue"); step 3 built
 2026-11-23 (2 misses + the user's live check owed: under step 3); step 4 built 2026-11-23, its gate missed,
 ACCEPTED by the user (under step 4); step 5 built 2026-11-23, gate missed on 2 numbers (ms, the camera on the old
-6-a-second captures), ACCEPTED by the user, its live check done; owed: step 3's live check (a Henesys Hunting Ground), then the merge
-into `dev`.** Measured and prototyped by the plan session (2026-11-21).
+6-a-second captures), ACCEPTED by the user, its live check done; step 3's live check done 2026-11-23. Steps 1-5 DONE: ready to merge into
+`dev` (the user merges); steps 6-7 wait for footage.** Measured and prototyped by the plan session (2026-11-21).
 Waiting on the user's OK, and on footage for steps 4-6 (the last section). Priority: **P0**, before the tracker
 plan session. Tools and their README: `tools/perc/scenery/` (merged into `dev` 2026-11-21; the steps below work
 on branch `moving-scenery`); results, sheets and cached cameras: `F:\dev\maple-corpus\work\scenery\`.
@@ -308,8 +308,10 @@ taken for a recording (two unfiled recordings of 2026-11-23 01:21 kept every GPU
   registers (off by > 48 px?), 3-Way Road-Split reads the dot on 2,058 frames but the locator gives no map place,
   The Hill East of Henesys no dot at all. `cam.py`'s whole-map search finds the camera on 3-Way on 99 % of the
   frames. = HANDOFF's "wide maps" item (the user, 2026-11-23: its plan runs after the tracker).
-- **Owed: the user's live check** - a 3-minute hunt on a Henesys Hunting Ground (HG III: camera, model and ms in
-  the gate).
+- **The user's live check DONE (2026-11-23):** `runs2‚61123_191857_4`, Henesys Hunting Ground I, 2.6 min: camera
+  on 100.00 % of 8,798 ticks (0 pauses), the movers found on 100 % of the mover-ticks (none left unknown), 47,009
+  sightings, 44 kills by our last hit (16.9 a minute, 1.2 swings a kill), 9,388 EXP an hour; tick p50 17.0 ms = 58.7
+  fps (`movers` 1.4 ms). The log counts 50 deaths not ours.
 
 ### Step 4 - the re-measurement first (2026-11-23): the design's base HOLDS at 60 a second, today's settings
 The new capture `20261123_163821_2#0` (Perion Street Corner, 4.75 min, 60 a second, 0 dropped; the user's labels
