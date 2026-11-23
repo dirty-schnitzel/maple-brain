@@ -1,8 +1,8 @@
 # The state model: the game at one instant
 
-**Status: PROPOSED 2026-11-23 (the tracker plan session, Part 1: `docs/prompts/tracker-plan.md`). Its four
-questions are answered (last section); nothing of it is built. Part 2 (the tracker that fills it,
-`PLAN-tracker.md`) starts on the user's word.**
+**Status: OK'd by the user 2026-11-23, as a whole (the tracker plan session, Part 1:
+`docs/prompts/tracker-plan.md`); its four questions are answered (last section). Nothing of it is built: the
+tracker that fills it is planned in `PLAN-tracker.md` (Part 2).**
 Every number below was measured in this session; the commands are at the end. Tools: `tools/model/`.
 
 ## In short
@@ -300,7 +300,7 @@ by perception (not part of this plan).
 3. **Buffs: cast seen + length, no perception. The hotkeys: every item and its amount on all 8 keys** (Shift, Ins,
    Home, PgUp, Ctrl, Del, End, PgDn), read and tracked - further than potions alone. A step of PLAN-tracker.md.
 4. **The profile file: good for now**; later a script that fills it from the game's equipment / stats windows.
-Not yet said: the OK on the document as a whole.
+5. **The document as a whole: OK'd 2026-11-23** ("I OK it as a whole").
 
 ## Commands (from the repo root, `.venv\Scripts\python`)
 ```powershell
