@@ -41,6 +41,9 @@ drawn for a camera; **undone** = the frame with the clouds taken out again.
 | Tool | Step | What it checks |
 |---|---|---|
 | `live2.py CAP` | 2 | `scene.MoverFollow` + `Scene.expected(C, X)` against `proto.MScene` on every frame: the picture at the reference's places (levels), the share of the reference's mover-frames the live follow finds on its own and on the same pixel, frame = expected (`shows`), the ms -> `live2_<cap>.json` |
+| `live3.py CAP ..` | 3 | the kept replay's sightings against `run_fit.py`'s A / B on the same frames; `--sheet N` random live sightings A does not give, for the look by eye |
+| `cloudlaw.py TAG` | 4 | `run_clouds.py`'s per-frame finds linked into clouds: per cloud the opacity spread, a straight line through its places, the share the exact model explains (does the design's base hold?) |
+| `live4.py CAP --finds TAG` | 4 | `perception/clouds.py` over every frame against the per-frame finds: frame = expected with the cloud layer, finds followed within 1 px, per cloud opacity / line, ms, finder runs |
 
 ## What they showed (the numbers are in the plan)
 1. The Victoria Road forest maps have no moving scenery: one picture's colour is decoded wrong by the export

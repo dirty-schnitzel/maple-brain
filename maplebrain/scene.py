@@ -194,6 +194,27 @@ def build_layers(img: dict, m: dict, parts: _Parts, layers) -> dict:
     return out
 
 
+def build_clouds(export: Path, out: Path = ROOT) -> int:
+    """The client's 7 weather cloud pictures (MapHelper.img/weather/cloud/0..6: what a map whose info says `cloud`
+    draws over the field, PLAN-moving-scenery.md measurement 4) -> out/clouds/<k>.png (straight-alpha BGRA) +
+    clouds.json {"origins": [[x, y] per picture]}. Returns how many."""
+    from .gamedata import load_xml
+    src = Path(export) / "Map" / "MapHelper" / "png" / "weather" / "cloud"
+    xml = Path(export) / "Map" / "MapHelper.img.xml"
+    if not src.exists() or not xml.exists():
+        raise FileNotFoundError(f"{src} / {xml} missing - export.ps1 exports MapHelper.img (since 2026-11-21)")
+    node = ((load_xml(xml).get("weather") or {}).get("cloud")) or {}
+    d = Path(out) / "clouds"
+    d.mkdir(parents=True, exist_ok=True)
+    origins, k = [], 0
+    while (src / f"{k}.png").exists():
+        shutil.copyfile(src / f"{k}.png", d / f"{k}.png")
+        origins.append([int(v) for v in ((node.get(str(k)) or {}).get("origin") or (0, 0))])
+        k += 1
+    (d / "clouds.json").write_text(json.dumps({"origins": origins}), encoding="utf-8")
+    return k
+
+
 def build_scenes(export: Path, assets: Path, map_ids=None, out: Path = ROOT, log=print) -> int:
     """Render the scenes of `map_ids` (default: every map with mob spawns) into `out`. Returns how many."""
     from .gamedata import load_xml
@@ -204,6 +225,7 @@ def build_scenes(export: Path, assets: Path, map_ids=None, out: Path = ROOT, log
     if map_ids is None:
         map_ids = [int(i) for i, e in man["maps"].items() if e.get("mobs")]
     parts, n = _Parts(export, load_xml), 0
+    log(f"weather clouds: {build_clouds(export, out)} pictures -> {out / 'clouds'}")
     for mid in map_ids:
         src = next((export / "Map").glob(f"Map?/{int(mid):09d}.img.xml"), None)
         mj = assets / "maps" / str(mid) / "map.json"
@@ -400,13 +422,15 @@ class Scene:
         return (Path(root) / str(map_id) / "scene.json").exists()
 
     @staticmethod
-    def clean_meta(meta: dict) -> bool:
+    def clean_meta(meta: dict, clouds_ok: bool = False) -> bool:
         """Every background layer known or a mover behind the field (MoverFollow finds its place:
         PLAN-moving-scenery.md step 3), and no weather clouds (`cloud`: Perion's region, step 5): only such maps are
         hunted. Refused: type 5-7 and animated backs (the subway's deeper lines, the beach: step 6), the cloud maps,
-        and a mover drawn in FRONT of the mobs (map 80003000's back_darkMountain/back_4: not in the plan's design)."""
+        and a mover drawn in FRONT of the mobs (map 80003000's back_darkMountain/back_4: not in the plan's design).
+        `clouds_ok`: the weather clouds allowed - perception runs there in shadow (step 4: observe / replay), the
+        hunt still refuses."""
         return (all(b["known"] or (b.get("mover") is not None and not b["front"]) for b in meta["backs"])
-                and not meta.get("cloud"))
+                and (clouds_ok or not meta.get("cloud")))
 
     @property
     def clean(self) -> bool:

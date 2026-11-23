@@ -2,7 +2,8 @@
 
 **Status: OK'd by the user 2026-11-21 ("execute moving-scenery plan"); step 1 DONE 2026-11-21 (below the steps
 table); step 2 DONE 2026-11-23 (its 2 missed numbers accepted by the user: "all good continue"); step 3 built
-2026-11-23 (2 misses + the user's live check owed: under step 3); step 4's footage recorded 2026-11-23.** Measured and prototyped by the plan session (2026-11-21).
+2026-11-23 (2 misses + the user's live check owed: under step 3); step 4 built 2026-11-23, its gate MISSED -
+waiting on the user / the planner before step 5 (under step 4).** Measured and prototyped by the plan session (2026-11-21).
 Waiting on the user's OK, and on footage for steps 4-6 (the last section). Priority: **P0**, before the tracker
 plan session. Tools and their README: `tools/perc/scenery/` (merged into `dev` 2026-11-21; the steps below work
 on branch `moving-scenery`); results, sheets and cached cameras: `F:\dev\maple-corpus\work\scenery\`.
@@ -327,6 +328,38 @@ gives measurement 4's numbers back).
   mid-map, where the finder loses and finds them again (near-white scenery, overlaps) - not at the edge. Wrap or a
   new cloud at the edge is not settled by this capture; the design's rule covers both (a followed cloud is dropped
   only when the frame shows the scene where it should be; new ones come from the finder).
+
+### Step 4 - built 2026-11-23 (branch `moving-scenery`): gate MISSED, stopped before step 5
+Built: `assets scene` -> `assets/scene/clouds/` (the 7 pictures + origins, identical to the prototype's);
+`perception/clouds.py` `Clouds` (cloudtrack.py's CloudTracker + fastpipe's FastClouds + CloudFinder.alpha_hat: the
+batched follow, the cloud layer, the whitened check, the coarse finder; `undo` ready for step 5); config
+`Perception.cloud_*`; `MapKit.perceive` (scene + fit: perception runs, a cloud map too) vs `MapKit.clean` (a hunt
+may start: not a cloud map) - the runner loads a cloud map's scene, says why hunts are refused; the Perceiver
+follows the clouds after `expected` (nothing undone) -> FrameFacts v6 `clouds` + `clouds_ms`. Tests
+`tests/test_clouds.py` (a cloud found on the first frame, followed at its speed, undone to <= 3 levels; no cloud ->
+no finder run). Gate tool `tools/perc/scenery/live4.py`; Wild Boar's per-frame finds `clouds_boar_all.json`.
+| Gate | new Perion (60 a s) | old Perion (6) | Wild Boar (6) | gate |
+|---|---|---|---|---|
+| frame = expected with the cloud layer | **95.6** | **94.3** | 92.5 MISSED | >= 93 % (prototype 95.1 / 93.6) |
+| the finder's clouds with a followed one within 1 px | 88.8 MISSED | 86.8 MISSED | 86.2 MISSED | >= 95 % |
+| opacity vs the finder's, per cloud (>= 20 fixes) | 0.006 | 0.106 (1 of 18) | 0.004 | <= 0.01 |
+| fixes on a line, rms per cloud | p50 0.41, 1 of 48 at 11.4 | p50 0.44, 1 at 1.1 | max 0.50 | <= 0.6 |
+| ms p50 follow + layer + whitened | **2.32** | 2.60 | **2.49** | <= 2.5 |
+| finder runs a second after the first 5 s | 0.44 (10.5 ms p50) | 0.68 | 0.51 | <= 1 |
+| Perceiver p99, the same moment | 25.5 ms (p50 18.0) | - | - | <= a clean map's + 3: Line 1 18.4 (miss), Ant Tunnel IV 30.0 |
+- **The two gates pull against each other.** With the prototype's cadence (the finder every 0.2 s: 3.4-3.6 runs a
+  second) the followed share is 93.2 / 90.6 % and Wild Boar's frame = expected 93.7 % (the prototype's 93.6) -
+  still under 95 %. A cloud the follow has not taken on yet (it waits for the next finder run) or lost (one of the
+  9 % of the 1-px misses) counts against it; the prototype was never measured on this number.
+- The 11.4 px line on the new capture (cloud 20, 714 fixes over 26 s) and the old Perion's 0.106 opacity (cloud 3,
+  6 s) are single followed clouds gone wrong: a swap with a cloud of the same picture, or a first opacity read
+  badly - not looked into further (stop rule).
+- Not built: the finder on its own CUDA stream (design 3) - it runs on the main stream (10.5 ms p50, max 52.6 on
+  the new capture), the likely part of the p99.
+- The 13 sound: `gate.py` SAME (`MapKit.perceive` changes nothing on clean maps). pytest green.
+**For the user / the planner:** what "followed within 1 px" should be measured against (a new cloud's first
+second counts now), the finder's cadence (<= 1 a second vs the share), and whether step 5 (undo; Perion hunts) goes
+ahead on this follow.
 
 **Stop rules** - the executor stops with the numbers, no workaround, when:
 - a gate's number is missed, or any of the 13 sound captures' tracks come out CHANGED;

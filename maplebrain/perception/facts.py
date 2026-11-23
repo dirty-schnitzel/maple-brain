@@ -18,7 +18,8 @@ v4 (2026-11-17, the old perception deleted): - `scene_shift`, `plat_shift` (phas
 v5 (2026-11-17, PLAN-loot.md S8, in shadow: nothing reads them): + `drops` (perception/drops.py: one dict a sighting -
 item class, meso frame, box, feet, kind rest / weak, the pixel counts, ring, foothold) and `drops_ms`.
 v6 (2026-11-23, PLAN-moving-scenery.md step 3): + `movers` (scene.MoverFollow: per moving background, its place on
-the map, found on this frame or coasting on its law, the share of its samples matching) and `movers_ms`.
+the map, found on this frame or coasting on its law, the share of its samples matching) and `movers_ms`; step 4:
++ `clouds` (perception/clouds.py: the weather clouds followed on a cloud map, in shadow) and `clouds_ms`.
 """
 from dataclasses import asdict, dataclass, field, fields
 
@@ -57,6 +58,10 @@ class FrameFacts:
                                           # has none / no camera. Not found = coasting on its law; X None = its rows
                                           # are unknown to the scene model now
     movers_ms: float | None = None        # ... MoverFollow.update's ms
+    clouds: list | None = None            # [(id, picture, map x, map y of its top-left, vx, vy, opacity, seen on this
+                                          # frame, share, informative px)] the weather clouds on screen (perception/
+                                          # clouds.py); None: not a cloud map / no camera
+    clouds_ms: dict | None = None         # ... its parts' ms (follow, layer, whitened, find) + residue_px
 
     def as_dict(self) -> dict:
         return asdict(self)
@@ -75,6 +80,7 @@ class FrameFacts:
         kw["tags"] = [tuple(x) for x in kw.get("tags") or []]
         if kw.get("patches") is not None:
             kw["patches"] = [tuple(x) for x in kw["patches"]]
-        if kw.get("movers") is not None:
-            kw["movers"] = [tuple(x) for x in kw["movers"]]
+        for k in ("movers", "clouds"):
+            if kw.get(k) is not None:
+                kw[k] = [tuple(x) for x in kw[k]]
         return cls(**kw)

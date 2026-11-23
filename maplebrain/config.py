@@ -55,6 +55,19 @@ class Perception:
                                     # + max([1], [2] x sqrt(next best)) (the prototype's peak rule, fastpipe.py)
     mover_lost_s: float = 1.0       # ... never found, or not found for this long: every place of its period is tried
                                     # (one mover a frame), again at most this often; found by the same peak rule
+    cloud_near: int = 2             # perception/clouds.py (PLAN-moving-scenery.md design 3): a followed cloud is checked
+                                    # within this many px of where its speed puts it (+-cloud_near_new while it has
+                                    # under 2 fixes: its speed not known yet)
+    cloud_near_new: int = 14
+    cloud_ok: tuple = (0.5, 150)    # ... confirmed: this share of its informative sample pixels explained by the exact
+                                    # blend, of at least this many
+    cloud_gone: tuple = (0.15, 400, 3)   # ... the frame shows the scene where it should be (share under [0] of >= [1]
+                                    # informative pixels) on [2] checks in a row: dropped
+    cloud_new: tuple = (0.6, 300)   # a new cloud (the coarse finder's candidate checked at full size): share, pixels
+    cloud_whitened_px: int = 1200   # the finder runs only while this many pixels are still whitened (a^ > 0.1) where no
+                                    # followed cloud explains them ...
+    cloud_find_gap_s: tuple = (0.2, 5.0, 1.0, 4.0)   # ... at most every [0] s for the stay's first [1] s, then every
+                                    # [2] s, doubling up to [3] while it finds nothing (step 4's gate: <= once a second)
     minimap_every_s: float = 1.0   # the scene camera holding and our tag seen: the minimap is read this often (the
                                     # camera's seed); every tick otherwise (step 2.6)
     lie_gpu: bool = True            # the Lie Detector look on the uploaded frame (liedetector.GpuLieLook, ~3.5 ms each

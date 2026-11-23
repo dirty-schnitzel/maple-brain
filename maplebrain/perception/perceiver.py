@@ -66,9 +66,15 @@ class MapKit:
     why: str = ""                           # no scene camera on this map: why (the hunt refuses to start)
 
     @property
-    def clean(self) -> bool:
-        """The map has the scene camera + the fit: the only mob perception there is."""
+    def perceive(self) -> bool:
+        """The map has the scene camera + the fit: the only mob perception there is (on a weather-cloud map too,
+        in shadow: PLAN-moving-scenery.md step 4)."""
         return self.scene is not None and self.fitter is not None
+
+    @property
+    def clean(self) -> bool:
+        """... and a hunt may start here: not a weather-cloud map (their clouds are followed, not undone yet)."""
+        return self.perceive and not self.scene.meta.get("cloud")
 
     @property
     def names(self) -> dict:
@@ -114,8 +120,8 @@ class Perceiver:
             self.tag_gpu = GpuTagLook(self_template, self.dev)
             if lie_detector is not None and cfg.perception.lie_gpu:     # its look on the uploaded frame (step 2.8)
                 lie_detector.use_gpu(self.dev)
-        self.world = self.scene_cam = self.fitter = self.drops = self.movers = None
-        if kit is not None and kit.clean and self.dev is not None:
+        self.world = self.scene_cam = self.fitter = self.drops = self.movers = self.clouds = None
+        if kit is not None and kit.perceive and self.dev is not None:
             from ..scene import SceneCamera
             from .world import World
             self.world = World(kit.nav, kit.mobs, cover=kit.cover)
@@ -124,6 +130,9 @@ class Perceiver:
             if any(b.get("mover") is not None for b, _ in kit.scene.backs):
                 from ..scene import MoverFollow
                 self.movers = MoverFollow(kit.scene, cfg.perception)
+            if kit.scene.meta.get("cloud"):             # the weather clouds, followed in shadow (step 4)
+                from .clouds import Clouds
+                self.clouds = Clouds(self.dev, cfg.perception)
             self.fitter = kit.fitter
             if kit.drops is not None:                   # drops (PLAN-loot.md, in shadow): this map's footholds and
                 self.drops = kit.drops                  # front planes
@@ -320,6 +329,10 @@ class Perceiver:
             f.movers_ms = round(1000 * (time.perf_counter() - t), 2)
             self._mark("movers")
         ek = sc.scene.expected(exact, X=X)              # ONE expected scene a tick: D, the fit and the drops (3.3)
+        if self.clouds is not None:                     # PLAN-moving-scenery.md step 4: followed, NOT undone yet
+            self.clouds.update(self.frame_u8, ek[0], ek[1] & self._world_ui(frame.shape), exact, obs.t)
+            f.clouds, f.clouds_ms = self.clouds.facts(), dict(self.clouds.ms)
+            self._mark("clouds")
         drops = self.drops is not None and self.cfg.perception.drops
         if drops:                                       # the drop pass starts on its own CUDA stream; read after the
             t = time.perf_counter()                     # fit and the tracker (part `drops` = its main-thread ms)
