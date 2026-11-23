@@ -28,6 +28,9 @@ SEEN by the same rule -> a sighting there, ABSENT / COVERED -> none). FrameFacts
    (Zombie Mushroom stand_1 = move_2: the same picture 4 px apart - the second one finds its pixels taken).
 GPU work per frame: the vote (3 syncs) + one gather per source of all candidate boxes (frame, expected, valid, the
 sprites, the front alphas) + ~60 small ops + one transfer back; the pick on the CPU.
+Weather clouds (PLAN-moving-scenery.md design 4, `fit(cloud=...)`): the frame comes undone, a pixel under a cloud too
+thick to undo is not valid (COVERED, counted apart: `n_cloud`), the vote reads an undone pixel with a tolerance that
+grows with the cloud's alpha (Voter.ids), each mob / look carries the mean alpha over its SEEN pixels (`cloud`).
 """
 import json
 import time
@@ -84,6 +87,10 @@ class FitMob:
     votes: int                  # exclusive votes of its cell
     layer: int
     tint: str = ""              # "" = drawn plain, else a vote.TINTS name ("frozen")
+    cloud: float = 0.0          # the weather clouds' mean alpha over its SEEN pixels (seen through how much cloud;
+                                # PLAN-moving-scenery.md design 4) - 0 on a map without clouds
+    n_cloud: int = 0            # its informative pixels under a cloud too thick to undo (not valid: "covered by
+                                # cloud", counted in `covered`)
 
     def to_dict(self) -> dict:
         return {k: (list(v) if isinstance(v, tuple) else v) for k, v in self.__dict__.items()}
@@ -158,6 +165,7 @@ class Fitter:
             self.pose_ix[(p.type, p.pose, p.facing)] = g
         self._last = None                               # the last fit's (frame, C, exp, valid) for `hints`
         self.taken = None                               # ... and the pixels its accepted mobs explained
+        self._cloud = None                              # ... and its weather clouds (alpha, too thick) or None
 
     def warm(self):
         """Capture stage 2's CUDA graphs and run the vote once (at map load: the first live fit would stall)."""
@@ -303,7 +311,7 @@ class Fitter:
         inf, ns_all, nab = cnt[:, 0], cnt[:, 1], cnt[:, 2]
         P = max(self.KH, self.KW)
         taken = np.zeros((PLAY_H + 2 * P, SW + 2 * P), bool)
-        mobs = []
+        mobs, self._px = [], []
         for i in np.argsort(-ns_all, kind="stable"):
             ni = int(inf[i])
             if ni <= 0 or ns_all[i] < c.min_seen or ns_all[i] < c.seen_min * ni or nab[i] > c.absent_max * ni:
@@ -315,12 +323,38 @@ class Fitter:
             if ns < c.min_seen or ns < c.seen_min * ni:
                 continue
             taken[sl] |= px
+            self._px.append((int(fy[i]), int(fx[i]), px, (bits[i] & 1).astype(bool)))
             p = self.poses[int(g[i]) % self.G]
             mobs.append(FitMob(p.type, p.pose, p.facing, (int(fx[i]), int(fy[i])), round(float(o[i]), 3),
                                round(ns / ni, 3), round(int(nab[i]) / ni, 3), round(1 - (ns + int(nab[i])) / ni, 3),
                                ni, ns, int(ex[i]), self.layer_ids[int(li[i])], self.tint_names[int(g[i]) // self.G]))
         self.taken = taken
         return mobs
+
+    def _cloud_of(self, rows) -> list:
+        """The weather clouds over boxes: rows [(feet y, feet x, SEEN mask, informative mask (KH, KW))] -> [(mean
+        cloud alpha over the SEEN pixels, informative pixels under a cloud too thick to undo)]; one gather, one
+        transfer. [(0.0, 0)] * n without clouds."""
+        if self._cloud is None or not rows:
+            return [(0.0, 0)] * len(rows)
+        torch = self.torch
+        A, thick = self._cloud
+        ys, xs, seg = [], [], []
+        for k, (fy, fx, sm, im) in enumerate(rows):
+            for j, m in enumerate((sm, im)):
+                y, x = np.nonzero(m)
+                y, x = y + fy - self.T, x + fx - self.L
+                ok = (y >= 0) & (y < PLAY_H) & (x >= 0) & (x < SW)
+                ys.append(y[ok])
+                xs.append(x[ok])
+                seg.append(np.full(int(ok.sum()), 2 * k + j))
+        idx = torch.from_numpy(np.stack([np.concatenate(ys), np.concatenate(xs), np.concatenate(seg)]).astype(np.int64))
+        y, x, s = idx.to(self.dev)
+        v = torch.where(s % 2 == 0, A[y, x].float(), thick[y, x].float())
+        out = torch.zeros(2 * len(rows), device=self.dev).index_add_(0, s, v)
+        n = torch.zeros(2 * len(rows), device=self.dev).index_add_(0, s, torch.ones_like(v))
+        out, n = torch.stack([out, n]).cpu().numpy()
+        return [(round(float(out[2 * k] / max(1.0, n[2 * k])), 3), int(out[2 * k + 1])) for k in range(len(rows))]
 
     def _variants(self, g, fx, fy, C, o_min: float = 0.0):
         """Stage-2 rows for candidates (pose g, feet fx, fy): every tint x every possible layer -> (meta, candidate
@@ -371,8 +405,9 @@ class Fitter:
         feet (Track.sx / sy) - every frame of its last anim with its facing (+ the type's die poses when dying), each
         with every tint / layer variant, the opacity floored at `hint_o_min`; the frame with the most SEEN pixels
         (ties: the least ABSENT share) -> its row {"id", "mob", "sx", "sy", "pose", "facing", "n_inf", "n_seen",
-        "n_abs", "o"} (covered = n_inf - n_seen - n_abs). Pixels the last `fit`'s accepted mobs explained count as
-        COVERED. None per track not looked at: not a mob track, feet outside -40..SW+40 x 0..PLAY_H+68, no pose of its
+        "n_abs", "o"} (covered = n_inf - n_seen - n_abs; with weather clouds + "cloud" = their mean alpha over its
+        SEEN pixels, "n_cloud" = its informative pixels under a cloud too thick to undo). Pixels the last `fit`'s
+        accepted mobs explained count as COVERED. None per track not looked at: not a mob track, feet outside -40..SW+40 x 0..PLAY_H+68, no pose of its
         anim. Needs this tick's `fit` first (its frame / expected scene / valid mask)."""
         out = [None] * len(tracks)
         if self._last is None:
@@ -413,12 +448,16 @@ class Fitter:
             key = (ns, -cnt[j, 2] / max(1, cnt[j, 0]))
             k = own[i]
             if k not in best or key > best[k][0]:
-                best[k] = (key, j)
+                best[k] = (key, j, tk)
+        cl = self._cloud_of([(todo[k][3], todo[k][2], (bits[j] & 2).astype(bool) & ~tk, (bits[j] & 1).astype(bool))
+                             for k, (_, j, tk) in sorted(best.items())]) if self._cloud is not None else None
         for k, (i, tr, sx, sy) in enumerate(todo):
-            (ns, _), j = best[k]
+            (ns, _), j, _ = best[k]
             p = self.poses[int(rg[j]) % self.G]
             out[i] = {"id": tr.id, "mob": tr.mob_id, "sx": sx, "sy": sy, "pose": p.pose, "facing": p.facing,
                       "n_inf": int(cnt[j, 0]), "n_seen": ns, "n_abs": int(cnt[j, 2]), "o": round(float(o[j]), 3)}
+            if cl is not None:                          # seen through how much cloud / covered by cloud (design 4)
+                out[i]["cloud"], out[i]["n_cloud"] = cl[k]
         return out
 
     def seen(self, row) -> bool:
@@ -436,18 +475,23 @@ class Fitter:
         h, w = p.pic.shape[:2]
         return Hit(mob_type, (fx - p.ox, fy - p.oy, w, h), (fx, fy), Pose(anim, int(n), facing, p.ox, p.oy), 1.0)
 
-    def fit(self, frame, C, exp, known, ui=None, me=None, keep_cands: bool = False):
+    def fit(self, frame, C, exp, known, ui=None, me=None, keep_cands: bool = False, cloud=None):
         """`frame`: uint8 BGR (GPU tensor or array, >= PLAY_H rows); `C`: the scene camera; `exp`, `known`:
         Scene.expected(C) (D's - one per tick); `ui`: optional bool (PLAY_H, SW) tensor, True = may show a mob (the
         minimap / keycaps False; the chat rect is world); `me`: our body box (x0, y0, x1, y1) on screen, kept out of
-        the fade search. -> [FitMob] (+ every candidate's counts when keep_cands)."""
+        the fade search. -> [FitMob] (+ every candidate's counts when keep_cands).
+        `cloud` (PLAN-moving-scenery.md design 4, a weather-cloud map with clouds on screen): (A float (PLAY_H, SW),
+        thick bool (PLAY_H, SW)) - `frame` is the frame with the clouds undone (perception/clouds.py), `known`
+        already without the `thick` pixels (a cloud too thick to undo: not valid, "covered by cloud"); the vote reads
+        a pixel under a cloud with a tolerance that grows with A (Voter.ids), each mob gets `cloud` / `n_cloud`."""
         torch, c = self.torch, self.cfg
         if not torch.is_tensor(frame):
             frame = torch.from_numpy(np.ascontiguousarray(frame[:PLAY_H])).to(self.dev)
         frame = frame[:PLAY_H]
         t0 = time.perf_counter()
         valid = known if ui is None else known & ui
-        ids, r, mag = self.voter.ids(frame, exp, known, c.tol, resid=True)
+        self._cloud = cloud
+        ids, r, mag = self.voter.ids(frame, exp, known, c.tol, resid=True, cloud=None if cloud is None else cloud[0])
         tf = time.perf_counter()
         alphas, fc = None, {}
         if c.fade:
@@ -478,6 +522,9 @@ class Fitter:
                 g, li = rg, rl
             t2 = time.perf_counter()
             mobs = self._pick(bits, cnt, o, g, fx, fy, ex, li)
+            if cloud is not None and mobs:
+                for m, (u, nc) in zip(mobs, self._cloud_of(self._px)):
+                    m.cloud, m.n_cloud = u, nc
             if keep_cands:
                 for i in range(len(g)):
                     p = self.poses[int(g[i]) % self.G]

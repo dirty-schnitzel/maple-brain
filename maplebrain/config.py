@@ -68,6 +68,8 @@ class Perception:
                                     # followed cloud explains them ...
     cloud_find_gap_s: tuple = (0.2, 5.0, 1.0, 4.0)   # ... at most every [0] s for the stay's first [1] s, then every
                                     # [2] s, doubling up to [3] while it finds nothing (step 4's gate: <= once a second)
+    cloud_thick: float = 0.9        # design 4 (step 5): under a cloud thicker than this (alpha) the frame is not undone -
+                                    # the pixel is not valid, "covered by cloud" (the clouds' thickest pixel is ~0.88)
     minimap_every_s: float = 1.0   # the scene camera holding and our tag seen: the minimap is read this often (the
                                     # camera's seed); every tick otherwise (step 2.6)
     lie_gpu: bool = True            # the Lie Detector look on the uploaded frame (liedetector.GpuLieLook, ~3.5 ms each

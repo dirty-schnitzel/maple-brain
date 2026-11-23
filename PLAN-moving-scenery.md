@@ -2,8 +2,8 @@
 
 **Status: OK'd by the user 2026-11-21 ("execute moving-scenery plan"); step 1 DONE 2026-11-21 (below the steps
 table); step 2 DONE 2026-11-23 (its 2 missed numbers accepted by the user: "all good continue"); step 3 built
-2026-11-23 (2 misses + the user's live check owed: under step 3); step 4 built 2026-11-23, its gate MISSED -
-waiting on the user / the planner before step 5 (under step 4).** Measured and prototyped by the plan session (2026-11-21).
+2026-11-23 (2 misses + the user's live check owed: under step 3); step 4 built 2026-11-23, its gate missed,
+ACCEPTED by the user (under step 4); step 5 in progress.** Measured and prototyped by the plan session (2026-11-21).
 Waiting on the user's OK, and on footage for steps 4-6 (the last section). Priority: **P0**, before the tracker
 plan session. Tools and their README: `tools/perc/scenery/` (merged into `dev` 2026-11-21; the steps below work
 on branch `moving-scenery`); results, sheets and cached cameras: `F:\dev\maple-corpus\work\scenery\`.
@@ -360,6 +360,8 @@ no finder run). Gate tool `tools/perc/scenery/live4.py`; Wild Boar's per-frame f
 **For the user / the planner:** what "followed within 1 px" should be measured against (a new cloud's first
 second counts now), the finder's cadence (<= 1 a second vs the share), and whether step 5 (undo; Perion hunts) goes
 ahead on this follow.
+**Decided (the user, 2026-11-23): step 4's misses accepted as they are; step 5 goes ahead on this follow.** What
+was missed and how it could be fixed: "Later (low priority)" at the end of this file.
 
 **Stop rules** - the executor stops with the numbers, no workaround, when:
 - a gate's number is missed, or any of the 13 sound captures' tracks come out CHANGED;
@@ -422,6 +424,21 @@ Steps 6 and 7 get their prompts when their footage / measurement exists.
 2. The subway's deeper lines and the beach (13 maps): worth step 6 soon, or parked until you farm there?
 3. Perion's clouds: when one leaves at the map's right side, does it come round on the left, or do new ones
    appear? (Step 4 reads it off the 5-minute capture either way.)
+
+## Later (low priority): the misses accepted on the way, and the fixes proposed
+Nothing here blocks a step; each was accepted by the user as measured. Pick up when a map or a number needs it.
+| From | The miss | Proposed fix |
+|---|---|---|
+| step 2 | 3-Way Road-Split frame = expected 92.2 % (93): a mostly hidden mover (`back_vicportTown/back_9`) found only after 12 s | score the full look on the pixels the found movers and later static layers leave visible (the reference's rule; ~ +1 ms when it runs) |
+| step 2 | Perion's follow 1.76 ms p50 at 6 a second (1.0): two never-visible movers get a full look once a second | count the ms on frames without a full look, or retry a never-seen mover only when its rows come on screen |
+| step 2 | `back_vicportTown/back_6` has no opaque pixel: never followed, its rows stay unknown | sample pixels with alpha >= ~0.9 and a tolerance that grows with 1 - alpha |
+| step 3 | Kerning's Construction Site N: the Perceiver +2.0 ms over a sound map (1.5) | `movers` 1.3-1.4 ms in the Perceiver vs 0.9 alone: one sync less (the pack transfer overlapped with `expected`) |
+| step 3 | 3 maps get no camera (Kerning City Construction Site, 3-Way, The Hill East): the minimap seed | the wide-maps plan (HANDOFF, after the tracker); `cam.py`'s whole-map search finds 3-Way's camera on 99 % |
+| step 4 | finder's clouds followed within 1 px 86-89 % (95) | measure against clouds older than 1 s (a new cloud waits for the next finder run), and look at the 1-px misses (9 %): a second place check at +-1 px with sub-pixel speed |
+| step 4 | the finder at <= 1 a second vs the share (0.2 s cadence: 93.2 / 90.6 %) | run the finder only on the whitened cells' bounding box (cheaper -> more often), or a finder run when a followed cloud's share drops |
+| step 4 | Wild Boar frame = expected with clouds 92.5 % (93) | the same cadence fix (0.2 s gives 93.7 %) |
+| step 4 | the finder on the main CUDA stream (design 3: its own): 10.5 ms p50, max 52.6 -> Perceiver p99 25.5 ms vs Line 1 18.4 | the finder on its own stream, read back on the next tick (a new cloud one frame later) |
+| step 4 | single clouds gone wrong (a swap with a cloud of the same picture: an 11.4 px line; a first opacity read badly: 0.106) | re-read the opacity on the first 5 fixes (median); a followed cloud's place checked against its line, a jump > 3 px = a new track |
 
 ## Its place beside the tracker
 - Perception, one layer under the tracker: it changes each frame's facts on these maps, not how the tracker

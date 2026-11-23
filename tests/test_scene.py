@@ -322,13 +322,14 @@ def test_build_gives_a_type_4_back_its_mover_law():
     assert [b["known"] for b in meta["backs"]] == [1, 0, 0] and not sc.Scene.clean_meta(meta)
 
 
-def test_a_map_with_movers_behind_the_field_is_clean_but_not_with_clouds_other_kinds_or_a_front_mover():
-    """Step 3: a type 4 mover counts as known (MoverFollow finds it); Perion's weather clouds (step 5), type 5-7 /
-    animated backs (step 6) and a mover drawn in front of the mobs (map 80003000) keep a map refused."""
+def test_a_map_with_movers_behind_the_field_or_clouds_is_clean_but_not_other_kinds_or_a_front_mover():
+    """Step 3: a type 4 mover counts as known (MoverFollow finds it); step 5: Perion's weather clouds count (followed
+    and undone); type 5-7 / animated backs (step 6) and a mover drawn in front of the mobs (map 80003000) keep a map
+    refused."""
     mover = _back(type=4, known=0, mover={"v": -25.0})
     meta = lambda backs, **kw: {"backs": backs, **kw}
     assert sc.Scene.clean_meta(meta([_back(), mover]))
-    assert not sc.Scene.clean_meta(meta([_back(), mover], cloud=1))
+    assert sc.Scene.clean_meta(meta([_back(), mover], cloud=1))
     assert not sc.Scene.clean_meta(meta([_back(), _back(type=6, known=0)]))
     assert not sc.Scene.clean_meta(meta([_back(), _back(type=4, known=0)]))                  # an older build
     assert not sc.Scene.clean_meta(meta([_back(), dict(mover, front=1)]))

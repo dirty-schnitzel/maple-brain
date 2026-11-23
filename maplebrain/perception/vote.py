@@ -218,11 +218,15 @@ class Voter:
                 f"tints {', '.join(f'{k} (merges {v} colours)' for k, v in self.tint_merged.items()) or 'none'}")
 
     # ---- per frame
-    def ids(self, frame, exp=None, known=None, tol: float = 4.0, resid: bool = False):
+    def ids(self, frame, exp=None, known=None, tol: float = 4.0, resid: bool = False, cloud=None):
         """Palette id per pixel of the play area: (PLAY_H, SW) int16, 0 = no sprite colour. `frame`: uint8 BGR
         tensor (>= PLAY_H rows). With `exp` (float (PLAY_H, SW, 3), the expected scene) and `known` (bool): only
         where the scene does not explain the pixel (|I - exp| > tol in some channel, or unknown). `resid`: also
-        return r = I - exp and its max over the channels (the fade search's inputs)."""
+        return r = I - exp and its max over the channels (the fade search's inputs).
+        `cloud` (float (PLAY_H, SW): the weather clouds' alpha A, the frame already undone - PLAN-moving-scenery.md
+        design 4): an undone pixel is off its sprite colour by up to ~0.5 / (1 - A) levels (the frame's rounding,
+        amplified), so where A > 0.004 and the exact table gives no id, the id comes from the TOLERANT tables (the
+        fade search's, FADE_TOLS) at the level 1 + 0.5 / (1 - A) asks for (tools/perc/scenery/cloudvote.py)."""
         torch = self.torch
         f = frame[:PLAY_H]
         fi = f.int()
@@ -235,6 +239,14 @@ class Voter:
         if known is not None:
             d |= ~known
         ids = torch.where(d, ids, torch.zeros_like(ids))
+        if cloud is not None and self.lut_tol is not None:
+            need = 1.0 + 0.5 / (1 - cloud).clamp(min=0.05)
+            if getattr(self, "_tols", None) is None or self._tols.dtype != need.dtype:
+                self._tols = torch.tensor(self.FADE_TOLS, dtype=need.dtype, device=need.device)
+            li = (need[..., None] > self._tols).sum(dim=-1).clamp_(max=len(self.FADE_TOLS) - 1)
+            key = self._key(f.float()) + li * 258 ** 3 + (1 + 258 + 258 * 258)
+            m = (cloud > 0.004) & (ids == 0) & d
+            ids = torch.where(m, self.lut_tol[key], ids)
         return (ids, r, mag) if resid else ids
 
     prof = False                # tools: per-part ms of the fade search in fade_ms (synchronized)

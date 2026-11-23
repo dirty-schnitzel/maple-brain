@@ -1,8 +1,8 @@
 # tools/perc/scenery: the measurements and prototypes behind PLAN-moving-scenery.md
 
-Written by the plan session (2026-11-21). Nothing here is on the live path and nothing in `maplebrain/` was
-changed: these tools measure footage and prototype the plan's parts, and they are the **reference** the plan's
-executor sessions port from and check against. Run from the repo root with the venv python. They read the bank
+Written by the plan session (2026-11-21). Nothing here is on the live path: these tools measure footage and
+prototype the plan's parts, and they are the **reference** the plan's executor sessions port from and check against
+(the `live*.py` gate tools run maplebrain's ported code against them). Run from the repo root with the venv python. They read the bank
 (dev group only; a hold-out capture is refused) and write to `F:\dev\maple-corpus\work\scenery\` (`msl.OUT`: sheets,
 JSON results, the cached cameras - safe to delete, made again by the tools). GPU: not while the user records
 (`msl.guard`).
@@ -44,6 +44,8 @@ drawn for a camera; **undone** = the frame with the clouds taken out again.
 | `live3.py CAP ..` | 3 | the kept replay's sightings against `run_fit.py`'s A / B on the same frames; `--sheet N` random live sightings A does not give, for the look by eye |
 | `cloudlaw.py TAG` | 4 | `run_clouds.py`'s per-frame finds linked into clouds: per cloud the opacity spread, a straight line through its places, the share the exact model explains (does the design's base hold?) |
 | `live4.py CAP --finds TAG` | 4 | `perception/clouds.py` over every frame against the per-frame finds: frame = expected with the cloud layer, finds followed within 1 px, per cloud opacity / line, ms, finder runs |
+| `../synth/under_clouds.py CAP` | 5 | mobs under clouds by construction on real frames (a mob pasted, one cloud blended over it): found per thickness class with the cloud left in / undone (the live path), false mobs; pytest runs a fixed-seed set on the expected picture (`tests/test_under_clouds.py`) |
+| `live5.py CAP [--compare] [--sheets]` | 5 | the live path frame by frame (movers, expected, clouds followed, the frame undone, the fit with the cloud): sightings (vs the clouds left in), per cloud thickness, the by-eye sheets (40 under a cloud + 40 any), ms |
 
 ## What they showed (the numbers are in the plan)
 1. The Victoria Road forest maps have no moving scenery: one picture's colour is decoded wrong by the export

@@ -19,7 +19,9 @@ v5 (2026-11-17, PLAN-loot.md S8, in shadow: nothing reads them): + `drops` (perc
 item class, meso frame, box, feet, kind rest / weak, the pixel counts, ring, foothold) and `drops_ms`.
 v6 (2026-11-23, PLAN-moving-scenery.md step 3): + `movers` (scene.MoverFollow: per moving background, its place on
 the map, found on this frame or coasting on its law, the share of its samples matching) and `movers_ms`; step 4:
-+ `clouds` (perception/clouds.py: the weather clouds followed on a cloud map, in shadow) and `clouds_ms`.
++ `clouds` (perception/clouds.py: the weather clouds followed on a cloud map) and `clouds_ms`; step 5 (the clouds
+undone): a `fit` dict carries `cloud` (mean cloud alpha over its SEEN pixels) and `n_cloud` (informative pixels
+under a cloud too thick to undo), a `fit_hints` row the same two on a cloud map (older records: absent = 0).
 """
 from dataclasses import asdict, dataclass, field, fields
 
@@ -60,7 +62,8 @@ class FrameFacts:
     movers_ms: float | None = None        # ... MoverFollow.update's ms
     clouds: list | None = None            # [(id, picture, map x, map y of its top-left, vx, vy, opacity, seen on this
                                           # frame, share, informative px)] the weather clouds on screen (perception/
-                                          # clouds.py); None: not a cloud map / no camera
+                                          # clouds.py); None: not a cloud map / no camera. On screen = undone
+                                          # before D, the fit and the drops (step 5)
     clouds_ms: dict | None = None         # ... its parts' ms (follow, layer, whitened, find) + residue_px
 
     def as_dict(self) -> dict:

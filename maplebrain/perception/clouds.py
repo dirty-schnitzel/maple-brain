@@ -166,9 +166,12 @@ class Clouds:
             A[y0:y1, x0:x1].lerp_(one, aa)
         return P, A
 
-    def undo(self, f, amax: float = 0.85):
-        """The frame with the cloud layer taken out (uint8) + the pixels a cloud leaves too little of (A > amax)."""
+    def undo(self, f, amax: float | None = None):
+        """The frame (>= PLAY_H rows) with the cloud layer taken out (uint8 (PLAY_H, SW, 3)) + the pixels a cloud
+        leaves too little of (A > amax, default `cloud_thick`: not valid, "covered by cloud")."""
         P, A = self.P, self.A
+        amax = self.cfg.cloud_thick if amax is None else amax
+        f = f[:PLAY_H]
         und = ((f.half() - P) / (1 - A).clamp(min=0.05)).round_().clamp_(0, 255).to(self.torch.uint8)
         return self.torch.where(A > 0.004, und, f), A[..., 0] > amax
 

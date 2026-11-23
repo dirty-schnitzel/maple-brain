@@ -113,17 +113,15 @@ def _map_name(map_id: int) -> str:
 
 def _load_scene(map_id: int):
     """The scene model for the scene camera (PLAN-perception.md steps 1-2) -> (Scene, "") or (None, why): no
-    `assets scene` for the map, or scenery the model does not follow yet (Scene.clean_meta: Perion's weather
-    clouds, backgrounds that move both ways / bob / are animated; sideways movers ARE followed since
-    PLAN-moving-scenery.md step 3)."""
+    `assets scene` for the map, or scenery the model does not follow yet (Scene.clean_meta: backgrounds that move
+    both ways / bob / are animated; sideways movers are followed since PLAN-moving-scenery.md step 3, Perion's
+    weather clouds followed and undone since step 5)."""
     from ..scene import Scene
     if not Scene.have(map_id):
         return None, f"no scene model (python -m maplebrain assets scene {map_id})"
     scene = Scene.load(map_id)
-    if not Scene.clean_meta(scene.meta, clouds_ok=True):
+    if not Scene.clean_meta(scene.meta):
         return None, "backgrounds the scene model does not follow yet (PLAN-moving-scenery.md step 6)"
-    if scene.meta.get("cloud"):                        # perceived in shadow (observe / replay), not hunted yet
-        return scene, "weather clouds over the field: followed, not undone yet (PLAN-moving-scenery.md step 5)"
     return scene, ""
 
 
@@ -167,9 +165,9 @@ def _load_map(rig: "Rig", map_id: int, say) -> bool:
             groups = sum(it[0] == "group" for g in scene.groups.values() for it in g)
             say(f"scene camera + fit: {kit.fitter.G} poses, {groups} pre-composed background groups of "
                 f"{len(scene.backs)} layers; built in {time.perf_counter() - t:.2f} s")
-            if why:                                     # perceived, not hunted (a weather-cloud map)
-                kit.why = why
-                say(f"map {map_id}: {why} -> perception runs (observe / replay), hunts are refused here")
+            if scene.meta.get("cloud"):
+                say(f"map {map_id}: weather clouds over the field -> followed and undone (PLAN-moving-scenery.md "
+                    "step 5)")
             if cfg.perception.drops:                    # drops (PLAN-loot.md, in shadow): one finder per process
                 if getattr(rig, "drops", None) is None:
                     from ..perception.drops import DropFinder

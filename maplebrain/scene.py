@@ -422,15 +422,13 @@ class Scene:
         return (Path(root) / str(map_id) / "scene.json").exists()
 
     @staticmethod
-    def clean_meta(meta: dict, clouds_ok: bool = False) -> bool:
+    def clean_meta(meta: dict) -> bool:
         """Every background layer known or a mover behind the field (MoverFollow finds its place:
-        PLAN-moving-scenery.md step 3), and no weather clouds (`cloud`: Perion's region, step 5): only such maps are
-        hunted. Refused: type 5-7 and animated backs (the subway's deeper lines, the beach: step 6), the cloud maps,
-        and a mover drawn in FRONT of the mobs (map 80003000's back_darkMountain/back_4: not in the plan's design).
-        `clouds_ok`: the weather clouds allowed - perception runs there in shadow (step 4: observe / replay), the
-        hunt still refuses."""
-        return (all(b["known"] or (b.get("mover") is not None and not b["front"]) for b in meta["backs"])
-                and (clouds_ok or not meta.get("cloud")))
+        PLAN-moving-scenery.md step 3): only such maps are hunted. The weather clouds (`cloud`: Perion's region)
+        count since step 5 (perception/clouds.py follows them, the frame is undone). Refused: type 5-7 and animated
+        backs (the subway's deeper lines, the beach: step 6) and a mover drawn in FRONT of the mobs (map 80003000's
+        back_darkMountain/back_4: not in the plan's design)."""
+        return all(b["known"] or (b.get("mover") is not None and not b["front"]) for b in meta["backs"])
 
     @property
     def clean(self) -> bool:

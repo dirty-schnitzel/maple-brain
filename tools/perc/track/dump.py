@@ -13,7 +13,7 @@ refused (no --holdout here on purpose). Output: OUT/track/ with OUT = CORPUS/wor
         cam, cam_src     the tracker's camera / where it came from
         me, me_map, map_pos     our tag on screen (x, y, w, h), our feet on the map (tag + camera), the minimap's
         mobs             today's tracker (world.py): Track.as_dict per track - the baseline
-        facts            FrameFacts.as_dict (v5, v6 since 2026-11-23: + movers): fit (the fit's mobs), fit_hints (the looks at today's tracks the
+        facts            FrameFacts.as_dict (v5, v6 since 2026-11-23: + movers, clouds): fit (the fit's mobs), fit_hints (the looks at today's tracks the
                          fit did not find), patches (D's blobs), drops, tags (players' name tags), hp / mp / exp,
                          tag, scene_share, ...
         explained        shows / world pixels (below) on this frame (None: no camera)
@@ -67,6 +67,10 @@ CAPTURES = [
     "20261119_123331_2#7",       # A Hill West of Henesys
     "20261119_125726_3#0", "20261119_125726_3#1", "20261119_125726_3#2",     # Henesys Hunting Ground I-III
     "20261119_204522_1#0",       # The Hill East of Henesys
+    # step 5 (2026-11-23): the weather-cloud maps (clouds followed and undone)
+    "20261123_163821_2#0",       # Perion Street Corner, 4.75 min at 60 a second, today's settings
+    "20261116_085414_5#0",       # Perion Street Corner, 6 a second (PNG), the normal settings
+    "20261116_085620_6#0",       # Land of Wild Boar, 6 a second (PNG), the normal settings
 ]
 
 
