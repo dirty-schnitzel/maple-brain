@@ -4,7 +4,8 @@
 table); step 2 DONE 2026-11-23 (its 2 missed numbers accepted by the user: "all good continue"); step 3 built
 2026-11-23 (2 misses + the user's live check owed: under step 3); step 4 built 2026-11-23, its gate missed,
 ACCEPTED by the user (under step 4); step 5 built 2026-11-23, gate missed on 2 numbers (ms, the camera on the old
-6-a-second captures), ACCEPTED by the user; owed: the two live checks (steps 3, 5), then the merge into `dev`.** Measured and prototyped by the plan session (2026-11-21).
+6-a-second captures), ACCEPTED by the user, its live check done; owed: step 3's live check (a Henesys Hunting Ground), then the merge
+into `dev`.** Measured and prototyped by the plan session (2026-11-21).
 Waiting on the user's OK, and on footage for steps 4-6 (the last section). Priority: **P0**, before the tracker
 plan session. Tools and their README: `tools/perc/scenery/` (merged into `dev` 2026-11-21; the steps below work
 on branch `moving-scenery`); results, sheets and cached cameras: `F:\dev\maple-corpus\work\scenery\`.
@@ -396,8 +397,11 @@ and is lost; the Perceiver seeds the scene camera from the tracker's camera (`wo
 place, so the minimap's seed (within 14 px of the true camera, p90, on 268 of the 283 lost frames) is never used;
 the same on Land of Wild Boar (frame 46, a 59 px fall). At 60 a second (the new capture) a fall is ~4 px a frame:
 100 %. Nothing step 5 changed is read by the scene camera.
-**Decided (the user, 2026-11-23): both misses accepted** ("accept"); the fixes are in "Later" below. **Owed: the live
-check - a 3-minute hunt on Perion Street Corner** (the code lets the 42 cloud maps hunt now).
+**Decided (the user, 2026-11-23): both misses accepted** ("accept"); the fixes are in "Later" below. **The live check
+DONE (the user, 2026-11-23: "excellent cloud performance"):** `runs2‚61123_191323_1`, Perion Street Corner, 3.3 min:
+camera on 99.88 % of 9,331 ticks (one 0.25 s pause at the start), 6 clouds on screen p50 (max 13), 19,423 sightings
+(3,450 under a cloud >= 0.2), 44 kills by our last hit (13.5 a minute, 1.1 swings a kill), 8,316 EXP an hour; tick
+p50 20.1 ms = 49.8 fps (p90 21.9: the accepted ms miss - `clouds` 5.1, `movers` 1.5 ms of it).
 
 **Stop rules** - the executor stops with the numbers, no workaround, when:
 - a gate's number is missed, or any of the 13 sound captures' tracks come out CHANGED;
