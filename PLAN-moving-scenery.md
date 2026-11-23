@@ -3,7 +3,8 @@
 **Status: OK'd by the user 2026-11-21 ("execute moving-scenery plan"); step 1 DONE 2026-11-21 (below the steps
 table); step 2 DONE 2026-11-23 (its 2 missed numbers accepted by the user: "all good continue"); step 3 built
 2026-11-23 (2 misses + the user's live check owed: under step 3); step 4 built 2026-11-23, its gate missed,
-ACCEPTED by the user (under step 4); step 5 in progress.** Measured and prototyped by the plan session (2026-11-21).
+ACCEPTED by the user (under step 4); step 5 built 2026-11-23, gate missed on 2 numbers (ms, the camera on the old
+6-a-second captures) - waiting on the user + the Perion live check (under step 5).** Measured and prototyped by the plan session (2026-11-21).
 Waiting on the user's OK, and on footage for steps 4-6 (the last section). Priority: **P0**, before the tracker
 plan session. Tools and their README: `tools/perc/scenery/` (merged into `dev` 2026-11-21; the steps below work
 on branch `moving-scenery`); results, sheets and cached cameras: `F:\dev\maple-corpus\work\scenery\`.
@@ -363,6 +364,42 @@ ahead on this follow.
 **Decided (the user, 2026-11-23): step 4's misses accepted as they are; step 5 goes ahead on this follow.** What
 was missed and how it could be fixed: "Later (low priority)" at the end of this file.
 
+### Step 5 - built 2026-11-23 (branch `moving-scenery`, 016c251): gate missed on 2 numbers, stopped
+Built: the Perceiver takes the followed clouds out of the frame (`Clouds.undo`) before D, the fit and the drop finder;
+a pixel under a cloud thicker than `Perception.cloud_thick` (0.9, design 4) is not valid. The vote reads an undone
+pixel with the fade search's tolerant tables at the level `1 + 0.5 / (1 - A)` asks for (`Voter.ids(cloud=)`, ported
+from cloudvote.py). `FitMob.cloud` (mean cloud alpha over its SEEN pixels) + `n_cloud` (informative pixels under a
+cloud too thick to undo), the same two in a look's row (FrameFacts v6's `fit` / `fit_hints`). `clean_meta`: cloud maps
+count - **the 42 cloud maps hunt** (216 of 233 scenes clean: step 3's 174 + the 42). `tools/perc/synth/under_clouds.py` (mobs under clouds by
+construction, maplebrain's code) + `tests/test_under_clouds.py` (40 placements, seed 3, on Perion's expected picture:
+40 / 40 found, 0 false; 14 / 40 with the cloud left in, 37 / 40 without the tolerant vote - the test fails then).
+`tools/perc/scenery/live5.py` (the live path frame by frame: sightings, sheets). The kept replay of the 3 cloud
+captures (`dump.py` CAPTURES).
+| Gate | Result |
+|---|---|
+| synthetic, >= 500 placements: >= 99 % found per thickness class up to 0.8, 0 false | **600 placements** (the new capture, every 3rd frame): **100.0 %** in every class (0-0.1: 5, 0.1-0.3: 128, 0.3-0.5: 297, 0.5-0.6: 96, 0.6-0.7: 53, 0.7-0.8: 21), **0 false**; the cloud left in: 22.2 % (0 % at 0.7-0.8). The found mobs' `cloud` = the truth within 0.002 (p90) |
+| the two old captures' sightings >= 1,540 / 940 | **1,560 / 995** (the clouds left in: 1,468 / 855; prototype 1,568 / 979) |
+| by eye on the new capture, 40 under a cloud (>= 0.2) + 40 any: 0 ghosts | **0 ghosts** (`work\scenery\live5_20261123_163821_2_0_under_0..1.png`, `_any_0..1.png`): 80 real Stumps / Dark Stumps / Snails / Red Snails; 5 only slivers at the screen's top / left edge (the snail's shell / eye shows), 1 Dark Stump dying behind our character |
+| sound: camera >= 99 %, model >= 95 % | new capture **100.00 % / 99.6 %**: sound. **The two old 6-a-second captures MISSED: camera 22.7 % / 13.4 %** (model on the frames with a camera 97.4 / 94.4) - not the clouds: see below |
+| our name tag as often as on the Line 1 design capture (within 1 point) | 98.57 % of the frames vs Line 1's 96.68 % (+1.9: more often, not less) |
+| Perceiver p50 on Perion <= Line 1's + 3.5 ms | **MISSED: 19.17 vs 13.59 ms = +5.6** (900 frames each, alternated twice, the same moment); p99 24.5 vs 16.6. Over the stop rule's 5 ms: the parts below |
+| the 13 sound captures: SAME | `gate.py --base ccfab7a`: **SAME**, 100.0 % on every clip. pytest green; bot speed 15.1 ms (step 3's A/B 15.1 / 14.9: unchanged) |
+**The parts' ms (the stop rule; p50, Perion vs Line 1, the same moment):** `clouds` **5.40** vs 0 - of it the clouds' own
+work ~3.1 (follow 1.87, layer 0.43, whitened 0.52, undo ~0.23; the finder 9.7 ms when it runs, on 127 of 17,099
+frames) and ~2.3 the GPU work queued before it (the expected picture) waited for at its first sync - on Line 1 that
+wait falls in `diff` / `patches` (1.50 / 1.80 there, 0.60 / 1.30 on Perion); `movers` **1.30** vs 0; `fit` 6.80 vs
+7.00 (the tolerant vote and the cloud numbers cost nothing visible); everything else equal. Step 4 already stood at
+p50 18.0 on Perion: step 5 adds ~1.2 ms (the undo, the vote's tolerant lookup, one more gather).
+**The old captures' camera: a lost camera never comes back** (HANDOFF's open item, met here first on footage). Old
+Perion frame 83 (0.25 s after 82, 6 a second): the camera moves 58 px down (a fall) - beyond the wide look's 48 px -
+and is lost; the Perceiver seeds the scene camera from the tracker's camera (`world.cam.C`), which keeps the last
+place, so the minimap's seed (within 14 px of the true camera, p90, on 268 of the 283 lost frames) is never used;
+the same on Land of Wild Boar (frame 46, a 59 px fall). At 60 a second (the new capture) a fall is ~4 px a frame:
+100 %. Nothing step 5 changed is read by the scene camera.
+**For the user:** (1) accept the two misses or have them fixed - the ms (the finder off the main stream, the movers'
+sync; "Later" below) and the camera on 6-a-second footage (a lost camera seeded from the minimap); (2) **the live
+check: a 3-minute hunt on Perion Street Corner** (the code lets the 42 cloud maps hunt now).
+
 **Stop rules** - the executor stops with the numbers, no workaround, when:
 - a gate's number is missed, or any of the 13 sound captures' tracks come out CHANGED;
 - a mover does not follow the law on new footage (its place off by more than 1 px on more than 1 % of the frames
@@ -438,6 +475,8 @@ Nothing here blocks a step; each was accepted by the user as measured. Pick up w
 | step 4 | the finder at <= 1 a second vs the share (0.2 s cadence: 93.2 / 90.6 %) | run the finder only on the whitened cells' bounding box (cheaper -> more often), or a finder run when a followed cloud's share drops |
 | step 4 | Wild Boar frame = expected with clouds 92.5 % (93) | the same cadence fix (0.2 s gives 93.7 %) |
 | step 4 | the finder on the main CUDA stream (design 3: its own): 10.5 ms p50, max 52.6 -> Perceiver p99 25.5 ms vs Line 1 18.4 | the finder on its own stream, read back on the next tick (a new cloud one frame later) |
+| step 5 | Perion's Perceiver p50 +5.6 ms over Line 1 (gate 3.5): `clouds` 5.4 (own work ~3.1 + ~2.3 waiting for the expected picture), `movers` 1.3 | the finder on its own stream (step 4's row); the clouds' check and the movers' follow in one batch with one sync; the whitened check every 2nd frame |
+| step 5 | a lost scene camera is never found again (the 6-a-second captures: 22.7 / 13.4 %): the Perceiver seeds from the tracker's stale camera | on a miss, also look around the minimap's seed (`SceneCamera.update` gets both; `locate` already takes both) - HANDOFF's open item "a lost scene camera" |
 | step 4 | single clouds gone wrong (a swap with a cloud of the same picture: an 11.4 px line; a first opacity read badly: 0.106) | re-read the opacity on the first 5 fixes (median); a followed cloud's place checked against its line, a jump > 3 px = a new track |
 
 ## Its place beside the tracker
