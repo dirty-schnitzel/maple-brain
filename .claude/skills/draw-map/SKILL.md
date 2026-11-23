@@ -9,14 +9,16 @@ The tool is `tools/nav/map_graph.py` (its docstring says how the graph is made).
 ```powershell
 .venv\Scripts\python tools\nav\map_graph.py MAP [--platforms N] [--seed S] [--hide GROUPS] [--layout rows|map] [--8bit | --banner] [--out PNG]
 .venv\Scripts\python tools
-av\map_graph.py --random N [the same options, no --seed / --out / --banner]
+av\map_graph.py --random N [the same options, no --seed / --out]
 ```
 
 - `MAP`: a map id or name; a part of a name works when it names one map (several: the tool lists them - ask
   which, or take the exact one the user meant).
 - `num_platforms` -> `--platforms N`: keep N platforms, picked arbitrarily (grown from a random platform along
   the edges, so they hang together). Say the seed it printed in the file name; `--seed S` repeats a pick.
-- `hide` -> `--hide`, comma separated, from: `drop` (drop downs and walking off an edge), `jump`, `rope_up`,
+  `--platforms 4-9` = a random count per map.
+- Drops are hidden by default (`--hide drop`); "show drops" / "all moves" -> `--hide none`.
+- `hide` -> `--hide`, comma separated (replaces the default), from: `drop` (drop downs and walking off an edge), `jump`, `rope_up`,
   `rope_down`, `rope_leap` (a rope, then a jump off it), `walk`. "hide ropes" = `rope_up,rope_down,rope_leap`.
   Hidden groups lose their edges only; the platforms stay. Plurals work: "hide drops" -> `--hide drops`.
 - "N random maps" -> `--random N` in place of MAP: maps with at least 5 platforms (or `--platforms`) and an
@@ -34,6 +36,8 @@ av\map_graph.py --random N [the same options, no --seed / --out / --banner]
 The pipeline: draw the graph (PNG) -> the user picks a drawing -> `--8bit` -> on the user's word, `--banner`.
 At each session start the `maple-banner` mod (`~\.claude\mods\maple-banner`, installed for the user) shows one
 random picture of `.claude\skills\draw-map\8bit\` under the Claude Code logo, titled `neuromaple · <file name>`.
+- The folder today (2026-11-23): 30 random maps, `--random 30 --banner --layout map --platforms 4-9` (drops
+  hidden). `--random N --banner` skips a name already drawn in that run.
 - `--banner` = `--8bit` saved as `8bit\<short name>.txt`: "Hunting Ground" -> HG, "Construction Site" -> CS,
   "City" dropped, a last Roman numeral -> a digit (`Henesys HG1`, `Kerning CS`, `Ant Tunnel 4`; more in
   `SHORT`), what Windows refuses in a file name dropped. It replaces that map's picture. Use the same

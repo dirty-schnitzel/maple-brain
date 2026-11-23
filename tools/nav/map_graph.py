@@ -21,7 +21,8 @@ Platforms nothing leads to (scenery, or a way up navmap does not model) are left
 MAP = a map id or a name ("Line 1 <Area 1>", or a part of one that names a single map).
 --platforms N keeps N platforms, picked arbitrarily: grown from a random platform along the edges (either
 direction), so the piece hangs together; --seed makes the pick repeatable. Edges between the kept ones are the
-full map's direct moves. --hide leaves those edge groups out (the platforms stay; plurals such as "drops" work).
+full map's direct moves; --platforms LO-HI picks a random count per map. --hide leaves those edge groups out (the
+platforms stay; plurals such as "drops" work); the default hides drop, --hide none shows every move.
 --random N draws N random maps (at least 5 platforms, or --platforms, and an edge left) with the other options,
 each with its own seed; with --8bit all the pictures are printed together at the end.
 --8bit draws the same pick as one-colour 8-bit text art (rings = platforms, lines = moves, no numbers):
@@ -334,20 +335,34 @@ ALIAS = {"drops": "drop", "walk_off": "drop", "walkoff": "drop", "jumps": "jump"
          "ropes_up": "rope_up", "ropes_down": "rope_down", "rope_leaps": "rope_leap", "leap": "rope_leap"}
 
 
-def random_maps(count: int, n: int | None, hide=(), assets: Path = ASSETS):
-    """`count` random map ids whose graph has at least max(n, 5) platforms and an edge left after `hide`."""
+def random_maps(count: int, n=None, hide=(), assets: Path = ASSETS, key=None):
+    """`count` random (map id, platforms) whose graph has at least max(platforms, 5) platforms and an edge left
+    after `hide`; n = None (the whole map), a number, or (lo, hi): a random count per map. `key(map id)` -> a
+    value no two picks share (the banner's file name), or None."""
     ids = sorted(int(p.parent.name) for p in (assets / "maps").glob("*/map.json"))
     random.shuffle(ids)
+    seen = set()
     for mid in ids:
         if count == 0:
             return
+        k = key(mid) if key else mid
+        if k in seen:
+            continue
+        p = random.randint(*n) if isinstance(n, tuple) else n
         try:
-            _, _, _, E, _, n_reach = graph(mid, n, random.randrange(10_000), hide, assets)
+            _, _, _, E, _, n_reach = graph(mid, p, random.randrange(10_000), hide, assets)
         except Exception:                                 # no navmap (towns' insides, cut scenes)
             continue
-        if n_reach >= max(n or 0, 5) and E:
+        if n_reach >= max(p or 0, 5) and E:
             count -= 1
-            yield mid
+            seen.add(k)
+            yield mid, p
+
+
+def platforms_arg(s: str):
+    """--platforms: "N", or "LO-HI" for a random count per map."""
+    lo, _, hi = s.partition("-")
+    return (int(lo), int(hi)) if hi else int(lo)
 
 
 def main(argv=None):
@@ -356,9 +371,12 @@ def main(argv=None):
     ap.add_argument("--random", type=int, metavar="N",
                     help="N random maps instead of MAP, each with its own seed; with --8bit every art is printed "
                          "again at the end")
-    ap.add_argument("--platforms", type=int, help="keep this many platforms, picked arbitrarily")
+    ap.add_argument("--platforms", type=platforms_arg,
+                    help="keep this many platforms, picked arbitrarily; LO-HI = a random count per map")
     ap.add_argument("--seed", type=int, help="makes the --platforms pick repeatable (default: random)")
-    ap.add_argument("--hide", default="", help="edge groups to leave out, comma separated: " + ", ".join(GROUPS))
+    ap.add_argument("--hide", default="drop",
+                    help="edge groups to leave out, comma separated, from: " + ", ".join(GROUPS) +
+                         " (default: drop; 'none' = show every move)")
     ap.add_argument("--8bit", dest="eightbit", action="store_true",
                     help="8-bit text art instead of the PNG: printed, and saved as a .txt")
     ap.add_argument("--banner", action="store_true",
@@ -369,31 +387,34 @@ def main(argv=None):
     ap.add_argument("--out", type=Path, help="the PNG or .txt (default runs/map_graph/<map id>.png / .txt)")
     a = ap.parse_args(argv)
     hide = tuple(dict.fromkeys(ALIAS.get(h.strip().replace(" ", "_").replace("-", "_"), h.strip())
-                               for h in a.hide.split(",") if h.strip()))
+                               for h in a.hide.split(",") if h.strip() and h.strip() != "none"))
     bad = [h for h in hide if h not in GROUPS]
     if bad:
         ap.error(f"unknown group(s) {bad}: the groups are {', '.join(GROUPS)}")
     if (a.map is None) == (a.random is None):
         ap.error("give a MAP or --random N")
-    if a.random is not None and (a.seed is not None or a.out or a.banner):
-        ap.error("--random picks its own maps and seeds: no --seed, --out or --banner")
+    if a.random is not None and (a.seed is not None or a.out):
+        ap.error("--random picks its own maps and seeds: no --seed or --out")
     a.eightbit = a.eightbit or a.banner
     if a.eightbit:
         sys.stdout.reconfigure(encoding="utf-8")
     arts = []
-    for map_id in random_maps(a.random, a.platforms, hide) if a.random else [find_map(a.map)]:
-        seed = a.seed if a.seed is not None else (random.randrange(10_000) if a.platforms else None)
+    picks = (random_maps(a.random, a.platforms, hide, key=(lambda m: banner_file(map_name(m))) if a.banner else None)
+             if a.random else
+             [(find_map(a.map), random.randint(*a.platforms) if isinstance(a.platforms, tuple) else a.platforms)])
+    for map_id, n in picks:
+        seed = a.seed if a.seed is not None else (random.randrange(10_000) if n else None)
         out = a.out or (banner_file(map_name(map_id)) if a.banner else
-                        ROOT / "runs" / "map_graph" / (f"{map_id}" + (f"_{a.platforms}p_s{seed}" if a.platforms else "")
+                        ROOT / "runs" / "map_graph" / (f"{map_id}" + (f"_{n}p_s{seed}" if n else "")
                                                        + (f"_no-{'-'.join(hide)}" if hide else "")
                                                        + ("_map" if a.layout == "map" else "")
                                                        + (".txt" if a.eightbit else ".png")))
         if a.eightbit:
-            art = draw_8bit(map_id, out, a.platforms, seed, hide, a.layout)
+            art = draw_8bit(map_id, out, n, seed, hide, a.layout)
             arts.append(f"--- {map_id}" + (f", seed {seed}" if seed is not None else "") + f"\n{art}")
             print(art + str(out))
         else:
-            print(draw(map_id, out, a.platforms, seed, hide, a.layout))
+            print(draw(map_id, out, n, seed, hide, a.layout))
     if a.random and arts:
         print("\n========== the 8-bit pictures ==========\n" + "\n".join(arts))
 
