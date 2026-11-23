@@ -22,7 +22,7 @@ lives: the last section.
 - Do no work that a later step of the plan replaces.
 
 ## Git
-- Code: work on a side branch; commit and push there without asking once pytest is green. The user merges into
+- Code: work on a side branch; commit and push there without asking once its tests are green. The user merges into
   `dev` and `main`. Never commit to or rewrite `main`. A big change starts on a new branch.
 - Docs only (HANDOFF.md, CLAUDE.md, `.claude/rules/`, plans, `docs/`): commit and push straight on `dev`, no
   pytest needed.
@@ -76,6 +76,10 @@ A hunt writes `<out>\<date_time>_<n>\`: log.txt, ticks.jsonl, frames. Analysis t
 | `gamedata.py`, `livemap.py` | `assets build`; the console map |
 
 ## Measuring
+- Tests (the user, 2026-11-23): run only the tests of the area changed when that is possible
+  (`pytest tests/test_<area>.py`). The whole suite only when there is a real risk: a change to code many parts
+  use (config.py, perception, the scene model, the brain, the hunt loop), or one whose reach is unclear. A tool
+  or skill change runs its own tests alone.
 - Every pytest run ends with a `bot speed` line: report it after any perception or brain change and say whether
   it moved. It depends on the machine (the power plan, the game in front, another session computing): when it is
   far off, A/B with a WIP commit or a worktree, then re-run pinned to the performance cores. Re-baseline
