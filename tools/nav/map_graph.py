@@ -36,6 +36,7 @@ import json
 import math
 import random
 import re
+import shutil
 import sys
 from pathlib import Path
 
@@ -404,14 +405,17 @@ def main(argv=None):
              [(find_map(a.map), random.randint(*a.platforms) if isinstance(a.platforms, tuple) else a.platforms)])
     for map_id, n in picks:
         seed = a.seed if a.seed is not None else (random.randrange(10_000) if n else None)
-        out = a.out or (banner_file(map_name(map_id)) if a.banner else
-                        ROOT / "runs" / "map_graph" / (f"{map_id}" + (f"_{n}p_s{seed}" if n else "")
-                                                       + (f"_no-{'-'.join(hide)}" if hide else "")
-                                                       + ("_map" if a.layout == "map" else "")
-                                                       + (".txt" if a.eightbit else ".png")))
+        runs = ROOT / "runs" / "map_graph" / (f"{map_id}" + (f"_{n}p_s{seed}" if n else "")
+                                              + (f"_no-{'-'.join(hide)}" if hide else "")
+                                              + ("_map" if a.layout == "map" else "")
+                                              + (".txt" if a.eightbit else ".png"))
+        out = a.out or (banner_file(map_name(map_id)) if a.banner else runs)
         if a.eightbit:
             art = draw_8bit(map_id, out, n, seed, hide, a.layout)
-            arts.append(f"--- {map_id}" + (f", seed {seed}" if seed is not None else "") + f"\n{art}")
+            if out != runs:                               # --banner / --out: runs/ keeps a copy too
+                runs.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(out, runs)
+            arts.append(f"--- {map_id}" + (f", {n} platforms, seed {seed}" if n else "") + f"\n{art}")
             print(art + str(out))
         else:
             print(draw(map_id, out, n, seed, hide, a.layout))

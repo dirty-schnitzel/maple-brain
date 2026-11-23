@@ -40,7 +40,8 @@ random picture of `.claude\skills\draw-map\8bit\` under the Claude Code logo, ti
   hidden). `--random N --banner` skips a name already drawn in that run.
 - `--banner` = `--8bit` saved as `8bit\<short name>.txt`: "Hunting Ground" -> HG, "Construction Site" -> CS,
   "City" dropped, a last Roman numeral -> a digit (`Henesys HG1`, `Kerning CS`, `Ant Tunnel 4`; more in
-  `SHORT`), what Windows refuses in a file name dropped. It replaces that map's picture. Use the same
+  `SHORT`), what Windows refuses in a file name dropped. It replaces that map's picture;
+  `runs\map_graph\` keeps a copy under the `--8bit` name (with its platforms and seed). Use the same
   `--platforms N --seed S` as the drawing the user liked.
 - The folder is in git: commit a new picture like the skill (docs only: straight on `dev`). A checkout
   without the folder shows the Henesys HG1 picture built into the mod.
