@@ -131,8 +131,9 @@ path (`C:\Users\Yoav\dev\maple-work\.venv\Scripts\python.exe`); the bank is reac
 C:\Users\Yoav\dev\maple-work\runs`) - or the documented setting `worktree.symlinkDirectories: ["runs"]`, not
 tried on this machine yet. `assets\scene\` is not in git either: link it the same way, or work on the kept replay.
 
-**Two plans at once** (the user, 2026-11-23: moving-scenery's executor in the main folder, the tracker plan in a
-worktree from `dev`). Separate folders keep the code apart; these rules keep the rest apart:
+**Two plans at once** (drawn up 2026-11-23 for moving-scenery's executor beside the tracker plan; the user then
+chose to finish moving-scenery first, so one scene build sits under the tracker - a plan that rebuilds data
+outside git is best finished before the next one starts). Separate folders keep the code apart; these rules keep the rest apart:
 - **HANDOFF.md:** while working, a session writes its progress only to its own PLAN-<topic>.md. HANDOFF is
   changed on `dev` only, by one session at a time, `dev` pulled first - in practice at a session's end, by the
   `handoff` skill.

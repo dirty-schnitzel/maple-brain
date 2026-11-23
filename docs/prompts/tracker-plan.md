@@ -1,7 +1,8 @@
 # Session prompt: the tracker plan session
 
 - **Run as:** Fable, max effort, a fresh session. Type: `run docs/prompts/tracker-plan.md`.
-- **When:** after the user's OK on this draft (HANDOFF.md, "Waiting on the user").
+- **When:** after PLAN-moving-scenery.md is finished and merged into `dev` (the user, 2026-11-23: one assets
+  version under the tracker work), and the user's OK on this draft. Start it from `dev`.
 - **Result:** `docs/state_model.md` (the data model, the user's OK), then `PLAN-tracker.md`, PROPOSED until the
   user's OK.
 - **Written:** 2026-11-21 in the planning session. **Rewritten 2026-11-21 as a DRAFT** after the data-model
