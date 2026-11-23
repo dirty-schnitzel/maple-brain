@@ -36,7 +36,7 @@ av\map_graph.py --random N [the same options, no --seed / --out]
 The pipeline: draw the graph (PNG) -> the user picks a drawing -> `--8bit` -> on the user's word, `--banner`.
 At each session start the `maple-banner` mod (`~\.claude\mods\maple-banner`, installed for the user) shows one
 random picture of `.claude\skills\draw-map\8bit\` under the Claude Code logo, titled `neuromaple · <file name>`.
-- The folder today (2026-11-23): 30 random maps, `--random 30 --banner --layout map --platforms 4-9` (drops
+- The folder today (2026-11-23): 30 random maps, `--random 30 --banner --layout map --platforms 7-11` (drops
   hidden). `--random N --banner` skips a name already drawn in that run.
 - `--banner` = `--8bit` saved as `8bit\<short name>.txt`: "Hunting Ground" -> HG, "Construction Site" -> CS,
   "City" dropped, a last Roman numeral -> a digit (`Henesys HG1`, `Kerning CS`, `Ant Tunnel 4`; more in
