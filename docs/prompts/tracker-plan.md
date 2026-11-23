@@ -2,13 +2,14 @@
 
 - **Run as:** Fable, max effort, a fresh session. Type: `run docs/prompts/tracker-plan.md`.
 - **When:** after PLAN-moving-scenery.md is finished and merged into `dev` (the user, 2026-11-23: one assets
-  version under the tracker work), and the user's OK on this draft. Start it from `dev`.
+  version under the tracker work). Start it from `dev`.
 - **Result:** `docs/state_model.md` (the data model, the user's OK), then `PLAN-tracker.md`, PROPOSED until the
   user's OK.
-- **Written:** 2026-11-21 in the planning session. **Rewritten 2026-11-21 as a DRAFT** after the data-model
-  discussion (no guessing, the data model first, no simulator engine): under discussion, not OK'd. Updated
+- **Written:** 2026-11-21 in the planning session. Rewritten 2026-11-21 after the data-model
+  discussion (no guessing, the data model first, no simulator engine). Updated
   2026-11-23 with the user's answers: memory in, what "no guessing" means, the tracker's goal, what the user
-  looks at, the dynamic values; then the data model's goal and Part 1 regrouped under it.
+  looks at, the dynamic values; then the data model's goal and Part 1 regrouped under it. **FINAL: OK'd by
+  the user 2026-11-23.**
 
 ```text
 Tracker plan session. Read HANDOFF.md's START HERE, then REPORT-track-before.md, PLAN-perception.md step 4,
