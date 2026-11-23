@@ -12,14 +12,14 @@ ai to see how many hours of farming on a specific map with a specific class and 
 farm a map efficiently and humanlike. Then benchmark different models at the same job". **Priorities
 (2026-11-20):** "good tracking ready for ML applications, and a simulator that can 1 - show the current state of
 the game live just like livemap but with real assets, 2 - take our input and be used to train AI". **Left open by
-the user:** a full FSM or a cloned-behaviour AI. **Under discussion since 2026-11-21 (edited here, not yet
-OK'd): no guessing in the tracker, the data model first, no simulator engine** - "Proposed by Claude" below.
+the user:** a full FSM or a cloned-behaviour AI. **OK'd 2026-11-23 with the tracker plan's prompt:** no guessing
+in the tracker, the data model first, no simulator engine now - "Proposed by Claude" below.
 
 ### The order from here
 | # | Session | Run as | Status | Prompt |
 |---|---|---|---|---|
 | **P0.1-5** | **The plan's steps 1-5, one executor session each:** 1 the pictures right (the forest maps sound), 2-3 moving backs drawn and followed (40 maps hunt), 4-5 Perion's clouds followed and undone (42 maps hunt). Steps 4-5 need the user's Perion recording | Opus (high) | **steps 1-5 DONE 2026-11-23**, the numbers each missed gate fell short on ACCEPTED by the user (PLAN-moving-scenery.md's status); merged into `dev` 2026-11-23 (9085f5b). Steps 6-7 wait for footage | `PLAN-moving-scenery.md`, "Session prompts" |
-| 3 | The tracker plan session, in two parts: (1) the data model -> `docs/state_model.md`, stop for the user's OK; (2) the tracker that fills it -> `PLAN-tracker.md`, PROPOSED until the user's OK. Take along: per mob, on our platform or not (Open items, "Ideas from another bot") | Fable, max | **NEXT**, from `dev`: P0.1-5 are merged (the user, 2026-11-23: "finish moving scenery to not clash with assets versions" - one scene build under the tracker work); waits only for the user's OK on the prompt's draft | `docs/prompts/tracker-plan.md` (DRAFT) |
+| 3 | The tracker plan session, in two parts: (1) the data model -> `docs/state_model.md`, stop for the user's OK; (2) the tracker that fills it -> `PLAN-tracker.md`, PROPOSED until the user's OK. Take along: per mob, on our platform or not (Open items, "Ideas from another bot") | Fable, max | **NEXT**, from `dev`: P0.1-5 are merged (the user, 2026-11-23: "finish moving scenery to not clash with assets versions" - one scene build under the tracker work); prompt FINAL, OK'd 2026-11-23 | `docs/prompts/tracker-plan.md` |
 | 4 | The tracker built in shadow beside today's, switched when it matches or beats it. Beside it, at any time: the viewer (PLAN-livemap.md Session 1 - its prompt says "from the current head of `perception`": use `dev`). No engine session | Opus | after 3 | PLAN-tracker.md, PLAN-livemap.md |
 | 4b | Wide maps: plan, then execute, the scrolling minimap placed by several agreeing patches (Open items, "Ideas from another bot") | Fable, max -> Opus | after the tracker (the user, 2026-11-22) | - |
 | 5 | FSM or clone, decided on what both score in live runs, counted by the tracker's events | - | open | - |
@@ -83,7 +83,7 @@ OK'd): no guessing in the tracker, the data model first, no simulator engine** -
   user, 2026-11-23: no re-make, fresh captures as needed).
 
 ### Proposed by Claude in the planning sessions (the user works along it; not OK'd as a whole)
-- **UNDER DISCUSSION (2026-11-21, not OK'd, not committed): no guessing.** The user: "we simply shouldn't try
+- **OK'd 2026-11-23 with the tracker plan's prompt (discussed 2026-11-21..23): no guessing.** The user: "we simply shouldn't try
   to guess, at all ... We see the actions with perception and we act upon them"; a human farming "doesnt have
   memory of the exact location of every mob it has seen, he is basically looking at the map and following a set
   of rules"; "the data model has to be chosen before designing tracking". What follows from it:
@@ -155,9 +155,6 @@ OK'd): no guessing in the tracker, the data model first, no simulator engine** -
 - `main` has not moved since 2026-11-09 (02a639a) and has no CLAUDE.md. Parked: `vnc-keys` (the VM attempt).
 
 ## Waiting on the user
-- **OK the DRAFT of `docs/prompts/tracker-plan.md`** - it now holds the user's answers of 2026-11-21..23 (the
-  data model's goal and the tracker's, memory, the dynamic values, the navmap audit) - then the tracker plan
-  session starts from `dev`. With it, the direction under "Proposed by Claude" (UNDER DISCUSSION).
 - PLAN-moving-scenery.md's questions (its last section), if any are still open; footage for its steps 6-7.
 - The "explained" reading of PLAN-data's stop rule (REPORT-track-before.md section 3), to confirm or change:
   map places the scene model misses on more than half of the frames that show them (what moves over the
