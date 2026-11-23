@@ -12,17 +12,17 @@ ai to see how many hours of farming on a specific map with a specific class and 
 farm a map efficiently and humanlike. Then benchmark different models at the same job". **Priorities
 (2026-11-20):** "good tracking ready for ML applications, and a simulator that can 1 - show the current state of
 the game live just like livemap but with real assets, 2 - take our input and be used to train AI". **Left open by
-the user:** a full FSM or a cloned-behaviour AI. It does not change the order below; both get scored in the
-simulator once it exists.
+the user:** a full FSM or a cloned-behaviour AI. **Under discussion since 2026-11-21 (edited here, not yet
+OK'd): no guessing in the tracker, the data model first, no simulator engine** - "Proposed by Claude" below.
 
 ### The order from here
 | # | Session | Run as | Status | Prompt |
 |---|---|---|---|---|
 | **P0.1-5** | **The plan's steps 1-5, one executor session each:** 1 the pictures right (the forest maps sound), 2-3 moving backs drawn and followed (40 maps hunt), 4-5 Perion's clouds followed and undone (42 maps hunt). Steps 4-5 need the user's Perion recording | Opus (high) | step 1 DONE 2026-11-21 (gate met, on `moving-scenery`, not yet in `dev`); **NEXT: step 2** (no footage needed); branch `moving-scenery` | `PLAN-moving-scenery.md`, "Session prompts" |
-| 3 | The tracker plan session -> `PLAN-tracker.md`, PROPOSED until the user's OK. Take along: per mob, on our platform or not (Open items, "Ideas from another bot") | Fable, max | after the user has written the tracker's definition and goals into its prompt (Waiting on the user) | `docs/prompts/tracker-plan.md` |
-| 4 | The tracker built in shadow beside today's, switched when it matches or beats it. Beside it, at any time: the viewer (PLAN-livemap.md Session 1 - its prompt says "from the current head of `perception`": use `dev`), then the engine's own plan session (the engine outputs the tracker's state description) | Opus | after 3 | PLAN-tracker.md, PLAN-livemap.md |
+| 3 | The tracker plan session, in two parts: (1) the data model -> `docs/state_model.md`, stop for the user's OK; (2) the tracker that fills it -> `PLAN-tracker.md`, PROPOSED until the user's OK. Take along: per mob, on our platform or not (Open items, "Ideas from another bot") | Fable, max | after the user's OK on the direction under discussion and on the prompt's draft (Waiting on the user) | `docs/prompts/tracker-plan.md` (DRAFT) |
+| 4 | The tracker built in shadow beside today's, switched when it matches or beats it. Beside it, at any time: the viewer (PLAN-livemap.md Session 1 - its prompt says "from the current head of `perception`": use `dev`). No engine session | Opus | after 3 | PLAN-tracker.md, PLAN-livemap.md |
 | 4b | Wide maps: plan, then execute, the scrolling minimap placed by several agreeing patches (Open items, "Ideas from another bot") | Fable, max -> Opus | after the tracker (the user, 2026-11-22) | - |
-| 5 | FSM or clone, decided on what both score in the simulator and live | - | open | - |
+| 5 | FSM or clone, decided on what both score in live runs, counted by the tracker's events | - | open | - |
 
 ### Decided by the user
 - **v83 is the rulebook (2026-11-20):** "no guessing or measuring v83 client is more than good enough, the server
@@ -66,11 +66,9 @@ simulator once it exists.
   in one stay (110,082 frames at 60 a second, 0 dropped), and `20261120_235747_1#0` (the same map, 4.2 minutes) -
   both at today's graphics settings. Bank: 19 recordings, 50 captures, 93 minutes, 31.9 GB (`corpus.py list`).
 - **`docs/game_rules.md`**: the game's rules as v83 code has them, in px and seconds, each with its source line
-  and the client-file field it reads (sections A-K, three tables). **Open = its table 3, 21 questions.** The ones
-  that shape the next sessions: how a mob with aggro moves and attacks is in no source; mob movement exists only
-  in HeavenClient's approximated physics; the walk range `rx0`/`rx1`, `fs`, `summonType`, `mobRate` are read by
-  no source; Cosmic's respawn numbers are that emulator's own; Classic World's skill list is not v83's; which
-  skills are on `w` / `e`.
+  and the client-file field it reads (sections A-K, three tables). **Open = its table 3, 21 questions**, among
+  them: how a mob with aggro moves and attacks is in no source; the walk range `rx0`/`rx1` is read by no source;
+  Classic World's skill list is not v83's; which skills are on `w` / `e`.
 - **The kept replay + the "before" numbers (`REPORT-track-before.md`, branch `tracker`).** Today's Perceiver,
   unchanged, over every frame of 23 captures (204,131 frames, 2.5 GB) in `F:\dev\maple-corpus\work\SESSION#K\track\`:
   per frame the camera, us, the fit's mobs, today's tracks and looks, drops, patches and the two bitmaps - a
@@ -80,27 +78,40 @@ simulator once it exists.
   96.4 %, HELD 96.8 % across <= 0.1 s but 31 % across 0.6-1.5 s, **64 % of mob lives on one track**, ghosts 1.4 %,
   an unwitnessed death stays "alive" p90 5.9 s. The truth checked by eye on 60 cases: gaps 21 right / 0 wrong / 19
   can't tell (mostly off screen), ends 15 / 3 / 2. Tools: `tools/perc/track/`. **Two scene builds in it** (open
-  items): re-made on the full build = the 9 forest captures + Ant Tunnel I; the other 8 not yet.
+  items): re-made on the full build = the 9 forest captures + Ant Tunnel I; the other 8 stay as they are (the
+  user, 2026-11-23: no re-make, fresh captures as needed).
 
 ### Proposed by Claude in the planning sessions (the user works along it; not OK'd as a whole)
-- **One description of the game's state, three programs around it:** the tracker (the game's screen -> the
-  state), the simulator's engine (the state + our input -> the next state, by the v83 rules), the viewer (the
-  state -> a picture with real assets = PLAN-livemap.md, prototype `tools/livemap/proto.py`). The user's use 1 of
-  the simulator = tracker + viewer, use 2 = the engine. The rules serve both sides: for the engine they are how
-  the world advances, for the tracker how a mob can have moved between two frames.
-- **What "ready for ML" asks of the tracker** (input for PLAN-tracker.md): (1) the same tracks live and from a
-  replayed recording - inputs = the frame's facts + the key log + map data, nothing from the scripted brain,
-  nothing tied to one class (read what happened to the mob, not what our weapon should have done); (2) a
-  hindsight twin (looks both ways in time on a recording) = the truth the live tracker is graded on and the
-  labeller of the user's play, never an input of the AI - prototyped in `tools/perc/track/oracle.py`, `score.py`;
-  (3) facts, not verdicts: seen or not, covered by what, for how long, how see-through - in place of today's
-  timeouts (lose_s 0.5, fight_s 1.2, covered_s / hidden_s 2.0); (4) one identity per mob with its history (hits
-  taken, age), identity switches per mob life as a gate number; (5) events as outputs (spawned, hit, died by our
-  last hit or not, dropped, picked up, we got hurt) = the training labels and the scoreboard, kills counted the
-  same way for the user, the scripted bot and any model; (6) the whole map with memory (per platform: last seen
-  when, how many, the respawn rule) and a slot for everything that moves: mobs, drops, other players, us (our
-  facing is still a belief from the keys); (7) perception one-way (today the tracker calls back for a second
-  look), so each frame's facts are computed once and a tracker change re-runs in seconds.
+- **UNDER DISCUSSION (2026-11-21, not OK'd, not committed): no guessing.** The user: "we simply shouldn't try
+  to guess, at all ... We see the actions with perception and we act upon them"; a human farming "doesnt have
+  memory of the exact location of every mob it has seen, he is basically looking at the map and following a set
+  of rules"; "the data model has to be chosen before designing tracking". What follows from it:
+  - **The data model = the map's graph + what is on screen now.** The graph is fixed per map and exists
+    (`nav/navmap.py`: platforms and ropes = nodes, walk / jump / drop / climb links = edges; 364 of 364 maps
+    build, portals are not edges). Per frame, for every mob, drop, other player and us: what it is, where on the
+    graph (platform + place along it), which thing of the previous frames it is, how it is seen (clear, or
+    covered by what). Plus the events since the last frame: spawned, hit, died by our last hit or not, dropped,
+    picked up, we got hurt = the training labels and the scoreboard. **Plus every attribute and fact of the
+    world state (the user, 2026-11-21):** our move speed, jump speed, current weapon range, and the like for
+    mobs and the map, each with its source (`docs/prompts/tracker-plan.md`, Part 1).
+  - **Out of the tracker:** behaviour predicted from assumed server rules (respawn, aggro, mob AI). Its inputs =
+    perception + static / calculated data; predicting where a thing is from what was seen and what covers it is
+    allowed (the user, 2026-11-23). A short cover = a few seconds, up for debate. **The goal (the user,
+    2026-11-23):** very fast, very accurate, all of perception into the model, the frame rate not lowered or as
+    little as possible. **Dynamic values** (skills and keys, move speed, jump, weapon reach...) change during
+    play: the session lists them and decides how each is set. **Memory is IN (the user, 2026-11-23: "we
+    definitely need memory, this needs to be designed in the tracker session")**, together with mobs that die
+    under cover and drops that vanish out of view - the session designs it (`docs/prompts/tracker-plan.md`).
+  - **Position (the user leans to it, 2026-11-23):** node + place along it, the raw map (x, y) kept beside it;
+    placement types standing / air / rope / flying, one rule for every kind (OK'd); "on our platform" = a derived
+    fact (same floor = joined by walk links), not a field.
+  - **No simulator engine now** (the user, 2026-11-22: "there might be an engine down the line, but after
+    tracking and at least full fsm behavior"). A clone learns from recordings (the state + the user's keys);
+    FSM and clone are benchmarked in live runs counted by the tracker's events. The viewer stays.
+  - **Kept from the earlier list:** the same tracks live and from a recording, nothing tied to the scripted
+    brain or one class; the hindsight twin as the truth (`tools/perc/track/oracle.py`); perception one-way.
+  - **Left to the session:** how long "a short cover" is, and the drops rule under "Decided by the user" (an
+    input to the memory design).
 - **Parked until the FSM-or-clone decision:** REWORKS.md's Execution and Brain reworks (Execution takes two ideas
   from another bot: Open items), v3 steps 4-6 (the FSM path); hours of recordings on one map, the dataset builder,
   the training code (the clone path). Parked without a date: by-eye validation of every map (PLAN-data Sessions
@@ -118,7 +129,8 @@ simulator once it exists.
 - **A lost scene camera** releases every key until it is found again, even on a 1-tick miss: to be handled as
   cases come up live (HISTORY.md "The deletion (DONE 2026-11-17)").
 - **`w` and `e` are skills the code does not know** (not in `Keys`); the bank's farming label counts only
-  `q` / `c` until they are.
+  `q` / `c` until they are. The user, 2026-11-23: q single-target, w multi-target, e mobility - subject to
+  change (the tracker plan decides how such values are set while running).
 - **Wide maps:** F7 now recognises maps whose minimap scrolls sideways; whether the locator and perception work
   on them is untested. To plan and execute (the user, 2026-11-22), with the other bot's minimap idea above.
 - **The scene camera waits ~1 s on every map entry** (the map is on screen before our character is drawn; the
@@ -145,11 +157,8 @@ simulator once it exists.
 - **Merge `moving-scenery` into `dev`** (step 1). PLAN-moving-scenery.md's three questions (its last section).
   **A recording: Perion Street Corner, 5+ minutes of farming at today's settings** (the first ~20 s standing
   still, the whole map crossed once) - needed before the plan's step 4; steps 2-3 run without it.
-- **Re-make the kept replay of the 8 captures on the stale build** (~10 min GPU, `dump.py`) and re-score
-  REPORT-track-before.md's pooled numbers on the one build? Claude recommends yes, before the tracker plan.
-- **Define the tracker and its goals explicitly, before step 3 runs.** The user's own words, written into
-  `docs/prompts/tracker-plan.md`: what the tracker is, what it must output, how good it must be. Today that
-  prompt has no goals of its own - it inherits the 7 points under "Proposed by Claude", never OK'd as a whole.
+- **The no-guessing direction: OK or changes** ("Proposed by Claude", UNDER DISCUSSION) and its open points;
+  then the DRAFT of `docs/prompts/tracker-plan.md`, which still lacks "how good it must be" in the user's words.
 - The "explained" reading of PLAN-data's stop rule (REPORT-track-before.md section 3), to confirm or change:
   map places the scene model misses on more than half of the frames that show them (what moves over the
   scenery does not count). PLAN-moving-scenery.md assumes it.

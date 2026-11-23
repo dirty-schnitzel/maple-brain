@@ -129,7 +129,22 @@ the main folder; the session list is the worktree's own.
 path (`C:\Users\Yoav\dev\maple-work\.venv\Scripts\python.exe`); the bank is reached by its own path
 (`F:\dev\maple-corpus`); a tool that reads `runs\...` needs a link (`cmd /c mklink /J runs
 C:\Users\Yoav\dev\maple-work\runs`) - or the documented setting `worktree.symlinkDirectories: ["runs"]`, not
-tried on this machine yet.
+tried on this machine yet. `assets\scene\` is not in git either: link it the same way, or work on the kept replay.
+
+**Two plans at once** (the user, 2026-11-23: moving-scenery's executor in the main folder, the tracker plan in a
+worktree from `dev`). Separate folders keep the code apart; these rules keep the rest apart:
+- **HANDOFF.md:** while working, a session writes its progress only to its own PLAN-<topic>.md. HANDOFF is
+  changed on `dev` only, by one session at a time, `dev` pulled first - in practice at a session's end, by the
+  `handoff` skill.
+- **Code both touch** (config.py; an interface such as moving-scenery's "covered by a cloud" fact, read by the
+  tracker): after each finished step the user merges that branch into `dev`, and the other branch merges `dev`
+  in at once - small conflicts early, not one big one at the end.
+- **Speed:** accuracy work runs any time; a speed measurement only while the other session is idle - a session
+  asks the user before measuring speed.
+- **Rebuilt data that is not in git** (`assets\scene\`, which moving-scenery rebuilds): the other session works
+  on frozen data (the kept replay on F:) and re-runs perception only after the rebuild is merged.
+- **The game:** one session at a time; a recording only while no hunt runs. The bank is shared - each session
+  writes to its own `work\` folder.
 
 **What happened in this project** (the real cases the rule above is drawn from):
 - **2026-11-17, parallel work that paid off.** Loot Sessions 1-3 ran in a second folder (`maple-loot`, branch
