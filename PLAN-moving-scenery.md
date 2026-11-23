@@ -308,6 +308,26 @@ taken for a recording (two unfiled recordings of 2026-11-23 01:21 kept every GPU
 - **Owed: the user's live check** - a 3-minute hunt on a Henesys Hunting Ground (HG III: camera, model and ms in
   the gate).
 
+### Step 4 - the re-measurement first (2026-11-23): the design's base HOLDS at 60 a second, today's settings
+The new capture `20261123_163821_2#0` (Perion Street Corner, 4.75 min, 60 a second, 0 dropped; the user's labels
+clouds + farming): `cam.py` camera on 100.0 % of 17,099 frames; `run_clouds.py --every 6` (CloudFinder alone per
+frame, 2,850 frames) -> `tools/perc/scenery/cloudlaw.py` (new: the finds linked into clouds, per cloud the opacity
+spread, a straight line through its places, the share the exact model explains; on the old 6-a-second finds it
+gives measurement 4's numbers back).
+- 70 clouds seen on >= 20 frames (2 s - 67 s each). **Opacity constant:** p5-p95 spread p50 0.0009, <= 0.01 on 69
+  (the 70th: 2.4 s at opacity 0.34, share 0.65 - a weak find). **Straight lines:** rms p50 0.41 px; the 9 over 0.6
+  px each hold 1-8 finds at share 0.6-0.8 (the finder's minimum: a track's ends, clouds overlapping) - without them
+  0.32-0.50. **Whole pixels:** the exact model explains p50 100 % of a cloud's pixels at its whole-pixel place.
+  Speeds 17-49 px a second to the right, |vy| < 0.5; one fixed set of values (mostly whole thirds: 17.00, 22.67,
+  23.00, 35.00, 36.00, 44.67, 47.33 ...).
+- Frame = expected: 87.9 % with the movers, **95.8 %** with each frame's finds drawn (prototype 95.1); 4 clouds a
+  frame p50 (max 9), 7.8 % of the play area under a cloud, thicker than 0.8 on 0.02 %.
+- **The map's edge (asked by the step):** every cloud drifts right; clouds were seen from beyond the map's left
+  bound (top-left x -1,613; vrBounds -1,363..2,533) to x 2,491. Clouds that appear / vanish in full view do so
+  mid-map, where the finder loses and finds them again (near-white scenery, overlaps) - not at the edge. Wrap or a
+  new cloud at the edge is not settled by this capture; the design's rule covers both (a followed cloud is dropped
+  only when the frame shows the scene where it should be; new ones come from the finder).
+
 **Stop rules** - the executor stops with the numbers, no workaround, when:
 - a gate's number is missed, or any of the 13 sound captures' tracks come out CHANGED;
 - a mover does not follow the law on new footage (its place off by more than 1 px on more than 1 % of the frames
