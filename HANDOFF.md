@@ -5,7 +5,7 @@ what is true NOW and what comes NEXT. The `handoff` skill rewrites it at the end
 appended to. Everything older is in HISTORY.md (grep it; what left this file on 2026-11-21 is its last
 blocks). Rules that stay true: CLAUDE.md and .claude/rules/. Plans and their progress: PLAN-*.md.
 
-## START HERE (2026-11-21): PLAN-moving-scenery.md's step 2; the tracker plan
+## START HERE (2026-11-23): the tracker plan session (moving-scenery steps 1-5 done and in `dev`)
 
 **The user's goal (2026-11-19):** "have a great perception / tracking / data model in order to feed that into an
 ai to see how many hours of farming on a specific map with a specific class and style are needed to teach it to
@@ -18,8 +18,8 @@ OK'd): no guessing in the tracker, the data model first, no simulator engine** -
 ### The order from here
 | # | Session | Run as | Status | Prompt |
 |---|---|---|---|---|
-| **P0.1-5** | **The plan's steps 1-5, one executor session each:** 1 the pictures right (the forest maps sound), 2-3 moving backs drawn and followed (40 maps hunt), 4-5 Perion's clouds followed and undone (42 maps hunt). Steps 4-5 need the user's Perion recording | Opus (high) | step 1 DONE 2026-11-21 (gate met, on `moving-scenery`, not yet in `dev`); **NEXT: step 2** (no footage needed); branch `moving-scenery` | `PLAN-moving-scenery.md`, "Session prompts" |
-| 3 | The tracker plan session, in two parts: (1) the data model -> `docs/state_model.md`, stop for the user's OK; (2) the tracker that fills it -> `PLAN-tracker.md`, PROPOSED until the user's OK. Take along: per mob, on our platform or not (Open items, "Ideas from another bot") | Fable, max | after P0.1-5 are finished and merged into `dev` (the user, 2026-11-23: "finish moving scenery to not clash with assets versions" - one scene build under the tracker work), and the user's OK on the prompt's draft | `docs/prompts/tracker-plan.md` (DRAFT) |
+| **P0.1-5** | **The plan's steps 1-5, one executor session each:** 1 the pictures right (the forest maps sound), 2-3 moving backs drawn and followed (40 maps hunt), 4-5 Perion's clouds followed and undone (42 maps hunt). Steps 4-5 need the user's Perion recording | Opus (high) | **steps 1-5 DONE 2026-11-23**, the numbers each missed gate fell short on ACCEPTED by the user (PLAN-moving-scenery.md's status); merged into `dev` 2026-11-23 (9085f5b). Steps 6-7 wait for footage | `PLAN-moving-scenery.md`, "Session prompts" |
+| 3 | The tracker plan session, in two parts: (1) the data model -> `docs/state_model.md`, stop for the user's OK; (2) the tracker that fills it -> `PLAN-tracker.md`, PROPOSED until the user's OK. Take along: per mob, on our platform or not (Open items, "Ideas from another bot") | Fable, max | **NEXT**, from `dev`: P0.1-5 are merged (the user, 2026-11-23: "finish moving scenery to not clash with assets versions" - one scene build under the tracker work); waits only for the user's OK on the prompt's draft | `docs/prompts/tracker-plan.md` (DRAFT) |
 | 4 | The tracker built in shadow beside today's, switched when it matches or beats it. Beside it, at any time: the viewer (PLAN-livemap.md Session 1 - its prompt says "from the current head of `perception`": use `dev`). No engine session | Opus | after 3 | PLAN-tracker.md, PLAN-livemap.md |
 | 4b | Wide maps: plan, then execute, the scrolling minimap placed by several agreeing patches (Open items, "Ideas from another bot") | Fable, max -> Opus | after the tracker (the user, 2026-11-22) | - |
 | 5 | FSM or clone, decided on what both score in live runs, counted by the tracker's events | - | open | - |
@@ -52,7 +52,8 @@ OK'd): no guessing in the tracker, the data model first, no simulator engine** -
   plan OK'd 2026-11-21 ("execute moving-scenery plan"); its three questions are still open.
 
 ### What the next sessions build on
-- **`PLAN-moving-scenery.md` (OK'd; step 1 DONE 2026-11-21, its numbers under the steps table).** The forest
+- **`PLAN-moving-scenery.md` (steps 1-5 DONE 2026-11-23 and merged into `dev`; each step's numbers under its
+  heading there; steps 6-7 wait for footage).** The forest
   maps hold no moving scenery: the export decoded the sky's colour wrong and Ellinia's light rays are an ADDED
   layer - both right now (`export.ps1`, `scene.py` on `moving-scenery`): 9 of 9 forest captures sound (model
   96.3-99.7 %, the kept replay re-made), the live fit = the prototype's on Forest S of Ellinia, `gate.py` SAME. A moving back keeps its exact
@@ -145,20 +146,19 @@ OK'd): no guessing in the tracker, the data model first, no simulator engine** -
   with no way out, ladder 778's tag reading +10 px; the Lie Detector is not looked for while the game is
   unfocused, and there is no capture watchdog; a phone alert on a Lie Detector.
 
-## Branches (2026-11-21)
+## Branches (2026-11-23)
 - `dev` holds everything: `rules`, `claude-arch`, `tracker` and `data` are merged into it (2026-11-21, on the
   user's word) and can be deleted. One worktree is registered that is not this layout's: `wt64`, detached at
   64f9713, in another session's scratchpad - leave it to that session.
-- `moving-scenery`: the plan's executor steps. Step 1 (e6f8554: `export.ps1`, `scene.py`, tests) is on it, not
-  in `dev` - the user merges. `dev` is merged into it.
+- `moving-scenery`: steps 1-5, merged into `dev` 2026-11-23 (9085f5b); nothing on it is missing from `dev`. The
+  main folder is on `dev` again.
 - `main` has not moved since 2026-11-09 (02a639a) and has no CLAUDE.md. Parked: `vnc-keys` (the VM attempt).
 
 ## Waiting on the user
-- **Merge `moving-scenery` into `dev`** (step 1). PLAN-moving-scenery.md's three questions (its last section).
-  **A recording: Perion Street Corner, 5+ minutes of farming at today's settings** (the first ~20 s standing
-  still, the whole map crossed once) - needed before the plan's step 4; steps 2-3 run without it.
-- **The no-guessing direction: OK or changes** ("Proposed by Claude", UNDER DISCUSSION) and its open points;
-  then the DRAFT of `docs/prompts/tracker-plan.md`, which still lacks "how good it must be" in the user's words.
+- **OK the DRAFT of `docs/prompts/tracker-plan.md`** - it now holds the user's answers of 2026-11-21..23 (the
+  data model's goal and the tracker's, memory, the dynamic values, the navmap audit) - then the tracker plan
+  session starts from `dev`. With it, the direction under "Proposed by Claude" (UNDER DISCUSSION).
+- PLAN-moving-scenery.md's questions (its last section), if any are still open; footage for its steps 6-7.
 - The "explained" reading of PLAN-data's stop rule (REPORT-track-before.md section 3), to confirm or change:
   map places the scene model misses on more than half of the frames that show them (what moves over the
   scenery does not count). PLAN-moving-scenery.md assumes it.
