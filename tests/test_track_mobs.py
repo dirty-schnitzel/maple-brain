@@ -178,6 +178,41 @@ def test_what_covers_it_is_named_by_the_boxes():
     assert trk.mobs()[0].cover == "us"
 
 
+def test_the_edge_wins_over_what_covers_the_in_view_part():
+    """The user, 2026-11-24 (L2): a remembered mob whose body box at its place crosses the screen's edge is covered
+    by the `edge`, whatever is drawn over its in-view part; its memory is that of a mob drawn over (kept 4 s since
+    last seen, `hidden`) - only the name changes. In plain view the cover stays what is drawn over it."""
+    g = Graph(mk([fh(1, -400, 500, 1800, 500)]), edges=False)
+    for x, want in ((10, "edge"), (1356, "edge"), (600, "effect")):
+        trk = MobTracker(g, {1: a_kind()}, Track(), keep=True)
+        trk.update(facts(0.0, [mob(x)]), ev(False, True))
+        evs, t = run_unseen(trk, 0.0, 0.5, shows=False, world=True)
+        m = trk.mobs()[0]
+        assert evs == [] and (m.cover, m.state) == (want, "hidden"), (x, m.cover, m.state)
+        evs, _ = run_unseen(trk, t, 3.6, shows=False, world=True)
+        assert [e["ev"] for e in evs] == ["mob_gone"] and evs[0]["how"].startswith("gone: drawn over")
+
+
+def test_how_it_came_into_sight_and_its_first_pose_are_two_fields():
+    """The user, 2026-11-24 (L3): a mob first seen in its die pose is born by how it came into sight (uncovered,
+    came into view or there at entry), with the die pose as its first pose - not born "dying", and not "faded in"
+    (its die animation fades it out: L3 case 45)."""
+    trk = a_tracker()
+    trk.update(facts(0.0), ev(False, True))                          # the stay's first camera
+    trk.update(facts(1.0, [mob(600, pose="die1_0"), mob(30, pose="die1_2")]), ev(False, True))
+    by_x = {round(m.x): m for m in trk.records}
+    assert (by_x[600].born_how, by_x[600].first_pose, by_x[600].life) == ("uncovered", "die1_0", "dying")
+    assert (by_x[30].born_how, by_x[30].first_pose) == ("came into view", "die1_2")
+    trk.update(facts(1.0 + DT, [mob(600, pose="die1_1")]), ev(False, True))
+    assert [m.first_pose for m in trk.records if round(m.x) == 600] == ["die1_0"]
+    trk = a_tracker()
+    trk.update(facts(0.0), ev(False, True))
+    trk.update(facts(1.0, [mob(900, pose="die1_3", o=0.5), mob(300, o=0.5)]), ev(False, True))
+    by_x = {round(m.x): m.born_how for m in trk.records}
+    assert by_x == {900: "uncovered", 300: "faded in"}               # a death fades the body OUT; a faint live pose
+                                                                    # is a spawn fading in
+
+
 def test_kind_from_poses_core_and_look_alikes():
     from maplebrain.perception.vote import Pose
     pic = np.zeros((40, 30, 4), np.uint8)

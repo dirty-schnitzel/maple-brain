@@ -114,6 +114,31 @@ def test_ropes_for_climbers_only_and_not_over_a_stand():
     assert place1(g, 150, 97, climb=True)[:2] == (STAND, 10)        # standing wins over the rope's x
 
 
+def test_stand_within_5px_of_a_slope_3px_of_flat_ground():
+    """The user, 2026-11-24 (PLAN-tracker step 3's answers): mobs' feet sit 3.6-4.4 px off a slope - "allow 5 px" on
+    a foothold that is not level; flat ground keeps 3 px."""
+    g = Graph(mk([fh(1, 0, 100, 100, 100, 0, 2), fh(2, 100, 100, 200, 80, 1, 0)]), edges=False)
+    assert place1(g, 150, 85.5)[:2] == (STAND, 1)                    # 4.5 px over the slope (y 90 at x 150)
+    assert place1(g, 150, 94.6)[:2] == (STAND, 1)                    # 4.6 px under it
+    assert place1(g, 150, 84.5)[:2] == (AIR, 1)                      # 5.5 px over it
+    assert place1(g, 20, 96)[:2] == (AIR, 1)                         # 4 px over the flat part: in the air
+    assert place1(g, 20, 97.5)[:2] == (STAND, 1)                     # 2.5 px over it
+    assert place1(g, 200, 76)[:2] == (STAND, 1)                      # the slope's right end (the chain's end)
+    assert place1(g, 100, 96)[:2] == (STAND, 1)                      # the joint: the foothold going on (the slope)
+    assert place1(g, 99.5, 96)[:2] == (AIR, 1)                       # just before it: the flat one
+    assert place1(g, 150, 85.5, dx=0.0, dy=-2.0)[0] == AIR           # the step rule still holds
+
+
+def test_a_flyer_never_stands():
+    """The user, 2026-11-24: "Stirges never land" - a kind that flies is never `stand`, whatever its distance to a
+    surface; its node is the first surface under it, its from_node is not changed."""
+    g = Graph(demo(), edges=False)
+    assert place1(g, 20, 100, fly=True) == (FLY, 1, NONE, 0.0)       # exactly on the floor
+    assert place1(g, 20, 100, fly=True, last=1, last_from=1)[2] == 1
+    p = g.place([20, 20], [100, 100], fly=[True, False])
+    assert list(p.place) == [FLY, STAND] and list(p.from_node) == [NONE, 1]
+
+
 def test_fly_and_from_node():
     g = Graph(demo(), edges=False)
     assert place1(g, 20, 50, fly=True)[0] == FLY
@@ -188,12 +213,20 @@ def test_fixed_places():
 
 
 # ---------------------------------------------------------------------------------------------------- the rule
+def tol_at(c, p, x):
+    """The stand tolerance of chain p at x: its foothold there (at a joint the one going on, at the chain's right end
+    the last) level or not."""
+    s = next((s for s in p.segs if s.x1 <= x < s.x2), p.segs[-1] if x == p.right else None)
+    return c.stand_tol_slope if s is not None and s.y1 != s.y2 else c.stand_tol
+
+
 def slow_place(g, x, y, dx, dy, last, last_from, climb, fly):
     """The placement rule written plainly over every chain (Platform.y_at) and rope: the reference."""
     c = g.cfg
-    surf = [(p.y_at(x), p.id) for p in g.platforms.values() if p.y_at(x) is not None]
-    within = sorted((abs(y - sy), pid) for sy, pid in surf if abs(y - sy) <= c.stand_tol + EPS)
-    if within and abs(dy) <= c.stand_step + EPS + c.stand_slope * abs(dx):
+    surf = [(p.y_at(x), p.id, tol_at(c, p, x)) for p in g.platforms.values() if p.y_at(x) is not None]
+    within = sorted((abs(y - sy), pid) for sy, pid, tol in surf if abs(y - sy) <= tol + EPS)
+    surf = [(sy, pid) for sy, pid, _ in surf]
+    if within and not fly and abs(dy) <= c.stand_step + EPS + c.stand_slope * abs(dx):
         pid = last if any(pid == last for _, pid in within) else within[0][1]
         return STAND, pid, pid, y - g.platforms[pid].y_at(x)
     if climb:

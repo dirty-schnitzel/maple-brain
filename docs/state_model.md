@@ -146,7 +146,7 @@ Targets are proposals; "today" is `world.py` on the 13 sound captures (REPORT-tr
 | `seen`, `vis`, `cover` | found on this frame; the share of its body's pixels seen; what hides the rest or all of it: none, scenery, player, us, mob, drop, effect, ui, cloud, edge, out of view, blind | the fit's per-pixel verdicts against the known boxes and masks | 100 labelled covered mobs: the cover's kind -> >= 90 % |
 | `unseen_s` | seconds since it was last seen | the tracker | - |
 | `can_lo`, `can_hi` | while not seen: the x range of its node where it can be now | memory (section 3) | truth: when it is seen again, it is inside -> >= 99 % |
-| `born_t`, `born_how` | first seen; how: faded in (a spawn seen), came into view, uncovered, there at entry | the tracker | 50 labelled births -> >= 95 % |
+| `born_t`, `born_how`, `first_pose` | first seen; how it came into sight: faded in (a spawn seen), came into view, uncovered, there at entry; the pose it was first seen in (a die pose: first seen dying - its own field, the user 2026-11-24) | the tracker | 50 labelled births -> >= 95 % |
 | `hits`, `last_hit_t`, `last_hit_by` | hits seen on it; the last one's time and whose: us / another player / unknown | events | 100 labelled hits -> >= 95 % |
 | `seen_share` | the share of its life it was seen | the tracker | - |
 

@@ -97,7 +97,8 @@ def row_of(m) -> dict:
     return {"id": m.id, "mob": m.kind, "state": m.state, "x": round(m.x, 1), "y": round(m.y, 1), "sx": round(m.sx),
             "sy": round(m.sy), "src": "acq" if m.seen else "none", "unseen": round(m.unseen_s, 2), "cover": m.cover,
             "node": m.from_node, "air": m.place != "stand", "vis": round(m.vis, 2), "facing": FACE[m.facing],
-            "born_how": m.born_how, "born": round(m.born_t, 3), "can": None if m.can_lo is None else [m.can_lo, m.can_hi]}
+            "born_how": m.born_how, "first_pose": m.first_pose, "born": round(m.born_t, 3),
+            "can": None if m.can_lo is None else [m.can_lo, m.can_hi]}
 
 
 def out_path(cap, kept=None, tag=None) -> Path:
@@ -307,13 +308,18 @@ def cmd_feet(caps, kept, tag):
         print(f"  parabola residual of the settled feet, px rms p50 / p90 / p99: "
               f"{[round(float(np.percentile(H, p)), 2) for p in (50, 90, 99)]}")
         print(f"  hops within 1.5 px rms: {np.mean(H <= 1.5):.1%} (>= 91 %)   within 2.0: {np.mean(H <= 2):.1%}")
-    print(f"  feet jolts of 13 px or more between frames ({jolt[1]} frame steps): {jolt[0]} (<= 500)")
+    print(f"  feet jolts of 13 px or more between frames ({jolt[1]} frame steps): {jolt[0]} (<= 556: the prototype's "
+          f"own tracks counted alike - the user, 2026-11-24)")
 
 
 # ---------------------------------------------------------------------------------------------- the labels
 def cmd_labels(tag):
     """L1 (mobs: stand / air, the node of standing mobs), L2 (cover, the agreed cases), L3 (how born, the agreed
-    cases), L8 (reported): the real tracker's rows on the labelled frames, every miss listed by case."""
+    cases), L8 (reported): the real tracker's rows on the labelled frames, every miss listed by case. The user's
+    answers of 2026-11-24 (PLAN-tracker step 3): L1's 29 walk-bounce mobs are relabelled stand in the bank's files
+    (`was` air); L2's cases labelled `none` (a mob in plain view the fit missed) are reported apart, and the tracker's
+    cover is right when it is the label's or the labellers' second thing over the mob (`also`); L3 grades how the
+    mob came into sight (its first pose is a field apart)."""
     import glob
     import json
     lab_dir = Path(r"F:\dev\maple-corpus\labels")
@@ -338,7 +344,7 @@ def cmd_labels(tag):
         return cams[cap]
     cams = {}
     # ---- L1
-    n_pl, ok_pl, n_nd, ok_nd, miss = 0, 0, 0, 0, []
+    n_pl, ok_pl, n_nd, ok_nd, miss, n_rel = 0, 0, 0, 0, [], 0
     for p in sorted(glob.glob(str(lab_dir / "*" / "labels" / "L1.json"))):
         d = json.loads(Path(p).read_text(encoding="utf-8"))
         cap = d["run"]
@@ -349,6 +355,7 @@ def cmd_labels(tag):
             for lm in fr["mobs"]:
                 if lm["place"] not in ("stand", "air", "fly"):
                     continue
+                n_rel += lm.get("was") is not None
                 fx, fy = lm["feet"]
                 near = sorted((abs(m["sx"] - fx) + abs(m["sy"] - fy), k) for k, m in enumerate(ms)
                               if abs(m["sx"] - fx) <= 25 and abs(m["sy"] - fy) <= 25 and m["src"] != "none")
@@ -371,14 +378,14 @@ def cmd_labels(tag):
     nf = sum(1 for x in miss if x[3] == "no seen track")
     print(f"L1 mobs: stand / air {ok_pl} of {n_pl - nf} matched ({100 * ok_pl / max(1, n_pl - nf):.2f} %, >= 99); "
           f"{nf} labelled mobs with no seen track within 25 px; the node {ok_nd} of {n_nd} standing "
-          f"({100 * ok_nd / max(1, n_nd):.2f} %, >= 99.5)")
+          f"({100 * ok_nd / max(1, n_nd):.2f} %, >= 99.5); relabelled walk bounce (was air): {n_rel}")
     for x in miss:
         print("   ", x)
     # ---- L2 (the agreed cases): what covers the remembered mob
-    to_lab = {"out of view": "edge", "ui / scenery": ("ui", "scenery"), "us": "us", "player": "player", "mob": "mob",
-              "drop": "drop", "effect": "effect", "none": "none", "fading in": "fade"}
-    n2, ok2 = 0, 0
-    print("L2 (agreed cases):")
+    to_lab = {"out of view": "edge", "edge": "edge", "ui / scenery": ("ui", "scenery"), "us": "us",
+              "player": "player", "mob": "mob", "drop": "drop", "effect": "effect", "none": "none", "fading in": "fade"}
+    n2, ok2, apart = 0, 0, []
+    print("L2 (agreed cases; label `none` = the fit missed a mob in plain view: reported apart):")
     for p in sorted(glob.glob(str(lab_dir / "*" / "labels" / "L2.json"))):
         d = json.loads(Path(p).read_text(encoding="utf-8"))
         cap = d["run"]
@@ -393,19 +400,26 @@ def cmd_labels(tag):
             cs = [m for m in rw[n]["mobs"] if m["mob"] == lm["type"] and m["state"] != "tentative"
                   and abs(m["x"] - mx) <= 60 and abs(m["y"] - my) <= 60]
             cs.sort(key=lambda m: (m["src"] != "none", abs(m["x"] - mx) + abs(m["y"] - my)))
+            m = cs[0] if cs else None
+            got = None if m is None else "none" if m["src"] != "none" else m["cover"]
+            if lm["cover"] == "none":                   # the fit missed a mob in plain view: not the tracker's
+                apart.append((fr["case"], cap, n, got))
+                continue
             n2 += 1
-            if not cs:
+            if m is None:
                 print(f"    MISS case {fr['case']} {cap} n {n}: label {lm['cover']} - no track of the kind within 60 px")
                 continue
-            m = cs[0]
-            got = "none" if m["src"] != "none" else m["cover"]
             want = to_lab.get(got, got)
-            hit = lm["cover"] in (want if isinstance(want, tuple) else (want,))
+            names = {lm["cover"], *lm.get("also", [])}          # either of two things over it is right
+            hit = bool(names & set(want if isinstance(want, tuple) else (want,)))
             ok2 += hit
-            print(f"    {'ok  ' if hit else 'MISS'} case {fr['case']} {cap} n {n}: label {lm['cover']:8s} tracker "
+            also = f" also {'/'.join(lm['also'])}" if lm.get("also") else ""
+            print(f"    {'ok  ' if hit else 'MISS'} case {fr['case']} {cap} n {n}: label {lm['cover']:8s}{also} tracker "
                   f"{got} (track {m['id']}, {m['state']}, unseen {m['unseen']} s; prototype {fr['class']})")
     print(f"L2: {ok2} of {n2} = {100 * ok2 / max(1, n2):.1f} % (>= 90)")
-    # ---- L3 (the agreed cases): how born
+    print(f"L2 apart, labelled `none` (fit misses): {len(apart)} - " + "; ".join(
+        f"case {c} {cap} n {n}: tracker {g}" for c, cap, n, g in apart))
+    # ---- L3 (the agreed cases): how it came into sight (its first pose apart)
     how = {"faded in": "fade", "came into view": "view", "uncovered": "uncover", "there at entry": "entry",
            "dying": "dying"}
     n3, ok3 = 0, 0
@@ -432,7 +446,8 @@ def cmd_labels(tag):
             hit = got == lm["born_how"]
             ok3 += hit
             print(f"    {'ok  ' if hit else 'MISS'} case {fr['case']} {cap} n {n}: label {lm['born_how']:8s} tracker "
-                  f"{got} (track {m['id']} born {m['born']}, {m['state']}; prototype {fr['class']})")
+                  f"{got}, first pose {m.get('first_pose')} (track {m['id']} born {m['born']}, {m['state']}; "
+                  f"prototype {fr['class']})")
     print(f"L3: {ok3} of {n3} = {100 * ok3 / max(1, n3):.1f} % (>= 95)")
     # ---- L8 (reported): a remembered mob there / not there - does the tracker keep a track there?
     c8 = Counter()

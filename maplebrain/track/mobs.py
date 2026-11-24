@@ -27,11 +27,15 @@ the camera, the players' tags, the drops, our tag) -> the mob records (track/sta
    flyer: a square grid every fly_step px, within fly_r) - is tested on this frame: a place is EMPTY when abs_share
    of the body's core shows the scene (a jumper: at every height of a hop, every jump_dh up to jump_h). Empty set:
    gone at once. Nothing to check (out of view, behind the UI or animated scenery): kept offscreen_s; something
-   drawn over it: kept drawn_s since it was last seen; `cover` = what is over the nearest place left (us, a player,
-   a seen mob, a drop by their boxes; else an effect). x, y = the middle of the places left.
-5. NEW TRACKS from the sightings left over (not over a platform and not a flyer: none): born "there at entry"
-   (within entry_s of the first frame with a camera), "dying", "faded in" (opacity under fade_o), "came into view"
-   (at the screen's edge) or "uncovered"; tentative until confirmed (then a `mob_new` event).
+   drawn over it: kept drawn_s since it was last seen; `cover` = "edge" when its body box at x, y crosses the
+   screen's edge (the edge wins over what covers its in-view part: the user, 2026-11-24), else what is over the
+   nearest place left (us, a player, a seen mob, a drop by their boxes; else an effect). x, y = the middle of the
+   places left.
+5. NEW TRACKS from the sightings left over (not over a platform and not a flyer: none), with two fields (the user,
+   2026-11-24): how it came into sight - "there at entry" (within entry_s of the first frame with a camera),
+   "faded in" (opacity under fade_o in a live pose: a die pose is faint because the death fades it out), "came into
+   view" (at the screen's edge) or "uncovered" - and its first pose (`first_pose`: a die pose = first seen dying);
+   tentative until confirmed (then a `mob_new` event).
 A frame without a camera (blind) changes nothing: the records keep their values with cover "blind" and `seen` False
 (nothing is found on it; the prototype kept a track seen on the frame before "seen" through the blind frames).
 Events: mob_new (confirmed; how born), mob_died (a die pose seen, its animation over), mob_gone (its places show the
@@ -46,7 +50,7 @@ from ..config import Track
 from .graph import FLY, NONE, PLACES, STAND
 from .state import Mob
 
-SW, PLAY_H = 1366, 700
+SW, PLAY_H, SH = 1366, 700, 768
 OUT = ("out of view", "ui / scenery")               # covers with nothing to check
 FACING = {"left": -1, "right": 1}
 
@@ -56,14 +60,14 @@ class _Tr:
     __slots__ = ("id", "votes", "mob", "x", "y", "t_seen", "born", "vx", "vy", "facing", "pose", "node", "air",
                  "life", "die_t", "seen", "poss", "gx", "gy", "carry", "out_since", "x_seen", "y_seen", "sx", "sy",
                  "born_how", "n_seen", "cover", "hist", "conf", "vis", "o", "rin", "rout", "n_seen_at", "place",
-                 "cur_node", "off", "n_frames")
+                 "cur_node", "off", "n_frames", "first_pose")
 
     def __init__(self, tid, kind, pose, facing, x, y, sx, sy, node, air, place, off, o, vis, solid, die, t, how):
         self.id, self.votes, self.mob = tid, {kind: 1.0}, kind
         self.x = self.x_seen = x
         self.y = self.y_seen = y
         self.t_seen = self.born = t
-        self.vx, self.vy, self.facing, self.pose = 0.0, 0.0, facing, pose
+        self.vx, self.vy, self.facing, self.pose, self.first_pose = 0.0, 0.0, facing, pose, pose
         self.node, self.air, self.place, self.cur_node, self.off = node, air, place, node, off
         self.life = "dying" if die else "alive"
         self.die_t = t if die else None
@@ -540,6 +544,9 @@ class MobTracker:
                 if not checkable.any():
                     tr.cover = "out of view" if (n_in0[left] < c.check_share * n).all() else "ui / scenery"
                     continue
+                if self._crosses_edge(k, fx[left], fy[left], tr.poss.ndim == 2):
+                    tr.cover = "edge"                   # the edge wins over what covers its in-view part
+                    continue
                 cj = np.flatnonzero(checkable)
                 j = int(cj[np.argmin(np.abs(fx[checkable] - (tr.x_seen - C[0])))])
                 px, py = fx[j] + k.cdx, fy[j] + k.cdy
@@ -553,6 +560,14 @@ class MobTracker:
                         best, share = name, float(inb.mean())
                 tr.cover = best
         return gone
+
+    @staticmethod
+    def _crosses_edge(k, fx, fy, flyer: bool) -> bool:
+        """Does the body box at the middle of the places left (screen px; where the record puts it: _after_test)
+        cross the screen's edge?"""
+        mx = float(fx.mean())
+        my = float(fy.mean()) if flyer else float(fy[np.argmin(np.abs(fx - mx))])
+        return mx + k.lt[0] < 0 or mx + k.rb[0] > SW or my + k.lt[1] < 0 or my + k.rb[1] > SH
 
     def _after_test(self, tr: _Tr, t, C) -> bool:
         """A tested track with places left: the limits, then its place = the middle of the places left."""
@@ -605,8 +620,9 @@ class MobTracker:
             x, y = float(R.x[i, 0]), float(R.y[i, 0])
             sx, sy = x - R.C[0], y - R.C[1]
             die, o = bool(R.die[i, 0]), float(R.o[i])
-            how = ("there at entry" if t - self.t0 < c.entry_s else "dying" if die else "faded in" if o < c.fade_o
-                   else "came into view" if self._edge(sx, sy) else "uncovered")
+            how = ("there at entry" if t - self.t0 < c.entry_s else "faded in" if o < c.fade_o and not die
+                   else "came into view" if self._edge(sx, sy) else "uncovered")     # the first pose apart; a die
+            #                                                       pose is faint because the death fades it OUT
             tr = _Tr(self.next_id, k.id, R.pose[i, 0], int(R.facing[i]), x, y, sx, sy, node, air,
                      int(R.place[i, 0]), float(R.off[i, 0]), o, float(R.vis[i]), bool(R.solid[i]), die, t, how)
             tr.n_seen_at = self.n
@@ -636,7 +652,7 @@ class MobTracker:
                            PLACES[tr.place], tr.cur_node, tr.node, tr.off, tr.vx, tr.vy, tr.facing, tr.pose, tr.o,
                            life, tr.seen and not blind, tr.vis, "blind" if blind else tr.cover, t - tr.t_seen,
                            None if can is None else can[0], None if can is None else can[1], tr.born, tr.born_how,
-                           seen_share=tr.n_seen / max(1, tr.n_frames)))
+                           tr.first_pose, seen_share=tr.n_seen / max(1, tr.n_frames)))
         return out
 
     def mobs(self) -> list:

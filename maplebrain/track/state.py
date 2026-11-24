@@ -11,10 +11,11 @@ from dataclasses import asdict, dataclass
 
 # cover: what is over a mob that is not seen (or "none" while seen). The tracker's names (the prototype's): "fading
 # in" (last seen fading in: not checked for 0.4 s), "out of view" (its places lie past the screen's edge), "ui /
-# scenery" (in view, but nothing there can show a mob: the UI, animated or front scenery), then what is drawn over the
-# nearest place it can be: "us", "player", "mob", "drop", "effect" (anything else); "blind" = no camera this frame
-# (every field keeps its last value).
-COVERS = ("none", "fading in", "out of view", "ui / scenery", "us", "player", "mob", "drop", "effect", "blind")
+# scenery" (in view, but nothing there can show a mob: the UI, animated or front scenery); "edge" (its body box at x,
+# y crosses the screen's edge: the edge wins over what covers its in-view part - the user, 2026-11-24), then what is
+# drawn over the nearest place it can be: "us", "player", "mob", "drop", "effect" (anything else); "blind" = no camera
+# this frame (every field keeps its last value).
+COVERS = ("none", "fading in", "out of view", "ui / scenery", "edge", "us", "player", "mob", "drop", "effect", "blind")
 STATES = ("tentative", "live", "hit", "dying", "hidden", "offscreen")
 
 
@@ -47,7 +48,10 @@ class Mob:
     can_lo: float | None                # remembered: the x range where it can be now (None while seen)
     can_hi: float | None
     born_t: float
-    born_how: str                       # "there at entry" / "faded in" / "came into view" / "uncovered" / "dying"
+    born_how: str                       # how it came into sight: "there at entry" / "faded in" / "came into view" /
+                                        # "uncovered"
+    first_pose: str                     # the pose of its first sighting (a die pose: first seen dying; the user,
+                                        # 2026-11-24: how it came into sight and its first pose are two fields)
     hits: int = 0                       # step 5 (events) fills these
     last_hit_t: float | None = None
     last_hit_by: str | None = None
