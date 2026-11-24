@@ -8,8 +8,8 @@ step 5** (the user): step 5's session puts it to the user before building the ev
 Waiting on the user per step: the merge of `tracker-plan` into `dev` before step 2; the Line 1 capture before
 step 3; the quickslot footage before step 7. Step 1 needs neither.
 **Step 2 (2026-11-24, branch `tracker-build-graph`, 88ff6e8): built, the gate MET** - numbers under the steps ("Step
-2 - built 2026-11-24"). Waits for the user: the merge into `tracker-build`, and a reading of its found-on-the-way 3
-(the rebuild's worker thread delays frame work by up to ~20-30 ms while it runs: keep the thread, or a process).
+2 - built 2026-11-24"). Merged into `dev` 2026-11-24 (the user). Its found-on-the-way 3 (the rebuild's worker thread
+delays frame work by up to ~20-30 ms while it runs): **the user, 2026-11-24: "keep same thread"**.
 The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
 in this session on the kept replay (no GPU); the tools are in `tools/perc/track/` (branch `tracker-plan`).
 
