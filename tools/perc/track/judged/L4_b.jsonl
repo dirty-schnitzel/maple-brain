@@ -1,0 +1,10 @@
+{"case": 0, "who": "us", "pose": "hit"}
+{"case": 1, "who": "us", "pose": "die"}
+{"case": 2, "who": "us", "pose": "die"}
+{"case": 3, "who": "other", "pose": "hit"}
+{"case": 4, "who": "us", "pose": "hit"}
+{"case": 5, "who": "?", "pose": "?"}
+{"case": 6, "who": "us", "pose": "die"}
+{"case": 7, "who": "?", "pose": "hit"}
+{"case": 8, "who": "us", "pose": "die"}
+{"case": 9, "who": "?", "pose": "?"}
