@@ -5,8 +5,9 @@
 "Questions for the user" and into the design and steps). **The empty-place rule stays at 40 %** (the user: "keep
 40%"; 60 % measured on all 13 captures, under measurement 1). **Question 8 (EXP in the kill rule) is postponed to
 step 5** (the user): step 5's session puts it to the user before building the events.
-**Step 1 (2026-11-24): the eight sets made and in the bank; the gate MISSED on L1, L2, L3, L4, L6 - stopped, the
-numbers and why under the steps ("Step 1, 2026-11-24").**
+**Step 1 (2026-11-24): the eight sets made and in the bank; the gate MISSED on L1, L2, L3, L4, L6. Try 2 (the
+same day, the user's fixes): MET on L4, L5, L6, L7, L8; MISSED again on L1 (94.5 %), L2 (77.8 %), L3 (88.0 %) -
+stopped, no third try; the numbers and the disagreements under the steps ("Step 1, try 2"). The user decides.**
 Waiting on the user per step: the merge of `tracker-plan` into `dev` before step 2; the Line 1 capture before
 step 3; the quickslot footage before step 7. Step 1 needs neither.
 The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
@@ -509,6 +510,59 @@ edge; L8 - one remembered mob's range is on the platform under the mob (case 21)
 in plain view picked up late; L7 - the bar is drawn elsewhere on 2 frames (a menu row under it) and the digits 3 / 8
 are told apart only at the game's pixel scale; L5 - the tag finder misses tags with a medal ("Killer") and merges a
 player's and a pet's tag into one box.
+
+### Step 1, try 2 (2026-11-24): the gate MET on L4, L5, L6, L7, L8; MISSED again on L1, L2, L3 (stopped, no third try)
+What changed (the fixes asked by the user; `label_sets.py redo`, commits d889b30 ..): **L1** the same 200 cases on
+new sheets - a line's id printed along every piece of it, crops 85 px over the feet and 45 under - labelled again
+from nothing (the first try's judgments are in `judged/try1/`, never shown); **L4** the same 100 cases, one sheet
+each: every frame from the skill key's key-down to 1.0 s after it, the key-down, the landing window (measurement 6:
+`proto_events.LAND`) and the pose's begin drawn on a bar, the mob marked on every frame; labelled again; **L2, L3,
+L6, L8** a second look of 30 cases each (new order, new numbers); L3 and L6 also a new first look, because the
+brief's rules for them changed (`BRIEF.md`, "The sets' rules": L3 a first-fit order with `view` = the place outside
+the picture just before BORN, `uncover` = inside it; L6 `A|B`; L1 a see-through mob placed by its feet like a solid
+one); L2 and L8 keep the first try's first look. **The count (the user):** agreement on the items both looks
+answered; a "?" against an answer apart. Every look blind: its own sheets, never another look's judgments.
+
+| Set | Try 1 as reported | Try 1, recounted | Try 2: cases twice | **Both answered: agree** | "?" vs an answer | "?" in both | First look's "?" | Gate |
+|---|---|---|---:|---|---:|---:|---|---|
+| L1 | 87.9 % | 107 / 117 = 91.5 % | 20 | **103 / 109 = 94.5 %** | 2 | 1 | 48 of 1,219 = 3.9 % | **missed** |
+| L2 | 90.0 % | 9 / 9 | 30 | **21 / 27 = 77.8 %** | 2 | 1 | 3 of 100 | **missed** |
+| L3 | 60.0 % | 3 / 4 | 30 | **22 / 25 = 88.0 %** | 4 | 1 | 6 of 50 = 12 % | **missed** |
+| L4 | 90.0 % | 6 / 6 | 10 | **7 / 7 = 100 %** | 2 | 1 | **22 of 100** (try 1: 26) | met |
+| L5 (kept) | 98.6 % | 73 / 73 | 20 | 73 / 73 = 100 % | 1 | 0 | 6 of 662 | met |
+| L6 | 80.0 % | 4 / 5 | 30 | **21 / 22 = 95.5 %** | 5 | 3 | 12 of 50 = 24 % | met |
+| L7 (kept) | 97.5 % | 76 / 76 | 10 | 76 / 76 = 100 % | 2 | 2 | 15 of 800 | met |
+| L8 | 100 % | 2 / 2 | 30 | **21 / 21 = 100 %** | 2 | 7 | 14 of 40 = 35 % | met |
+
+("player ?" in L5 counts as a "?": the class told, the place not.) Gate part 1 met again: the new L1, L3, L4, L6
+files are read by `label_eval.py` (exit 0 on every capture). The labels: L1 now 661 standing / 174 flying / 91 air /
+44 rope / 49 "?" / 54 mobs added; L4 us 47 / other 31 / "?" 22.
+**L4 meets the gate on 7 answered items**: 10 cases twice is what the plan's 10 % gives; 3 of the 10 have a "?".
+**The disagreements of the missed sets, looked at by eye:**
+- **L1 (6; 104 of 109 would have met):** 3 are **us at a rope** on one frame - climbing at the rope's top where it
+  meets the platform (case 17, "r2" / "s269"), a jump pose with the rope behind us (83, 107: "a" / "r11", "a" / "r5"):
+  a single frame does not tell on the rope from jumping past or stepping off it; 1 is a misread (72: we are ~36 px
+  over line 101, "s101" / "a"); 2 are a mob one look added and the other did not (69, 143). The 2 "?" against an
+  answer: two marks 3 px apart on a mushroom with a Stirge over it (83). The new sheets removed the try-1 causes (no
+  difference is a line read wrong).
+- **L2 (6):** 3 are **a mob in plain view with scenery drawn over part of it** - Ellinia's light ray over the cap (13),
+  bones (87), a ladder post (88): "scenery" / "none" - the set does not say whether partly hidden counts; 2 are
+  **several things over the mob at once** with no rule which one counts (60 a pet + a mob: "player" / "mob"; 17 a
+  pet + coins: "player" / "drop"); 1 is **the possible set drawn away from the mob** (91: a Stirge in plain view, its
+  yellow range on the platform under it in the padding: "edge" / "none").
+- **L3 (3):** 2 are **a hit pose or a death at BORN** - a Bubbling in view from -0.3 s, squashed at BORN (30:
+  "uncover" / "dying"), a see-through outline under our skill's effect (39: "dying" / "uncover"); 1 is **which frame
+  is "just before BORN"** - the place in the padding at -0.6 / -0.3 s, under the HUD at -0.1 s (3: "fade" /
+  "uncover"; rule 5 would say "view"). 2 of the 4 "?" against an answer are births on a capture's first frame (n 0):
+  "entry" asks for loading frames such a case cannot have.
+Found on the way (no fix here): **L6** - the sheets letter deaths from proto_drops' list, which misses some: 5 "?"
+against "none" are drops from a death with no letter (one look said "?", the other "none"); **L4** - the pose's
+begin is sometimes 0.1-0.2 s after the mob is seen to change (cases 0, 8 of both looks), and a Rush (`e`) hit shows
+the flinch after the push; on several "other" strips we are off the picture; **L8** - a range that lies in the
+padding or under the chat is "?" by both looks (7 of 30); **L1** - see-through Bubblings / Zombie Mushrooms float
+11-23 px over their line (cases 12, 47, 112: one labeller "a", one "?"), and the finder misses many flying mobs (54
+added, many Stirges); **L3** - "no frame" before a birth at n 16361 (a hole in the capture) and a crop that is not
+the BORN scene (case 46: the camera lost?).
 
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
