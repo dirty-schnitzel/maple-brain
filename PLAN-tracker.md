@@ -778,6 +778,117 @@ and the ms (both independent of these)?
      rule (case 26: within 70 px of the edge, inside the picture) and case 41 (0.4 s after the stay's first camera)
      are looked at under the same rule, and reported.
 
+### Step 3, try 2 (2026-11-24): the answers built; the kept replay, the feet and the live path MET; L1, L2, L3 and the ms MISSED (stopped)
+Branch `tracker-build` (f97dd4e). **Built** (a test for each rule fails without it: `tests/test_track_graph.py`
+`test_stand_within_5px_of_a_slope_3px_of_flat_ground`, `test_a_flyer_never_stands`, the plain reference rule of
+`test_place_equals_the_plain_rule_on_real_maps` with both; `tests/test_track_mobs.py`
+`test_the_edge_wins_over_what_covers_the_in_view_part`, `test_how_it_came_into_sight_and_its_first_pose_are_two_fields`):
+- **Placement** (`track/graph.py`, design 3): stand within `Track.stand_tol_slope` = 5 px of a foothold that is not
+  level (3 px on level ground; the foothold at a joint = the one going on, as the table's rows); a kind that flies is
+  never `stand`. Step 2's hops gate re-checked (`proto_feet.py --sound`): air frames called standing **124 of 26,811
+  (0.46 %, <= 0.8)** (0 with 3 px), standing called air 1,014 (0.183 %, <= 0.2) - unchanged.
+- **Cover** (`track/mobs.py`): `edge` (a new name in `state.COVERS`) when the body box at the record's x, y (the middle
+  of the places left) crosses the screen's edge (left, right, top; the window's bottom) and some place can be checked;
+  its memory is that of a mob drawn over (`hidden`, 4 s since last seen) - only the name changed. With nothing to check
+  the covers stay `out of view` / `ui / scenery`.
+- **Birth** (`track/mobs.py`, `state.Mob.first_pose`, `docs/state_model.md`): `born_how` = how it came into sight
+  (there at entry / faded in / came into view / uncovered), `first_pose` = the pose of the first sighting (a die pose:
+  first seen dying). Found on the way and built under the same answer: **a die pose is never "faded in"** - the death
+  animation fades the body OUT, so its opacity is under 0.9 (case 45 was born "faded in" by the first build).
+- **The labels** (backups of the files changed: `F:\dev\maple-corpus\work\track-plan\step3\labels_before_try2\`):
+  **L1: the 29 walk-bounce mobs relabelled `stand`** in the bank's files - `20261119_204522_1#4` cases 53, 110, 192
+  (Slimes), `20261120_235747_1#0` cases 1 (x2), 14, 49, 76 (x2), 88, 100 (x2), 125, 162, 175, 188 and
+  `20261121_000219_2#0` cases 26 (x2), 77 (x3), 89, 114, 127, 157, 170, 183 (x2), 196 (Bubblings), every one in a
+  `move_2` / `move_3` / `move_4` pose (the bounce frames), its labelled feet on the surface (off 0.0 px); its node = the
+  surface under the labelled feet (= the tracker's on 29 of 29). Each mob carries `was: air` + `relabel`, each file a
+  `relabelled` list with the user's words. **L2: `also`** = the labellers' second thing over the mob (step 1's
+  `judged/L2_a.jsonl`, 29 cases; `label_sets.py write` had dropped it) - "either of two covers" is graded against it.
+- `replay_mobs.py labels`: L2 leaves out the `none` cases (listed apart), takes the label's cover or its `also`; L3
+  prints the first pose. Outputs: `...\track-plan\step3\*_try2.pkl` (try 1's files kept).
+
+| Gate (from the kept replay, 13 sound captures) | try 2 | try 1 | |
+|---|---:|---:|---|
+| found (>= 98.4 %) | 98.70 % | 98.70 % | met |
+| id kept across a cover (>= 93.1 %), by length (>= 96.7 / 96.2 / 93.3 / 79.1 / 77.1) | 93.48 %; 97.0 / 96.5 / 94.1 / 79.4 / 77.4 | the same | met |
+| one id for life not beside another mob (>= 90.6 %) | 90.98 % | 90.98 % | met |
+| extra ids (<= 1,032); "the track changed mob" (<= 10) | 1,019; 7 | 1,019; 7 | met |
+| next to its set (>= 99.0 %); a death seen noticed p90 (<= 0.05 s); seen track-frames without a truth mob (0) | 99.35 % of 2,783; 0.000 s; 0 | the same | met |
+| feet: hops within 1.5 px rms (>= 91 %); jolts (<= 556) | 91.4 % of 919; **550** | the same | met |
+| **L1 mobs: stand / air (>= 99 %)** | **764 of 783 = 97.57 %** | 715 = 91.32 % | **MISSED** |
+| L1 mobs: the node of standing mobs (99.42 % accepted) | 546 of 549 = 99.45 % (the same 3 cases) | 515 of 518 | met (as accepted) |
+| **L2, the 16 agreed cases without `none` (>= 90 %)** | **13 of 16 = 81.2 %** | 10 of 21 | **MISSED** |
+| **L3, the 22 agreed cases (>= 95 %)** | **19 of 22 = 86.4 %** | 17 of 22 | **MISSED** |
+| L8 (reported) | "yes": kept 20 of 20; "no": kept 6 of 6; "?": kept 14 | 20; 5 of 6; 14 | - |
+| L2 apart, labelled `none` (fit misses) | 5: cases 34, 29, 24, 36 -> tracker mob; 71 -> ui / scenery | - | reported |
+
+**Every miss, by case** (the rules as the user gave them against the labels):
+- **L1 (19 of 783; 99 % allows 7):** the slope fixed 2 of the 20 "standing, placed in the air"; the flyer rule 18 of
+  19 "fly, placed standing"; the relabel all 29. Left:
+  - **12 within 5 px of the surface, placed in the air by the step rule** (1 px + 0.9 x the sideways step): 5 walk
+    slopes steeper than 0.9 - slope 1.8-1.9: cases 2, 15, 195 (Drakes), 50 (Horny Mushroom), 46 (Evil Eye), steps of
+    2-3 px up or down for 1 px sideways; 5 take a 2 px step for 1 px sideways on slopes of 0.56-0.86 (cases 37, 17,
+    32, 10, 145: whole-pixel feet + camera); 155 (Zombie Mushroom, `stand_0`, a 6 px step), 184 (Evil Eye, `jump_0`,
+    -3 / +4 px).
+  - **6 with feet 9-35 px off the surface** (the fit's pose / feet): 24 (Evil Eye `jump_0`, -35), 158 (Evil Eye
+    `hit1_0`, -15), 29 (Zombie Mushroom, -12), 34 (Zombie Mushroom, -9, a 9 px step up), 35 (Zombie Mushroom, 14 px
+    under), 42 (Evil Eye `jump_0`, 18 px under; labelled node 460, under it 388).
+  - **1 label:** case 124 (`232410_1#4` n 21529) - a Horny Mushroom (not a flying kind) in its die pose labelled `fly`.
+- **L2 (3 of 16):** **case 30** (`#1` n 8163): a Zombie Mushroom behind another mob, its head 20 px over the screen's
+  TOP edge - `edge` by the rule as written, labelled mob (also scenery); with the left / right edges only it would be
+  right (14 of 16 = 87.5 %). **Cases 57 and 61: the tracker's `player` is not a player** (seen on the sheets and the
+  facts): on 61 (`000219_2#0` n 22040) the tag list holds OUR tag merged with the Bubbling's name ((716, 481, 111, 21)
+  beside our tag (716, 481, 74, 17)) - only we are over the mob (labelled us); on 57 (`#5` n 25429) it is the Horny
+  Mushroom's own name tag ((802, 547, 104, 19)) under it - an effect and we are over it (labelled effect, also us).
+  The tracker takes every tag of the list as a player's box (the prototype's rule; sorting the tags into ours / mobs'
+  own / pets / players is step 4b's `players.py`). So "either of two" does not save them.
+- **L3 (3 of 22):** **26** (`#2` n 11067: a Horny Mushroom walks out from behind the HUD's bars, its feet within 10 px
+  of the play area's bottom) and **47** (`#0` n 2236: out from behind a skill effect beside the UI panel, its feet
+  within 70 px of the left edge) are uncovered by the picture, "came into view" by `edge_px` (70 / 70 / 10 / 60);
+  **41** (`#13` n 58322): the sheet shows the Drake standing in the same place from 0.6 s before its birth - "there at
+  entry" by the picture (the tracker's answer), labelled uncover. Case 45 is right now (the die pose's fade).
+
+**The live path** (`20261120_235747_1#0`, a new kept replay on today's scene build into
+`F:\dev\maple-corpus\work\20261120_235747_1#0\track_s3\` - code f97dd4e, clean; `track\` untouched; 15,211 frames, 0
+without a camera, observe 264 s): **the shadow rows = the bitmap replay's on 79,429 of 79,429 track-frames (100.000 %,
+>= 99.5)**; **the GPU evidence = the bitmaps' on 9,865,891 of 9,865,891 places asked (100.000 %, >= 99.9)** over
+10,736 frames - met. **`gate.py --base cef6d78`** (the tree before step 3, full set: ant4, ant4b, steam, line1,
+transfer, darkcave): **SAME** - world.py's tracks found 100.0 / 100.0 % both ways, sighted 100.0 % on every clip.
+**The ms** (`replay_mobs.py time 20261120_235747_1#0`: the live Perceiver, the first 3,000 frames, shadow on / off in
+turn x 3, the main folder with `assets/scene`, performance cores, Ultimate Performance; the game was running in the
+background, the A/B interleaved in one process):
+
+| Gate | Measured | |
+|---|---:|---|
+| the tracker's ms p50 (<= 1.0) | **1.042 / 1.047** (`MobTracker.update` timed exactly, two runs; the part `track`, kept to 0.1 ms: 1.0) | **MISSED** by 0.05 |
+| the tracker's ms p90 (<= 2.5) | 1.25 / 1.27 (part `track` 1.2; p99 1.5) | met |
+| the whole frame's p50, shadow on - off (<= +0.3) | 14.53 - 13.55 = **+0.97 ms** (each of the 3 pairs +0.99 / +1.03 / +0.91) | **MISSED** |
+| today's world + looks (beside it, for scale) | p50 0.9-1.0, p90 1.8-1.9 | - |
+
+**The profile** (stop rule 3; cProfile over the same 3,000 frames, its numbers inflated ~30 %): the mean is 0.80 ms -
+a frame with every track seen costs ~0.4 ms (the pairing: `_sights` + `_costs` + `_apply` + `place`, ~5 tracks),
+a frame with a track to test (58 % of frames: 238 places asked p50, 1,274 p90) ~1.05 ms, of which the GPU evidence
+call is ~0.6 ms - `Gpu.count` (0.24 ms of Python a call + the torch gather, its `shows` map made once a frame from the
+frame - expected: `.float()`, `.abs().amax()`, and the one transfer back that waits for the GPU); `_test` itself 0.07
+ms. So the p50 falls in the testing half. While world.py runs beside it the frame pays both: +0.97 ms; the gate's
++0.3 holds only against a frame without world.py's 0.9-1.0 ms (step 9). Nothing tuned (stop rule 3).
+
+**pytest:** the whole suite green; the bot speed line 14.0 ms a tick (p90 15.6; `track` 0.4 of it) - unchanged (try
+1: 15.4, step 7: 14.5; the machine's noise).
+**Also found:** 85547b9 (try 1) rewrote `perception/perceiver.py`'s line endings (468 / 444 lines in `git diff
+--numstat`; 24 real lines added) - harmless, noise in its diffs.
+
+**For the user (try 3 or accept):** (1) **L1** - the step rule: on slopes steeper than 0.9 mobs walk (Drakes, Evil
+Eyes, Horny Mushrooms on 1.8-1.9), and 1 px sideways can show 2 px up or down on any slope: let the step follow the
+foothold's own slope (+ 1 px of whole-pixel slack)? The 6 feet 9-35 px off are the fit's (stop rule 4); case 124's
+label `fly` -> `stand` / dying? (2) **L2** - the screen's top edge counts for `edge` (case 30 wrong) or only the sides?
+The tag list's own tag and mobs' own name tags taken as players (57, 61): sort them now in the mob tracker (a tag at
+our tag's place is ours; a tag under a mob is its own) or wait for step 4b and grade L2 on 14? (3) **L3** - a mob
+uncovered inside the edge band is "came into view" (26, 47): narrow the band, decide by what hid it, or relabel? Case
+41: relabel `entry` (the picture)? (4) **The ms** - is the whole frame's +0.3 meant against today's frame with
+world.py (then the shadow cannot meet it while both run: +0.97) or against world + looks replaced (the new 1.04 vs
+0.9-1.0)? And the p50 1.04 against 1.0: make the GPU evidence call cheaper (the `shows` map and the gather), or
+accept?
+
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
 2. The real code cannot reproduce a prototype's number from the same kept replay within tolerance: stop - it is
