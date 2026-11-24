@@ -9,7 +9,10 @@ blocks). Rules that stay true: CLAUDE.md and .claude/rules/. Plans and their pro
 
 **The user's goal (2026-11-19):** "have a great perception / tracking / data model in order to feed that into an
 ai to see how many hours of farming on a specific map with a specific class and style are needed to teach it to
-farm a map efficiently and humanlike. Then benchmark different models at the same job". **Priorities
+farm a map efficiently and humanlike. Then benchmark different models at the same job". **The benchmark ends in
+a research paper (the user, 2026-11-24)** - what it needs and the reviewers' risks to design for (reproducible
+release without the frames, live-run ethics, other players' names, small n): the `north-star-learning-curve`
+memory; nothing scheduled for it yet. **Priorities
 (2026-11-20):** "good tracking ready for ML applications, and a simulator that can 1 - show the current state of
 the game live just like livemap but with real assets, 2 - take our input and be used to train AI". **Left open by
 the user:** a full FSM or a cloned-behaviour AI. **OK'd 2026-11-23 with the tracker plan's prompt:** no guessing
