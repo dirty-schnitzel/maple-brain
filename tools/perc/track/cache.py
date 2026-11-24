@@ -22,7 +22,8 @@ SOUND = [DESIGN, "20261120_235747_1#0", "20261118_232410_1#0", "20261118_232410_
 
 
 def path(cap) -> Path:
-    return out_path(cap) / "track" / "chains.pkl"
+    import dump
+    return out_path(cap) / dump.KEPT / "chains.pkl"         # the kept replay's own folder (dump.KEPT)
 
 
 def chains(cap, tk=None, force: bool = False) -> list:

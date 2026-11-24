@@ -1,7 +1,7 @@
 """Tracker plan: THE KEPT REPLAY - the live Perceiver, unchanged, over EVERY frame of a capture (the live rate),
 written once, so tracker prototypes run from it in seconds, no GPU (HANDOFF step 2, docs/prompts/tracker-before.md).
 
-    python tools/perc/track/dump.py SESSION#K [SESSION#K ...] [--t0 S --t1 S] [--force]
+    python tools/perc/track/dump.py SESSION#K [SESSION#K ...] [--t0 S --t1 S] [--out NAME] [--force]
     python tools/perc/track/dump.py --all [--force]       every capture of CAPTURES (below), one process each
 
 A capture = a stay of the bank (its id SESSION#K, tools/perc/frames.py `clip`) or a run folder. Hold-out stays are
@@ -26,6 +26,10 @@ refused (no --holdout here on purpose). Output: OUT/track/ with OUT = CORPUS/wor
     So per pixel: shows = nothing is drawn over the scene; world & ~shows = something else is drawn there (a mob, an
     effect, a player, a drop, a number); ~world = can't tell (animated scenery, the UI).
 
+`--out NAME`: a NEW kept replay into OUT/NAME (PLAN-tracker stop rule 5: OUT/track, the one the plan's numbers were
+measured on, is never overwritten - --force on it is refused). Since PLAN-tracker step 3 a row also holds the mob
+tracker's shadow rows (`shadow`: replay_mobs.row_of per record, `shadow_ev` its events, `shadow_ms` its part) and
+`ev_check` = (places its GPU evidence was asked, places whose three counts equal the bitmaps').
 Reading it back: `rows(cap)` (every row, in order), `bits_rows(cap)` (yields (n, shows, world) arrays),
 `bits(packed)` -> the (700, 1366) bool array. While the user is recording (a folder in CORPUS/incoming) a capture
 does not start: it waits, a look a minute.
@@ -87,8 +91,13 @@ def clip_of(cap):
     return rec.clip(cap, False, "track/dump.py")
 
 
+KEPT = "track"                   # the kept replay's folder under CORPUS/work/SESSION#K: `track` = the one the plan's
+                                 # numbers were measured on (never overwritten: PLAN-tracker stop rule 5); another
+                                 # name = a new kept replay (dump.py --out NAME; readers: set dump.KEPT first)
+
+
 def out_dir(cap) -> Path:
-    return clip_of(cap).out / "track"
+    return clip_of(cap).out / KEPT
 
 
 def meta(cap) -> dict:
@@ -126,7 +135,7 @@ def dump(cap, t0: float, t1: float, force: bool) -> None:
     import frames as rec
     import run as replay
     c = clip_of(cap)
-    out = c.out / "track"
+    out = c.out / KEPT
     if (out / "meta.json").exists() and not force:
         print(f"{cap}: {out} exists (--force to redo)", flush=True)
         return
@@ -164,6 +173,12 @@ def dump(cap, t0: float, t1: float, force: bool) -> None:
         row = {"n": n, "frame": name, "t": round(t, 4), "C": obs.scene_cam, "cam": obs.cam, "cam_src": obs.cam_src,
                "me": obs.me, "me_map": obs.me_map, "map_pos": obs.map_pos, "mobs": obs.mobs, "facts": f.as_dict(),
                "explained": None, "world_px": None}
+        mt = getattr(per, "mob_tracker", None)
+        if mt is not None:                      # the mob tracker in shadow (PLAN-tracker step 3): its rows, events
+            from replay_mobs import row_of
+            row["shadow"] = [row_of(m) for m in mt.records]
+            row["shadow_ev"] = per.mob_events
+            row["shadow_ms"] = round(per.parts.get("track", 0.0), 3)
         if obs.scene_cam is None or per.fitter._last is None:
             no_cam += obs.scene_cam is None
             bts.append((n, None, None))
@@ -172,7 +187,15 @@ def dump(cap, t0: float, t1: float, force: bool) -> None:
             shows = valid & ((_frame_t.float() - exp).abs().amax(dim=2) <= tol)
             sv, sw = int(shows.sum()), int(valid.sum())
             row["explained"], row["world_px"] = round(sv / max(1, sw), 5), sw
-            bts.append((n, pack(shows.cpu().numpy()), pack(valid.cpu().numpy())))
+            sh_np, va_np = shows.cpu().numpy(), valid.cpu().numpy()
+            bts.append((n, pack(sh_np), pack(va_np)))
+            ev = getattr(per, "evidence", None)
+            if mt is not None and mt.asked and ev is not None and ev.last and ev.last[0] is per.fitter._last:
+                from maplebrain.track.evidence import Bitmaps    # the GPU's answers against the bitmaps': per place
+                _, groups, gpu = ev.last
+                cpu = Bitmaps(sh_np, va_np).count(groups)
+                same = sum(int(((a[0] == b[0]) & (a[1] == b[1]) & (a[2] == b[2])).sum()) for a, b in zip(gpu, cpu))
+                row["ev_check"] = (sum(len(a[0]) for a in gpu), same)
         e = time.perf_counter()
         gpu_s += e - b
         row["ms"] = {**dict(per.parts or {}), "observe": round(1000 * (e - b), 2)}
@@ -188,7 +211,7 @@ def dump(cap, t0: float, t1: float, force: bool) -> None:
     m = {"cap": c.name, "map": c.map_id, "frames": n_done, "no_cam": no_cam, "chunk": CHUNK, "chunks": k,
          "t": [fr[0][2], fr[-1][2]] if fr else None, "observe_s": round(gpu_s, 1), "decode_s": round(dec_s, 1),
          "wall_s": round(time.perf_counter() - t_start, 1), "bytes": nbytes, "code": commit,
-         "maplebrain_dirty": bool(dirty), "made": time.strftime("%Y-%m-%dT%H:%M:%S"),
+         "maplebrain_dirty": bool(dirty), "made": time.strftime("%Y-%m-%dT%H:%M:%S"), "kept": KEPT,
          "tracker_stats": dict(getattr(per.world, "stats", {}) or {})}
     (out / "meta.json").write_text(json.dumps(m, indent=1), encoding="utf-8")
     print(f"{cap}: map {c.map_id}, {n_done} frames ({no_cam} without a camera); observe {gpu_s:.0f} s, decode "
@@ -202,10 +225,18 @@ def main():
     ap.add_argument("--t0", type=float, default=0.0)
     ap.add_argument("--t1", type=float, default=1e9)
     ap.add_argument("--force", action="store_true")
+    ap.add_argument("--out", default=None, help="the kept replay's folder name under CORPUS/work/SESSION#K (default "
+                    "`track`, the plan's: refused - a new kept replay goes into its own folder, stop rule 5)")
     a = ap.parse_args()
+    global KEPT
+    KEPT = a.out or KEPT
+    if KEPT == "track" and a.force:
+        raise SystemExit("--force on `track` would overwrite the plan's kept replay (PLAN-tracker stop rule 5): "
+                         "make a new one with --out NAME")
     if a.all:
         for cap in CAPTURES:
-            cmd = [sys.executable, str(Path(__file__)), cap] + (["--force"] if a.force else [])
+            cmd = [sys.executable, str(Path(__file__)), cap] + (["--force"] if a.force else []) \
+                + (["--out", a.out] if a.out else [])
             if subprocess.run(cmd, cwd=ROOT).returncode != 0:
                 print(f"FAILED: {cap}", flush=True)
         return
