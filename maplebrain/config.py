@@ -147,10 +147,23 @@ class Nav:
 
 
 @dataclass
+class Track:
+    """The tracker (maplebrain/track, PLAN-tracker.md). Placement = its design 3 / docs/state_model.md section 2,
+    measured in PLAN-tracker.md measurement 3 (tools/perc/track/proto_feet.py, 918 hops)."""
+    stand_tol: float = 3.0          # stand: the feet within this of a surface (px; mobs' feet sit on it to the pixel,
+                                    # us and players 1 px under it: the name tag's offset)...
+    stand_step: float = 1.0         # ...and the step since the last frame within this up or down...
+    stand_slope: float = 0.9        # ...+ this x the sideways step (the steepest slope walked: the client's walkSlant)
+    rope_tol: float = 7.0           # climbers: the feet within this of a rope's x, and of its ends in y (today's
+                                    # SelfTracker value for our exact tag; nav/selfstate.py)
+
+
+@dataclass
 class Config:
     keys: Keys = field(default_factory=Keys)
     perception: Perception = field(default_factory=Perception)
     safety: Safety = field(default_factory=Safety)
     humanize: Humanize = field(default_factory=Humanize)
     nav: Nav = field(default_factory=Nav)
+    track: Track = field(default_factory=Track)
     combat: Combat = field(default_factory=Combat)
