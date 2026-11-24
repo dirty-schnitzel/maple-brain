@@ -100,17 +100,8 @@ that led to it: HISTORY.md, the block of 2026-11-24).
   from another bot: Open items), v3 steps 4-6 (the FSM path); hours of recordings on one map, the dataset builder,
   the training code (the clone path). Parked without a date: by-eye validation of every map (PLAN-data Sessions
   2-3: only its automatic half runs, inside step 2's prompt), the one gate list on the bank, the CPU mode.
-
-### Left to rework: code no plan touches (2026-11-24; date = the file's last commit; the rework wave left them as they were)
-| Pillar | Code | Status |
-|---|---|---|
-| Brain | `brain_v2.py`, `v2/` (combat, targeting, trips, scene, breaks, reflexes), `v3/` (11-09/10) | parked until FSM or clone |
-| Execution | `brain/moves.py`, `travel.py`, `nav/sim.py`, `keyboard.py`, `humanize.py`, `runtime/keylog.py` (11-09) | parked (REWORKS.md 2); no dead-man key release; the sim is us only (no slopes, air control, knockback) |
-| Knowledge | `navmap.py`'s edges + routes (11-09); physics split between `sim.py` and `moves.py` | wrong drop / fall links (state_model.md 1); the tracker's step 2 reads them as they are, its step 6 registry covers part of REWORKS.md 1 |
-| Metrics | `runtime/exp_meter.py` (11-09) | EXP an hour; not ours in a party; the user proposed 2026-11-24 to drop EXP as a kill signal (open) |
-| Safety | `perception/liedetector.py` (11-16) | not looked for while unfocused; no capture watchdog, no phone alert |
-| Viewers | `perception/mapascii.py`, `livemap.py` (11-10/17) | replaced by PLAN-livemap's viewer |
-The tracker plan retires `world.py`, `cover.py`, `nav/selfstate.py`, navmap's placement and `v2/ledger.py`'s "our kill".
+- **The code no plan reworks** (brain, execution, navmap's edges, the EXP meter, the Lie Detector, the viewers):
+  REWORKS.md, "Left to rework".
 
 ## Open items (not scheduled; the detail is in the named file, or in HISTORY.md under the quoted words)
 - **Ideas from another bot, each for its phase (the user, 2026-11-22; HISTORY.md, "maplestory-automation"):**
