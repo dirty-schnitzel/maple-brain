@@ -1,25 +1,35 @@
 # PLAN-tracker: the tracker that fills the state model
 
-**Status: DRAFT - the plan session is still running (2026-11-23, `docs/prompts/tracker-plan.md`, Part 2). Not yet
-PROPOSED: the experiments are being measured, the steps and prompts are not written. "Session state" at the end
-says what is done, what is running and what is left - it is removed when the plan is PROPOSED.**
-The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Nothing is built in `maplebrain/`.
+**Status: PROPOSED 2026-11-24 (the tracker plan session, Part 2: `docs/prompts/tracker-plan.md`). Nothing is built
+in `maplebrain/`; no step starts before the user's OK and the answers to "Questions for the user".**
+The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
+in this session on the kept replay (no GPU); the tools are in `tools/perc/track/` (branch `tracker-plan`).
 
-## In short (so far)
+## In short
 - **Today's tracker (`perception/world.py`) covers a small part of the model**: mobs only, by timeouts. No drops,
   no other players, no events, no "where it can be" while unseen, no facts, no hotkey reader; its placement is
   "within 16 px of a surface".
-- **A prototype of the mob part runs from the kept replay (no GPU) and beats today's tracker on every identity
-  number** (13 sound captures, 1,774 mob lives - the table under "What was measured" 1). Its three ideas: a track
-  that is not seen keeps the set of places it can be, and loses every place where the frame shows the scenery
-  (no timeouts on what can be checked); a new track is not a mob until it was once seen clearly; the mob's
-  facing and its real speed are used when sightings are paired with tracks.
-- **Found on the way:** (1) **every mob kind moves at twice the speed the v83 rule gives** (8 kinds, 1.97-1.99 x:
-  a Bubbling walks 137 px/s, the rule says 68.75); (2) the fit makes **false sightings from slivers at the screen
-  edge** (a player's helmet, a player in a portal) - a tracker with memory must not remember those; (3) a jump's
-  feet are settled exactly by two rules (never under its own floor; the reading that continues its motion) -
-  a hop then is a parabola within 1 px; (4) the bottom two rows of the play area (y 698-699) are the HUD's edge
-  and are not masked.
+- **Every part of the model has a prototype that ran on recorded footage**, each graded:
+  - *mobs* (13 captures, 1,774 lives): found 98.7 % (today 96.3), the id kept across a cover 93.4 % (78.5), half
+    as many id changes (1,022 against 2,232), a death seen noticed at once in both. The idea: a mob that is not
+    seen keeps the set of places it can be and loses every place where the frame shows the scenery - gone at
+    once when none is left, kept 4 s at most when nothing can be checked; a new track is not a mob until seen
+    clearly once.
+  - *drops* (746): followed by item, place and their own bob; no drop called gone and seen again; the mob it
+    came from named for 85 %; "we took it" seen as the pickup hop with the key down.
+  - *events* (30 minutes): every step of HP, MP and EXP has a cause; a kill is ours by the swing's landing
+    window and reach, 0.4 % by chance, cross-checked by the EXP.
+  - *other players* (308 tracks): followed by their name tags; none of 20 checked was a non-player; pets'
+    tags are a class of their own.
+  - *the hotkey reader*: all 8 keys' item and amount exact on 110,082 of 110,082 frames, 79 of 79 potion uses
+    seen as a step of -1, no misread, about 0.01 ms a frame.
+- **Found on the way:** every mob kind moves at **twice the speed the v83 rule gives**; the fit makes false
+  sightings from slivers of players at the screen's edge; a jump's feet are settled exactly by two rules; of
+  835 presses of the attack key only 500 were casts; the truth swaps two mobs of a kind at 457 crossings where
+  the prototype does not.
+- **The plan:** 9 steps, each one executor session with a gate on footage - label sets by eye, the graph and
+  placement, mobs in shadow, drops, players and us, events, the facts registry, the hotkey reader, the stored
+  tables, the switch. Three of the model's targets are not met as written (question 1).
 
 ## Words
 - **Sighting:** one mob the fit found on one frame (kind, pose, feet, how much of it was seen).
@@ -204,7 +214,7 @@ The seven walkers sit at 1.97-1.99 x the rule; the flyer reaches its top slowly,
 uses the kind's speed from the client files times a measured factor (2.0), kept as a fact with its source and
 checked against what it sees (state_model.md section 5). `docs/game_rules.md` C1 gets a note.
 
-### 5. Always drawn over the world and not masked (`static_overlay.py`, the 4-minute Line 1 capture)
+### 4b. Always drawn over the world and not masked (`static_overlay.py`, the 4-minute Line 1 capture)
 885 screen pixels are judged "world" on 90 %+ of frames and never show the scene: all in the play area's bottom
 two rows (y 698-699, the HUD's top edge). Nothing else (the minimap window is masked whole). The places where a
 remembered track could not be checked for seconds were scene-model gaps (an animated portal, a platform end's
@@ -453,41 +463,126 @@ in `tools/perc/track/` are the reference: port their rules and constants, do not
 
 ---
 
-## Session state (2026-11-23; removed when the plan is PROPOSED)
-**Done:** the user's OK on `docs/state_model.md` registered (dev 7bd0d45). The truth kept on disk for the 13 sound
-captures (`cache.py`). The mob prototype through four versions (`proto_mobs.py`), `births.py`, `proto_feet.py`,
-`static_overlay.py`, `crops.py` (crops around a map place for a look by eye), `ablate.py`.
-**Stopped here 2026-11-23 ~22:30 (usage limit).** Nothing of this session's Part 2 is committed yet: the new
-tools in `tools/perc/track/` and this file are in the working folder (branch `tracker-plan`).
-**Version 5 of the prototype, the 30-minute design capture (today in brackets):** found 98.9 % (96.8); id kept
-across a cover, fair count, 94.6 % (80.2) - 0-0.1 s 97.3 (94.1), 0.1-0.3 s 96.6 (88.6), 0.3-0.6 s 95.2 (76.1),
-0.6-1.5 s 86.0 (40.0), 1.5-4 s 83.0 (27.5); one id for life 73.2 % (66.8), not counting a change beside another
-mob of its kind 91.2 % (84.3); extra ids 702 (1,307); a mob seen again was next to its possible set 99.87 % of
-1,595 times; 0 of 408,563 seen track-frames without a truth mob; 95 tracks ended by the 4 s "drawn over" limit,
-21 by "its places show the scene". Python cost on the 4-minute capture: 2.2 ms a frame p50 (pairing 0.44, the
-check of unseen tracks 0.73, replay decoding 0.75 - not a live cost).
-**Running in the background when this was written (plain processes, their output lands in files):** version 5 on
-all 13 captures with today beside it -> `F:\dev\maple-corpus\work\track-plan\mobs\run_v5_sound.txt` (its POOLED
-blocks are measurement 1's final table; it also prints "by what was over it when it ended"); the
-one-setting-at-a-time table on version 5 -> `...\mobs\ablate_v5_short.txt` (version 4's: `ablate_short.txt`).
-**Four sub-agents were still working** (their tools exist, their reports had not arrived): the hotkey reader
-(`proto_slots.py`, sheets in `...\track-plan\slots\`), the drops tracker (`proto_drops.py`, `...\drops\`), hits /
-kills / casts (`proto_events.py`, `...\events\`), other players from name tags (`proto_players.py`,
-`...\players\`). If a report is lost, re-run the tool (its docstring) and read its sheets.
-**Decisions reached, to carry into the design:** the possible set + one 4 s limit for whatever cannot be checked
-(out of view, behind the UI, drawn over) - this narrows state_model.md's memory rule 1, a question for the user;
-tentative until seen clearly once (>= 25 % of the full size, >= 30 % of the body on screen) or sighted 0.5 s;
-look-alike feet by "never under its floor (unless every reading is)" + "the reading that continues its motion";
-standing = within 3 px of a surface and the step within 1 px (+ 0.9 x the sideways step); mob speed = the files'
-x 2.0 (a measured fact; a note for `docs/game_rules.md` C1, a question for the user); the tracker's code takes
-its frame evidence through one interface with two sources (the kept replay's bitmaps, the GPU's tensors) so the
-real code is graded on the kept replay with no re-make; gates use the fair id count, and at crossings the count
-of "the track changed mob" (0 of 53 on the 4-minute capture; the truth changed mob in 31).
-**Left:** read the two output files and the four reports into "What was measured" (5 drops, 6 events, 7 players,
-8 slots, 9 cost); a by-eye sheet of version 5's remembered tracks (`mem_sheet.py`, the cave captures too:
-their remembered frames without a truth mob were 6 % in version 4); then write the design, the steps in line
-with gates, stop rules, the Opus prompts, the parallel marks (drafted order: label sets by eye; the graph and
-placement; the mob tracker in shadow; drops, players, us; events; facts registry + profile + Skill.img; the
-hotkey reader; the stored tables; the switch-over), footage and questions for the user; commit (tools on
-`tracker-plan`, this file on `dev`); the `handoff` skill. `PLAN-moving-scenery.md` is not valid UTF-8 (the Read
-tool said so) - tell the user.
+## Session prompts (ready to paste; Opus; each ends with the `handoff` skill)
+```text
+Tracker, step 1 (label sets by eye). Read PLAN-tracker.md - Words, measurements 1-8, step 1 - and
+tools/perc/label_eval.py. Build nothing in maplebrain/. Make the eight sets L1-L8 exactly as step 1 lists them:
+pick the frames from the prototypes' output (tools/perc/track/proto_*.py, mem_sheet.py) so every class is in
+them, look at each case as a crop, write the labels into the bank's labels\ folder. Label 10 % of each set a
+second time without looking at the first labels; report the agreement. Gate as written; numbers into the plan.
+```
+```text
+Tracker, step 2 (the graph and the placement). Read PLAN-tracker.md - measurement 3, design 3, step 2, the stop
+rules - docs/state_model.md sections 1-2 and tools/model/ (nav_audit.py, chains_fixed.py: the reference).
+Branch tracker-build. Build maplebrain/track/graph.py with tests; nav/navmap.py stays as it is (the edges are
+read from it). Gate as written (tools/model/nav_audit.py, tools/perc/track/proto_feet.py with the real placement
+in place of the prototype's); numbers into the plan; a gate missed: stop.
+```
+```text
+Tracker, step 3 (mobs, in shadow). Needs the user's fresh Line 1 capture and step 1's labels L1, L2, L3, L8.
+Read PLAN-tracker.md - measurements 1-4 and 9, design 1-4, step 3, the stop rules - and
+tools/perc/track/proto_mobs.py, proto_feet.py, births.py, mem_sheet.py (the reference: port the rules and the
+constants of Cfg, do not redesign). Branch tracker-build. Build track/kinds.py, evidence.py (two sources),
+mobs.py and the mob records; the Perceiver calls the tracker beside world.py, nothing reads it. Write it with
+arrays, not loops over pairs. Build the replay tool that runs the real code from a kept replay. Then the gate in
+its order: the 13 sound captures from the kept replay, the labels, the live path on the fresh capture, the ms.
+Decide by the numbers whether Fitter.look stays. Numbers into the plan; a gate missed: stop.
+```
+```text
+Tracker, step 4a (drops). Needs step 1's labels L6. Read PLAN-tracker.md - measurement 5, design 5, step 4a, the
+stop rules - PLAN-loot.md sections 10 and 13, and tools/perc/track/proto_drops.py (the reference). Branch
+tracker-build. Build track/drops.py; perception/drops.py is not changed. "We took it" reads the pickup key's
+state (down), not its last press. Gate as written, from the kept replay; numbers into the plan; a gate missed:
+stop.
+```
+```text
+Tracker, step 4b (other players and us). Needs step 1's labels L1 and L5. Read PLAN-tracker.md - measurement 7,
+design 6-7, step 4b, the stop rules - tools/perc/track/proto_players.py (the reference) and nav/selfstate.py's
+docstring (its stuck cases become tests). Branch tracker-build. Build track/players.py and us.py; two tags side
+by side are split by the widths already known; pets are sorted out. Gate as written; numbers into the plan; a
+gate missed: stop.
+```
+```text
+Tracker, step 5 (events). Needs steps 3-4 and step 1's labels L4. Read PLAN-tracker.md - measurement 6, design
+8, step 5, the stop rules - docs/state_model.md section 4 and tools/perc/track/proto_events.py (the reference:
+re-run it first and compare with measurement 6; a difference: stop). Branch tracker-build. Build
+track/events.py on the tracker's own tracks. Gate as written; numbers into the plan; a gate missed: stop.
+```
+```text
+Tracker, step 6 (facts, the profile, Skill.img). Read PLAN-tracker.md - measurements 4 and 6, design 9, step 6,
+the stop rules - docs/state_model.md sections 5-6, assets/README.md and tools/model/self_measure.py (the
+reference for what is measured live). Branch tracker-build. Build track/facts.py, the profile file, the skills
+into assets/mcw (gamedata.py); track/kinds.py reads the registry. No behaviour of the brain changes. Gate as
+written; numbers into the plan; a gate missed: stop.
+```
+```text
+Tracker, step 7 (the hotkey reader). Needs the user's quickslot footage and step 1's labels L7. Read
+PLAN-tracker.md - measurement 8, design 7, step 7, the stop rules - and tools/perc/track/proto_slots.py (the
+reference; its docstring says what the client draws). Branch tracker-build. Build perception/slots.py, the
+picture pack in `assets build`, FrameFacts `slots` for all 8 keys, the amounts tracked in track/us.py. Measure
+the speed with nothing else running. Gate as written; numbers into the plan; a gate missed: stop.
+```
+```text
+Tracker, step 8 (the stored tables). Needs steps 3-5. Read PLAN-tracker.md - design 10, step 8, the stop rules -
+docs/state_model.md section 8 and tools/model/size_proto.py (the reference layouts). Branch tracker-build. Build
+the writer and the reader, wire them into the recorder and the hunt, and the converter from a kept replay. Gate
+as written; numbers into the plan; a gate missed: stop.
+```
+```text
+Tracker, step 9 (the switch). Needs every step before it, and the user at the game. Read PLAN-tracker.md - step
+9, the stop rules - and PLAN-livemap.md. Branch tracker-build. The brain reads the state through one adapter;
+world.py, its tests and what only it needed are deleted; gate.py and the bench are re-based in that commit.
+pytest, the bench, then ask the user for the 3-minute hunt on Line 1. Numbers into the plan; a gate missed: stop.
+```
+
+## Footage asked of the user (`python -m maplebrain record --label farming`, chat minimized, today's settings)
+1. **Line 1 <Area 1>, 5 minutes of farming** - step 3's live check (the kept replay is not re-made, so the GPU
+   path needs a capture of today's scene build).
+2. **The quickslot bar, 1-2 minutes** - step 7: a skill on one of the 8 keys and used a few times; an item used
+   until its amount shows 0 (or a stack of 1-2 used up); the mouse resting on a slot until its tooltip shows; the
+   inventory or another window over part of the bar for a few seconds.
+3. *Welcome:* 3 minutes on a map with flying mobs (Stirges) and on one with two kinds that look alike (an Ant
+   Tunnel map) - the captures the prototype is weakest on are of the old scene build.
+4. *If the character has one:* a buff cast 5 times while recording (the buffs' gate of state_model.md; without
+   it that gate waits).
+
+## Questions for the user
+1. **Three of the model's targets are not met by the prototype as they were written. Are these gates right?**
+   (a) Mob-frames found: 98.7 % against 99 % - the missing part is the "not a mob until seen clearly" stage (1.2
+   points, all at the screen's edge); the gate is 98.4 %. (b) One id for life: 74.8 % against 90 % by the plain
+   count, but 457 of the 1,022 extra ids are the truth swapping two mobs at a crossing (7 are the tracker's); not
+   counting a change beside another mob of its kind it is 90.9 %, and that is the gate. (c) The same id across
+   a cover up to 1.5 s: 97.0 % and 96.5 % up to 0.3 s, 93.6 % for 0.3-0.6 s, 79.4 % for 0.6-1.5 s (today 29.9 %)
+   against 95 % - beyond 0.6 s the truth itself is unproven; the gates are the prototype's numbers.
+2. **One limit of 4 s for whatever cannot be checked** - out of view (your answer), and also behind the UI or
+   front scenery and "something is drawn over it". The model said a covered mob stays as long as it can be
+   there; unchecked, that memory followed other mobs and the message lines around. 8 s buys nothing, 2 s loses
+   the covers of 1.5-4 s. OK?
+3. **Mobs move at twice the v83 rule's speed** (8 kinds; a Bubbling 137 px/s). Does Classic World's speed-up of
+   mobs match what you know? The tracker uses the measured speed either way; game_rules.md C1 gets a note. Also
+   measured against the rules: a mob's hop takes off at 555 px/s like ours (the rule: 625), a knockback is
+   19 px (27), the hit pose lasts 0.55 s (0.248).
+4. **Other players' pets carry name tags** ("Brown Puppy", "White Bunny", "Snail"). The plan sorts them out and
+   does not track them. Or do you want pets in the state?
+5. **Players' cover:** with 1 s, 52 of 308 player tracks are the same player back under a new number; 2 s gives
+   29. Keep 1 s?
+6. **Which of your skills have a length or a cooldown** (Rush's 2 s is seen in the footage)? The buffs and
+   cooldowns come from the cast + the client files; the gate needs casts to look at.
+7. HP items give 1.24 x their file value (Meat 160 -> 198, Red Potion 100 -> 124), MP items 1.0 x. Do you know
+   why? It stays a measured fact either way.
+
+## Commands (from the repo root, `.venv\Scripts\python`; everything from the kept replay, no GPU)
+```powershell
+tools\perc\track\cache.py CAP [...]                      # the truth's chains kept on disk
+tools\perc\track\proto_mobs.py --sound --today [--why 0] # measurement 1: the prototype and today, pooled
+tools\perc\track\ablate.py                               # one setting changed at a time (12 short captures)
+tools\perc\track\mem_sheet.py CAP                        # by-eye sheets of remembered tracks
+tools\perc\track\births.py --sound                       # measurement 2
+tools\perc\track\proto_feet.py --sound                   # measurements 3 and 4
+tools\perc\track\static_overlay.py CAP; tools\perc\track\scene_gaps.py CAP    # what is never the scene
+tools\perc\track\proto_drops.py run|numbers|sheets --sound                    # measurement 5
+tools\perc\track\proto_events.py                         # measurement 6 (the 30-minute capture)
+tools\perc\track\proto_players.py CAP [--covers --time --sheets]              # measurement 7
+tools\perc\track\proto_slots.py run|report|bench|selftest [CAP]               # measurement 8
+```
+Outputs, sheets and reports: `F:\dev\maple-corpus\work\track-plan\` (`mobs\`, `drops\`, `events\`, `players\`, `slots\`).
