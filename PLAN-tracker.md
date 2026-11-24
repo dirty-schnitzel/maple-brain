@@ -15,6 +15,10 @@ the steps ("Step 7, 2026-11-24").
 **Step 2 (2026-11-24, branch `tracker-build-graph`, 88ff6e8): built, the gate MET** - numbers under the steps ("Step
 2 - built 2026-11-24"). Merged into `dev` 2026-11-24 (the user). Its found-on-the-way 3 (the rebuild's worker thread
 delays frame work by up to ~20-30 ms while it runs): **the user, 2026-11-24: "keep same thread"**.
+**Step 3 (2026-11-24, `tracker-build`): built, in shadow; the gate MISSED (stopped before the live path)** - from the
+kept replay every row met but the feet's jolts (550 against 500; the prototype's own tracks counted alike: 556); L1
+91.3 % / 99.42 %, L2 10 of 21, L3 17 of 22 - the prototype's own answers on every case. Fitter.look: no gain, goes.
+Four questions for the user under the step ("Step 3, 2026-11-24").
 The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
 in this session on the kept replay (no GPU); the tools are in `tools/perc/track/` (branch `tracker-plan`).
 
@@ -675,6 +679,84 @@ Found on the way:
 The gate's commands: `tools\model\nav_audit.py graph` (~3 minutes; `--no-edges`: 5 s), `tools\perc\track\proto_feet.py
 --sound` (its last stand / air row), `pytest tests\test_track_graph.py`.
 
+### Step 3, 2026-11-24: the mob tracker built, in shadow; the gate MISSED on the feet's jolts and on L1, L2, L3 (stopped before the live path)
+Branch `tracker-build` (85547b9, 865f8c7, 83ab207). Built: `track/kinds.py` (proto_mobs' `Kind`), `track/evidence.py` (the
+interface; `Bitmaps` = the kept replay's two bitmaps, `Gpu` = the fit's own tensors: dump.py's formula, one gather a
+group, one transfer back), `track/mobs.py` (proto_mobs v5 ported: one cost over tracks x readings as arrays, the
+remembered tracks' sets tested in one evidence call, placement by `track/graph.py`), `track/state.py` (the mob record;
+`x_seen`, `y_seen` = where it was last seen, `x`, `y` = the middle of its possible set while remembered, as graded). The
+prototype's Cfg and its inline numbers are in `config.Track`. The Perceiver runs it after the drops (part `track`),
+beside world.py; `MapKit.graph` is built in `_load_map`; `Track.shadow` False turns it off. Tool:
+`tools/perc/track/replay_mobs.py` (`run`, `pool`, `feet`, `labels`, `live`, `time`); dump.py `--out NAME` (a new kept
+replay in its own folder; `--force` on `track` is refused). `tests/test_track_mobs.py`: 15 tests. Outputs:
+`F:\dev\maple-corpus\work\track-plan\step3\`.
+**The port = the prototype:** on the 4-minute Line 1 capture (navmap's nodes = the graph's) every row of the report is
+the prototype's to the digit; over the 13 the counts differ by a few (the graph has no +-8 / 16 px retry and other
+nodes on 3 Ant Tunnel maps: step 2).
+**Fixed on the way (not in the prototype):** on a blind frame a track seen on the frame before stayed "seen" (the
+prototype too): 172 seen track-frames without a truth mob on 5 captures, all blind frames (the exit fades). A record
+on a blind frame now keeps its values with `seen` False, cover `blind` (the model: "found on this frame"): 0; no other
+number moved. A test fails without it.
+
+| Gate (from the kept replay, 13 sound captures) | track/mobs.py | the prototype (measurement 1) | |
+|---|---:|---:|---|
+| found (>= 98.4 %) | 98.70 % | 98.7 % | met |
+| id kept across a cover (>= 93.1 %) | 93.48 % | 93.4 % | met |
+| ... by length (>= 96.7 / 96.2 / 93.3 / 79.1 / 77.1) | 97.0 / 96.5 / 94.1 / 79.4 / 77.4 | 97.0 / 96.5 / 93.6 / 79.4 / 77.4 | met |
+| one id for life not beside another mob (>= 90.6 %) | 90.98 % | 90.9 % | met |
+| extra ids (<= 1,032) | 1,019 | 1,022 | met |
+| "the track changed mob" (<= 10) | 7 | 7 | met |
+| next to its set (>= 99.0 %) | 99.35 % of 2,783 | 99.32 % of 2,782 | met |
+| a death seen noticed, p90 (<= 0.05 s) | 0.000 s | 0.0 s | met |
+| seen track-frames with no truth mob within 40 px (0) | 0 (172 before the blind fix) | 0 | met |
+| feet: hops within 1.5 px rms (>= 91 %) | 91.4 % of 919 hops (p50 0.94 px) | 91.6 % of 918 | met |
+| feet: jolts of 13 px or more (<= 500) | **550** of 593,073 frame steps | 489 | **MISSED as written** |
+
+**The jolts:** measurement 3's 489 is `proto_feet.settle_series` (its own settle rule: the reading nearest the motion)
+on the truth's tracklets; the real code's feet can only be counted on its own tracks (each run of consecutive seen
+frames, jumper kinds, 15+ frames: `replay_mobs.py feet`). **The prototype tracker's own tracks counted the same way:
+556 jolts** (920 hops, 91.3 %) - the port has 6 fewer. So the 500 is not met, and the port is not the reason.
+
+| Labels (step 1's, by eye) | track/mobs.py | the prototype's own rows (`labels --tag proto`) | Gate |
+|---|---:|---:|---|
+| L1 mobs: stand / air (>= 99 %) | **715 of 783 = 91.32 %** (+ 46 labelled mobs with no seen track: added by the labellers, the fit missed them) | 707 of 783 = 90.29 % | **MISSED** |
+| L1 mobs: the node of standing mobs (>= 99.5 %) | **515 of 518 = 99.42 %** | 516 of 519 = 99.42 % | **MISSED** (by 1 mob) |
+| L2, the 21 agreed cases (>= 90 %) | **10 of 21 = 47.6 %** | 10 of 21 (every case the same answer) | **MISSED** |
+| L3, the 22 agreed cases (>= 95 %) | **17 of 22 = 77.3 %** | 17 of 22 (every case the same answer) | **MISSED** |
+| L8 (reported) | "yes": a track kept over its range on 20 of 20; "no": kept on 5 of 6; "?": kept on 14 | - | - |
+
+**Every miss, by case** (tracker = the prototype on all of them; they are the design's rules against the labellers'):
+- **L1 stand / air (68):** 26 Bubblings + 3 Slimes in a `move` pose labelled air, placed standing (a hop's look-alike
+  reading on the surface wins); **17 Stirges labelled flying, placed standing** (design 3: any kind within 3 px of a
+  surface stands - a flyer too); 20 labelled standing, placed in the air - feet 3.6-4.4 px off a slope (past 3 px), a
+  one-frame step up or down while walking, 4 with feet 9-35 px off a surface (Evil Eye -35, Zombie Mushroom -12, a faint
+  one -9). **Node (3):** case 113 (`232410_1#12` n 57599) 343 / tracker 351; case 190 (`#2` n 13749) 434 / 454; case 171
+  (`#9` n 47090) 398 / 388.
+- **L2 (11):** label **none** (a mob in plain view the fit missed) -> tracker mob 4 (cases 34, 29, 24, 36), ui / scenery 1
+  (71): the tracker can only name what is over the places it keeps; label **edge** -> tracker effect 2 (7, 8), player 1
+  (68), mob 1 (38): the in-view part's cover named, not the edge; label effect -> player (57), us -> player (61): two
+  things over the mob, the boxes decide. The 10 right: mob 1, effect 2, us 2, ui 3 (= "ui / scenery"), edge 2 (= "out of
+  view").
+- **L3 (5):** label uncover / view -> tracker **dying** 3 (cases 47, 45, 48: the first sighting is a die pose, so "how
+  born" = dying; the labellers say how it came into sight); uncover -> there at entry 1 (41: born 0.4 s after the
+  stay's first camera); uncover -> came into view 1 (26: born within 70 px of the edge, inside the picture).
+
+**Fitter.look - the numbers say it goes** (from the kept replay: its looks, made at world.py's tracks, the fit's rule
+says seen, taken as sightings too; `run --hints --tag hints`): found 98.69 % (98.70 without), id kept 93.57 % (93.48), one
+id for life not beside another 90.87 % (90.98), extra ids 1,016 (1,019) - no gain; **481 seen track-frames with no truth
+mob** (0 without); ~0.6 ms a frame (the bench's `hints`). It stays only for world.py, and goes with it in step 9. (The
+live check of looks at the new tracker's own sets was not made: the gate stopped first.)
+**Not run (stopped):** the live path (a new kept replay of `20261120_235747_1#0` into `work\...\track_s3`, the GPU
+evidence against the bitmaps, the shadow rows against the replay's) and the ms gate (`replay_mobs.py time`). Seen on
+the way: the pytest bot speed line 15.4 ms a tick (p90 16.9; `track` 0.4 ms of it on Ant Tunnel IV; step 7 measured
+14.5) - its A/B is the ms gate's. The CPU evidence of the replay costs up to ~10-18 ms p90 on the Ant Tunnel captures
+(a remembered jumper's set: up to ~250 places x 7 heights x its core); live it is one GPU gather.
+**For the user:** (1) the jolts - the like-for-like count (550 against the prototype's 556) or the 500 as written?
+(2) L1 - does a flying mob (a Stirge) ever stand on a platform? (if not: a flyer is never `stand`); the 3 px on slopes;
+the hop's surface reading. (3) L2 / L3 - the tracker's classes are not the labellers': `none` and `edge` for L2, a
+death or an entry at birth for L3. Change the rules, the labels' classes, or the gates? (4) Go on with the live path
+and the ms (both independent of these)?
+
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
 2. The real code cannot reproduce a prototype's number from the same kept replay within tolerance: stop - it is
@@ -841,5 +923,9 @@ tools\perc\track\proto_drops.py run|numbers|sheets --sound                    # 
 tools\perc\track\proto_events.py                         # measurement 6 (the 30-minute capture)
 tools\perc\track\proto_players.py CAP [--covers --time --sheets]              # measurement 7
 tools\perc\track\proto_slots.py run|report|bench|selftest [CAP]               # measurement 8
+tools\perc\track\replay_mobs.py run --sound --jobs 4; ... pool --sound        # step 3: the real tracker, the gate
+tools\perc\track\replay_mobs.py feet --sound; ... labels [--tag proto]        # step 3: measurement 3's feet; L1-L3, L8
+tools\perc\track\dump.py CAP --out NAME; replay_mobs.py live CAP --kept NAME  # step 3: a new kept replay, the live path
+tools\perc\track\replay_mobs.py time CAP                                      # step 3: the ms, shadow on / off
 ```
 Outputs, sheets and reports: `F:\dev\maple-corpus\work\track-plan\` (`mobs\`, `drops\`, `events\`, `players\`, `slots\`).
