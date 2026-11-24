@@ -5,9 +5,10 @@
 "Questions for the user" and into the design and steps). **The empty-place rule stays at 40 %** (the user: "keep
 40%"; 60 % measured on all 13 captures, under measurement 1). **Question 8 (EXP in the kill rule) is postponed to
 step 5** (the user): step 5's session puts it to the user before building the events.
-**Step 1 (2026-11-24): the eight sets made and in the bank; the gate MISSED on L1, L2, L3, L4, L6. Try 2 (the
-same day, the user's fixes): MET on L4, L5, L6, L7, L8; MISSED again on L1 (94.5 %), L2 (77.8 %), L3 (88.0 %) -
-stopped, no third try; the numbers and the disagreements under the steps ("Step 1, try 2"). The user decides.**
+**Step 1 DONE (2026-11-24).** Try 1 missed on L1, L2, L3, L4, L6; try 2 (the user's fixes) met on L4, L5, L6,
+L7, L8; try 3 (L1's cases near a rope, on strips of frames) **met on L1: 97.2 %**. L2 and L3: no third try, the
+user's decision - they keep only the cases both looks agreed on (L2 21, L3 22) for every later gate. The numbers
+under the steps ("Step 1, try 2", "Step 1, try 3").
 Waiting on the user per step: the merge of `tracker-plan` into `dev` before step 2; the Line 1 capture before
 step 3; the quickslot footage before step 7. Step 1 needs neither.
 The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
@@ -569,6 +570,29 @@ padding or under the chat is "?" by both looks (7 of 30); **L1** - see-through B
 11-23 px over their line (cases 12, 47, 112: one labeller "a", one "?"), and the finder misses many flying mobs (54
 added, many Stirges); **L3** - "no frame" before a birth at n 16361 (a hole in the capture) and a crop that is not
 the BORN scene (case 46: the camera lost?).
+
+### Step 1, try 3 (2026-11-24): L1's cases near a rope on strips - the gate MET (L1 97.2 %)
+The user: the tracker places us by motion over frames, a labeller saw one frame - so us at a rope's top, or a jump
+pose with a rope behind us, was read two ways. `label_sets.py ropes` (set **L1R**): every L1 case where we or a mob
+stand within 20 px of a rope / ladder (sideways; between its top and its bottom + 20 px) - **75 of the 200 cases, 85
+things** (us on 58 of them, mobs 27) -
+0.2 s before to 0.2 s after (every 3rd, 9 frames, the case's frame red, the lines' and ropes' ids along them).
+Both looks labelled those cases again, blind, on their own re-ordered, re-numbered sheets (the first look all 75;
+the second look the 9 of them in L1's second-look sample of 20); the other 125 cases keep try 2's labels
+(`judged("L1")` takes L1R's judgments for the rope cases). BRIEF.md got the rule for a strip.
+
+| L1 | Both answered: agree | "?" vs an answer | "?" in both |
+|---|---|---:|---:|
+| try 2, all 20 cases | 103 / 109 = 94.5 % | 2 | 1 |
+| **try 3, all 20 cases** | **105 / 108 = 97.2 %** (gate >= 95 %: met) | 3 | 1 |
+| the 9 rope cases, try 2 | 50 / 55 = 90.9 % | 2 | - |
+| the 9 rope cases, try 3 | 52 / 54 = 96.3 % | 3 | - |
+
+The 4 "us" differences of try 2 (cases 17, 72, 83, 107) are all gone. The 3 left are a mob one look added and the
+other did not (cases 83, 143, 192: a Stirge over a mushroom, mobs at the edge); the 3 "?" against an answer: two
+marks 3 px apart on a mushroom with a Stirge over it (83), us mid-jump over the HUD with no line under us (69).
+The labels in the bank rewritten (every file read by `label_eval.py`, exit 0); the labellers kept `a` for a jump onto
+or off a rope and `r<id>` once the climbing pose shows.
 
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
