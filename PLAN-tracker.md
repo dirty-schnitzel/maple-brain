@@ -1,9 +1,12 @@
 # PLAN-tracker: the tracker that fills the state model
 
-**Status: PROPOSED 2026-11-24 (the tracker plan session, Part 2: `docs/prompts/tracker-plan.md`). Nothing is built
-in `maplebrain/`; no step starts before the user's OK and the answers to "Questions for the user".**
-**Questions 1-7 answered by the user 2026-11-24** (written under "Questions for the user" and into the design and
-steps); question 8 (EXP in the kill rule) is open and must be decided before step 5.
+**Status: APPROVED by the user 2026-11-24** (proposed the same day by the tracker plan session, Part 2:
+`docs/prompts/tracker-plan.md`). Nothing is built in `maplebrain/` yet. **Questions 1-7 answered** (written under
+"Questions for the user" and into the design and steps). **The empty-place rule stays at 40 %** (the user: "keep
+40%"; 60 % measured on all 13 captures, under measurement 1). **Question 8 (EXP in the kill rule) is postponed to
+step 5** (the user): step 5's session puts it to the user before building the events.
+Waiting on the user per step: the merge of `tracker-plan` into `dev` before step 2; the Line 1 capture before
+step 3; the quickslot footage before step 7. Step 1 needs neither.
 The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
 in this session on the kept replay (no GPU); the tools are in `tools/perc/track/` (branch `tracker-plan`).
 
@@ -525,8 +528,9 @@ gate missed: stop.
 ```text
 Tracker, step 5 (events). Needs steps 3-4 and step 1's labels L4. Read PLAN-tracker.md - measurement 6, design
 8, step 5, the stop rules - docs/state_model.md section 4 and tools/perc/track/proto_events.py (the reference:
-re-run it first and compare with measurement 6; a difference: stop). Branch tracker-build. Build
-track/events.py on the tracker's own tracks. Gate as written; numbers into the plan; a gate missed: stop.
+re-run it first and compare with measurement 6; a difference: stop). Before building, put question 8 (EXP in
+the kill rule; the note under measurement 6) to the user and write the answer into the plan. Branch
+tracker-build. Build track/events.py on the tracker's own tracks. Gate as written; numbers into the plan; a gate missed: stop.
 ```
 ```text
 Tracker, step 6 (facts, the profile, Skill.img). Read PLAN-tracker.md - measurements 4 and 6, design 9, step 6,
@@ -568,7 +572,7 @@ pytest, the bench, then ask the user for the 3-minute hunt on Line 1. Numbers in
    it that gate waits).
 
 ## Questions for the user
-**Answered 2026-11-24 (the user), questions 1-7; question 8 is open:**
+**Answered 2026-11-24 (the user), questions 1-7; question 8 is postponed to step 5:**
 1. **OK** - the gates as written (98.4 %, 90.9 % fair count, the prototype's cover numbers).
 2. **OK** - one 4 s limit for whatever cannot be checked.
 3. **"When server rules and observed data clash - always take the observed data."** A standing rule, not only
