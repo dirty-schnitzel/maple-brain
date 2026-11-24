@@ -511,7 +511,7 @@ class L1(LabelSet):
             if p.startswith("s"):
                 return "stand", int(p[1:]), cls
             if p.startswith("r"):
-                return "rope", int(p[1:]), cls
+                return "rope", -abs(int(p[1:])), cls          # rope ids are negative: "r2" = "r-2"
             return {"a": "air", "f": "fly", "n": "none", "?": "?"}[p], None, cls
         mobs_, unsure, false = [], [], []
         e = j.get("e") or {}
@@ -535,7 +535,10 @@ class L1(LabelSet):
 
     def items(self, c, j):
         e = j.get("e") or {}
-        out = {f"e{key}": (e.get(key) or "?").split()[0] for key in ["U"] * bool(c["me"]) + [str(i + 1) for i in range(len(c["fit"]))]}
+        def norm(v):
+            v = (v or "?").split()[0]
+            return f"r-{v[1:].lstrip('-')}" if v[:1] == "r" else v       # rope ids are negative: "r2" = "r-2"
+        out = {f"e{key}": norm(e.get(key)) for key in ["U"] * bool(c["me"]) + [str(i + 1) for i in range(len(c["fit"]))]}
         out["adds"] = len(j.get("add") or [])
         return out
 
@@ -1214,6 +1217,21 @@ def _judged(name, which="a") -> dict:
     return out
 
 
+def agreed_cases(S, cases, A) -> dict:
+    """{case: True / False} for the cases looked at twice: True = every item answered by both looks and the same
+    (the user, 2026-11-24: for L2 / L3 the truth is the cases both looks agree on; later gates use only these)."""
+    bp = S.dir() / "b_cases.json"
+    if not bp.exists() or not list(JUDGED.glob(f"{S.name}_b*.jsonl")):
+        return {}
+    bi = json.loads(bp.read_text(encoding="utf-8"))
+    B = judged(S.name, "b")
+    out = {}
+    for kb, ka in enumerate(bi):
+        ia, ib = S.items(cases[ka], A[ka]), S.items(cases[ka], B[kb])
+        out[ka] = all(not unsure(ia.get(x)) and not unsure(ib.get(x)) and ia.get(x) == ib.get(x) for x in set(ia) | set(ib))
+    return out
+
+
 def cmd_write(name):
     S = SETS[name]()
     cases = json.loads((S.dir() / "cases.json").read_text(encoding="utf-8"))
@@ -1221,10 +1239,12 @@ def cmd_write(name):
     missing = [k for k in range(len(cases)) if k not in J]
     if missing:
         raise SystemExit(f"{name}: cases not judged: {missing[:20]} ({len(missing)})")
+    agreed = agreed_cases(S, cases, J)
     per = defaultdict(dict)
     for k, c in enumerate(cases):
         e = S.frame_entry(c, J[k])
         e["case"] = k
+        e["looks"], e["agreed"] = (2, agreed[k]) if k in agreed else (1, None)
         n = str(c["n"])
         if n in per[c["cap"]]:                       # two cases on one frame (L2 / L3 / L8): one entry, both
             old = per[c["cap"]][n]
