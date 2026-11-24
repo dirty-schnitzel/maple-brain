@@ -5,6 +5,7 @@ look's agreement. Nothing here is product code; the reference is the look, never
     python tools/perc/track/label_sets.py mobs CAP [CAP ...] | --sound    proto_mobs v5 run, its rows kept (L1-3, L8)
     python tools/perc/track/label_sets.py pick SET [SET ...] [--seed 1]   the cases + their sheets (SET = L1 .. L8)
     python tools/perc/track/label_sets.py redo SET [SET ...] [--nb 30]    try 2: the same cases, sheets anew, a new second look
+    python tools/perc/track/label_sets.py ropes                           try 3 of L1: the cases near a rope, with strips (L1R)
     python tools/perc/track/label_sets.py write SET [SET ...]             judged/SET_a.jsonl -> CORPUS/labels/CAP/labels/SET.json
     python tools/perc/track/label_sets.py agree [SET ...] [--judged DIR]  the second look (SET_b) against the first
     python tools/perc/track/label_sets.py check [SET ...]                 every set's files read back by label_eval.py
@@ -466,12 +467,41 @@ class L1(LabelSet):
             tick(cr, fx, fy, col, 22)
             text(cr, name, 6, 22, col, 0.7, 2)
             tiles.append(cr)
-        head = header(f"L1 case {k}   ({c['cap']} n {c['n']})   judge U + every number: s<node> / a / f / r<node> / n / ?; "
-                      f"add any mob with no number", full.shape[1])
+        head = header(f"{self.name} case {k}   ({c['cap']} n {c['n']})   judge U + every number: s<node> / a / f / r<node> / "
+                      f"n / ?; add any mob with no number", full.shape[1])
         parts = [head, full]
         if tiles:
             parts.append(grid(tiles, 4))
+        for name, (x, y), col in ents:
+            if name in c.get("rope", ()):
+                parts.append(self.strip(cp, c, name, x + C[0], y + C[1], col))
         return vstack(parts, 4)
+
+    def strip(self, cp, c, name, mx, my, col):
+        """Try 3 (near a rope): the frames 0.2 s before to 0.2 s after the case's frame, every 3rd, around the
+        thing's MAP place on the case's frame (the camera's moves taken out); the lines' and ropes' ids drawn along
+        them; the case's frame red-bordered with the feet ticked."""
+        import cv2
+        Z, W, H, UP = 1.25, 150, 130, 20
+        i0 = cp.by_n[c["n"]]
+        tiles = []
+        for i in range(i0 - 12, i0 + 13, 3):
+            if not 0 <= i < len(cp.rows):
+                continue
+            r = cp.rows[i]
+            cr, _ = place_crop(cp, r["n"], mx, my - UP, W, H, Z)
+            if cr is None:
+                tiles.append(blank(int(W * Z), int(H * Z)))
+                continue
+            Cr = r["C"]
+            draw_graph(cp, cr, Cr, Z, mx - Cr[0] - W // 2, my - UP - Cr[1] - H // 2, alpha=0.45, ids="every", every=120)
+            if i == i0:
+                tick(cr, W // 2 * Z, (H // 2 + UP) * Z, col, 14)
+                cv2.rectangle(cr, (0, 0), (cr.shape[1] - 1, cr.shape[0] - 1), RED, 2)
+            text(cr, f"{r['t'] - c['t']:+.2f} s", 4, 14, RED if i == i0 else WHITE, 0.42)
+            tiles.append(cr)
+        return vstack([header(f"{name}: 0.2 s before to 0.2 s after (red = this case's frame, its feet ticked)",
+                              len(tiles) * (int(W * Z) + 4), 22, col), hstack(tiles)], 2)
 
     def frame_entry(self, c, j):
         def tok(v):
@@ -508,6 +538,46 @@ class L1(LabelSet):
         out = {f"e{key}": (e.get(key) or "?").split()[0] for key in ["U"] * bool(c["me"]) + [str(i + 1) for i in range(len(c["fit"]))]}
         out["adds"] = len(j.get("add") or [])
         return out
+
+
+@a_set
+class L1R(L1):
+    """Try 3 of L1 (the user, 2026-11-24): the L1 cases where we or a mob stand within ROPE px of a rope / ladder
+    (sideways; between its top and its bottom + ROPE) - labelled again from sheets that add a strip of frames around
+    each such thing (a labeller saw one frame; the tracker places by motion). "l1" = the L1 case; "rope" = the
+    things near a rope. The second look = these cases among L1's second-look sample. `judged("L1")` takes these
+    judgments over try 2's for these cases."""
+    name, size = "L1R", 0
+    ROPE = 20
+
+    def pick(self):
+        L = WORK / "L1"
+        cases = json.loads((L / "cases.json").read_text(encoding="utf-8"))
+        out = []
+        for k, c in enumerate(cases):
+            cp, C = Cap(c["cap"]), c["C"]
+            ents = ([("U", c["me"])] if c["me"] else []) + [(str(i + 1), m["feet"]) for i, m in enumerate(c["fit"])]
+            near = [n for n, (x, y) in ents if any(abs(r.x - x - C[0]) <= self.ROPE and r.top <= y + C[1] <= r.bottom + self.ROPE
+                                                  for r in cp.ropes.values())]
+            if near:
+                out.append(dict(c, l1=k, rope=near))
+        return out
+
+
+def cmd_ropes(seed):
+    """L1R: its cases, the a sheets in a new order (numbered anew), the b sheets = its cases in L1's second look."""
+    S = SETS["L1R"](seed)
+    S.dir().mkdir(parents=True, exist_ok=True)
+    cases = S.pick()
+    random.Random(seed + 300).shuffle(cases)
+    (S.dir() / "cases.json").write_text(json.dumps(cases, indent=0), encoding="utf-8")
+    l1b = set(json.loads((WORK / "L1" / "b_cases.json").read_text(encoding="utf-8")))
+    bi = [i for i, c in enumerate(cases) if c["l1"] in l1b]
+    random.Random(seed + 400).shuffle(bi)
+    (S.dir() / "b_cases.json").write_text(json.dumps(bi), encoding="utf-8")
+    pa, pb = S.sheets(cases, "a"), S.sheets([cases[i] for i in bi], "b")
+    print(f"L1R: {len(cases)} cases ({sum(len(c['rope']) for c in cases)} things near a rope), sheets {len(pa)} a + "
+          f"{len(pb)} b ({len(bi)} cases)")
 
 
 # ---- the possible-set sheets of L2 and L8
@@ -1113,8 +1183,26 @@ def cmd_pick(name, seed):
     print(f"  sheets: {len(pa)} a, {len(pb)} b in {S.dir()}")
 
 
-def judged(name, which="a") -> dict:
-    """The judgments of one look: SET_a.jsonl, or its parts SET_a.p0.jsonl ... (one labeller each)."""
+def judged(name, which="a", rope=True) -> dict:
+    """The judgments of one look: SET_a.jsonl, or its parts SET_a.p0.jsonl ... (one labeller each). L1 (rope=True,
+    when L1R's judgments exist): the cases near a rope take L1R's (try 3), renumbered to L1's cases."""
+    out = _judged(name, which)
+    if name == "L1" and rope and list(JUDGED.glob(f"L1R_{which}*.jsonl")):
+        rc = json.loads((WORK / "L1R" / "cases.json").read_text(encoding="utf-8"))
+        R = _judged("L1R", which)
+        if which == "a":
+            for k, j in R.items():
+                out[rc[k]["l1"]] = dict(j, case=rc[k]["l1"], rope_try3=k)
+        else:
+            rb = json.loads((WORK / "L1R" / "b_cases.json").read_text(encoding="utf-8"))
+            l1b = json.loads((WORK / "L1" / "b_cases.json").read_text(encoding="utf-8"))
+            for kb, j in R.items():
+                kb1 = l1b.index(rc[rb[kb]]["l1"])
+                out[kb1] = dict(j, case=kb1, rope_try3=kb)
+    return out
+
+
+def _judged(name, which="a") -> dict:
     out = {}
     for p in sorted(JUDGED.glob(f"{name}_{which}.jsonl")) + sorted(JUDGED.glob(f"{name}_{which}.p*.jsonl")):
         for line in p.read_text(encoding="utf-8").splitlines():
@@ -1242,7 +1330,7 @@ def cmd_check(names):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["mobs", "pick", "redo", "write", "agree", "check"])
+    ap.add_argument("cmd", choices=["mobs", "pick", "redo", "ropes", "write", "agree", "check"])
     ap.add_argument("args", nargs="*")
     ap.add_argument("--sound", action="store_true")
     ap.add_argument("--seed", type=int, default=1)
@@ -1257,6 +1345,8 @@ def main():
     elif a.cmd == "pick":
         for nm in names:
             cmd_pick(nm, a.seed)
+    elif a.cmd == "ropes":
+        cmd_ropes(a.seed)
     elif a.cmd == "redo":
         for nm in a.args:
             cmd_redo(nm, a.nb, a.seed)

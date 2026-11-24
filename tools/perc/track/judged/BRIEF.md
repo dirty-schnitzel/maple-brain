@@ -31,6 +31,10 @@ the one the feet touch). Magenta lines are ropes / ladders, "r-<id>".
   rule as a solid one: its feet against the surface.** Being faint does not make it "in the air".
 - `a` - its feet are clear above every line: jumping, knocked up, falling. `f` - a flying kind (Stirge ...) in
   the air. `r<id>` - on a rope / ladder. `n` - the mark is on no mob (scenery, a player, an effect). `?`.
+- **Near a rope (L1R: a strip of frames from 0.2 s before to 0.2 s after, the case's frame red):** judge the case's
+  frame, using the motion the strip shows. `r<id>` - it holds the rope / ladder on that frame (climbing or hanging:
+  on the rope's line, moving only along it, or still). `a` - it jumps onto it, jumps off it or passes in front of
+  it without holding it. `s<id>` - its feet are on a line, also at a rope's top or bottom when it has stepped off.
 
 **L3 - how a mob was born.** Take the first rule from the top that fits:
 1. `notmob` - at BORN the yellow mark is on no mob.
@@ -59,3 +63,10 @@ pose's first frame a red one. The mob is the yellow x (over it on every frame), 
 **L6 - which mob the drop flew out of.** `A`, `B` ... (the letters stand where a mob began to die), `none`, `?`.
 When two deaths happen at one place within the window and the drop could have come out of either, answer the
 two letters joined by "|", in order (`A|B`): that is an answer of its own, not a "?".
+
+## Open definition gaps (found in try 2, 2026-11-24; for a later set - nothing waits on them)
+- **L2, partly behind scenery:** a mob in plain view with part of the map drawn over it (Ellinia's light ray,
+  bones, a ladder post): `scenery` or `none`?
+- **L2, two things over a mob:** a pet and another mob, or a pet and coins, over it at once: which one is the cover?
+- **L3, a hit or a death at BORN:** a squashed Bubbling, or a see-through outline under our skill's effect, at
+  BORN: the hit pose (`uncover`, picked up late) or the death (`dying`)? One frame does not tell them apart.
