@@ -417,6 +417,42 @@ added later.
 
 ---
 
+## Steps (one executor session each, Opus; branch `tracker-build` off `dev`, after `tracker-plan` is merged into `dev`)
+Every step: its area's pytest green, the `bot speed` line reported, the gate's numbers written under the step in
+this file. Nothing reads the new state before step 9: `world.py` and the brain stay as they are until then.
+"From the kept replay" = the real `maplebrain/track` code run over a capture's kept replay with the bitmap
+evidence (a tool step 3 builds), graded by `score.py` and the fair counts of `proto_mobs.py`. "Within tolerance"
+= a percentage within 0.3 points of the prototype's, a count within 1 %, and never below today's. The prototypes
+in `tools/perc/track/` are the reference: port their rules and constants, do not redesign them.
+
+| # | What | Gate (on footage) | Could run beside |
+|---|---|---|---|
+| **0** | **The user:** the footage and the answers of the last two sections | filed in the bank; answers written here | - |
+| **1** | **Label sets, by eye** (no code in `maplebrain/`; labels in the bank's `labels\`, picked from the prototypes' output so every class is in them): L1 200 frames - us and every mob: stand / air / rope and the node; L2 100 covered mobs - what covers them; L3 50 births - how born; L4 100 hit-pose begins - by us or not (the swing seen); L5 200 frames - every name tag's class, each player's node; L6 50 drops - the mob it came from; L7 100 frames - the 8 slots' item and amount; L8 40 remembered mobs - there / not there / cannot tell | each set readable by `tools/perc/label_eval.py`; 10 % of each labelled twice: the two agree on >= 95 % | 2, 7 |
+| **2** | **The graph and the placement** (`track/graph.py`; `tools/model/` is the reference): chains from complete links, floors, the nodes as arrays, rule 3 as one array call for every thing, the seconds table, the edges and the table rebuilt on a worker thread | 364 maps build; 10,873 chains, 39 maps differ from `navmap`, ids unchanged on the other 325; the 19 level joints are one floor each; the node = `platform_at`'s on 72,800 of 72,800 test points; 20 things placed in <= 20 us (median map), <= 70 us (the largest); on `proto_feet.py`'s hops: air frames called standing <= 0.8 %, standing called air <= 0.2 %; the table = `route()`'s seconds on 1,000 random pairs, built in <= 5 ms on Line 1; a rebuild does not block a frame (a test) | 1, 7 |
+| **3** | **Mobs, in shadow** (`track/kinds.py`, `evidence.py`, `mobs.py`, the mob records of `state.py`; the Perceiver calls it beside `world.py`; the replay tool): design 2-4 | *From the kept replay, 13 sound captures:* measurement 1's table within tolerance - found >= 98.4 %, id kept across a cover >= 93.1 % (by length >= 96.7 / 96.2 / 93.3 / 79.1 / 77.1), one id for life not beside another mob >= 90.6 %, extra ids <= 1,032, "the track changed mob" <= 10, next to its set >= 99.0 %, a death seen noticed p90 <= 0.05 s, no seen track-frame without a truth mob; measurement 3's feet: hops within 1.5 px rms >= 91 %, jolts <= 500. *Labels:* L1 mobs: stand / air >= 99 %, the node >= 99.5 % of standing mobs; L2 >= 90 %; L3 >= 95 %; L8: reported. *Live, on the fresh capture:* the GPU evidence = the bitmaps' on >= 99.9 % of the places asked; the shadow rows = that capture's replay rows on >= 99.5 % of track-frames; the tracker's ms p50 <= 1.0, p90 <= 2.5 (today's `world` + looks: 0.7 / 2.0), the whole frame's p50 not above today's + 0.3; `gate.py` SAME | - (the GPU, and a speed number) |
+| **4a** | **Drops** (`track/drops.py`): design 5; the finder (`perception/drops.py`) is not changed | from the kept replay, measurement 5 within tolerance: 746 drops, 0 lives with two items or over 131 s, 0 "gone" then seen again, pairs of one item within 3 px <= 9 and each looked at, exactly one death for >= 84.4 % of drops, "we took it" with the key down: no hop without it on any of the 13; L6 >= 90 %; PLAN-loot's gates still met; ms p50 <= 0.2 | 4b |
+| **4b** | **Other players and us** (`track/players.py`, `us.py`): design 6-7 | L5: players found >= 95 %, non-players called players <= 1 %, a pet called a player or a player called a pet <= 5 %, the node on >= 95 % of standing players; L1 us: >= 99 %; every stuck case `nav/selfstate.py`'s docstring lists is a test; us against `SelfState` on the 30-minute capture: the same place on >= 99 % of frames, every difference listed; our feet known on >= 97.5 % of frames (today 96.7; the tag list gives 1.1 points); ms p50 <= 0.1 | 4a |
+| **5** | **Events** (`track/events.py`; needs 3-4): design 8 | 30-minute capture, from the kept replay and its keys: casts 500 / 78 / 10 (q / e / w) within 1 %; every HUD step has a cause; "by us" by chance <= 1 % (windows moved in time); kills against EXP: "us" with no EXP step <= 1 %, whole-EXP kills missed <= 2 %; L4 >= 95 %; the swing length measured live within 0.03 s of 0.85 / 0.87 | 6 |
+| **6** | **Facts, the profile, Skill.img** (`track/facts.py`, `gamedata.py`, the profile file; `kinds.py` reads the registry): design 9 | every fact of state_model.md 5 is in the registry with its source; a profile edit is read without a restart and gives a `fact` event (a test); measured live on the 30-minute capture: walk 152-157 px/s, climb 121-127, the swing 0.85-0.87 s, potions +150 / +198, each kind's speed factor 1.95-2.05, hits per kill; a changed jump height rebuilds the edges on the worker (a test) | 5, 8 |
+| **7** | **The hotkey reader** (`perception/slots.py`, FrameFacts `slots`, the picture pack built by `assets build`; tracked in `us`): design 7, measurement 8 | the self-test: 0 wrong apart from pictures that are identical under the label or digits; the 30-minute capture, every frame: all 8 keys exact on >= 99.99 % of frames, 79 of 79 steps both ways, 0 misreads; the 43 captures: an unreadable cell only in a map change's fade or under a window, each stretch listed; L7: 100 of 100; the new footage: a skill on a key read, an amount 0 read, a covered bar "unreadable", never a wrong item; ms <= 0.02 a frame on average, <= 1 for a full read | 1, 2 (its speed line alone) |
+| **8** | **The stored tables** (`state.py`'s writer and reader; the recorder and the hunt write them; a converter from the kept replay) | the 30-minute capture: <= 60 MB an hour raw, <= 12 packed (prototype 48 / 9); written and read back equal; a file without a newer column still reads (a test); <= 0.05 ms a frame | 6 |
+| **9** | **The switch** (the brain reads the state through one adapter; `world.py`, its tests and the looks it alone needs go; `gate.py` and the bench re-based in that commit; the viewer of PLAN-livemap reads the state) | pytest green; the bench not slower than the baseline; **the user's live check:** a 3-minute hunt on Line 1 - kills counted by the events within 2 of the brain's ledger, no swing at a mob that is only remembered | - (the game) |
+
+## Stop rules
+1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
+2. The real code cannot reproduce a prototype's number from the same kept replay within tolerance: stop - it is
+   a porting difference to find, not to tune away.
+3. The tracker's ms over its line in step 3 or later: stop with the profile.
+4. Anything that needs a change in the fit, the scene model or the drop finder: stop and ask (this plan changes
+   none of them).
+5. Anything that needs an old capture re-made: stop and ask the user for a capture instead.
+6. A field's target in `docs/state_model.md` that cannot be met: report it with the numbers; the user decides.
+7. Fresh footage contradicts a measurement this plan rests on (the mob speed factor on another map, the bob's
+   period, the landing window): stop with both numbers.
+
+---
+
 ## Session state (2026-11-23; removed when the plan is PROPOSED)
 **Done:** the user's OK on `docs/state_model.md` registered (dev 7bd0d45). The truth kept on disk for the 13 sound
 captures (`cache.py`). The mob prototype through four versions (`proto_mobs.py`), `births.py`, `proto_feet.py`,
