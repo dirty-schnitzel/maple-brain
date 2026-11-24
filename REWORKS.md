@@ -83,6 +83,21 @@ Start after perception step 3 is done (through 3.4, the switch on clean maps).
 - **Gate:** in the sim: EXP/h, kills/min, deaths, idle time; live: EXP/h, deaths, behaviour rules held (no
   pendulums, breaks only on safe spots).
 
+## Left to rework: code no plan touches (2026-11-24)
+The date is the file's last commit; the rework wave (perception, the bank, the data model, the tracker plan) left
+these files as they were.
+
+| Pillar | Code | Status |
+|---|---|---|
+| Brain | `brain_v2.py`, `v2/` (combat, targeting, trips, scene, breaks, reflexes), `v3/` (11-09/10) | parked until FSM or clone |
+| Execution | `brain/moves.py`, `travel.py`, `nav/sim.py`, `keyboard.py`, `humanize.py`, `runtime/keylog.py` (11-09) | parked (section 2); no dead-man key release; the sim is us only (no slopes, air control, knockback) |
+| Knowledge | `navmap.py`'s edges + routes (11-09); physics split between `sim.py` and `moves.py` | wrong drop / fall links (docs/state_model.md 1); PLAN-tracker's step 2 reads them as they are, its step 6 registry covers part of section 1 |
+| Metrics | `runtime/exp_meter.py` (11-09) | EXP an hour; not ours in a party; the user proposed 2026-11-24 to drop EXP as a kill signal (open) |
+| Safety | `perception/liedetector.py` (11-16) | not looked for while unfocused; no capture watchdog, no phone alert |
+| Viewers | `perception/mapascii.py`, `livemap.py` (11-10/17) | replaced by PLAN-livemap's viewer |
+
+PLAN-tracker retires `world.py`, `cover.py`, `nav/selfstate.py`, navmap's placement and `v2/ledger.py`'s "our kill".
+
 ## Not a metric: the Lie Detector
 2026-11-16, the user's conclusion: Lie Detectors look like an account / character flag, not a reaction to behaviour
 (one came during the user's own manual play; rates stayed random per hunting time whatever was varied). Never use LD
