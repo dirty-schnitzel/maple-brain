@@ -89,8 +89,9 @@ that led to it: HISTORY.md, the block of 2026-11-24).
   makes them sound) nor on Cave of Evil Eye III (camera lost). Today's tracker's numbers on the 13 stand beside
   the prototype's in PLAN-tracker.md. The truth checked by eye on 60 cases: gaps 21 right / 0 wrong / 19 can't
   tell (mostly off screen), ends 15 / 3 / 2; its chains are kept on disk (`cache.py`). **Two scene builds in
-  it:** re-made on the full build = the 9 forest captures + Ant Tunnel I; the other 8 stay as they are (the user,
-  2026-11-23: no re-make, fresh captures as needed).
+  it:** re-made on the full build = the 9 forest captures + Ant Tunnel I; the other 8 stay as they are. A new
+  kept replay of any capture may be made on today's build, into its own folder, never over the old one (the user,
+  2026-11-24: the "no re-make" of 11-23 meant the `--frames-png` recordings under `runs\`; PLAN-tracker stop rule 5).
 
 ### Parked
 - **No simulator engine now** (the user, 2026-11-22: "there might be an engine down the line, but after
