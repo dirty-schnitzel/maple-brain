@@ -2,6 +2,8 @@
 
 **Status: PROPOSED 2026-11-24 (the tracker plan session, Part 2: `docs/prompts/tracker-plan.md`). Nothing is built
 in `maplebrain/`; no step starts before the user's OK and the answers to "Questions for the user".**
+**Questions 1-7 answered by the user 2026-11-24** (written under "Questions for the user" and into the design and
+steps); question 8 (EXP in the kill rule) is open and must be decided before step 5.
 The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
 in this session on the kept replay (no GPU); the tools are in `tools/perc/track/` (branch `tracker-plan`).
 
@@ -419,12 +421,14 @@ on its level.
 
 **6. Other players** (measurement 7): the tag list sorted into ours, log lines, mobs' own tags, pets, players;
 a player = a tag followed in map coordinates with its width as its name; two tags side by side are split by the
-widths already known; kept through a 1 s cover in view; placed by rule 3. Pets are sorted out, not tracked.
+widths already known; kept through a 2 s cover in view (the user, 2026-11-24, question 5); placed by rule 3.
+Pets are sorted out, not tracked (question 4: may be added later).
 
 **7. Us:** the feet from our tag (taken from the tag list when the reader's own tag is missing: 1,179 frames),
 placed by rule 3 with the rope; `facing` = the last left / right key; `act` from the place, the keys and the MP
-step; the HUD's numbers; the 8 slots from the hotkey reader (measurement 8); buffs and cooldowns = a cast seen +
-the skill's length / cooldown from the client files (Rush's 2 s: 12 presses inside it did nothing).
+step; the HUD's numbers; the 8 slots from the hotkey reader (measurement 8). `buffs` and `cooldowns` stay in the state, empty: the
+warrior has none (the user, 2026-11-24, question 6), so they are not built now; Rush's 2 s (12 presses inside it
+did nothing) is its action running, a "swing running" for design 8.
 
 **8. Events** (measurement 6): a cast = a skill key's key-down with no swing running, confirmed by the MP step;
 `mob_hit` / `mob_died` by us = the pose begins in that cast's landing window with the mob in the skill's box, a
@@ -434,7 +438,9 @@ drop and player events from 5 and 6; a mob's own name tag as a second witness of
 **9. Facts and dynamic values** (state_model.md 5-6): one registry; the profile file (keys -> skills and
 levels, the weapon); Skill.img built into `assets/mcw`; measured live: our walk / jump / climb, the swing length
 (the gap between casts: 0.85-0.87 s), what a potion gives, hits per kill, each mob kind's speed against the
-files' (the factor 2.0 lives here, with its source).
+files' (the factor 2.0 lives here, with its source). **Observed beats the rules** (the user, 2026-11-24,
+question 3): where a measured value and the v83 rule clash, the measured one is used and the rule's number is
+kept beside it as its source. The HP items' x 1.24 = the warrior's passive healing-bonus skill (question 7).
 
 **10. Stored:** the tables of state_model.md 8, written by the recorder and the hunt, readable with a field
 added later.
@@ -456,7 +462,7 @@ in `tools/perc/track/` are the reference: port their rules and constants, do not
 | **2** | **The graph and the placement** (`track/graph.py`; `tools/model/` is the reference): chains from complete links, floors, the nodes as arrays, rule 3 as one array call for every thing, the seconds table, the edges and the table rebuilt on a worker thread | 364 maps build; 10,873 chains, 39 maps differ from `navmap`, ids unchanged on the other 325; the 19 level joints are one floor each; the node = `platform_at`'s on 72,800 of 72,800 test points; 20 things placed in <= 20 us (median map), <= 70 us (the largest); on `proto_feet.py`'s hops: air frames called standing <= 0.8 %, standing called air <= 0.2 %; the table = `route()`'s seconds on 1,000 random pairs, built in <= 5 ms on Line 1; a rebuild does not block a frame (a test) | 1, 7 |
 | **3** | **Mobs, in shadow** (`track/kinds.py`, `evidence.py`, `mobs.py`, the mob records of `state.py`; the Perceiver calls it beside `world.py`; the replay tool): design 2-4 | *From the kept replay, 13 sound captures:* measurement 1's table within tolerance - found >= 98.4 %, id kept across a cover >= 93.1 % (by length >= 96.7 / 96.2 / 93.3 / 79.1 / 77.1), one id for life not beside another mob >= 90.6 %, extra ids <= 1,032, "the track changed mob" <= 10, next to its set >= 99.0 %, a death seen noticed p90 <= 0.05 s, no seen track-frame without a truth mob; measurement 3's feet: hops within 1.5 px rms >= 91 %, jolts <= 500. *Labels:* L1 mobs: stand / air >= 99 %, the node >= 99.5 % of standing mobs; L2 >= 90 %; L3 >= 95 %; L8: reported. *Live, on the fresh capture:* the GPU evidence = the bitmaps' on >= 99.9 % of the places asked; the shadow rows = that capture's replay rows on >= 99.5 % of track-frames; the tracker's ms p50 <= 1.0, p90 <= 2.5 (today's `world` + looks: 0.7 / 2.0), the whole frame's p50 not above today's + 0.3; `gate.py` SAME | - (the GPU, and a speed number) |
 | **4a** | **Drops** (`track/drops.py`): design 5; the finder (`perception/drops.py`) is not changed | from the kept replay, measurement 5 within tolerance: 746 drops, 0 lives with two items or over 131 s, 0 "gone" then seen again, pairs of one item within 3 px <= 9 and each looked at, exactly one death for >= 84.4 % of drops, "we took it" with the key down: no hop without it on any of the 13; L6 >= 90 %; PLAN-loot's gates still met; ms p50 <= 0.2 | 4b |
-| **4b** | **Other players and us** (`track/players.py`, `us.py`): design 6-7 | L5: players found >= 95 %, non-players called players <= 1 %, a pet called a player or a player called a pet <= 5 %, the node on >= 95 % of standing players; L1 us: >= 99 %; every stuck case `nav/selfstate.py`'s docstring lists is a test; us against `SelfState` on the 30-minute capture: the same place on >= 99 % of frames, every difference listed; our feet known on >= 97.5 % of frames (today 96.7; the tag list gives 1.1 points); ms p50 <= 0.1 | 4a |
+| **4b** | **Other players and us** (`track/players.py`, `us.py`): design 6-7 | L5: players found >= 95 %, non-players called players <= 1 %, a pet called a player or a player called a pet <= 5 %, the node on >= 95 % of standing players; the 2 s players' cover (question 5): the same player back under a new number on <= 29 of the 30-minute capture's 308 tracks (within 1 %); L1 us: >= 99 %; every stuck case `nav/selfstate.py`'s docstring lists is a test; us against `SelfState` on the 30-minute capture: the same place on >= 99 % of frames, every difference listed; our feet known on >= 97.5 % of frames (today 96.7; the tag list gives 1.1 points); ms p50 <= 0.1 | 4a |
 | **5** | **Events** (`track/events.py`; needs 3-4): design 8 | 30-minute capture, from the kept replay and its keys: casts 500 / 78 / 10 (q / e / w) within 1 %; every HUD step has a cause; "by us" by chance <= 1 % (windows moved in time); kills against EXP: "us" with no EXP step <= 1 %, whole-EXP kills missed <= 2 %; L4 >= 95 %; the swing length measured live within 0.03 s of 0.85 / 0.87 | 6 |
 | **6** | **Facts, the profile, Skill.img** (`track/facts.py`, `gamedata.py`, the profile file; `kinds.py` reads the registry): design 9 | every fact of state_model.md 5 is in the registry with its source; a profile edit is read without a restart and gives a `fact` event (a test); measured live on the 30-minute capture: walk 152-157 px/s, climb 121-127, the swing 0.85-0.87 s, potions +150 / +198, each kind's speed factor 1.95-2.05, hits per kill; a changed jump height rebuilds the edges on the worker (a test) | 5, 8 |
 | **7** | **The hotkey reader** (`perception/slots.py`, FrameFacts `slots`, the picture pack built by `assets build`; tracked in `us`): design 7, measurement 8 | the self-test: 0 wrong apart from pictures that are identical under the label or digits; the 30-minute capture, every frame: all 8 keys exact on >= 99.99 % of frames, 79 of 79 steps both ways, 0 misreads; the 43 captures: an unreadable cell only in a map change's fade or under a window, each stretch listed; L7: 100 of 100; the new footage: a skill on a key read, an amount 0 read, a covered bar "unreadable", never a wrong item; ms <= 0.02 a frame on average, <= 1 for a full read | 1, 2 (its speed line alone) |
@@ -557,10 +563,29 @@ pytest, the bench, then ask the user for the 3-minute hunt on Line 1. Numbers in
    inventory or another window over part of the bar for a few seconds.
 3. *Welcome:* 3 minutes on a map with flying mobs (Stirges) and on one with two kinds that look alike (an Ant
    Tunnel map) - the captures the prototype is weakest on are of the old scene build.
-4. *If the character has one:* a buff cast 5 times while recording (the buffs' gate of state_model.md; without
+4. ~~*If the character has one:* a buff cast 5 times while recording~~ - dropped: the warrior has no lasting
+   skill (the user, 2026-11-24, question 6). (the buffs' gate of state_model.md; without
    it that gate waits).
 
 ## Questions for the user
+**Answered 2026-11-24 (the user), questions 1-7; question 8 is open:**
+1. **OK** - the gates as written (98.4 %, 90.9 % fair count, the prototype's cover numbers).
+2. **OK** - one 4 s limit for whatever cannot be checked.
+3. **"When server rules and observed data clash - always take the observed data."** A standing rule, not only
+   for the mob speed: the measured factor 2.0 (and the hop 555 px/s, knockback 19 px, hit pose 0.55 s) is the
+   value the tracker uses; the rule's number is kept beside it as its source (design 9, step 6).
+4. **No pet tracking now; it may be added later.** Pets' tags are sorted out and not tracked (design 6); keep
+   their class in the tag sorter so a later step can track them without re-sorting.
+5. **Players' cover: 2 s** (29 of 308 tracks back under a new number, against 52 with 1 s). Design 6 and step
+   4b use 2 s; this replaces state_model.md's 1 s (its "Decided" 2).
+6. **No cooldowns and no lasting skills on the warrior: not implemented now.** `buffs` and `cooldowns` stay in
+   the model, empty; design 7's "buffs and cooldowns" and footage ask 4 are dropped from steps 4b-6. Rush's 2 s
+   (12 presses inside it did nothing) is the skill's own action, not a cooldown: it is a "swing running" for the
+   cast rule (design 8).
+7. **The HP items' x 1.24 is the warrior's passive healing-bonus skill.** It stays a measured fact (design 9,
+   step 6's "potions +150 / +198"), with that skill named as its source in the registry; MP items 1.0 x.
+
+The questions as they were asked:
 1. **Three of the model's targets are not met by the prototype as they were written. Are these gates right?**
    (a) Mob-frames found: 98.7 % against 99 % - the missing part is the "not a mob until seen clearly" stage (1.2
    points, all at the screen's edge); the gate is 98.4 %. (b) One id for life: 74.8 % against 90 % by the plain
