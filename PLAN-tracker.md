@@ -18,7 +18,8 @@ delays frame work by up to ~20-30 ms while it runs): **the user, 2026-11-24: "ke
 **Step 3 (2026-11-24, `tracker-build`): built, in shadow; the gate MISSED (stopped before the live path)** - from the
 kept replay every row met but the feet's jolts (550 against 500; the prototype's own tracks counted alike: 556); L1
 91.3 % / 99.42 %, L2 10 of 21, L3 17 of 22 - the prototype's own answers on every case. Fitter.look: no gain, goes.
-Four questions for the user under the step ("Step 3, 2026-11-24").
+Four questions for the user under the step ("Step 3, 2026-11-24") - **answered 2026-11-24** ("The user's answers"
+under the step); **step 3, try 2 next** (its prompt: "Session prompts").
 The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
 in this session on the kept replay (no GPU); the tools are in `tools/perc/track/` (branch `tracker-plan`).
 
@@ -475,7 +476,7 @@ in `tools/perc/track/` are the reference: port their rules and constants, do not
 | **0** | **The user:** the footage and the answers of the last two sections | filed in the bank; answers written here | - |
 | **1** | **Label sets, by eye** (no code in `maplebrain/`; labels in the bank's `labels\`, picked from the prototypes' output so every class is in them): L1 200 frames - us and every mob: stand / air / rope and the node; L2 100 covered mobs - what covers them; L3 50 births - how born; L4 100 hit-pose begins - by us or not (the swing seen); L5 200 frames - every name tag's class, each player's node; L6 50 drops - the mob it came from; L7 100 frames - the 8 slots' item and amount; L8 40 remembered mobs - there / not there / cannot tell | each set readable by `tools/perc/label_eval.py`; 10 % of each labelled twice: the two agree on >= 95 % | 2, 7 |
 | **2** | **The graph and the placement** (`track/graph.py`; `tools/model/` is the reference): chains from complete links, floors, the nodes as arrays, rule 3 as one array call for every thing, the seconds table, the edges and the table rebuilt on a worker thread | 364 maps build; 10,873 chains, 39 maps differ from `navmap`, ids unchanged on the other 325; the 19 level joints are one floor each; the node = `platform_at`'s on 72,800 of 72,800 test points; 20 things placed in <= 20 us (median map), <= 70 us (the largest); on `proto_feet.py`'s hops: air frames called standing <= 0.8 %, standing called air <= 0.2 %; the table = `route()`'s seconds on 1,000 random pairs, built in <= 5 ms on Line 1; a rebuild does not block a frame (a test) | 1, 7 |
-| **3** | **Mobs, in shadow** (`track/kinds.py`, `evidence.py`, `mobs.py`, the mob records of `state.py`; the Perceiver calls it beside `world.py`; the replay tool): design 2-4 | *From the kept replay, 13 sound captures:* measurement 1's table within tolerance - found >= 98.4 %, id kept across a cover >= 93.1 % (by length >= 96.7 / 96.2 / 93.3 / 79.1 / 77.1), one id for life not beside another mob >= 90.6 %, extra ids <= 1,032, "the track changed mob" <= 10, next to its set >= 99.0 %, a death seen noticed p90 <= 0.05 s, no seen track-frame without a truth mob; measurement 3's feet: hops within 1.5 px rms >= 91 %, jolts <= 500. *Labels:* L1 mobs: stand / air >= 99 %, the node >= 99.5 % of standing mobs; L2 >= 90 %, L3 >= 95 %, both counted on the agreed cases only (L2 21, L3 22: `"agreed": true` in the bank's files; step 1, try 3); L8: reported. *Live, on `20261120_235747_1#0` (Line 1, 4.2 min) with a new kept replay of it on today's scene build in its own folder (stop rule 5):* the GPU evidence = the bitmaps' on >= 99.9 % of the places asked; the shadow rows = that capture's replay rows on >= 99.5 % of track-frames; the tracker's ms p50 <= 1.0, p90 <= 2.5 (today's `world` + looks: 0.7 / 2.0), the whole frame's p50 not above today's + 0.3; `gate.py` SAME | - (the GPU, and a speed number) |
+| **3** | **Mobs, in shadow** (`track/kinds.py`, `evidence.py`, `mobs.py`, the mob records of `state.py`; the Perceiver calls it beside `world.py`; the replay tool): design 2-4 | *From the kept replay, 13 sound captures:* measurement 1's table within tolerance - found >= 98.4 %, id kept across a cover >= 93.1 % (by length >= 96.7 / 96.2 / 93.3 / 79.1 / 77.1), one id for life not beside another mob >= 90.6 %, extra ids <= 1,032, "the track changed mob" <= 10, next to its set >= 99.0 %, a death seen noticed p90 <= 0.05 s, no seen track-frame without a truth mob; measurement 3's feet: hops within 1.5 px rms >= 91 %, jolts <= 556 (the prototype's own tracks counted alike; was 500, measured on the truth's tracklets - the user, 2026-11-24). *Labels:* L1 mobs: stand / air >= 99 %, the node >= 99.5 % of standing mobs; L2 >= 90 %, L3 >= 95 %, both counted on the agreed cases only (L2 21, L3 22: `"agreed": true` in the bank's files; step 1, try 3); L8: reported. *Live, on `20261120_235747_1#0` (Line 1, 4.2 min) with a new kept replay of it on today's scene build in its own folder (stop rule 5):* the GPU evidence = the bitmaps' on >= 99.9 % of the places asked; the shadow rows = that capture's replay rows on >= 99.5 % of track-frames; the tracker's ms p50 <= 1.0, p90 <= 2.5 (today's `world` + looks: 0.7 / 2.0), the whole frame's p50 not above today's + 0.3; `gate.py` SAME | - (the GPU, and a speed number) |
 | **4a** | **Drops** (`track/drops.py`): design 5; the finder (`perception/drops.py`) is not changed | from the kept replay, measurement 5 within tolerance: 746 drops, 0 lives with two items or over 131 s, 0 "gone" then seen again, pairs of one item within 3 px <= 9 and each looked at, exactly one death for >= 84.4 % of drops, "we took it" with the key down: no hop without it on any of the 13; L6 >= 90 %; PLAN-loot's gates still met; ms p50 <= 0.2 | 4b |
 | **4b** | **Other players and us** (`track/players.py`, `us.py`): design 6-7 | L5: players found >= 95 %, non-players called players <= 1 %, a pet called a player or a player called a pet <= 5 %, the node on >= 95 % of standing players; the 2 s players' cover (question 5): the same player back under a new number on <= 29 of the 30-minute capture's 308 tracks (within 1 %); L1 us: >= 99 %; every stuck case `nav/selfstate.py`'s docstring lists is a test; us against `SelfState` on the 30-minute capture: the same place on >= 99 % of frames, every difference listed; our feet known on >= 97.5 % of frames (today 96.7; the tag list gives 1.1 points); ms p50 <= 0.1 | 4a |
 | **5** | **Events** (`track/events.py`; needs 3-4): design 8 | 30-minute capture, from the kept replay and its keys: casts 500 / 78 / 10 (q / e / w) within 1 %; every HUD step has a cause; "by us" by chance <= 1 % (windows moved in time); kills against EXP: "us" with no EXP step <= 1 %, whole-EXP kills missed <= 2 %; L4 >= 95 %; the swing length measured live within 0.03 s of 0.85 / 0.87 | 6 |
@@ -757,6 +758,26 @@ the hop's surface reading. (3) L2 / L3 - the tracker's classes are not the label
 death or an entry at birth for L3. Change the rules, the labels' classes, or the gates? (4) Go on with the live path
 and the ms (both independent of these)?
 
+**The user's answers (2026-11-24, to the plan manager):**
+1. **Jolts: OK** - the gate is the like-for-like count, **<= 556** (the prototype's own tracks); the port's 550 meets it.
+2. **"Stirges never land"**: a flying kind (Mob.img `fly`) is **never `stand`**, whatever its distance to a surface.
+   **The walk's bounce is ground:** the client's Slime / Bubbling `move` frames 2-4 draw the body 4-10 px above the
+   feet point (400 of the 1,050 ms cycle; the sheet: Slime = mob 7, Bubbling = mob 14 in `assets/mcw/mobs`) - the
+   user: "bubblings do bounce like that when walking, it should be labeled as ground". So the 29 L1 cases (26
+   Bubblings + 3 Slimes in a `move` pose labelled air) are **relabelled `stand`** in the bank's L1 file (the tracker
+   already says stand); only a real jump (the `jump` action, measurement 3's hops) is air. **The slope (feet 3.6-4.4 px
+   off a slope, past 3 px): open** - asked by try 2's session first (3 px kept, or 5 px on slopes only).
+3. **L1's node: 99.42 % (515 of 518) accepted** as met (one case short of 99.5 % on this sample).
+4. **L2 / L3: OK** -
+   - L2: the 5 cases labelled `none` (a mob in plain view the fit missed) leave L2's count: the tracker can only
+     name what it was given (the fit is outside this plan, stop rule 4) - reported apart as fit misses.
+   - L2: a mob whose box crosses the screen's edge is `edge` (the edge wins over what covers its in-view part);
+     with two things over the mob, either one named is right (the labellers named one of two).
+   - L3: "how it came into sight" and "its first pose" are two fields: a mob first seen in its die pose is born by
+     how it came into sight (uncover / view / there at entry), with `dying` as its first pose. The born-near-the-edge
+     rule (case 26: within 70 px of the edge, inside the picture) and case 41 (0.4 s after the stay's first camera)
+     are looked at under the same rule, and reported.
+
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
 2. The real code cannot reproduce a prototype's number from the same kept replay within tolerance: stop - it is
@@ -800,6 +821,18 @@ its order: the 13 sound captures from the kept replay, the labels, the live path
 make a new kept replay of 20261120_235747_1#0 (Line 1, 4.2 min) on today's scene build into its own folder -
 never over work\SESSION#K\track\ (stop rule 5) - and run the GPU path over the same capture's video.
 Decide by the numbers whether Fitter.look stays. Numbers into the plan; a gate missed: stop.
+```
+```text
+Tracker, step 3, try 2 (mobs, in shadow: the user's answers, then the rest of the gate). Read PLAN-tracker.md -
+step 3's row, "Step 3, 2026-11-24" and "The user's answers" under it, design 2-4, the stop rules. Branch
+tracker-build (the main folder is on it). First ask the user the open slope question (feet 3.6-4.4 px off a
+slope: keep 3 px, or 5 px on slopes only) and write the answer under "The user's answers". Then: a flying kind is
+never stand; relabel the 29 bounce cases of L1 to stand in the bank's file (a note of which, in the file and the
+plan); L2 without the 5 "none" cases (reported apart), edge first, either of two covers right; L3 with "how it came
+into sight" and "first pose" as two fields. Tests for each rule (a test fails without it). Re-run the whole gate
+from the kept replay (13 sound captures, jolts <= 556, L1-L3, L8 reported), then the live path (a new kept replay
+of 20261120_235747_1#0 into its own folder, never over work\SESSION#K\track\ - stop rule 5) and the ms gate (in
+the main folder: assets/scene is there). Numbers into the plan under "Step 3, try 2"; a gate missed: stop.
 ```
 ```text
 Tracker, step 4a (drops). Needs step 1's labels L6. Read PLAN-tracker.md - measurement 5, design 5, step 4a, the
