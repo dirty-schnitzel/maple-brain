@@ -92,7 +92,8 @@ A hunt writes `<out>\<date_time>_<n>\`: log.txt, ticks.jsonl, frames. Analysis t
   it moved. It depends on the machine (the power plan, the game in front, another session computing): when it is
   far off, A/B with a WIP commit or a worktree, then re-run pinned to the performance cores. Re-baseline
   (`bench.py --baseline`) only for a deliberate speed change, in the same commit. One GPU job at a time while a
-  speed number is being measured.
+  speed number is being measured. Measure it where `assets/scene` exists (the main folder, or a worktree with it
+  linked in): without it the bench skips the scene model and the fit, and shows ~3.5-3.7 ms a tick, meaningless.
 - A live run shows that a change works; replays of recorded footage decide whether it is better.
 - Footage (the user, 2026-11-24): reuse the bank's captures when they serve - a new kept replay on today's build
   goes into its own folder, never over the one a plan's numbers were measured on. When new footage is needed or
