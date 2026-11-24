@@ -510,6 +510,31 @@ in plain view picked up late; L7 - the bar is drawn elsewhere on 2 frames (a men
 are told apart only at the game's pixel scale; L5 - the tag finder misses tags with a medal ("Killer") and merges a
 player's and a pet's tag into one box.
 
+### Step 7, 2026-11-24: the hotkey reader built; the gate met except L7 (97 of 100) - the ms wait for a quiet machine
+Branch `tracker-build-slots` (worktree `.claude\worktrees\slots`, off `tracker-build`). Built: `perception/slots.py`
+(proto_slots ported, its docstring = what the client draws), `tools/cwdata/export_slots.ps1` (called by
+`export.ps1`, writes `export\Slots\`) -> `assets build` -> `assets/mcw/slots` (5,059 pictures: 5,313 items, 300
+skill pictures, 47 actions; 71 key labels), FrameFacts v7 `slots` = every key's `[kind, id, amount]` or None (the
+Perceiver's HUD thread; the old two-key "holds something" stays only behind `obs.hp_potions`, the brain unchanged),
+`track/us.py` = `Us` with its slots part (the last exact reading held while unreadable; a `slot` event per change, `d`
+= the amount's step). Gate tool: `tools/perc/track/slots_gate.py` (`selftest`, `run --all`, `stretches`, `l7`,
+`bench`); outputs in `F:\dev\maple-corpus\work\track-plan\slots7\`. `tests/test_slots.py`: 10 tests on bar crops.
+**Fixed on the way (not in the prototype):** my first port took a cell's label from any read; the cursor over "hift"
+leaves "S" fitting the Shift cell, and as the next read's hint that kept 8 cells unreadable to the footage's end. A
+label is now taken only from an exact read (the prototype's rule); a test proves it (fails without the fix).
+
+| Gate | Number | |
+|---|---|---|
+| Self-test, 5,059 pictures with an amount and a label, 2-row and 3-row bar | 0 wrong (4 / 5 with a look-alike under the label or digits); 71 labels on an empty keycap: 0 wrong | met. The prototype's 20 "wrong" were all one thing: "O" (key 24) is drawn with "0"'s picture - one label, two keys (`lab_also`) |
+| 30-minute capture, every frame (110,082) | all 8 keys exact on >= 99.9991 % (home and pageup unreadable on 1 frame: the cursor); 79 of 79 rises with their step and 79 of 79 steps with their rise; 0 misreads (no amount back within 2 s, 0 content changes); the 34 lone presses each one step, 554 ms p50; 312 audit frames read from scratch: 0 differences | met - the report equals the prototype's line for line |
+| 44 captures (the 43 + the new footage), 289,000 frames | 45 stretches with an unreadable cell, each listed (`slots7\stretches.txt`, sheets `stretches_*.png`): **35 map-change fades** (the whole bar, signature 0 %, 1-18 frames, every one at a stay's first or last frames); **the cursor over a cell** 5 (1-8 frames each, and the new footage's 9 s of cursor + tooltips + an item dragged); **a window over the bar** 3 (Ant Tunnel IV 2026-11-16: the game menu 4 + 21 frames, an item's tooltip with the cursor resting on Ins 58 s - the prototype's "two keys never read"; Cave of Evil Eye I: an NPC dialog's picture 22 s); **not the native window** 1 (Dark Cave 2026-11-16 from frame 357: the game drawn smaller, the desktop around it - the reader rightly finds no bar). Audit 0 differences on all 44; no content change on any; no flick | met, if the cursor counts as "something over the bar" with the windows (the plan's measurement 8 lists it so) and the non-native window as "not the bar" |
+| L7, 100 frames (800 keys) | **97 of 100 frames** every labelled key right: 637 read exactly on the frame, 130 held (the frame not readable - a fade, the cursor, a window - and the state holds the label's reading); **0 wrong**; the 15 "?" keys: the reader says unreadable on all 15. The 3 others are not readable and nothing was read before them: Ant Tunnel IV's first frame under the game menu (2 keys); Deep Ant Tunnel II's and L Forest III's first frame, in the fade, after a hold-out stay (not opened) | **MISSED as written (100 of 100)** - by frames the reader is built not to read (exact or nothing); none read wrong |
+| The new footage (`20261124_093410_1#0`) | a skill on a key read: Power Strike (1001001) on Ctrl, 36 presses; an amount 0 read: Orange Potion 1 -> 0 on Ins; tooltips and the cursor: unreadable, never another item; 13 steps of -1, each 474-684 ms after its key's press, none outside a press | met |
+| ms | waiting for a quiet machine (`slots_gate.py bench`, the `bot speed` line) | - |
+
+Not in the gate, noted: the prototype's stored bar signature on frame 43357 of the 30-minute capture (65 %) is 100 % in
+this run and in a re-read with either pack - its run read that frame differently; nothing depends on it.
+
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
 2. The real code cannot reproduce a prototype's number from the same kept replay within tolerance: stop - it is
