@@ -4,8 +4,9 @@ look's agreement. Nothing here is product code; the reference is the look, never
 
     python tools/perc/track/label_sets.py mobs CAP [CAP ...] | --sound    proto_mobs v5 run, its rows kept (L1-3, L8)
     python tools/perc/track/label_sets.py pick SET [SET ...] [--seed 1]   the cases + their sheets (SET = L1 .. L8)
+    python tools/perc/track/label_sets.py redo SET [SET ...] [--nb 30]    try 2: the same cases, sheets anew, a new second look
     python tools/perc/track/label_sets.py write SET [SET ...]             judged/SET_a.jsonl -> CORPUS/labels/CAP/labels/SET.json
-    python tools/perc/track/label_sets.py agree [SET ...]                 the second look (SET_b) against the first
+    python tools/perc/track/label_sets.py agree [SET ...] [--judged DIR]  the second look (SET_b) against the first
     python tools/perc/track/label_sets.py check [SET ...]                 every set's files read back by label_eval.py
 
 Where things go: the cases and the sheets (re-creatable) in CORPUS/work/track-plan/labels/SET/: cases.json, a_NNN.png
@@ -172,9 +173,46 @@ def text(img, s, x, y, col=YELLOW, scale=0.45, th=1):
     cv2.putText(img, s, (int(x), int(y)), cv2.FONT_HERSHEY_SIMPLEX, scale, col, th, cv2.LINE_AA)
 
 
-def draw_graph(cap: Cap, img, C, z=1.0, ox=0.0, oy=0.0, alpha=0.6, ids=True):
-    """The chains (cyan, id at the left end) and ropes (magenta, "r<id>" at the top) on an image whose pixel (0, 0)
-    is map (C[0] + ox, C[1] + oy) scaled by z. Lines 1 px wide, drawn after any zoom."""
+def ids_along(cap: Cap, img, p, every):
+    """Each chain's id on every visible piece of it: at the start of each stretch of it inside the image, then
+    again every `every` px along it; each rope's "r<id>" at the top of its visible part and every `every` px down.
+    p = map -> image px. (The sheets of the first try printed a chain's id at its left end only: on a long slope or
+    with the left end out of the picture the labeller could not tell which line a mob stood on.)"""
+    H, W = img.shape[:2]
+
+    def inside(x, y):
+        return 0 <= x < W and 4 <= y < H - 4
+
+    for cid, segs in cap.chains.items():
+        last, prev_in = None, False
+        for x1, y1, x2, y2 in segs:
+            a, b = p(x1, y1), p(x2, y2)
+            L = max(1.0, math.hypot(b[0] - a[0], b[1] - a[1]))
+            for s in np.arange(0, L + 0.5, 3.0):
+                x, y = a[0] + (b[0] - a[0]) * s / L, a[1] + (b[1] - a[1]) * s / L
+                if not inside(x, y):
+                    prev_in = False
+                    continue
+                if not prev_in or last is None or math.hypot(x - last[0], y - last[1]) >= every:
+                    s_ = str(cid)
+                    tx = min(max(2, x + 2), W - 9 * len(s_) - 2)
+                    ty = y + 13 if y + 13 < H - 2 else y - 4
+                    text(img, s_, tx, ty, CYAN, 0.4)
+                    last = (x, y)
+                prev_in = True
+    for rid, r in cap.ropes.items():
+        a, b = p(r.x, r.top), p(r.x, r.bottom)
+        if not 0 <= a[0] < W:
+            continue
+        y0, y1 = max(a[1], 0), min(b[1], H)
+        for y in np.arange(y0, y1, every):
+            text(img, f"r{rid}", min(a[0] + 4, W - 40), max(14, y + 14), MAG, 0.4)
+
+
+def draw_graph(cap: Cap, img, C, z=1.0, ox=0.0, oy=0.0, alpha=0.6, ids=True, every=180):
+    """The chains (cyan, id at the left end; ids="every": on every visible piece, `ids_along`) and ropes (magenta,
+    "r<id>" at the top) on an image whose pixel (0, 0) is map (C[0] + ox, C[1] + oy) scaled by z. Lines 1 px wide,
+    drawn after any zoom."""
     import cv2
     ov = img.copy()
 
@@ -187,7 +225,9 @@ def draw_graph(cap: Cap, img, C, z=1.0, ox=0.0, oy=0.0, alpha=0.6, ids=True):
     for rid, r in cap.ropes.items():
         cv2.line(ov, p(r.x, r.top), p(r.x, r.bottom), MAG, 1)
     cv2.addWeighted(ov, alpha, img, 1 - alpha, 0, img)
-    if ids:
+    if ids == "every":
+        ids_along(cap, img, p, every)
+    elif ids:
         for cid, segs in cap.chains.items():
             (a, b), (c, _) = p(segs[0][0], segs[0][1]), p(segs[-1][2], segs[-1][3])
             if c < 0 or a > W or not -10 < b < H + 10:
@@ -410,17 +450,19 @@ class L1(LabelSet):
         img = cp.img(c["n"])
         C = c["C"]
         full = img[:PLAY_H].copy()
-        draw_graph(cp, full, C)
+        draw_graph(cp, full, C, ids="every", every=220)
         ents = ([("U", c["me"], GREEN)] if c["me"] else []) + [(str(i + 1), m["feet"], YELLOW) for i, m in enumerate(c["fit"])]
         for name, (x, y), col in ents:
             tick(full, x, y, col)
             text(full, name, x + 13, y + 4, col, 0.5)
         tiles = []
-        Z, W, H = 3, 110, 70
+        # 150 x 130 px of the frame at x2.5: 85 px over the feet, 45 under (the try-1 crops showed 13 under, so the
+        # platform under a mob was often cut off with its id); every visible piece of a line carries its id
+        Z, W, H, UP = 2.5, 150, 130, 20
         for name, (x, y), col in ents:
-            cr = crop(img, x, y - 22, W, H, Z)
-            draw_graph(cp, cr, C, Z, x - W // 2, y - 22 - H // 2, alpha=0.45)
-            fx, fy = W // 2 * Z, (H // 2 + 22) * Z
+            cr = crop(img, x, y - UP, W, H, Z)
+            draw_graph(cp, cr, C, Z, x - W // 2, y - UP - H // 2, alpha=0.45, ids="every", every=150)
+            fx, fy = W // 2 * Z, (H // 2 + UP) * Z
             tick(cr, fx, fy, col, 22)
             text(cr, name, 6, 22, col, 0.7, 2)
             tiles.append(cr)
@@ -675,7 +717,7 @@ def world(cap):
 
 @a_set
 class L4(LabelSet):
-    name, size, per_sheet = "L4", 100, 3
+    name, size, per_sheet = "L4", 100, 1          # try 2: one strip of ~60 frames a sheet
     caps = [cache.DESIGN, "20261120_235747_1#0"]
     quota = {"us hit": 25, "us die": 25, "another hit": 15, "another die": 15, "unknown": 20}
 
@@ -697,31 +739,110 @@ class L4(LabelSet):
         print({k: len(v) for k, v in pools.items()})
         return balanced(self.rnd, pools, self.quota)
 
+    STRIP = 1.0                      # s of frames from the key-down (the try-2 sheets: every frame)
+
+    def prep(self, cases):
+        """Try 2: each case gets the skill key's key-down its strip starts at, that skill's landing window
+        (measurement 6: proto_events.LAND after the key-down) and the other key-downs inside the strip; the mob's
+        life (its place on every frame). The key-down: the latest cast of ours whose landing window holds the pose's
+        begin, else the latest cast in the 1.0 s before it, else the latest key-down of q / w / e in that second
+        (a press that cast nothing), else none (the strip then runs from 0.8 s before the begin)."""
+        import proto_events as E
+        for c in cases:
+            w = world(c["cap"])
+            e = next(e for e in w.evs if abs(e.t - c["t"]) < 1e-6 and abs(e.x - c["x"]) < 1e-6)
+            c["life"] = int(e.life.id)
+            before = [x for x in w.casts if x.t <= e.t and e.t - x.t <= self.STRIP - 0.02]
+            inw = [x for x in before if E.landing_window(x)[0] <= e.t <= E.landing_window(x)[1]]
+            cast = (inw or before or [None])[-1]
+            if cast is not None:
+                c["kd"] = {"t": float(cast.t), "key": cast.key, "what": "cast" + (" (held key)" if cast.how == "held" else ""),
+                           "land": [float(v) for v in E.landing_window(cast)]}
+            else:
+                pr = [p for p in w.presses if p[1] in E.LAND and p[0] <= e.t and e.t - p[0] <= self.STRIP - 0.02]
+                c["kd"] = None if not pr else {"t": float(pr[-1][0]), "key": pr[-1][1], "what": f"no cast ({pr[-1][2]})",
+                                               "land": [float(pr[-1][0] + v) for v in E.LAND[pr[-1][1]]]}
+            t0 = c["kd"]["t"] if c["kd"] else c["t"] - 0.8
+            c["t0"] = t0
+            c["others"] = [[float(p[0]), p[1]] for p in w.presses if p[1] in E.LAND and t0 < p[0] <= t0 + self.STRIP
+                           and not (c["kd"] and abs(p[0] - c["kd"]["t"]) < 1e-6)]
+        return cases
+
     def tile(self, c, k):
-        cp = Cap(c["cap"])
-        W, H, Z = 300, 200, 1.2
+        import cv2
+        cp, w = Cap(c["cap"]), world(c["cap"])
+        life = next(L for L in w.lives if L.id == c["life"])
+        W, H, Z, COLS = 250, 160, 1.0, 6
         dx = c["me"][0] - c["x"]
-        mx = c["x"] + dx / 2 if abs(dx) <= 220 else c["x"]
+        mx = c["x"] + dx / 2 if abs(dx) <= 200 else c["x"]
         my = c["y"] - 30
+        t0, kd = c["t0"], c["kd"]
+        land = kd["land"] if kd else None
+        i0, i1 = w.idx(t0), w.idx(t0 + self.STRIP)
+        i_pose = w.idx(c["t"])
         tiles = []
-        for dt in (-0.6, -0.4, -0.2, 0.0, 0.15):
-            r = cp.at_t(c["t"] + dt)
-            cr, f = place_crop(cp, r["n"], mx, my, W, H, Z)
+        for i in range(i0, i1 + 1):
+            n = int(w.fr["n"][i])
+            t = float(w.t[i])
+            cr, _ = place_crop(cp, n, mx, my, W, H, Z)
             if cr is None:
-                tiles.append(blank(int(W * Z), int(H * Z)))
+                tiles.append(blank(W, H))
                 continue
-            C = r["C"]
+            C = cp.row(n)["C"]
             ox, oy = mx - C[0] - W // 2, my - C[1] - H // 2
-            if dt == 0:
-                a = ((c["x"] - C[0] - ox) * Z, (c["y"] - C[1] - oy) * Z)
-                tick(cr, a[0], a[1], YELLOW, 18)
-                mark(cr, a[0], a[1] - 28 * Z, YELLOW, "x", 16)
-            if r["me_map"] is not None:
-                mark(cr, (r["me_map"][0] - C[0] - ox) * Z, (r["me_map"][1] - C[1] - oy) * Z + 8, GREEN, "tri", 10)
-            text(cr, f"{dt:+.1f} s" if dt else "POSE BEGINS", 6, 18, YELLOW if dt == 0 else WHITE)
+            p = life.at(i, slack=6)
+            if p is not None:
+                mark(cr, (p[0] - C[0] - ox) * Z, (p[1] - C[1] - oy) * Z - 44, YELLOW, "x", 12)
+            me = cp.row(n)["me_map"]
+            if me is not None:
+                mark(cr, (me[0] - C[0] - ox) * Z, (me[1] - C[1] - oy) * Z + 8, GREEN, "tri", 10)
+            inl = land is not None and land[0] <= t <= land[1]
+            lab = f"{t - t0:+.3f}"
+            if kd and i == i0:
+                lab += f"  KEY {kd['key']} DOWN"
+            if i == i_pose:
+                lab += "  POSE BEGINS"
+            if any(abs(t - o[0]) < 0.0085 for o in c["others"]):
+                lab += "  " + ",".join(f"{o[1]} down" for o in c["others"] if abs(t - o[0]) < 0.0085)
+            text(cr, lab, 4, 14, RED if i == i_pose else YELLOW if inl else WHITE, 0.42)
+            if inl:
+                cv2.rectangle(cr, (0, 0), (cr.shape[1] - 1, cr.shape[0] - 1), YELLOW, 2)
+            if i == i_pose:
+                cv2.rectangle(cr, (2, 2), (cr.shape[1] - 3, cr.shape[0] - 3), RED, 2)
             tiles.append(cr)
-        return vstack([header(f"L4 case {k}  ({c['cap']} n {c['n']})  the mob = yellow x on the POSE BEGINS frame, us = green triangle  - "
-                              f"whose blow: us / other / ?; pose: hit / die / none / ?", 1820), hstack(tiles)], 2)
+        body = grid(tiles, COLS, 4)
+        return vstack([header(f"L4 case {k}  ({c['cap']} n {c['n']})  - whose blow made the mob (yellow x) begin its pose: "
+                              f"us / other / ?; pose: hit / die / none / ?", body.shape[1]),
+                       self.timeline(c, body.shape[1]), body], 2)
+
+    def timeline(self, c, Wd):
+        """A bar over the strip: 0 .. 1.0 s from the key-down, the landing window (yellow), the key-down (green),
+        other key-downs (grey, their key), the pose's begin (red)."""
+        import cv2
+        im = np.full((46, Wd, 3), 25, np.uint8)
+        t0, kd = c["t0"], c["kd"]
+        x0, x1 = 60, Wd - 20
+
+        def X(t):
+            return int(x0 + (x1 - x0) * (t - t0) / self.STRIP)
+        cv2.line(im, (x0, 30), (x1, 30), WHITE, 1)
+        for s in np.arange(0, self.STRIP + 1e-6, 0.1):
+            cv2.line(im, (X(t0 + s), 26), (X(t0 + s), 34), WHITE, 1)
+            text(im, f"{s:.1f}", X(t0 + s) - 8, 45, WHITE, 0.35)
+        if kd:
+            a, b = X(max(t0, kd["land"][0])), X(min(t0 + self.STRIP, kd["land"][1]))
+            cv2.rectangle(im, (a, 22), (b, 38), YELLOW, -1)
+            cv2.line(im, (X(kd["t"]), 14), (X(kd["t"]), 40), GREEN, 3)
+            s = f"key {kd['key']} down at 0 ({kd['what']}); yellow = {kd['key']}'s landing window " \
+                f"{kd['land'][0] - kd['t']:.2f}-{kd['land'][1] - kd['t']:.2f} s"
+        else:
+            s = "no skill key down of ours in the 1 s before the pose; the strip starts 0.8 s before it"
+        for o in c["others"]:
+            cv2.line(im, (X(o[0]), 18), (X(o[0]), 40), (160, 160, 160), 2)
+            text(im, o[1], X(o[0]) + 3, 18, (200, 200, 200), 0.4)
+        cv2.line(im, (X(c["t"]), 14), (X(c["t"]), 42), RED, 2)
+        text(im, s + "; red = the pose begins; grey = other key-downs", x0, 13, WHITE, 0.45)
+        return im
 
     def frame_entry(self, c, j):
         C = Cap(c["cap"]).row(c["n"])["C"]
@@ -889,20 +1010,26 @@ class L6(LabelSet):
             text(cr, f"{dt:+.1f} s" if dt else "DROP RESTS (red x)", 6, 16, WHITE)
             tiles.append(cr)
         return vstack([header(f"L6 case {k}  {c['name']}  ({c['cap']} n {c['n']})  - deaths lettered at their place from the "
-                              f"moment the die pose starts: which mob did it fly out of: A / B / ... / none / ?", 1390),
+                              f"moment the die pose starts: which mob did it fly out of: A / B / ... / A|B / none / ?", 1390),
                        grid(tiles, 4, 4)], 2)
 
     def frame_entry(self, c, j):
         C = Cap(c["cap"]).row(c["n"])["C"]
         fr = j["from"]
-        d = c["deaths"][LETTERS.index(fr)] if fr in LETTERS[:len(c["deaths"])] else None
+
+        def death(L):
+            d = c["deaths"][LETTERS.index(L)] if L in LETTERS[:len(c["deaths"])] else None
+            return None if d is None else {"t": d[0], "x": d[1], "y": d[2], "chain": d[3]}
+        either = fr.split("|") if "|" in fr else None          # "A|B": two deaths at one place, either one (try 2)
         return {"mobs": [], "unsure": [], "false": [],
                 "drop": {"item": c["item"], "x": c["x"], "y": c["y"], "feet": [c["x"] - C[0], c["y"] - C[1]], "from": fr,
-                         "from_death": None if d is None else {"t": d[0], "x": d[1], "y": d[2], "chain": d[3]}},
+                         "from_death": None if either else death(fr),
+                         "from_either": [death(L) for L in either] if either else None},
                 "class": c["class"]}
 
     def items(self, c, j):
-        return {"from": j["from"]}
+        f = j["from"]
+        return {"from": "|".join(sorted(f.split("|"))) if "|" in f else f}
 
 
 # ---- L7: the 8 slots
@@ -1027,26 +1154,64 @@ def cmd_write(name):
         print(f"  {name}: {len(frames)} frames -> {p}")
 
 
-def cmd_agree(names):
+def unsure(v) -> bool:
+    """No answer: "?" - also as the last word ("player ?": a player, its place not told)."""
+    return v is None or str(v).strip() in ("?", "") or str(v).split()[-1] == "?"
+
+
+def cmd_agree(names, judged_dir=None):
+    """The agreement (the user, 2026-11-24): counted on the items BOTH looks answered; a "?" against an answer is
+    reported apart with its count, and so are the items both left "?". The gate: >= 95 % on the answered ones."""
+    global JUDGED
+    if judged_dir:
+        JUDGED = Path(judged_dir)
     for name in names:
         S = SETS[name]()
         cases = json.loads((S.dir() / "cases.json").read_text(encoding="utf-8"))
         bi = json.loads((S.dir() / "b_cases.json").read_text(encoding="utf-8"))
         A, B = judged(name, "a"), judged(name, "b")
-        same = tot = 0
-        diff = []
+        same = both = one_q = two_q = 0
+        diff, qd = [], []
         for kb, ka in enumerate(bi):
             ia, ib = S.items(cases[ka], A[ka]), S.items(cases[ka], B[kb])
             for key in sorted(set(ia) | set(ib)):
-                tot += 1
-                if ia.get(key) == ib.get(key):
-                    same += 1
+                va, vb = ia.get(key), ib.get(key)
+                if unsure(va) and unsure(vb):
+                    two_q += 1
+                elif unsure(va) or unsure(vb):
+                    one_q += 1
+                    qd.append((ka, key, va, vb))
                 else:
-                    diff.append((ka, key, ia.get(key), ib.get(key)))
-        print(f"{name}: {len(bi)} cases looked at twice, {tot} items, the two looks agree on {same} = "
-              f"{100 * same / max(1, tot):.1f} %")
+                    both += 1
+                    if va == vb:
+                        same += 1
+                    else:
+                        diff.append((ka, key, va, vb))
+        nq = sum(unsure(v) for k in range(len(cases)) for v in S.items(cases[k], A[k]).values())
+        ni = sum(len(S.items(cases[k], A[k])) for k in range(len(cases)))
+        print(f"{name}: {len(bi)} cases looked at twice; answered by both {both} items, agree {same} = "
+              f"{100 * same / max(1, both):.1f} %; '?' against an answer {one_q}; '?' in both {two_q}  "
+              f"(the first look's '?': {nq} of {ni} items = {100 * nq / max(1, ni):.1f} %)")
         for d in diff:
-            print(f"   case {d[0]} {d[1]}: first {d[2]!r}, second {d[3]!r}")
+            print(f"   differ: case {d[0]} {d[1]}: first {d[2]!r}, second {d[3]!r}")
+        for d in qd:
+            print(f"   '?' vs answer: case {d[0]} {d[1]}: first {d[2]!r}, second {d[3]!r}")
+
+
+def cmd_redo(name, nb, seed):
+    """Try 2 of a set (PLAN-tracker step 1, 2026-11-24): the same cases (cases.json), the sheets drawn anew, a new
+    second-look sample of nb cases (all when the set is smaller) in its own order, numbered anew."""
+    S = SETS[name](seed)
+    cases = json.loads((S.dir() / "cases.json").read_text(encoding="utf-8"))
+    if hasattr(S, "prep"):
+        cases = S.prep(cases)
+        (S.dir() / "cases.json").write_text(json.dumps(cases, indent=0), encoding="utf-8")
+    pa = S.sheets(cases, "a")
+    rnd = random.Random(seed + 200)
+    bi = rnd.sample(range(len(cases)), min(nb, len(cases)))
+    (S.dir() / "b_cases.json").write_text(json.dumps(bi), encoding="utf-8")
+    pb = S.sheets([cases[i] for i in bi], "b")
+    print(f"{name}: {len(cases)} cases, sheets {len(pa)} a + {len(pb)} b ({len(bi)} cases) in {S.dir()}")
 
 
 def cmd_check(names):
@@ -1077,10 +1242,12 @@ def cmd_check(names):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["mobs", "pick", "write", "agree", "check"])
+    ap.add_argument("cmd", choices=["mobs", "pick", "redo", "write", "agree", "check"])
     ap.add_argument("args", nargs="*")
     ap.add_argument("--sound", action="store_true")
     ap.add_argument("--seed", type=int, default=1)
+    ap.add_argument("--nb", type=int, default=30, help="redo: cases in the second look")
+    ap.add_argument("--judged", help="agree: another folder of judgments (judged/try1: the first try's)")
     a = ap.parse_args()
     sys.path.insert(0, str(ROOT / "tools" / "data"))
     names = a.args or sorted(SETS)
@@ -1090,11 +1257,14 @@ def main():
     elif a.cmd == "pick":
         for nm in names:
             cmd_pick(nm, a.seed)
+    elif a.cmd == "redo":
+        for nm in a.args:
+            cmd_redo(nm, a.nb, a.seed)
     elif a.cmd == "write":
         for nm in names:
             cmd_write(nm)
     elif a.cmd == "agree":
-        cmd_agree(names)
+        cmd_agree(names, a.judged)
     else:
         cmd_check(names)
 

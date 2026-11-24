@@ -19,3 +19,43 @@ Output: one JSON object per line, `{"case": K, ...fields}` - K = the case number
 Write every case of your range, in order, nothing else in the file. Use "?" whenever you cannot tell: a wrong
 guess is worse than "?". When done, reply with: the number of cases written, how many "?" you gave, and anything
 odd you saw on the sheets (a sheet that is broken, a question that did not fit a case) - short.
+
+## The sets' rules (try 2, 2026-11-24: the sets whose two looks disagreed)
+Each sheet's header asks its question; these rules settle the cases the first try's looks read two ways. When a
+case fits none of them, answer "?".
+
+**Places (L1, and a player's place in L5).** Cyan lines are the platforms; the number printed along a line is
+its id, on every piece of it - read the id printed on the piece right under the feet (when two lines run close,
+the one the feet touch). Magenta lines are ropes / ladders, "r-<id>".
+- `s<id>` - its feet are on that line (within a few px). **A fading-in or see-through mob is placed by the same
+  rule as a solid one: its feet against the surface.** Being faint does not make it "in the air".
+- `a` - its feet are clear above every line: jumping, knocked up, falling. `f` - a flying kind (Stirge ...) in
+  the air. `r<id>` - on a rope / ladder. `n` - the mark is on no mob (scenery, a player, an effect). `?`.
+
+**L3 - how a mob was born.** Take the first rule from the top that fits:
+1. `notmob` - at BORN the yellow mark is on no mob.
+2. `entry` - the frames before BORN are the map's loading (black, a fade in): it was there when we came.
+3. `dying` - at BORN it is already playing its death animation.
+4. `fade` - it appears see-through and grows solid in place (a spawn).
+5. `view` - on the frames before BORN its place was **outside the game picture** (in the purple padding, or
+   past the screen's edge, so the mob was cut by the edge): it came in through the edge or the camera moved.
+6. `uncover` - on the frames before BORN its place was **inside the picture**: something drawn over it hid it
+   (an effect, a mob, a player, us, damage digits, a window) - or nothing visible did and it was simply picked
+   up late. The deciding question between `view` and `uncover` is only "was the place inside the picture just
+   before BORN?" - never what hid it.
+
+**L4 - whose blow (the strip: every frame from our skill key's key-down to 1.0 s after it).** The bar on top
+shows the key-down (green, at 0), that skill's landing window (yellow: when a mob it hits shows its pose), our
+other key-downs (grey) and when the pose begins (red). Frames inside the landing window have a yellow border, the
+pose's first frame a red one. The mob is the yellow x (over it on every frame), we are the green triangle.
+- `us` - our attack is seen reaching the mob (the weapon's stab / swing or our skill's effect over it) and its
+  pose begins in the landing window as our blow lands.
+- `other` - its pose begins without our attack reaching it: another player's attack or effect on it, ours
+  aimed the other way or short of it, or no key-down of ours on the strip.
+- `?` - you cannot tell: another player's attack lands on it at the same time as ours, or the mob is covered
+  when it begins. The window alone never makes it ours: our attack must be seen reaching it.
+- pose: `hit` (it flinches) / `die` (its death animation) / `none` (no pose begins) / `?`.
+
+**L6 - which mob the drop flew out of.** `A`, `B` ... (the letters stand where a mob began to die), `none`, `?`.
+When two deaths happen at one place within the window and the drop could have come out of either, answer the
+two letters joined by "|", in order (`A|B`): that is an answer of its own, not a "?".
