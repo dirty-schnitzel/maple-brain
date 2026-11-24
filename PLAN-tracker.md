@@ -234,6 +234,45 @@ drops**; the 30-minute capture: 491 (268 bronze mesos, 180 etc, 41 use, 2 equip)
 - **Cost:** 0.14 ms a frame p50, 0.40 p90, 0.80 p99 in Python, its looks included (1 known drop a frame at the
   median is not reported by the finder and is looked at).
 
+### 6. Events: casts, hits, kills, the HUD's steps (`proto_events.py`, the 30-minute capture; report kept in `...\track-plan\events\report_design.txt`)
+The mob lives are the truth's chains here (the stand-in for tracks); our keys are `keys.jsonl`. (The sub-agent
+that wrote the tool was cut off while reworking block 3's matching: the executor re-runs it before relying on a
+number.)
+- **The HUD's numbers are the client's own.** A cast takes its MP off at once (0.15 s after the key-down at the
+  median, 0.04-0.26); what the server decides shows ~0.5 s after its cause: a kill's EXP 0.48 s after the key-down
+  (0.33-0.63), a potion 0.46-0.51 s, a hurt 0.5 s after the touch began. A server value landing in between
+  shows a cast's cost back and takes it off again (one cast, three steps: 30 such steps).
+- **Every step has a cause:** MP 843 steps - casts 600, recovery 172 (+3 every 10.03 s), potions 55, the server's
+  echoes 16; HP 381 - recovery 179 (+10 every 10.03 s), hurts 163, potions 22, Slash Blast's cost 13; EXP 396 -
+  388 whole kills (28 each; 56 and 84 for two and three at once), 8 parts (a mob another player also hit).
+- **`cast`:** of 835 `q` key-downs only **500 were casts** - 286 came while a swing was running, 39 without the
+  MP, 4 on a rope, 6 unexplained; `e` 78 of 130 (12 inside its 2 s cooldown), `w` 10 of 30. Every cast has its MP
+  step. So a key-down is not a cast: the MP step confirms it.
+- **When the hit lands:** 0.50 s after the key-down for a stab, 0.563 s for a swing (two heaps, 110 and 99 casts;
+  `attacks.json`'s trail start x 1.125 + ~0.05 s). The next cast starts 0.847 s after a stab's key-down, 0.870 s
+  after a swing's - `brain/reach.py` computes 0.844 / 0.900: **the swing length is measured live to 0.03 s**.
+- **`mob_hit` by us:** a hit or die pose that begins 0.45-0.72 s after a `q` key-down (`w` 0.45-0.95, `e`
+  0.03-0.90) on a mob inside that skill's box in front of us. 467 such begins for `q` (median 0.554 s); per `q`
+  cast one mob reacts on 410 of 503, none on 92, two on 1. The facing belief (the last left / right key) puts
+  the mob in front on 547 of 550. Windows moved in time catch 2.3 of another's 343 events: **0.4 % of "by us" is
+  chance**. A second witness: the mob's own name tag shows within 1 s after 41 of 69 of our hits and 1 of 170 of
+  another's.
+- **`mob_died` by us against the EXP:** of 579 deaths the window rule says us 398, another 181. Of the 385 EXP
+  steps of 28, 361 have exactly one death beginning 0.33 s before to 0.07 s after them. Rule against EXP: "us"
+  with no EXP step 1; a whole-EXP kill the window missed 8 (the die pose's begin was covered and counted back, or
+  the mob stood outside the box) -> **the rule: by us when in our window and reach, or when it is the only death
+  an EXP step of the mob's full EXP can pay for.**
+- **Hits per kill** (a measured-live fact): of 128 Bubblings seen from their fade-in with no one else's hit, 113
+  died of one hit, 15 of two; a mob a `q` cast reached died at once on 92 %.
+- **Knockback** by our `q` / `w` hit: 19 px after 0.3 s (18-20 middle half), no more after; the mob then faces
+  us on 28 of 31. The hit pose lasts 0.55 s (the file's `hit1` length, not v83-HC's 0.248 s). Rush carries mobs
+  along up to 145 px.
+- **Who hurt us:** a mob's body was over ours within 0.75 s before 165 of 165 HP losses - one mob for 149, two
+  or three for 16.
+- **What breaks the rules:** 34 lives show a die pose in the middle of a life (the fit's pose noise: a death is
+  taken back when a living pose follows); 157 of our 391 killing blows began covered (the begin is counted back
+  from the die frame first seen); 14 of 591 casts have two candidate key-downs.
+
 ### 8. The hotkey reader (`proto_slots.py`: its docstring holds what the client draws on a slot, pixel-exact)
 - **How a slot is drawn** (from the client's own pictures, checked against frames): the bar is `UI/QuickSlot.img`'s
   panel at frame (933, 588); a cell is 32 x 32 px; drawn in order: the keycap, the content (an item's `info/icon`,
