@@ -1,0 +1,10 @@
+{"case": 0, "cover": "none"}
+{"case": 1, "cover": "none"}
+{"case": 2, "cover": "edge"}
+{"case": 3, "cover": "us"}
+{"case": 4, "cover": "player"}
+{"case": 5, "cover": "player", "also": ["scenery"]}
+{"case": 6, "cover": "ui"}
+{"case": 7, "cover": "edge", "also": ["player"]}
+{"case": 8, "cover": "scenery"}
+{"case": 9, "cover": "ui"}

@@ -1,0 +1,100 @@
+{"case": 0, "cover": "effect", "also": "us"}
+{"case": 1, "cover": "effect"}
+{"case": 2, "cover": "edge"}
+{"case": 3, "cover": "edge"}
+{"case": 4, "cover": "?"}
+{"case": 5, "cover": "ui"}
+{"case": 6, "cover": "player"}
+{"case": 7, "cover": "edge"}
+{"case": 8, "cover": "edge"}
+{"case": 9, "cover": "edge"}
+{"case": 10, "cover": "ui"}
+{"case": 11, "cover": "effect"}
+{"case": 12, "cover": "effect", "also": "us"}
+{"case": 13, "cover": "none"}
+{"case": 14, "cover": "ui"}
+{"case": 15, "cover": "scenery"}
+{"case": 16, "cover": "edge"}
+{"case": 17, "cover": "player", "also": "scenery"}
+{"case": 18, "cover": "player"}
+{"case": 19, "cover": "ui"}
+{"case": 20, "cover": "gone"}
+{"case": 21, "cover": "effect", "also": "us"}
+{"case": 22, "cover": "mob", "also": "scenery"}
+{"case": 23, "cover": "edge", "also": "ui"}
+{"case": 24, "cover": "none"}
+{"case": 25, "cover": "us", "also": "mob"}
+{"case": 26, "cover": "edge"}
+{"case": 27, "cover": "?"}
+{"case": 28, "cover": "mob", "also": "effect"}
+{"case": 29, "cover": "none"}
+{"case": 30, "cover": "mob", "also": "scenery"}
+{"case": 31, "cover": "edge"}
+{"case": 32, "cover": "none"}
+{"case": 33, "cover": "us"}
+{"case": 34, "cover": "none"}
+{"case": 35, "cover": "effect", "also": "mob"}
+{"case": 36, "cover": "none"}
+{"case": 37, "cover": "us", "also": "drop mob"}
+{"case": 38, "cover": "edge"}
+{"case": 39, "cover": "none"}
+{"case": 40, "cover": "us", "also": "effect"}
+{"case": 41, "cover": "us", "also": "mob"}
+{"case": 42, "cover": "us", "also": "effect player"}
+{"case": 43, "cover": "mob", "also": "us effect"}
+{"case": 44, "cover": "effect", "also": "us"}
+{"case": 45, "cover": "us"}
+{"case": 46, "cover": "effect", "also": "us"}
+{"case": 47, "cover": "effect", "also": "us"}
+{"case": 48, "cover": "us", "also": "effect"}
+{"case": 49, "cover": "us"}
+{"case": 50, "cover": "scenery", "also": "us mob"}
+{"case": 51, "cover": "?"}
+{"case": 52, "cover": "us"}
+{"case": 53, "cover": "us", "also": "effect"}
+{"case": 54, "cover": "us", "also": "drop effect"}
+{"case": 55, "cover": "player", "also": "effect"}
+{"case": 56, "cover": "none"}
+{"case": 57, "cover": "effect", "also": "us"}
+{"case": 58, "cover": "ui"}
+{"case": 59, "cover": "player"}
+{"case": 60, "cover": "player", "also": "mob"}
+{"case": 61, "cover": "us"}
+{"case": 62, "cover": "none"}
+{"case": 63, "cover": "none"}
+{"case": 64, "cover": "edge"}
+{"case": 65, "cover": "effect", "also": "player"}
+{"case": 66, "cover": "us"}
+{"case": 67, "cover": "effect"}
+{"case": 68, "cover": "edge"}
+{"case": 69, "cover": "edge"}
+{"case": 70, "cover": "ui"}
+{"case": 71, "cover": "none"}
+{"case": 72, "cover": "ui"}
+{"case": 73, "cover": "ui"}
+{"case": 74, "cover": "none"}
+{"case": 75, "cover": "none"}
+{"case": 76, "cover": "edge"}
+{"case": 77, "cover": "ui"}
+{"case": 78, "cover": "ui", "also": "edge"}
+{"case": 79, "cover": "ui"}
+{"case": 80, "cover": "gone"}
+{"case": 81, "cover": "ui"}
+{"case": 82, "cover": "none"}
+{"case": 83, "cover": "ui"}
+{"case": 84, "cover": "ui"}
+{"case": 85, "cover": "player", "also": "scenery us"}
+{"case": 86, "cover": "gone"}
+{"case": 87, "cover": "scenery"}
+{"case": 88, "cover": "scenery"}
+{"case": 89, "cover": "player", "also": "drop effect"}
+{"case": 90, "cover": "edge"}
+{"case": 91, "cover": "edge"}
+{"case": 92, "cover": "edge"}
+{"case": 93, "cover": "edge"}
+{"case": 94, "cover": "ui"}
+{"case": 95, "cover": "edge"}
+{"case": 96, "cover": "ui"}
+{"case": 97, "cover": "edge"}
+{"case": 98, "cover": "edge"}
+{"case": 99, "cover": "edge"}

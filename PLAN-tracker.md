@@ -5,6 +5,8 @@
 "Questions for the user" and into the design and steps). **The empty-place rule stays at 40 %** (the user: "keep
 40%"; 60 % measured on all 13 captures, under measurement 1). **Question 8 (EXP in the kill rule) is postponed to
 step 5** (the user): step 5's session puts it to the user before building the events.
+**Step 1 (2026-11-24): the eight sets made and in the bank; the gate MISSED on L1, L2, L3, L4, L6 - stopped, the
+numbers and why under the steps ("Step 1, 2026-11-24").**
 Waiting on the user per step: the merge of `tracker-plan` into `dev` before step 2; the Line 1 capture before
 step 3; the quickslot footage before step 7. Step 1 needs neither.
 The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
@@ -471,6 +473,42 @@ in `tools/perc/track/` are the reference: port their rules and constants, do not
 | **7** | **The hotkey reader** (`perception/slots.py`, FrameFacts `slots`, the picture pack built by `assets build`; tracked in `us`): design 7, measurement 8 | the self-test: 0 wrong apart from pictures that are identical under the label or digits; the 30-minute capture, every frame: all 8 keys exact on >= 99.99 % of frames, 79 of 79 steps both ways, 0 misreads; the 43 captures: an unreadable cell only in a map change's fade or under a window, each stretch listed; L7: 100 of 100; the new footage: a skill on a key read, an amount 0 read, a covered bar "unreadable", never a wrong item; ms <= 0.02 a frame on average, <= 1 for a full read | 1, 2 (its speed line alone) |
 | **8** | **The stored tables** (`state.py`'s writer and reader; the recorder and the hunt write them; a converter from the kept replay) | the 30-minute capture: <= 60 MB an hour raw, <= 12 packed (prototype 48 / 9); written and read back equal; a file without a newer column still reads (a test); <= 0.05 ms a frame | 6 |
 | **9** | **The switch** (the brain reads the state through one adapter; `world.py`, its tests and the looks it alone needs go; `gate.py` and the bench re-based in that commit; the viewer of PLAN-livemap reads the state) | pytest green; the bench not slower than the baseline; **the user's live check:** a 3-minute hunt on Line 1 - kills counted by the events within 2 of the brain's ledger, no swing at a mob that is only remembered | - (the game) |
+
+### Step 1, 2026-11-24: the sets made, the gate MISSED on 5 of 8 (stopped)
+Tool: `tools/perc/track/label_sets.py` (`mobs`, `pick`, `write`, `agree`, `check`; its docstring holds every set's
+fields). Cases picked from proto_mobs v5 (re-run with its rows kept), proto_events, proto_players (2 s cover),
+proto_drops, proto_slots, balanced over the classes and the captures; sheets in
+`F:\dev\maple-corpus\work\track-plan\labels\L*\`; the judgments (in git) in `tools/perc/track/judged/` (the
+labellers' brief: `BRIEF.md`); the labels in `CORPUS\labels\SESSION#K\labels\L*.json`, 111 files. Every label was
+made by a Claude labeller looking at the sheets; the second look was another labeller who saw only its own
+re-ordered, re-numbered sheets (`b_*.png`), never the first judgments.
+
+| Set | Cases (captures) | Items judged | What they hold | "?" | Second look: items, agree |
+|---|---|---|---|---:|---|
+| L1 | 200 frames (13) | 1,019 + 48 mobs added | fly 174, air 92, the rest stand / rope by node | 70 | 132, **87.9 %** |
+| L2 | 100 (13) | 100 | edge 22, ui 16, none 14, us 14, effect 12, player 8, scenery 4, mob 4, gone 3 | 3 | 10, **90.0 %** |
+| L3 | 50 (13) | 50 | view 16, fade 14, uncover 7, entry 4, dying 2, notmob 2 | 5 | 5, **60.0 %** |
+| L4 | 100 (2) | 100 | us 49, other 25 | 26 | 10, **90.0 %** |
+| L5 | 200 frames (2) | 662 tags | player 236, ours 168, log 108, pet 82, mob 38, none 23, text 1 | 6 | 74, 98.6 % |
+| L6 | 50 (12) | 50 | A 31, B 3, none 12 | 4 | 5, **80.0 %** |
+| L7 | 100 (43) | 800 slots | | 15 | 80, 97.5 % |
+| L8 | 40 (13) | 40 | yes 20, no 6 | 14 | 4, 100 % |
+
+Gate part 1 met: every one of the 111 files is read by `label_eval.py` (exit 0; L1 on the 30-minute capture grades
+today's tracker at 92.1 % of 63 mobs). Gate part 2 (agree >= 95 %) missed on L1, L2, L3, L4, L6. Why, from the
+disagreements looked at by eye:
+- **L1, the sheets:** a platform's id is drawn only at its left end, so on a long slope the two looks read
+  different lines (case 119: s266 / s15); the brief did not say where a mob fading in stands (case 112: two
+  see-through Bubblings a few px over their platform, "s79" / "a"); 4 of the 16 differences are "?" against an
+  answer. Labellers also met platforms whose id was never on the sheet (the left end off screen vertically).
+- **L4:** frames 0.2 s apart do not show the swing land; 26 of 100 "who" are "?" - the set is weak as it is.
+- **L2 / L3 / L6 / L8: 4-10 items each** - one difference is 10-25 points; 3 of the 5 differences there are "?"
+  against an answer, 2 are real (L3 view / uncover, L6 A / B: two deaths at one place).
+Found on the way: L2 - 14 of 100 "covered" mobs are in plain view (the fit missed a visible mob), 22 at the screen's
+edge; L8 - one remembered mob's range is on the platform under the mob (case 21); L3 - 5 births are a mob already
+in plain view picked up late; L7 - the bar is drawn elsewhere on 2 frames (a menu row under it) and the digits 3 / 8
+are told apart only at the game's pixel scale; L5 - the tag finder misses tags with a medal ("Killer") and merges a
+player's and a pet's tag into one box.
 
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.

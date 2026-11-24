@@ -1,0 +1,20 @@
+{"case": 0, "tags": {"1": "text", "2": "ours", "3": "player s19"}}
+{"case": 1, "tags": {"1": "mob", "2": "player s273", "3": "ours"}}
+{"case": 2, "tags": {"1": "pet", "2": "player s65", "3": "pet", "4": "ours", "5": "player s275"}}
+{"case": 3, "tags": {"1": "none", "2": "player ?", "3": "pet", "4": "ours"}}
+{"case": 4, "tags": {"1": "none", "2": "ours", "3": "pet", "4": "player s273"}}
+{"case": 5, "tags": {"1": "pet", "2": "ours"}}
+{"case": 6, "tags": {"1": "player s19", "2": "pet", "3": "log"}}
+{"case": 7, "tags": {"1": "player s114", "2": "player s111", "3": "ours"}}
+{"case": 8, "tags": {"1": "player s56", "2": "mob", "3": "player s273", "4": "ours"}}
+{"case": 9, "tags": {"1": "ours", "2": "player s114", "3": "player s79", "4": "player s111"}}
+{"case": 10, "tags": {"1": "mob", "2": "ours"}}
+{"case": 11, "tags": {"1": "player s114", "2": "ours", "3": "log"}}
+{"case": 12, "tags": {"1": "ours", "2": "log", "3": "log", "4": "log", "5": "log", "6": "log", "7": "log", "8": "log"}}
+{"case": 13, "tags": {"1": "player s114", "2": "ours"}}
+{"case": 14, "tags": {"1": "player s273", "2": "ours", "3": "log", "4": "log", "5": "log"}}
+{"case": 15, "tags": {"1": "none", "2": "player s65", "3": "ours"}}
+{"case": 16, "tags": {"1": "player s19", "2": "ours", "3": "log", "4": "pet", "5": "pet"}}
+{"case": 17, "tags": {"1": "ours", "2": "log"}}
+{"case": 18, "tags": {"1": "player s46", "2": "mob", "3": "ours", "4": "player s114", "5": "log"}}
+{"case": 19, "tags": {"1": "pet", "2": "player s114", "3": "ours", "4": "log"}}
