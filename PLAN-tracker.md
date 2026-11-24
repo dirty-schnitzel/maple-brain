@@ -206,6 +206,37 @@ two rows (y 698-699, the HUD's top edge). Nothing else (the minimap window is ma
 remembered track could not be checked for seconds were scene-model gaps (an animated portal, a platform end's
 decoration), not the UI.
 
+### 8. The hotkey reader (`proto_slots.py`: its docstring holds what the client draws on a slot, pixel-exact)
+- **How a slot is drawn** (from the client's own pictures, checked against frames): the bar is `UI/QuickSlot.img`'s
+  panel at frame (933, 588); a cell is 32 x 32 px; drawn in order: the keycap, the content (an item's `info/icon`,
+  a key-binding action's picture such as "JUMP", a skill's icon), the amount in `UI/Basic.img ItemNo` digits from
+  the cell's (0, 20), the key's label at (2, 2). The frame equals that composite exactly. Which key a cell is, is
+  read from its label, never from its position.
+- **The reader:** per cell the label, the digits, then the content looked up by the bytes of five rows no label
+  or digit touches, then verified: keycap + content + digits + label must equal all 1,024 pixels. A read is
+  exact or nothing; a cell is read again only when its pixels changed.
+- **On the 30-minute capture, every frame:** all 8 keys exact on 110,082 of 110,082 frames (two keys on 110,081:
+  one frame, 43357, something over the bar). Shift = the JUMP action, Ins = Pet Food x 100, Home and Ctrl empty,
+  PgUp = The Green Relaxer (a chair, no amount), Del = Meat 200 -> 178, End = Lemon 130 -> 74, PgDn = Red Potion
+  276 -> 287. **91 amount steps: 79 of -1 and 12 of +1** (Red Potions picked up). Each of the HUD's 79
+  potion-sized rises (MP +150 x 55, HP +198 x 21, three others) has its -1 step on a key of that stat within
+  0.5 s, and each step its rise: **79 of 79 both ways**; the step shows 82 ms after the HUD's rise (p50; p90
+  150). Of the 88 potion presses in the key log, the 34 pressed alone each give exactly one step, 554 ms after
+  the key-down (p50; p90 684); in 8 of 19 bursts of quick presses the game took fewer potions than presses. No
+  amount changed and came straight back (0 misreads); 312 frames re-read from scratch: 0 differences.
+- **Over 43 captures (271,811 frames):** an unreadable cell on 3,136 frames (1.15 %): the 10-14 frames of each
+  map change's fade, one 14 s stretch on Cave of Evil Eye I (something over the bar), and two 2026-11-16 captures
+  where two keys' labels never read (to be looked at by the executor). Seen on keys: JUMP, Red / Orange / Blue
+  Potion, Meat, Lemon, Pet Food, The Green Relaxer. **No skill was on a key in any footage** - that path is built
+  from the client's pictures only (a footage ask).
+- **Cost:** 8 slots read from scratch 0.84 ms; one changed cell 55 us; an unchanged frame 5 us; 8.6 us a frame
+  over 600 consecutive frames (8 cell reads).
+- **Self-test** (every client picture - 5,059 items, skills and actions - drawn into a cell with an amount and
+  a label, read back): 20 wrong, 4 of them pictures that are identical under the label or digits; 1 of 72 key
+  labels wrong. The executor's gate is 0 wrong apart from true look-alikes.
+- *Also learned:* Meat's file value is HP +160 and the HUD rises 198, a Red Potion 100 -> 124 (x 1.24 on HP
+  items; Lemon's MP 150 -> 150): what a potion gives stays a measured fact, as the model says.
+
 ---
 
 ## Session state (2026-11-23; removed when the plan is PROPOSED)
