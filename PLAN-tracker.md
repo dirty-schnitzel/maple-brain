@@ -279,6 +279,17 @@ number.)
   with no EXP step 1; a whole-EXP kill the window missed 8 (the die pose's begin was covered and counted back, or
   the mob stood outside the box) -> **the rule: by us when in our window and reach, or when it is the only death
   an EXP step of the mob's full EXP can pay for.**
+- **Note (2026-11-24, the user): an EXP step's size is not fixed, so the second half of that rule holds only
+  solo.** Cosmic's split (`server/life/Monster.java` 535-690; Classic World may differ in the numbers, not in the
+  idea): solo, we get the mob's EXP x our share of its damage. In a party, every member on the map within level
+  range gets `EXP x the party's damage share x (0.8 x own level / the party's total level, + 0.2 for the party's
+  top damager) x (1 + 0.05 x members)` - a different step size, and **EXP for kills we never touched**. Holy
+  Symbol, EXP events and coupons also change the step. The measurements here are solo footage. The user proposed
+  (open, decided before step 5) to drop EXP from the live rule altogether - a kill seen by its die pose in our
+  window, or "died, inferred" when its possible set empties in view right after our hit, else "lost" - and,
+  Claude's recommendation, to keep EXP only as the offline grader on solo captures (step 5's gate, and step 9's
+  live check against the EXP instead of the ledger, which is a window rule too). The cost, measured above: the 8
+  whole-EXP kills the window misses (~2 %).
 - **Hits per kill** (a measured-live fact): of 128 Bubblings seen from their fade-in with no one else's hit, 113
   died of one hit, 15 of two; a mob a `q` cast reached died at once on 92 %.
 - **Knockback** by our `q` / `w` hit: 19 px after 0.3 s (18-20 middle half), no more after; the mob then faces
@@ -573,6 +584,9 @@ pytest, the bench, then ask the user for the 3-minute hunt on Line 1. Numbers in
    cooldowns come from the cast + the client files; the gate needs casts to look at.
 7. HP items give 1.24 x their file value (Meat 160 -> 198, Red Potion 100 -> 124), MP items 1.0 x. Do you know
    why? It stays a measured fact either way.
+8. **EXP in the kill rule** (measurement 6, the note on party EXP): drop it from the live rule and keep it as the
+   offline grader on solo captures (Claude's recommendation), or drop it completely (then L4 grows to 200-300
+   hit-pose begins over 2-3 maps)? Do you play in parties, and how does the client show one?
 
 ## Commands (from the repo root, `.venv\Scripts\python`; everything from the kept replay, no GPU)
 ```powershell
