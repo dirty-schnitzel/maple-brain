@@ -4674,3 +4674,23 @@ What the next sessions build on, the game_rules bullet in full:
   and the client-file field it reads (sections A-K, three tables). **Open = its table 3, 21 questions**, among
   them: how a mob with aggro moves and attacks is in no source; the walk range `rx0`/`rx1` is read by no source;
   Classic World's skill list is not v83's; which skills are on `w` / `e`.
+
+## 2026-11-24 - tracker-build's branches (moved from HANDOFF.md)
+  `tracker-build-graph` (step 2) is merged into `dev` (0e68464), not yet into `tracker-build`: merge `dev` in there
+  (PLAN-tracker.md changed on both: keep both sides). Worktree `.claude/worktrees/graph` (links `assets/scene` to
+  the main folder's; its local `dev` is behind `origin/dev` - pull it) can be removed.
+  `tracker-build-slots` (step 7) is merged into `tracker-build` (df8b20c) and can be deleted; worktree
+  `.claude/worktrees/slots` can be removed.
+
+## 2026-11-24 - the tracker plan's prototype numbers, moving scenery, the truth's check (moved from HANDOFF.md)
+  The plan: every part has a prototype that ran from the kept replay (`tools/perc/track/proto_*.py`, branch
+  `tracker-plan`; outputs in `F:\dev\maple-corpus\work\track-plan\`). Mobs, 13 captures: found 98.7 % (today
+  96.3), the id kept across a cover 93.4 % (78.5), 1,022 id changes (2,232) - by keeping the places an unseen
+  mob can be and dropping those that show the scenery, 4 s at most when nothing can be checked. Drops 746, none
+  lost and found again; every HP / MP / EXP step explained; the 8 hotkeys read exactly on every frame; other
+  players by name tag.
+- **`PLAN-moving-scenery.md` (steps 1-5 DONE 2026-11-23, merged into `dev`; steps 6-7 wait for footage):** the
+  forest maps sound, moving backs drawn in and followed, Perion's clouds undone; 82 of the 95 refused maps hunt.
+  Each step's numbers under its heading there; tools `tools/perc/scenery/` (its README).
+  (The kept replay:) The truth checked by eye on 60 cases: gaps 21 right / 0 wrong / 19 can't
+  tell (mostly off screen), ends 15 / 3 / 2; its chains are kept on disk (`cache.py`).
