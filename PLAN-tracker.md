@@ -472,6 +472,58 @@ in `tools/perc/track/` are the reference: port their rules and constants, do not
 | **8** | **The stored tables** (`state.py`'s writer and reader; the recorder and the hunt write them; a converter from the kept replay) | the 30-minute capture: <= 60 MB an hour raw, <= 12 packed (prototype 48 / 9); written and read back equal; a file without a newer column still reads (a test); <= 0.05 ms a frame | 6 |
 | **9** | **The switch** (the brain reads the state through one adapter; `world.py`, its tests and the looks it alone needs go; `gate.py` and the bench re-based in that commit; the viewer of PLAN-livemap reads the state) | pytest green; the bench not slower than the baseline; **the user's live check:** a 3-minute hunt on Line 1 - kills counted by the events within 2 of the brain's ledger, no swing at a mob that is only remembered | - (the game) |
 
+### Step 2 - built 2026-11-24 (branch `tracker-build-graph`): gate MET; one reading for the user (the rebuild)
+Built: `maplebrain/track/graph.py` (its docstring holds the rules) + `tests/test_track_graph.py` (23 tests);
+`config.Track` (stand_tol 3, stand_step 1, stand_slope 0.9, rope_tol 7 = today's SelfTracker value for our exact
+tag). The gate tools: `tools/model/nav_audit.py graph` (new), `tools/perc/track/proto_feet.py` (a row for the real
+placement). nav/navmap.py is not changed: the edges are its own `_find_links` run over the graph's nodes, the table
+is its own `route()` search.
+- **Nodes:** `chains_fixed.py`'s rule; the chain lists equal the reference tool's on all 364 maps (a test).
+- **Placement:** the rule of design 3 for n things in one call (stand, rope for climbers, air / fly; `from_node`
+  changes only on stand or rope - proto_mobs's track node); no +-8 / 16 px retry at the feet's x (that is for the
+  minimap's coarse x). A test checks the fast call against a plain over-every-chain version of the rule on 7,500
+  random things on 5 real maps (ends, joints, slopes, ropes, last nodes).
+- **The seconds table:** `seconds[a, b]` = route()'s seconds **from the middle of node a** (a choice made here:
+  route() needs a start; the middle errs by at most half the node's width), `arrive[a, b]` = where that way lands.
+  It is route()'s own search run to the end from each node: route() stops when it pops its goal, and everything
+  popped before is the same, so a row holds route()'s answer for every goal exactly.
+
+| Gate | Result |
+|---|---|
+| 364 maps build | **364 of 364**: with the edges and the table 0.12 s p50, 0.64 p90, 5.2 max (nodes, floors and placement alone 0.01 s p90); the edges are navmap's own (`NavMap.from_json`'s links) on **300 of 300** maps with navmap's nodes; the table 2.4 ms p50, 26 ms p90, 0.65 s max (the largest map, on the worker) |
+| 10,873 chains; 39 maps differ from navmap, ids unchanged on the other 325 | **10,873**; other ids on **39** maps; **the same ids on 325** - but on 25 of them a chain holds other footholds (found on the way 1) |
+| the 19 level joints are one floor each | **19**, each one floor, nothing else joined (joints at one point: 19 with no wall and no link, 122 with a wall: 59 a->b, 63 b->a) |
+| the node = `platform_at`'s on 72,800 of 72,800 | **72,800 of 72,800** (the audit's points; through the foothold under it on the maps whose chains differ) |
+| 20 things placed <= 20 us (median map), <= 70 us (largest) | **19.0-19.5 us** on the median map (Kerning City Self-Defence Item Store), **19.0-19.4 us** on the largest (Physical Fitness Test <Normal Level 3>), 4 runs, pinned, nothing else computing; with steps, last nodes and 3 climbers (bare: 14.4-14.9). The prototype's 16 / 62 us was the nearest surface alone. **Thin margin:** a busy machine puts it over 20 |
+| `proto_feet.py`'s hops: air called standing <= 0.8 %, standing called air <= 0.2 % | **0 of 26,811 (0.00 %); 1,014 of 555,561 (0.183 %)**; the prototype's rows reproduce measurement 3 exactly |
+| the table = route()'s seconds on 1,000 random pairs, built <= 5 ms on Line 1 | **1,000 of 1,000** (exactly equal); **4.18 ms** (best of 7, p50 4.19; 4.2-4.4 in single builds) |
+| pytest, bot speed | whole suite green; **bot speed 14.5 ms** a tick (p90 16.1; recent runs 13.9-14.2: graph.py is not on the perception path); measured with nothing else computing, the game open. In a worktree, `assets/scene` (not in git) must be linked in first, or the bench runs without the scene model (3.5 ms, meaningless) |
+| a rebuild does not block a frame (a test) | **met as "the frame never waits for the rebuild"**: every read during it answers at once from the old set, whole, then the new one (38,000 calls in Line 1's 0.6 s); but see found on the way 3 |
+
+Found on the way:
+1. **25 more maps change than the 39** (counted by chains, not by ids): the same chain ids, other footholds - Perion,
+   Perion Street Corner, the Rocky Mountain / Rocky Road / Deep Valley maps, Drake's Meal Table and 13 more
+   (`nav_audit.py graph` names them). navmap follows a one-way `next` across a joint where another chain comes in
+   (Perion chain 153: foothold 156's next is 157, but 157's prev is 165), so its chain runs on; here it stops.
+   300 maps have navmap's nodes exactly (and the same edges: below).
+2. **The plan's bold row of measurement 3 (0.79 % / 0.072 %) is the "this step still" rule** (within 3 px of the last
+   y + the sideways step), not design 3's "within 1 px + 0.9 x the sideways step" (the prototype: 0.55 % / 0.183 %);
+   proto_mobs uses design 3's, and so does graph.py. Its 0 air frames called standing (148 in the prototype) is
+   the missing +-8 / 16 px retry: `platform_at` found a surface 8-16 px to the side.
+3. **The rebuild's worker thread shares Python's GIL with the frame.** While it runs, a call now and then waits for
+   the GIL: on Line 1 (0.6 s rebuild) 28 of 22,600 calls of 20 things waited over 6 ms, the longest 20 ms; a 2 ms
+   piece of frame work took 2.2 ms at the median, 31 ms at p99, 37 ms at most. On the largest map (6.9 s) the
+   longest call 31 ms, a 2 ms piece up to 171 ms. Not garbage collection (the same with gc off); Windows' timer
+   resolution makes it worse (at 1 ms: the longest call 12 ms, the 2 ms piece 25 / 60 ms); a shorter switch
+   interval makes every call 4 x slower. A process instead of a thread would remove it (the edges come back as
+   arrays; the Link objects are made once, ~5 ms on the largest map) - a change of the design, so not made:
+   **the user decides** (it matters when step 6's measured values change often enough to rebuild).
+4. Two chains lying on each other (In a Small Forest 29 and 62, y 605): equal distances go to the lower id, as
+   `platform_at`; the first count of 72,738 was the audit's own mapping back through the footholds' geometry.
+
+The gate's commands: `tools\model\nav_audit.py graph` (~3 minutes; `--no-edges`: 5 s), `tools\perc\track\proto_feet.py
+--sound` (its last stand / air row), `pytest tests\test_track_graph.py`.
+
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
 2. The real code cannot reproduce a prototype's number from the same kept replay within tolerance: stop - it is
