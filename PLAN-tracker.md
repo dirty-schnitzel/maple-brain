@@ -273,6 +273,31 @@ number.)
   taken back when a living pose follows); 157 of our 391 killing blows began covered (the begin is counted back
   from the die frame first seen); 14 of 591 casts have two candidate key-downs.
 
+### 7. Other players from name tags (`proto_players.py`, the 30-minute capture; sheets in `...\track-plan\players\`)
+- **What the tag list holds** (235,436 tags, 2 a frame at the median, 10 at most): ours 43.4 %, players 28.4 %,
+  lines of the message log 14.7 % (fixed on the screen, right-aligned), **other players' pets 8.2 %** ("Brown
+  Puppy", "White Bunny", "Snail" - a class Part 1 did not have), mobs' own tags 2.4 % (an 87 x 20 box under the
+  feet of a mob we hit), short or cut pieces 2.1 %, the rest 0.7 %. No NPC on this map.
+- **The rules:** a tag is followed in map coordinates; its class is voted over its life from what stands on
+  it (a mob seen there, a body ~70 px high = a character, ~40 px = a pet, nothing = text). A tag's width is
+  constant for one name: after a gap only a tag of the track's own width takes the id back.
+- **Player tracks:** 308 in 30 minutes; a life lasts 2.7 s at the median (9 s at p90, 42 s at most): players
+  pass through. 0 to 4 in view, at least one on 47.8 % of frames. Inside a life the tag is found on 87.5 % of
+  frames (whole, alone and at its own width on 62.5 %); 1,253 gaps, all but one under 1 s.
+- **By eye:** 20 random "player" moments: a player's tag on 20 of 20; on 4 the box is two tags side by side read
+  as one, or a tag cut by a ladder. 20 random "pet" moments: 14 pets, 5 players, 1 log line. So no non-player
+  was called a player, but a player beside its pet can be called a pet, and two tags side by side merge.
+- **Identity:** two players within 40 px 46 times, ids swapped 0. With the 1 s cover 52 of the 308 tracks are the
+  same width back near the same place within 10 s under a new id (2.1 s later at the median); a 0.3 s cover gives
+  400 tracks and 141 such, a 2 s cover 279 and 29.
+- **Placement** (47,182 whole sightings; feet = the tag's centre x, its top y - 1): standing 71.1 %, in the air
+  10.1 %, on a rope 18.8 %; standing feet exactly on the surface on 97.8 %, within 1 px on 98.8 %; 227 sightings
+  within 3 px of a surface while moving up or down (a jump passing it). Walking speed 156 px/s at the median
+  (ours 152).
+- **Cost:** 0.04 ms a frame p50, 0.09 p99 in Python.
+- *Also:* our own tag is in the list on 1,179 frames where `FrameFacts.tag` is empty - 1.1 points of the 3.3 %
+  of frames our position is missing today.
+
 ### 8. The hotkey reader (`proto_slots.py`: its docstring holds what the client draws on a slot, pixel-exact)
 - **How a slot is drawn** (from the client's own pictures, checked against frames): the bar is `UI/QuickSlot.img`'s
   panel at frame (933, 588); a cell is 32 x 32 px; drawn in order: the keycap, the content (an item's `info/icon`,
