@@ -766,7 +766,7 @@ and the ms (both independent of these)?
    user: "bubblings do bounce like that when walking, it should be labeled as ground". So the 29 L1 cases (26
    Bubblings + 3 Slimes in a `move` pose labelled air) are **relabelled `stand`** in the bank's L1 file (the tracker
    already says stand); only a real jump (the `jump` action, measurement 3's hops) is air. **The slope (feet 3.6-4.4 px
-   off a slope, past 3 px): open** - asked by try 2's session first (3 px kept, or 5 px on slopes only).
+   off a slope, past 3 px): 5 px on slopes only** (the user: "allow 5 px"); flat ground keeps 3 px.
 3. **L1's node: 99.42 % (515 of 518) accepted** as met (one case short of 99.5 % on this sample).
 4. **L2 / L3: OK** -
    - L2: the 5 cases labelled `none` (a mob in plain view the fit missed) leave L2's count: the tracker can only
@@ -825,9 +825,8 @@ Decide by the numbers whether Fitter.look stays. Numbers into the plan; a gate m
 ```text
 Tracker, step 3, try 2 (mobs, in shadow: the user's answers, then the rest of the gate). Read PLAN-tracker.md -
 step 3's row, "Step 3, 2026-11-24" and "The user's answers" under it, design 2-4, the stop rules. Branch
-tracker-build (the main folder is on it). First ask the user the open slope question (feet 3.6-4.4 px off a
-slope: keep 3 px, or 5 px on slopes only) and write the answer under "The user's answers". Then: a flying kind is
-never stand; relabel the 29 bounce cases of L1 to stand in the bank's file (a note of which, in the file and the
+tracker-build (the main folder is on it). Build the answers: stand within 5 px on a slope (3 px on flat ground
+stays); a flying kind is never stand; relabel the 29 bounce cases of L1 to stand in the bank's file (a note of which, in the file and the
 plan); L2 without the 5 "none" cases (reported apart), edge first, either of two covers right; L3 with "how it came
 into sight" and "first pose" as two fields. Tests for each rule (a test fails without it). Re-run the whole gate
 from the kept replay (13 sound captures, jolts <= 556, L1-L3, L8 reported), then the live path (a new kept replay
