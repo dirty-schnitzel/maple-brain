@@ -206,6 +206,34 @@ two rows (y 698-699, the HUD's top edge). Nothing else (the minimap window is ma
 remembered track could not be checked for seconds were scene-model gaps (an animated portal, a platform end's
 decoration), not the UI.
 
+### 5. The drops tracker (`proto_drops.py`: `run`, `numbers`, `sheets`; its docstring holds the rules)
+Run from the kept replay alone (the finder's sightings + the two bitmaps). 13 sound captures, 48.8 minutes: **746
+drops**; the 30-minute capture: 491 (268 bronze mesos, 180 etc, 41 use, 2 equip), 24 alive at once at the median,
+43 at most.
+- **The rules that worked:** a sighting belongs to a drop of the same item at the same map x whose bob says it is
+  at that height now (the bob is a cosine of 5 px with a 2.000 s period: fitted per drop, a sighting is off it by
+  0.2 px at the median, 1.0 px at p99.99); a drop is born only from a RESTING sighting and confirmed after
+  0.25 s of sightings; two of one item at one x are told apart by their bobs.
+- **Gone** is known three ways: the pickup hop is seen (the item rises 12 px); its place is looked at in the
+  bitmaps and shows the scenery at every resting height; 130 s after its birth. Otherwise it is kept (out of view
+  62 % of a drop's frames; on screen it is sighted on 91-92 %, covered 2-3 %, at the edge 2 %, under the UI 3 %).
+- **How the 746 ended:** we took it 235, 130 s old 180, gone in view 123 (on the 30-minute capture 71 of 73
+  were 118-130 s old: the expiry seen), found gone 53, the capture ended 155.
+- **"We took it"** (30-minute capture, 191): the hop was seen on 185; the pickup key went down 0.13 s (p50; p90
+  0.43, max 0.64) before the first frame without the drop; our feet were within 26 px sideways (p50 6) and 1 px
+  off its foothold's height. No hop without a fitting press there - but 36 on the older captures, where the key
+  was held: the rule must read "the key is down", not "pressed in the last 0.75 s".
+- **Linking, by self-consistency:** no life with two items, none over 131 s, no drop declared gone and seen again;
+  11 pairs of one item overlapping within 3 px (2 are two real drops seen in one frame; 9 of 746 = 1.2 % are
+  open - a gate item); 1 life born where another ended under 1 s earlier.
+- **Which mob it came from:** the die pose comes 1.39 s (p50; p5 1.09, p95 1.54) before the first resting
+  sighting, the drop lands up to 107 px from the death (p50 47). Rule "a death 0.6-1.8 s before, within 110 px,
+  on its level": exactly one death for **84.7 %** (87.2 % on the 30-minute capture), none 8.7 %, several 6.6 %.
+  The other way: a drop follows 61 % of the deaths near us. By eye, 3 births of 3: right.
+- **"Gone" is noticed** 0.05 s after the hop's last frame, 0.16 s after the place first shows empty.
+- **Cost:** 0.14 ms a frame p50, 0.40 p90, 0.80 p99 in Python, its looks included (1 known drop a frame at the
+  median is not reported by the finder and is looked at).
+
 ### 8. The hotkey reader (`proto_slots.py`: its docstring holds what the client draws on a slot, pixel-exact)
 - **How a slot is drawn** (from the client's own pictures, checked against frames): the bar is `UI/QuickSlot.img`'s
   panel at frame (933, 588); a cell is 32 x 32 px; drawn in order: the keycap, the content (an item's `info/icon`,
