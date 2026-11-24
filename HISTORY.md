@@ -4592,3 +4592,36 @@ DONE 2026-11-21: the plan is filled (PROPOSED), its tools are on branch `moving-
 - **Already ours, not taken again:** a hold-out group scored once (PLAN-data); the brain against the user's own
   keys on footage (PLAN-data's limits, above); reaction delays (the "humanness report" offer, above);
   fall-through footholds (`docs/game_rules.md` question 3).
+
+## 2026-11-24 - the data-model discussion, as proposed before docs/state_model.md and PLAN-tracker.md replaced it (moved from HANDOFF.md)
+### Proposed by Claude in the planning sessions (the user works along it; not OK'd as a whole)
+- **OK'd 2026-11-23 with the tracker plan's prompt (discussed 2026-11-21..23): no guessing.** The user: "we simply shouldn't try
+  to guess, at all ... We see the actions with perception and we act upon them"; a human farming "doesnt have
+  memory of the exact location of every mob it has seen, he is basically looking at the map and following a set
+  of rules"; "the data model has to be chosen before designing tracking". What follows from it:
+  - **The data model = the map's graph + what is on screen now.** The graph is fixed per map and exists
+    (`nav/navmap.py`: platforms and ropes = nodes, walk / jump / drop / climb links = edges; 364 of 364 maps
+    build, portals are not edges). Per frame, for every mob, drop, other player and us: what it is, where on the
+    graph (platform + place along it), which thing of the previous frames it is, how it is seen (clear, or
+    covered by what). Plus the events since the last frame: spawned, hit, died by our last hit or not, dropped,
+    picked up, we got hurt = the training labels and the scoreboard. **Plus every attribute and fact of the
+    world state (the user, 2026-11-21):** our move speed, jump speed, current weapon range, and the like for
+    mobs and the map, each with its source (`docs/prompts/tracker-plan.md`, Part 1).
+  - **Out of the tracker:** behaviour predicted from assumed server rules (respawn, aggro, mob AI). Its inputs =
+    perception + static / calculated data; predicting where a thing is from what was seen and what covers it is
+    allowed (the user, 2026-11-23). A short cover = a few seconds, up for debate. **The goal (the user,
+    2026-11-23):** very fast, very accurate, all of perception into the model, the frame rate not lowered or as
+    little as possible. **Dynamic values** (skills and keys, move speed, jump, weapon reach...) change during
+    play: the session lists them and decides how each is set. **Memory is IN (the user, 2026-11-23: "we
+    definitely need memory, this needs to be designed in the tracker session")**, together with mobs that die
+    under cover and drops that vanish out of view - the session designs it (`docs/prompts/tracker-plan.md`).
+  - **Position (the user leans to it, 2026-11-23):** node + place along it, the raw map (x, y) kept beside it;
+    placement types standing / air / rope / flying, one rule for every kind (OK'd); "on our platform" = a derived
+    fact (same floor = joined by walk links), not a field.
+  - **No simulator engine now** (the user, 2026-11-22: "there might be an engine down the line, but after
+    tracking and at least full fsm behavior"). A clone learns from recordings (the state + the user's keys);
+    FSM and clone are benchmarked in live runs counted by the tracker's events. The viewer stays.
+  - **Kept from the earlier list:** the same tracks live and from a recording, nothing tied to the scripted
+    brain or one class; the hindsight twin as the truth (`tools/perc/track/oracle.py`); perception one-way.
+  - **Left to the session:** how long "a short cover" is, and the drops rule under "Decided by the user" (an
+    input to the memory design).
