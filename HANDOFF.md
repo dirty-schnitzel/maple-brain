@@ -5,7 +5,7 @@ what is true NOW and what comes NEXT. The `handoff` skill rewrites it at the end
 appended to. Everything older is in HISTORY.md (grep it; what left this file on 2026-11-21 is its last
 blocks). Rules that stay true: CLAUDE.md and .claude/rules/. Plans and their progress: PLAN-*.md.
 
-## START HERE (2026-11-24): `PLAN-tracker.md` is APPROVED - step 2 DONE (merged into `dev`), steps 1 / 3 / 7 open
+## START HERE (2026-11-24): `PLAN-tracker.md` is APPROVED - steps 1, 2 and 7 DONE; step 3 next (needs footage)
 
 **The user's goal (2026-11-19):** "have a great perception / tracking / data model in order to feed that into an
 ai to see how many hours of farming on a specific map with a specific class and style are needed to teach it to
@@ -20,22 +20,12 @@ that led to it: HISTORY.md, the block of 2026-11-24).
 | # | Session | Run as | Status | Prompt |
 |---|---|---|---|---|
 | **P0.1-5** | **The plan's steps 1-5, one executor session each:** 1 the pictures right (the forest maps sound), 2-3 moving backs drawn and followed (40 maps hunt), 4-5 Perion's clouds followed and undone (42 maps hunt). Steps 4-5 need the user's Perion recording | Opus (high) | **steps 1-5 DONE 2026-11-23**, the numbers each missed gate fell short on ACCEPTED by the user (PLAN-moving-scenery.md's status); merged into `dev` 2026-11-23 (9085f5b). Steps 6-7 wait for footage | `PLAN-moving-scenery.md`, "Session prompts" |
-| 3 | The tracker plan session, in two parts: (1) the data model -> `docs/state_model.md`, stop for the user's OK; (2) the tracker that fills it -> `PLAN-tracker.md`, PROPOSED until the user's OK. Take along: per mob, on our platform or not (Open items, "Ideas from another bot") | Fable, max | **DONE.** Part 1: `docs/state_model.md`, OK'd by the user 2026-11-23. Part 2: **`PLAN-tracker.md` APPROVED 2026-11-24** (questions 1-7 answered, 40 % kept, question 8 postponed to step 5) | done (the prompt, `docs/prompts/tracker-plan.md`, is in git history) |
-| 4 | **PLAN-tracker.md's steps, one executor session each** (branch `tracker-build` off `dev`, after `tracker-plan` is merged into `dev`): 1 label sets by eye, 2 the graph and placement, 3 mobs in shadow, 4a drops, 4b other players and us, 5 events, 6 the facts registry + profile + Skill.img, 7 the hotkey reader, 8 the stored tables, 9 the switch (the brain reads the new state, `world.py` goes). Steps 1, 2 and 7 could run beside each other, 4a beside 4b, 5 / 6 / 8 in pairs (the plan's table) - the user decides. Beside it, at any time: the viewer (PLAN-livemap.md Session 1: use `dev`). No engine session | Opus (effort per step: 1 medium, 2 high, 3 xhigh, 4a / 4b high, 5 xhigh, 6-8 medium, 9 high) | **step 2 DONE 2026-11-24, gate met, merged into `dev` (0e68464)**: `maplebrain/track/graph.py` (the plan's "Step 2"); its rebuild stays a worker thread (the user: "keep same thread"). Step 1: see the plan (its gate missed, on `tracker-build`); step 3 waits for the Line 1 capture and step 1's labels; step 7's footage is filed | `PLAN-tracker.md`, "Session prompts" |
+| 4 | **PLAN-tracker.md's steps, one executor session each** (branch `tracker-build` off `dev`, after `tracker-plan` is merged into `dev`): 1 label sets by eye, 2 the graph and placement, 3 mobs in shadow, 4a drops, 4b other players and us, 5 events, 6 the facts registry + profile + Skill.img, 7 the hotkey reader, 8 the stored tables, 9 the switch (the brain reads the new state, `world.py` goes). Steps 1, 2 and 7 could run beside each other, 4a beside 4b, 5 / 6 / 8 in pairs (the plan's table) - the user decides. Beside it, at any time: the viewer (PLAN-livemap.md Session 1: use `dev`). No engine session | Opus (effort per step: 1 medium, 2 high, 3 xhigh, 4a / 4b high, 5 xhigh, 6-8 medium, 9 high) | **step 2 DONE 2026-11-24, gate met, merged into `dev` (0e68464)**: `maplebrain/track/graph.py`; its rebuild stays a worker thread (the user: "keep same thread"). **Step 1 DONE** on `tracker-build` (try 3, 86f6ff3: its plan section). **Step 7 DONE 2026-11-24, gate met** (L7's gate reworded by the user), merged into `tracker-build` (df8b20c): `perception/slots.py`, FrameFacts v7 `slots`, `track/us.py` (the plan's "Step 7"). **Next: step 3** - waits for the user's 5 minutes on Line 1; steps 4a / 4b / 5 / 6 / 8 follow the plan's table | `PLAN-tracker.md`, "Session prompts" |
 | 4b | Wide maps: plan, then execute, the scrolling minimap placed by several agreeing patches (Open items, "Ideas from another bot") | Fable, max -> Opus | after the tracker (the user, 2026-11-22) | - |
 | 5 | FSM or clone, decided on what both score in live runs, counted by the tracker's events | - | open | - |
 
-### Decided by the user
-- **v83 is the rulebook (2026-11-20):** "no guessing or measuring v83 client is more than good enough, the server
-  behavior hasn't changed that much over the years and certainly would not affect bot behavior - all the concepts
-  are the same". Game rules come from v83 code + our client files, never from guesses, and measuring them from
-  footage is not a precondition. Sources: HeavenClient (the movement of our character AND of the mobs - the
-  client simulates both) and Cosmic (the server's side - respawn, EXP, drops), cloned to
-  `C:\Users\Yoav\dev\v83-ref\` (HeavenClient 0daa69d, Cosmic fec53bc; reading only, both AGPL-3.0).
-- **Graphics settings (2026-11-21): small damage numbers, own skill effects 20 %, other players' 0 %.** The
-  standard from now on; the tracker is designed on footage at these settings. Captures at them: the two Line 1
-  captures below (no label says so; checked by eye against a normal-settings capture: no burst over our character
-  at `q`, smaller digits) and `20261119_210307_1#0` (label `new-settings`). Everything older = normal settings.
+### Decided by the user (also: v83 is the rulebook - `.claude/rules/gamedata.md`; the graphics settings -
+`.claude/rules/perception.md`; earlier ones in HISTORY.md)
 - **Not wanted now:** the two bot hunts for PLAN-data gate (b)'s tick cost; loot scene 3 of PLAN-loot.md section
   13 (windows over drops: "inventory will come much later down the line and is not a part of tracking").
 - **Drops in the tracker:** "expect the loot to be there for 2 mins (max loot decay time) and if it disappears
@@ -47,10 +37,6 @@ that led to it: HISTORY.md, the block of 2026-11-24).
   (Cosmic: respawn, aggro, drop lifetime, EXP) until a job needs it.**
 - **PLAN-data's camera stop rule (2026-11-21):** counted from the first fix after a portal to the exit fade (the
   ~1 s blind start and the fade do not count) - OK'd as read in REPORT-track-before.md section 3.
-- **Moving scenery = two problems, one plan, P0 (2026-11-21).** (1) Moving backgrounds BEHIND the mobs: they
-  should stop bothering perception; (2) Perion's clouds IN FRONT of the mobs: mobs found through them, or
-  "covered by cloud" as a fact. The tracker is designed on the 13 sound captures until the plan is built. The
-  plan OK'd 2026-11-21 ("execute moving-scenery plan"); its three questions are still open.
 
 ### What the next sessions build on
 - **`docs/state_model.md` (OK'd) + `PLAN-tracker.md` (APPROVED 2026-11-24).** The model: the map's graph, the
@@ -60,27 +46,21 @@ that led to it: HISTORY.md, the block of 2026-11-24).
   96.3), the id kept across a cover 93.4 % (78.5), 1,022 id changes (2,232) - by keeping the places an unseen
   mob can be and dropping those that show the scenery, 4 s at most when nothing can be checked. Drops 746, none
   lost and found again; every HP / MP / EXP step explained; the 8 hotkeys read exactly on every frame; other
-  players by name tag. **Found:** mobs move at 2 x the v83 rule's speed (noted in `docs/game_rules.md` C1); the
+  players by name tag. **Built so far** (`tracker-build`): the graph and placement (`track/graph.py`, step 2), the
+  hotkey reader (`perception/slots.py` + `track/us.py`'s slots, step 7: every key's item / skill and amount, exact
+  or "unreadable" - a fade, the cursor, a window - never a wrong item; ~0.016 ms a frame, the bot speed unchanged);
+  its pictures come from `tools/cwdata/export_slots.ps1` (called by `export.ps1`) -> `assets build` ->
+  `assets/mcw/slots`. **Found:** mobs move at 2 x the v83 rule's speed (noted in `docs/game_rules.md` C1); the
   fit makes false sightings from slivers of players at the screen's edge; the truth (`oracle.py`) swaps two
   mobs of a kind at crossings (457 of the prototype's 1,022 "id changes"), so the plan's gates use a fair count.
-- **`PLAN-moving-scenery.md` (steps 1-5 DONE 2026-11-23 and merged into `dev`; each step's numbers under its
-  heading there; steps 6-7 wait for footage).** The forest
-  maps hold no moving scenery: the export decoded the sky's colour wrong and Ellinia's light rays are an ADDED
-  layer - both right now (`export.ps1`, `scene.py` on `moving-scenery`): 9 of 9 forest captures sound (model
-  96.3-99.7 %, the kept replay re-made), the live fit = the prototype's on Forest S of Ellinia, `gate.py` SAME. A moving back keeps its exact
-  colours and goes `5 x rx` px a second along the map: drawn in and followed each frame, the fit finds what
-  stands in front of it (+27 % sightings on Kerning's construction site, none lost). Perion's clouds in front =
-  the client's 7 weather cloud pictures (42 maps), each cloud at its own constant opacity and speed, never
-  opaque: undone, the fit finds the mobs under them (174 of 174 test mobs). About +3 ms a frame on Perion. After
-  steps 1-5, 82 of the 95 refused maps hunt. Tools: `tools/perc/scenery/` (its README); results and by-eye
-  sheets: `F:\dev\maple-corpus\work\scenery\`.
+- **`PLAN-moving-scenery.md` (steps 1-5 DONE 2026-11-23, merged into `dev`; steps 6-7 wait for footage):** the
+  forest maps sound, moving backs drawn in and followed, Perion's clouds undone; 82 of the 95 refused maps hunt.
+  Each step's numbers under its heading there; tools `tools/perc/scenery/` (its README).
 - **The footage for the tracker:** `20261121_000219_2#0`, Line 1 <Area 1>, 30.6 minutes of the user's farming
   in one stay (110,082 frames at 60 a second, 0 dropped), and `20261120_235747_1#0` (the same map, 4.2 minutes) -
   both at today's graphics settings. Bank: 19 recordings, 50 captures, 93 minutes, 31.9 GB (`corpus.py list`).
-- **`docs/game_rules.md`**: the game's rules as v83 code has them, in px and seconds, each with its source line
-  and the client-file field it reads (sections A-K, three tables). **Open = its table 3, 21 questions**, among
-  them: how a mob with aggro moves and attacks is in no source; the walk range `rx0`/`rx1` is read by no source;
-  Classic World's skill list is not v83's; which skills are on `w` / `e`.
+- **`docs/game_rules.md`**: the game's rules from v83 code, each with its source; **open = its table 3, 21
+  questions** (aggro movement, the walk range `rx0`/`rx1`, Classic World's skill list ...).
 - **The kept replay + the "before" numbers (`REPORT-track-before.md`, branch `tracker`).** Today's Perceiver,
   unchanged, over every frame of 23 captures (204,131 frames, 2.5 GB) in `F:\dev\maple-corpus\work\SESSION#K\track\`:
   per frame the camera, us, the fit's mobs, today's tracks and looks, drops, patches and the two bitmaps - a
@@ -110,9 +90,6 @@ that led to it: HISTORY.md, the block of 2026-11-24).
   maps, below); the Execution rework: key-release locking, and a dead-man release (no tick ended for ~1 s -> every
   key up; today a hung loop keeps our keys held); the tracker / data model: per mob, on our platform or not, from
   foothold heights; perception, lower priority: any client window over the world -> a stop + "covered by a window".
-- **The local scenes were stale until 2026-11-21** (PLAN-moving-scenery.md step 1, "Found on the way"): only
-  the gate clips' 5 maps had the fit's front planes, so every other map's live hunts and replays ran without them;
-  all 233 built now (+7 % sightings on Ant Tunnel I, up to +62 % on the forests).
 - **A lost scene camera** releases every key until it is found again, even on a 1-tick miss: to be handled as
   cases come up live (HISTORY.md "The deletion (DONE 2026-11-17)").
 - **`w` and `e` are skills the code does not know** (not in `Keys`); the bank's farming label counts only
@@ -122,6 +99,12 @@ that led to it: HISTORY.md, the block of 2026-11-24).
   the screen's edge (PLAN-tracker.md measurement 2; the new tracker does not remember them); the play area's
   bottom two rows (y 698-699) are the HUD's edge and are not masked; our own tag is in the tag list on 1,179
   frames of the 30-minute capture where `FrameFacts.tag` is empty.
+- **The bot speed in a worktree:** `tools/perf/bench.py` and pytest's `bot speed` line run the fit only where
+  `assets/scene` exists (not in git): in a worktree without it the tick is ~3.7 ms instead of ~14.5 ms (found by
+  step 7, 2026-11-24). Measure speed in the main folder or with `assets/scene` linked (proposed for CLAUDE.md
+  "Measuring"; not yet agreed by the user).
+- **When `tracker-build` merges into `dev`:** CLAUDE.md's code map gets `perception/slots.py` (the hotkey reader)
+  and a `track/` row (the new tracker: `graph.py`, `us.py`).
 - **`PLAN-moving-scenery.md` is not valid UTF-8** (the Read tool says so; the Edit tool refuses it): to be
   converted on the user's word.
 - **Wide maps:** F7 now recognises maps whose minimap scrolls sideways; whether the locator and perception work
@@ -147,16 +130,18 @@ that led to it: HISTORY.md, the block of 2026-11-24).
   `tools/perc/track/` (Part 2); **merged into `dev` 2026-11-24 on the user's word** (8f00b8e), can be deleted.
 - **`tracker-build`** (2026-11-24, off `dev` at 8f00b8e): PLAN-tracker's steps; **the main folder is on it**. A
   step that runs beside another works in its own worktree on `tracker-build-<step>` and is merged back.
-  `tracker-build-graph` (step 2) is merged into `dev` (0e68464), not yet into `tracker-build`: merge `dev` in there.
-  Worktree `.claude/worktrees/graph` (links `assets/scene` to the main folder's) can be removed.
+  `tracker-build-graph` (step 2) is merged into `dev` (0e68464), not yet into `tracker-build`: merge `dev` in there
+  (PLAN-tracker.md changed on both: keep both sides). Worktree `.claude/worktrees/graph` (links `assets/scene` to
+  the main folder's; its local `dev` is behind `origin/dev` - pull it) can be removed.
+  `tracker-build-slots` (step 7) is merged into `tracker-build` (df8b20c) and can be deleted; worktree
+  `.claude/worktrees/slots` can be removed.
 - `main` has not moved since 2026-11-09 (02a639a) and has no CLAUDE.md. Parked: `vnc-keys` (the VM attempt).
 
 ## Waiting on the user
 - **`PLAN-tracker.md` (APPROVED 2026-11-24): question 8** (EXP in the kill rule), put to the user by step 5's
   session. Questions 1-7 answered and written into the plan: observed data beats server rules, no pets, players'
   cover 2 s, no buffs / cooldowns for the warrior, HP x 1.24 = the warrior's passive; the empty-place rule 40 %.
-- **Its footage** ("Footage asked of the user"): 5 minutes of farming on Line 1 (step 3); 1-2 minutes of the
-  quickslot bar with a skill on a key, an amount at 0, a tooltip, a window over it (step 7); welcome: a map with
+- **Its footage** ("Footage asked of the user"): 5 minutes of farming on Line 1 (step 3); welcome: a map with
   flying mobs, an Ant Tunnel map (the buff ask is dropped: the warrior has none).
 - PLAN-moving-scenery.md's questions (its last section), if any are still open; footage for its steps 6-7.
 - The "explained" reading of PLAN-data's stop rule (REPORT-track-before.md section 3), to confirm or change:

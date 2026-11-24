@@ -4625,3 +4625,52 @@ DONE 2026-11-21: the plan is filled (PROPOSED), its tools are on branch `moving-
     brain or one class; the hindsight twin as the truth (`tools/perc/track/oracle.py`); perception one-way.
   - **Left to the session:** how long "a short cover" is, and the drops rule under "Decided by the user" (an
     input to the memory design).
+
+## 2026-11-24 - tracker step 7 done (moved from HANDOFF.md)
+The order table's step-4 status, as it stood before step 7's handoff:
+**step 2 DONE 2026-11-24, gate met, merged into `dev` (0e68464)**: `maplebrain/track/graph.py` (the plan's "Step 2"); its rebuild stays a worker thread (the user: "keep same thread"). Step 1: see the plan (its gate missed, on `tracker-build`); step 3 waits for the Line 1 capture and step 1's labels; step 7's footage is filed
+
+Waiting on the user, the footage line as it stood (the quickslot footage was filed 2026-11-24):
+- **Its footage** ("Footage asked of the user"): 5 minutes of farming on Line 1 (step 3); 1-2 minutes of the
+  quickslot bar with a skill on a key, an amount at 0, a tooltip, a window over it (step 7); welcome: a map with
+  flying mobs, an Ant Tunnel map (the buff ask is dropped: the warrior has none).
+The order table's row 3 (the tracker plan session, done):
+| 3 | The tracker plan session, in two parts: (1) the data model -> `docs/state_model.md`, stop for the user's OK; (2) the tracker that fills it -> `PLAN-tracker.md`, PROPOSED until the user's OK. Take along: per mob, on our platform or not (Open items, "Ideas from another bot") | Fable, max | **DONE.** Part 1: `docs/state_model.md`, OK'd by the user 2026-11-23. Part 2: **`PLAN-tracker.md` APPROVED 2026-11-24** (questions 1-7 answered, 40 % kept, question 8 postponed to step 5) | done (the prompt, `docs/prompts/tracker-plan.md`, is in git history) |
+
+What the next sessions build on, the moving-scenery paragraph:
+- **`PLAN-moving-scenery.md` (steps 1-5 DONE 2026-11-23 and merged into `dev`; each step's numbers under its
+  heading there; steps 6-7 wait for footage).** The forest
+  maps hold no moving scenery: the export decoded the sky's colour wrong and Ellinia's light rays are an ADDED
+  layer - both right now (`export.ps1`, `scene.py` on `moving-scenery`): 9 of 9 forest captures sound (model
+  96.3-99.7 %, the kept replay re-made), the live fit = the prototype's on Forest S of Ellinia, `gate.py` SAME. A moving back keeps its exact
+  colours and goes `5 x rx` px a second along the map: drawn in and followed each frame, the fit finds what
+  stands in front of it (+27 % sightings on Kerning's construction site, none lost). Perion's clouds in front =
+  the client's 7 weather cloud pictures (42 maps), each cloud at its own constant opacity and speed, never
+  opaque: undone, the fit finds the mobs under them (174 of 174 test mobs). About +3 ms a frame on Perion. After
+  steps 1-5, 82 of the 95 refused maps hunt. Tools: `tools/perc/scenery/` (its README); results and by-eye
+  sheets: `F:\dev\maple-corpus\work\scenery\`.
+Open items, resolved:
+- **The local scenes were stale until 2026-11-21** (PLAN-moving-scenery.md step 1, "Found on the way"): only
+  the gate clips' 5 maps had the fit's front planes, so every other map's live hunts and replays ran without them;
+  all 233 built now (+7 % sightings on Ant Tunnel I, up to +62 % on the forests).
+Decided by the user, the entries kept elsewhere now (rules files, the finished plan):
+- **v83 is the rulebook (2026-11-20):** "no guessing or measuring v83 client is more than good enough, the server
+  behavior hasn't changed that much over the years and certainly would not affect bot behavior - all the concepts
+  are the same". Game rules come from v83 code + our client files, never from guesses, and measuring them from
+  footage is not a precondition. Sources: HeavenClient (the movement of our character AND of the mobs - the
+  client simulates both) and Cosmic (the server's side - respawn, EXP, drops), cloned to
+  `C:\Users\Yoav\dev\v83-ref\` (HeavenClient 0daa69d, Cosmic fec53bc; reading only, both AGPL-3.0).
+- **Graphics settings (2026-11-21): small damage numbers, own skill effects 20 %, other players' 0 %.** The
+  standard from now on; the tracker is designed on footage at these settings. Captures at them: the two Line 1
+  captures below (no label says so; checked by eye against a normal-settings capture: no burst over our character
+  at `q`, smaller digits) and `20261119_210307_1#0` (label `new-settings`). Everything older = normal settings.
+- **Moving scenery = two problems, one plan, P0 (2026-11-21).** (1) Moving backgrounds BEHIND the mobs: they
+  should stop bothering perception; (2) Perion's clouds IN FRONT of the mobs: mobs found through them, or
+  "covered by cloud" as a fact. The tracker is designed on the 13 sound captures until the plan is built. The
+  plan OK'd 2026-11-21 ("execute moving-scenery plan"); its three questions are still open.
+
+What the next sessions build on, the game_rules bullet in full:
+- **`docs/game_rules.md`**: the game's rules as v83 code has them, in px and seconds, each with its source line
+  and the client-file field it reads (sections A-K, three tables). **Open = its table 3, 21 questions**, among
+  them: how a mob with aggro moves and attacks is in no source; the walk range `rx0`/`rx1` is read by no source;
+  Classic World's skill list is not v83's; which skills are on `w` / `e`.
