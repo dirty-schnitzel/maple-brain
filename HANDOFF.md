@@ -151,8 +151,7 @@ that led to it: HISTORY.md, the block of 2026-11-24).
   other players' pets; the players' 1 s cover; which skills have a length or a cooldown; HP items giving 1.24 x.
 - **Its footage** ("Footage asked of the user"): 5 minutes of farming on Line 1 (step 3); 1-2 minutes of the
   quickslot bar with a skill on a key, an amount at 0, a tooltip, a window over it (step 7); welcome: a map with
-  flying mobs, an Ant Tunnel map; a buff cast 5 times if the character has one.
-- **Merge `tracker-plan` into `dev`** (tools only).
+  flying mobs, an Ant Tunnel map; a buff cast 5 times if the character has one. And the merge of `tracker-plan`.
 - PLAN-moving-scenery.md's questions (its last section), if any are still open; footage for its steps 6-7.
 - The "explained" reading of PLAN-data's stop rule (REPORT-track-before.md section 3), to confirm or change:
   map places the scene model misses on more than half of the frames that show them (what moves over the
