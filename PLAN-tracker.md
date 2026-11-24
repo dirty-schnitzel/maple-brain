@@ -10,7 +10,7 @@ L7, L8; try 3 (L1's cases near a rope, on strips of frames) **met on L1: 97.2 %*
 user's decision - they keep only the cases both looks agreed on (L2 21, L3 22) for every later gate. The numbers
 under the steps ("Step 1, try 2", "Step 1, try 3").
 Waiting on the user per step: the merge of `tracker-plan` into `dev` before step 2; the Line 1 capture before
-step 3; the quickslot footage before step 7. Step 1 needs neither.
+step 3. The quickslot footage for step 7 is in the bank (2026-11-24, `20261124_093410_1#0`). Step 1 needs neither.
 The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
 in this session on the kept replay (no GPU); the tools are in `tools/perc/track/` (branch `tracker-plan`).
 
@@ -472,7 +472,7 @@ in `tools/perc/track/` are the reference: port their rules and constants, do not
 | **4b** | **Other players and us** (`track/players.py`, `us.py`): design 6-7 | L5: players found >= 95 %, non-players called players <= 1 %, a pet called a player or a player called a pet <= 5 %, the node on >= 95 % of standing players; the 2 s players' cover (question 5): the same player back under a new number on <= 29 of the 30-minute capture's 308 tracks (within 1 %); L1 us: >= 99 %; every stuck case `nav/selfstate.py`'s docstring lists is a test; us against `SelfState` on the 30-minute capture: the same place on >= 99 % of frames, every difference listed; our feet known on >= 97.5 % of frames (today 96.7; the tag list gives 1.1 points); ms p50 <= 0.1 | 4a |
 | **5** | **Events** (`track/events.py`; needs 3-4): design 8 | 30-minute capture, from the kept replay and its keys: casts 500 / 78 / 10 (q / e / w) within 1 %; every HUD step has a cause; "by us" by chance <= 1 % (windows moved in time); kills against EXP: "us" with no EXP step <= 1 %, whole-EXP kills missed <= 2 %; L4 >= 95 %; the swing length measured live within 0.03 s of 0.85 / 0.87 | 6 |
 | **6** | **Facts, the profile, Skill.img** (`track/facts.py`, `gamedata.py`, the profile file; `kinds.py` reads the registry): design 9 | every fact of state_model.md 5 is in the registry with its source; a profile edit is read without a restart and gives a `fact` event (a test); measured live on the 30-minute capture: walk 152-157 px/s, climb 121-127, the swing 0.85-0.87 s, potions +150 / +198, each kind's speed factor 1.95-2.05, hits per kill; a changed jump height rebuilds the edges on the worker (a test) | 5, 8 |
-| **7** | **The hotkey reader** (`perception/slots.py`, FrameFacts `slots`, the picture pack built by `assets build`; tracked in `us`): design 7, measurement 8 | the self-test: 0 wrong apart from pictures that are identical under the label or digits; the 30-minute capture, every frame: all 8 keys exact on >= 99.99 % of frames, 79 of 79 steps both ways, 0 misreads; the 43 captures: an unreadable cell only in a map change's fade or under a window, each stretch listed; L7: 100 of 100; the new footage: a skill on a key read, an amount 0 read, a covered bar "unreadable", never a wrong item; ms <= 0.02 a frame on average, <= 1 for a full read | 1, 2 (its speed line alone) |
+| **7** | **The hotkey reader** (`perception/slots.py`, FrameFacts `slots`, the picture pack built by `assets build`; tracked in `us`): design 7, measurement 8 | the self-test: 0 wrong apart from pictures that are identical under the label or digits; the 30-minute capture, every frame: all 8 keys exact on >= 99.99 % of frames, 79 of 79 steps both ways, 0 misreads; the 43 captures: an unreadable cell only in a map change's fade or under a window, each stretch listed; L7: 100 % of frames right where the bar is readable or a reading is held, never a wrong item (the user, 2026-11-24; was "100 of 100"); the new footage (`20261124_093410_1#0`): a skill on a key read, an amount 0 read, a tooltip over a slot "unreadable" or read right, never a wrong item (no window over the bar in it: skipped by the user; the covered-cell case is the 43 captures' fades and "something over the bar"); ms <= 0.02 a frame on average, <= 1 for a full read | 1, 2 (its speed line alone) |
 | **8** | **The stored tables** (`state.py`'s writer and reader; the recorder and the hunt write them; a converter from the kept replay) | the 30-minute capture: <= 60 MB an hour raw, <= 12 packed (prototype 48 / 9); written and read back equal; a file without a newer column still reads (a test); <= 0.05 ms a frame | 6 |
 | **9** | **The switch** (the brain reads the state through one adapter; `world.py`, its tests and the looks it alone needs go; `gate.py` and the bench re-based in that commit; the viewer of PLAN-livemap reads the state) | pytest green; the bench not slower than the baseline; **the user's live check:** a 3-minute hunt on Line 1 - kills counted by the events within 2 of the brain's ledger, no swing at a mob that is only remembered | - (the game) |
 
@@ -594,6 +594,31 @@ marks 3 px apart on a mushroom with a Stirge over it (83), us mid-jump over the 
 The labels in the bank rewritten (every file read by `label_eval.py`, exit 0); the labellers kept `a` for a jump onto
 or off a rope and `r<id>` once the climbing pose shows.
 
+### Step 7, 2026-11-24: the hotkey reader built; the gate MET (L7's gate reworded by the user)
+Branch `tracker-build-slots` (worktree `.claude\worktrees\slots`, off `tracker-build`). Built: `perception/slots.py`
+(proto_slots ported, its docstring = what the client draws), `tools/cwdata/export_slots.ps1` (called by
+`export.ps1`, writes `export\Slots\`) -> `assets build` -> `assets/mcw/slots` (5,059 pictures: 5,313 items, 300
+skill pictures, 47 actions; 71 key labels), FrameFacts v7 `slots` = every key's `[kind, id, amount]` or None (the
+Perceiver's HUD thread; the old two-key "holds something" stays only behind `obs.hp_potions`, the brain unchanged),
+`track/us.py` = `Us` with its slots part (the last exact reading held while unreadable; a `slot` event per change, `d`
+= the amount's step). Gate tool: `tools/perc/track/slots_gate.py` (`selftest`, `run --all`, `stretches`, `l7`,
+`bench`); outputs in `F:\dev\maple-corpus\work\track-plan\slots7\`. `tests/test_slots.py`: 10 tests on bar crops.
+**Fixed on the way (not in the prototype):** my first port took a cell's label from any read; the cursor over "hift"
+leaves "S" fitting the Shift cell, and as the next read's hint that kept 8 cells unreadable to the footage's end. A
+label is now taken only from an exact read (the prototype's rule); a test proves it (fails without the fix).
+
+| Gate | Number | |
+|---|---|---|
+| Self-test, 5,059 pictures with an amount and a label, 2-row and 3-row bar | 0 wrong (4 / 5 with a look-alike under the label or digits); 71 labels on an empty keycap: 0 wrong | met. The prototype's 20 "wrong" were all one thing: "O" (key 24) is drawn with "0"'s picture - one label, two keys (`lab_also`) |
+| 30-minute capture, every frame (110,082) | all 8 keys exact on >= 99.9991 % (home and pageup unreadable on 1 frame: the cursor); 79 of 79 rises with their step and 79 of 79 steps with their rise; 0 misreads (no amount back within 2 s, 0 content changes); the 34 lone presses each one step, 554 ms p50; 312 audit frames read from scratch: 0 differences | met - the report equals the prototype's line for line |
+| 44 captures (the 43 + the new footage), 289,000 frames | 45 stretches with an unreadable cell, each listed (`slots7\stretches.txt`, sheets `stretches_*.png`): **35 map-change fades** (the whole bar, signature 0 %, 1-18 frames, every one at a stay's first or last frames); **the cursor over a cell** 5 (1-8 frames each, and the new footage's 9 s of cursor + tooltips + an item dragged); **a window over the bar** 3 (Ant Tunnel IV 2026-11-16: the game menu 4 + 21 frames, an item's tooltip with the cursor resting on Ins 58 s - the prototype's "two keys never read"; Cave of Evil Eye I: an NPC dialog's picture 22 s); **not the native window** 1 (Dark Cave 2026-11-16 from frame 357: the game drawn smaller, the desktop around it - the reader rightly finds no bar). Audit 0 differences on all 44; no content change on any; no flick | met - the cursor over a cell counts as "something over the bar" (the user, 2026-11-24); the non-native window is "not the bar" |
+| L7, 100 frames (800 keys) | **97 of 100 frames** every labelled key right: 637 read exactly on the frame, 130 held (the frame not readable - a fade, the cursor, a window - and the state holds the label's reading); **0 wrong**; the 15 "?" keys: the reader says unreadable on all 15. The 3 others are not readable and nothing was read before them: Ant Tunnel IV's first frame under the game menu (2 keys); Deep Ant Tunnel II's and L Forest III's first frame, in the fade, after a hold-out stay (not opened) | **met** on the gate as the user reworded it (2026-11-24): 97 of 97 frames right where the bar is readable or a reading is held, + 3 correct "unreadable" answers; never a wrong item ("100 of 100" as first written: 97) |
+| The new footage (`20261124_093410_1#0`) | a skill on a key read: Power Strike (1001001) on Ctrl, 36 presses; an amount 0 read: Orange Potion 1 -> 0 on Ins; tooltips and the cursor: unreadable, never another item; 13 steps of -1, each 474-684 ms after its key's press, none outside a press | met |
+| ms (quiet machine, Ultimate Performance, the game open; `slots_gate.py bench`, twice) | 3,000 consecutive frames of the 30-minute capture: **0.015 / 0.017 ms a frame on average** (p50 0.009 / 0.021, p99 0.03, max 0.97 - one cell read); **a full read of the 8 keys 0.80 / 0.92 ms** (a third run 0.74); one changed cell 32-62 us; an unchanged frame 6-8 us; the pack's load + table 82-90 ms once. Worst case, the new footage's 15 s of cursor and tooltips (894 frames, 582 cell reads): 0.039 ms on average. **bot speed** (`tools/perf/bench.py` in the main folder after the merge - the full path, fit included; the worktree has no `assets/scene` - A/B in one process, the reader on / off, 3 runs each): tick 14.9 / 14.5 / 14.7 ms on, 15.0 / 14.8 / 14.8 off - no change (hud 0.1 ms); pytest's line: 69.0 fps, 14.5 ms, "21 % faster" than the 2026-11-16 baseline (18.4 ms) - not re-based (not a speed change) | met (<= 0.02, <= 1) |
+
+Not in the gate, noted: the prototype's stored bar signature on frame 43357 of the 30-minute capture (65 %) is 100 % in
+this run and in a re-read with either pack - its run read that frame differently; nothing depends on it.
+
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
 2. The real code cannot reproduce a prototype's number from the same kept replay within tolerance: stop - it is
@@ -687,6 +712,9 @@ pytest, the bench, then ask the user for the 3-minute hunt on Line 1. Numbers in
 2. **The quickslot bar, 1-2 minutes** - step 7: a skill on one of the 8 keys and used a few times; an item used
    until its amount shows 0 (or a stack of 1-2 used up); the mouse resting on a slot until its tooltip shows; the
    inventory or another window over part of the bar for a few seconds.
+   **DONE 2026-11-24:** `20261124_093410_1#0` (Henesys Hunting Ground I, 1m09s, label `quickslot`): a skill on
+   a key used, an amount used to 0, tooltips. **The window over the bar is skipped** (the user: no window covers
+   the bar in play), so that case is not in the new footage.
 3. *Welcome:* 3 minutes on a map with flying mobs (Stirges) and on one with two kinds that look alike (an Ant
    Tunnel map) - the captures the prototype is weakest on are of the old scene build.
 4. ~~*If the character has one:* a buff cast 5 times while recording~~ - dropped: the warrior has no lasting

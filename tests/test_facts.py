@@ -58,7 +58,7 @@ def test_fit_fields_round_trip_and_older_records_read():
                            "dy": 3, "fh": 12, "layer": 1, "votes": 210, "n_fseen": 300}],
                    drops_ms={"launch": 0.25, "fetch": 0.07, "pick": 0.1, "feat": 9000, "feat2": 40, "cands": 3},
                    movers=[(1, 517.0, True, 0.91), (3, None, False, 0.0)], movers_ms=0.84)
-    assert f.v == VERSION == 6
+    assert f.v == VERSION == 7
     assert FrameFacts.from_dict(json.loads(json.dumps(f.as_dict()))) == f
     for v in (1, 2, 4, 5):
         old = FrameFacts.from_dict({"t": 0.0, "v": v})
@@ -77,3 +77,11 @@ def test_fit_fields_round_trip_and_older_records_read():
 def test_another_version_is_refused():
     with pytest.raises(ValueError):
         FrameFacts.from_dict({"t": 0.0, "v": VERSION + 1})
+
+
+def test_slots_round_trip_and_older_slots_are_dropped():
+    """v7: every hotkey's [kind, id, amount] (perception/slots.py). Before v7 `slots` held True / False for the two
+    potion keys - another reading, not carried over."""
+    f = FrameFacts(t=2.0, slots={"shift": ["action", 53, None], "end": ["item", 2010005, 57], "home": None})
+    assert FrameFacts.from_dict(json.loads(json.dumps(f.as_dict()))) == f
+    assert FrameFacts.from_dict({"t": 0.0, "v": 6, "slots": {"delete": True, "end": None}}).slots == {}

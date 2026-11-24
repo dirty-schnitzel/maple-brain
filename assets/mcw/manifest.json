@@ -1,5 +1,5 @@
 {
- "built": "2026-11-18T21:07:28+00:00",
+ "built": "2026-11-24T07:46:18+00:00",
  "export": "C:\\Users\\Yoav\\dev\\cw-data\\export",
  "items": {
   "cash": 2688,
@@ -5576,6 +5576,15 @@
    "link": 9990000,
    "name": "Test(Undead)"
   }
+ },
+ "slots": {
+  "actions": 47,
+  "classes": 5059,
+  "items": 5313,
+  "items_blank_in_cell": 4,
+  "labels": 71,
+  "shared": 221,
+  "skill_pictures": 300
  },
  "source": "Classic World client files, exported by tools/cwdata/export.ps1"
 }

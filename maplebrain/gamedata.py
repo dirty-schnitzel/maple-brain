@@ -19,6 +19,9 @@
                                 Etc / Use / Setup item and equip + the 16 meso frames), BGRA, packed (`load_items`)
     items/items.json            id -> name, kind, w, h, origin, `g` (its picture in items.npz), `same` (the picture
                                 class's id: the meso's if a meso frame shows it, else the lowest id), `weak`, `link`
+    slots/pack.npz, pack.json   the hotkey reader's pictures (perception/slots.py, PLAN-tracker step 7): the
+                                quickslot bar, its key labels and digits, every item / skill / action picture as a
+                                cell shows it, with their ids, names and specs (the export's Slots\\)
 Ids are the client's without the zero padding (map 000000042 -> 42, mob 0000002 -> 2). map.json's field names
 (footholds / ladderRopes / mobs / miniMap ...) are the ones the bot has always read (the layout of the maplestory.io
 copy this replaced on 2026-11-03).
@@ -504,6 +507,12 @@ def build(export: Path = EXPORT, root: Path = ROOT, log=print) -> dict:
                         "weak": len(s["weak"])}
     else:
         log("no Item in the export (old export.ps1?): items not built - drops (PLAN-loot.md) need them")
+    if (export / "Slots" / "item" / "items.json").exists():
+        from .perception.slots import build_pack
+        man["slots"] = build_pack(export / "Slots", new / "slots", log)
+    else:
+        log("no Slots in the export (old export.ps1?): the hotkey reader's pack not built (tools/cwdata/"
+            "export_slots.ps1)")
     (new / "manifest.json").write_text(json.dumps(man, indent=1, sort_keys=True), encoding="utf-8")
     report = changes(root, new)
     head = f"assets/mcw rebuilt {man['built']} from {export}: changes vs the previous build"
@@ -566,7 +575,23 @@ def changes(old: Path, new: Path) -> list[str]:
             if what:
                 out.append(f"{kind[:-1]} {i} {jb.get('name') or ''}: {'; '.join(what)}")
     out += _item_changes(old, new)
+    out += _slot_changes(old, new)
     return out or ["no changes"]
+
+
+def _slot_changes(old: Path, new: Path) -> list[str]:
+    """One line: the hotkey reader's pack (slots/) - its pictures, labels, digits or members changed."""
+    have = [(r / "slots" / "pack.npz").exists() for r in (old, new)]
+    if not any(have):
+        return []
+    if not all(have):
+        return ["slots: " + ("first build" if have[1] else "removed")]
+    za, zb = (np.load(r / "slots" / "pack.npz") for r in (old, new))
+    ja, jb = (json.loads((r / "slots" / "pack.json").read_text(encoding="utf-8")) for r in (old, new))
+    what = [k for k in ("panels", "digit", "digit_w", "label", "content")
+            if za[k].shape != zb[k].shape or not np.array_equal(za[k], zb[k])]
+    what += [k for k in ("labels", "members") if ja.get(k) != jb.get(k)]
+    return [f"slots: {', '.join(what)} changed ({ja['counts']} -> {jb['counts']})"] if what else []
 
 
 def _item_changes(old: Path, new: Path) -> list[str]:

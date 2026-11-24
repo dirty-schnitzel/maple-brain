@@ -8,6 +8,7 @@
 #   Mob\png\<7-digit id>\<anim>_<n>.png  every frame of every animation, links resolved, as stored (facing left)
 #   Afterimage\<weapon>.img.xml     attack boxes per weapon type (lt/rb per stance); Skill\<job>.img.xml skills
 #   String\Map.img.xml, Mob.img.xml  names
+#   Slots\...                        the quickslot bar's pictures (export_slots.ps1, called at the end)
 #   Item\png\<8-digit id>_raw.png, Item\items.json  what a drop shows (item pictures; the section below)
 # Run (R2R off, see load.ps1): $env:DOTNET_ReadyToRun=0; pwsh -NoProfile -File tools\cwdata\export.ps1
 param([string]$Out = 'C:\Users\Yoav\dev\cw-data\export')
@@ -299,6 +300,11 @@ $weapons | ConvertTo-Json | Set-Content -Encoding utf8 "$Out\Character\weapons.j
 foreach ($s in Get-ChildItem "$D\String" -Filter '*_000.wz' -Recurse) {
   foreach ($i in (Open-Bms $s.FullName).WzDirectory.WzImages | ? Name -in 'Mob.img', 'Map.img', 'Skill.img') { Save-Xml $i "$Out\String\$($i.Name).xml" }
 }
+
+# the quickslot bar's pictures (PLAN-tracker step 7, perception/slots.py): its own script, Slots\ (its header)
+$global:LASTEXITCODE = 0
+& "$PSScriptRoot\export_slots.ps1" -Out $Out
+if ($LASTEXITCODE) { $fails.Add("export_slots.ps1 failed ($LASTEXITCODE)") }
 
 "failed: $($fails.Count)"; $fails | % { "  $_" }
 "done in $([int]((Get-Date) - $t0).TotalSeconds) s -> $Out"

@@ -29,6 +29,12 @@ mcw/items/items.npz         what a DROP shows (PLAN-loot.md): every distinct ite
                             09000000-3), BGRA packed: pix, start, hw, org, item (class id), f (meso frame), delay,
                             n_feat / kept (the vote's features / usable ones), weak, cash (every id showing it is a
                             cash-shop item: never drops, not searched). Read with gamedata.load_items()
+mcw/slots/pack.npz, .json   the hotkey reader's pictures (maplebrain/perception/slots.py, PLAN-tracker step 7): the
+                            quickslot bar's two panels, its 71 key labels ("0" and "O" share one), the amount digits,
+                            every item's info/icon (WITH its shadow), every skill's icon / disabled / mouse-over and
+                            the key-binding actions ("JUMP" ...) as a cell shows them: 5,059 distinct pictures; the
+                            json: per picture its ids, names, the item's spec (hp, mp ...). From the export's Slots\
+                            (tools/cwdata/export_slots.ps1, called by export.ps1)
 mcw/items/items.json        id -> name, kind, w, h, o (file origin), g (its picture), same (+ same_f): the picture
                             class's id = the meso's if a meso frame shows it, else the lowest id; weak; link (the item
                             whose picture a UOL borrows: 257 scroll-family items); mesos: frames [{g, w, h, o, delay}]
