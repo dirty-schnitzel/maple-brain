@@ -5,7 +5,7 @@ what is true NOW and what comes NEXT. The `handoff` skill rewrites it at the end
 appended to. Everything older is in HISTORY.md (grep it; what left this file on 2026-11-21 is its last
 blocks). Rules that stay true: CLAUDE.md and .claude/rules/. Plans and their progress: PLAN-*.md.
 
-## START HERE (2026-11-24): `PLAN-tracker.md` is PROPOSED - the user's OK, answers and footage, then its steps
+## START HERE (2026-11-24): `PLAN-tracker.md` is APPROVED - its step 1 (label sets by eye) is next
 
 **The user's goal (2026-11-19):** "have a great perception / tracking / data model in order to feed that into an
 ai to see how many hours of farming on a specific map with a specific class and style are needed to teach it to
@@ -20,8 +20,8 @@ that led to it: HISTORY.md, the block of 2026-11-24).
 | # | Session | Run as | Status | Prompt |
 |---|---|---|---|---|
 | **P0.1-5** | **The plan's steps 1-5, one executor session each:** 1 the pictures right (the forest maps sound), 2-3 moving backs drawn and followed (40 maps hunt), 4-5 Perion's clouds followed and undone (42 maps hunt). Steps 4-5 need the user's Perion recording | Opus (high) | **steps 1-5 DONE 2026-11-23**, the numbers each missed gate fell short on ACCEPTED by the user (PLAN-moving-scenery.md's status); merged into `dev` 2026-11-23 (9085f5b). Steps 6-7 wait for footage | `PLAN-moving-scenery.md`, "Session prompts" |
-| 3 | The tracker plan session, in two parts: (1) the data model -> `docs/state_model.md`, stop for the user's OK; (2) the tracker that fills it -> `PLAN-tracker.md`, PROPOSED until the user's OK. Take along: per mob, on our platform or not (Open items, "Ideas from another bot") | Fable, max | **DONE.** Part 1: `docs/state_model.md`, OK'd by the user 2026-11-23. Part 2: **`PLAN-tracker.md` PROPOSED 2026-11-24** - not OK'd yet; its 7 questions and 4 footage asks are open | done (the prompt, `docs/prompts/tracker-plan.md`, is in git history) |
-| 4 | **PLAN-tracker.md's steps, one executor session each** (branch `tracker-build` off `dev`, after `tracker-plan` is merged into `dev`): 1 label sets by eye, 2 the graph and placement, 3 mobs in shadow, 4a drops, 4b other players and us, 5 events, 6 the facts registry + profile + Skill.img, 7 the hotkey reader, 8 the stored tables, 9 the switch (the brain reads the new state, `world.py` goes). Steps 1, 2 and 7 could run beside each other, 4a beside 4b, 5 / 6 / 8 in pairs (the plan's table) - the user decides. Beside it, at any time: the viewer (PLAN-livemap.md Session 1: use `dev`). No engine session | Opus | **waits for the user's OK on the plan**; step 3 also for the fresh Line 1 capture, step 7 for the quickslot footage | `PLAN-tracker.md`, "Session prompts" |
+| 3 | The tracker plan session, in two parts: (1) the data model -> `docs/state_model.md`, stop for the user's OK; (2) the tracker that fills it -> `PLAN-tracker.md`, PROPOSED until the user's OK. Take along: per mob, on our platform or not (Open items, "Ideas from another bot") | Fable, max | **DONE.** Part 1: `docs/state_model.md`, OK'd by the user 2026-11-23. Part 2: **`PLAN-tracker.md` APPROVED 2026-11-24** (questions 1-7 answered, 40 % kept, question 8 postponed to step 5) | done (the prompt, `docs/prompts/tracker-plan.md`, is in git history) |
+| 4 | **PLAN-tracker.md's steps, one executor session each** (branch `tracker-build` off `dev`, after `tracker-plan` is merged into `dev`): 1 label sets by eye, 2 the graph and placement, 3 mobs in shadow, 4a drops, 4b other players and us, 5 events, 6 the facts registry + profile + Skill.img, 7 the hotkey reader, 8 the stored tables, 9 the switch (the brain reads the new state, `world.py` goes). Steps 1, 2 and 7 could run beside each other, 4a beside 4b, 5 / 6 / 8 in pairs (the plan's table) - the user decides. Beside it, at any time: the viewer (PLAN-livemap.md Session 1: use `dev`). No engine session | Opus (effort per step: 1 medium, 2 high, 3 xhigh, 4a / 4b high, 5 xhigh, 6-8 medium, 9 high) | **step 1 next** (needs nothing more); step 2 waits for the merge of `tracker-plan`, step 3 for the fresh Line 1 capture, step 7 for the quickslot footage | `PLAN-tracker.md`, "Session prompts" |
 | 4b | Wide maps: plan, then execute, the scrolling minimap placed by several agreeing patches (Open items, "Ideas from another bot") | Fable, max -> Opus | after the tracker (the user, 2026-11-22) | - |
 | 5 | FSM or clone, decided on what both score in live runs, counted by the tracker's events | - | open | - |
 
@@ -53,7 +53,7 @@ that led to it: HISTORY.md, the block of 2026-11-24).
   plan OK'd 2026-11-21 ("execute moving-scenery plan"); its three questions are still open.
 
 ### What the next sessions build on
-- **`docs/state_model.md` (OK'd) + `PLAN-tracker.md` (PROPOSED 2026-11-24).** The model: the map's graph, the
+- **`docs/state_model.md` (OK'd) + `PLAN-tracker.md` (APPROVED 2026-11-24).** The model: the map's graph, the
   facts, per frame us / mobs / drops / players with where each is on the graph and how it is seen, the events.
   The plan: every part has a prototype that ran from the kept replay (`tools/perc/track/proto_*.py`, branch
   `tracker-plan`; outputs in `F:\dev\maple-corpus\work\track-plan\`). Mobs, 13 captures: found 98.7 % (today
@@ -148,9 +148,9 @@ that led to it: HISTORY.md, the block of 2026-11-24).
 - `main` has not moved since 2026-11-09 (02a639a) and has no CLAUDE.md. Parked: `vnc-keys` (the VM attempt).
 
 ## Waiting on the user
-- **`PLAN-tracker.md`: the OK, and its question 8** (EXP in the kill rule; before step 5). Questions 1-7 were
-  answered 2026-11-24 and written into the plan: observed data beats server rules, no pets, players' cover 2 s,
-  no buffs / cooldowns for the warrior, HP x 1.24 = the warrior's passive.
+- **`PLAN-tracker.md` (APPROVED 2026-11-24): question 8** (EXP in the kill rule), put to the user by step 5's
+  session. Questions 1-7 answered and written into the plan: observed data beats server rules, no pets, players'
+  cover 2 s, no buffs / cooldowns for the warrior, HP x 1.24 = the warrior's passive; the empty-place rule 40 %.
 - **Its footage** ("Footage asked of the user"): 5 minutes of farming on Line 1 (step 3); 1-2 minutes of the
   quickslot bar with a skill on a key, an amount at 0, a tooltip, a window over it (step 7); welcome: a map with
   flying mobs, an Ant Tunnel map; a buff cast 5 times if the character has one. And the merge of `tracker-plan`.
