@@ -94,6 +94,9 @@ A hunt writes `<out>\<date_time>_<n>\`: log.txt, ticks.jsonl, frames. Analysis t
   (`bench.py --baseline`) only for a deliberate speed change, in the same commit. One GPU job at a time while a
   speed number is being measured.
 - A live run shows that a change works; replays of recorded footage decide whether it is better.
+- Footage (the user, 2026-11-24): reuse the bank's captures when they serve - a new kept replay on today's build
+  goes into its own folder, never over the one a plan's numbers were measured on. When new footage is needed or
+  clearly better, ask for it: the user records it easily (say what to record, the label and the actions).
 - To prove a test catches a bug: revert the fix, see the test fail, restore.
 
 ## Editing gotchas
