@@ -22,10 +22,13 @@ the map, found on this frame or coasting on its law, the share of its samples ma
 + `clouds` (perception/clouds.py: the weather clouds followed on a cloud map) and `clouds_ms`; step 5 (the clouds
 undone): a `fit` dict carries `cloud` (mean cloud alpha over its SEEN pixels) and `n_cloud` (informative pixels
 under a cloud too thick to undo), a `fit_hints` row the same two on a cloud map (older records: absent = 0).
+v7 (2026-11-24, PLAN-tracker step 7): `slots` = the hotkey reader (perception/slots.py), every key of the bar:
+{key: [kind, id, amount] or None}. Before v7 it held "an item is in it" (True / False / None) for the two potion keys
+only: an older record's `slots` is read as {} (that reading is not this one).
 """
 from dataclasses import asdict, dataclass, field, fields
 
-VERSION = 6
+VERSION = 7
 
 
 @dataclass
@@ -37,7 +40,10 @@ class FrameFacts:
     hp: tuple | None = None               # HUD "HP [cur/max]" as read on this frame (None: unreadable / covered)
     mp: tuple | None = None
     exp_points: int | None = None         # HUD "EXP. n" as read on this frame
-    slots: dict = field(default_factory=dict)      # quickslot key -> an item in it (None: can't tell / not read)
+    slots: dict = field(default_factory=dict)      # hotkey -> [kind, id, amount] read exactly on this frame (kind
+                                          # item / skill / skill_disabled / skill_mouseover / action / empty; amount
+                                          # None: none drawn), None: not readable (a tooltip, the cursor, a fade);
+                                          # {}: not read (no pack). perception/slots.py
     dot: tuple | None = None              # minimap dot, relative to hud.MINIMAP_BOX's corner
     map_pos: tuple | None = None          # our feet on the map from the dot (nav.localize), with its platform / rope
     platform: int | None = None
@@ -71,13 +77,15 @@ class FrameFacts:
 
     @classmethod
     def from_dict(cls, d: dict) -> "FrameFacts":
-        if d.get("v") not in (1, 2, 3, 4, 5, VERSION):
+        if d.get("v") not in (1, 2, 3, 4, 5, 6, VERSION):
             raise ValueError(f"FrameFacts v{d.get('v')} (this code reads v1-v{VERSION})")
 
         def tup(v):
             return None if v is None else tuple(tup(x) if isinstance(x, list) else x for x in v)
 
         kw = {f.name: d[f.name] for f in fields(cls) if f.name in d}
+        if d.get("v") != VERSION:
+            kw.pop("slots", None)                       # v1-v6: the two potion keys' "holds something", not this
         for k in ("tag", "hp", "mp", "dot", "map_pos", "scene_cam", "lie"):
             kw[k] = tup(kw.get(k))
         kw["tags"] = [tuple(x) for x in kw.get("tags") or []]

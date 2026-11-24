@@ -109,6 +109,7 @@ class Perceiver:
                                                         # it; one misread must not)
         self.slot_hist = {}                             # key -> recent slot readings (majority vote)
         self.hud_text = hud.HudText()                   # HP / MP / EXP text, re-read only when it changed
+        self.slot_reader = _slot_reader()               # the 8 hotkeys, exact (slots.py); None: no pack built
         self.points_hist = deque(maxlen=3)
         self.last_t = 0.0
         # the CPU readers' threads (2.9b): our tag + grey, HUD, players' tags - one each, beside the GPU work
@@ -207,9 +208,8 @@ class Perceiver:
         skipped (its tooltip covers the slots next to it: pkg_sprites7b frame 300). `slots`: this frame's readings
         (`_read_hud`), None when skipped."""
         h = self.slot_hist.setdefault(key, deque(maxlen=5))
-        self.facts.slots[key] = None
         if slots is not None:
-            v = self.facts.slots[key] = slots.get(key)
+            v = slots.get(key)
             if v is None:
                 return None
             h.append(v)
@@ -227,11 +227,16 @@ class Perceiver:
 
     def _read_hud(self, frame, cursor):
         """HP / MP / EXP text (cached while unchanged) + the potion keys' quickslots (None: the cursor is over
-        them) -> (hp, mp, exp points, {key: filled} or None). Only this reader touches `hud_text`."""
+        them) + the hotkey reader (FrameFacts `slots`, all 8 keys) -> (hp, mp, exp points, {key: filled} or None,
+        {key: [kind, id, amount] or None}). Only this reader touches `hud_text` and `slot_reader`."""
         hp, mp, pts = self.hud_text.read(frame)
         keys = (self.cfg.keys.hp_potion, self.cfg.keys.mp_potion)
         slots = None if hud.in_quickslots(cursor) else {k: hud.slot_filled(frame, k) for k in keys}
-        return hp, mp, pts, slots
+        exact = {}
+        if self.slot_reader is not None and frame.shape[:2] == (768, 1366):
+            self.slot_reader.update(frame)
+            exact = self.slot_reader.facts()
+        return hp, mp, pts, slots, exact
 
     def observe(self, frame, t: float, cursor=None) -> Observation:
         p = self.cfg.perception
@@ -271,7 +276,7 @@ class Perceiver:
             self._mark("self_wide")
         f.tag = me
         self._mark("self")
-        f.hp, f.mp, pts, slots = rd_hud.result()
+        f.hp, f.mp, pts, slots, f.slots = rd_hud.result()
         self.hp_pair = self._pair(f.hp, "hp", self.hp_pair)
         self.mp_pair = self._pair(f.mp, "mp", self.mp_pair)
         if self.hp_pair:
@@ -425,3 +430,15 @@ class Perceiver:
         f.fit, f.fit_ms = [m.to_dict() for m in mobs], round(fz.ms["fit"], 2)
         self._mark("fit")
         return mobs
+
+
+def _slot_reader():
+    """The hotkey reader (perception/slots.py) on the pack of `assets build`, its lookup table made now (not on the
+    first tick); None when assets/mcw/slots is missing (FrameFacts `slots` stays empty)."""
+    from . import slots
+    try:
+        r = slots.SlotReader()
+    except FileNotFoundError:
+        return None
+    r.p.table(0)
+    return r
