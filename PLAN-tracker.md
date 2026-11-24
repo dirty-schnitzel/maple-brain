@@ -137,7 +137,11 @@ life 73.2 % (66.8) and 91.2 % (84.3) not counting changes beside another mob, ne
    capture, 53 disagreements): in 31 the truth's mob turned round exactly at the crossing while the prototype's
    track kept walking (the truth took the other mob - it links by nearest place only), in 0 the track turned
    round, 22 cannot be told. Mobs walk through each other; the prototype's tracks keep their speed through the
-   crossing (traced frame by frame: tracks 4 and 6, frames 672-693).
+   crossing (traced frame by frame: tracks 4 and 6, frames 672-693). **All 13 captures, version 5's 1,022 extra
+   ids:** the truth changed mob 457, cannot be told 273, the track changed mob 7; the old track was still
+   near but remembered while another took the mob 141; old track far away 83; the old track had ended 61 (36
+   "its places show the scene", 24 of them in a jump; 11 a flyer whose set outgrew its reach; 12 a death
+   seen; 1 the limit). So 565 extra ids are not the truth's own, at most 292 of them provably the prototype's.
 5. *What the 4 s limit catches* (by eye, 6 of 12 cases on that capture): a mob that left by the screen edge
    whose possible set creeps back in behind another mob or under the system-message lines at the bottom right
    (text over the world for seconds); a track left "behind" a seen mob. None could be checked by any rule; all
@@ -328,6 +332,88 @@ number.)
   labels wrong. The executor's gate is 0 wrong apart from true look-alikes.
 - *Also learned:* Meat's file value is HP +160 and the HUD rises 198, a Red Potion 100 -> 124 (x 1.24 on HP
   items; Lemon's MP 150 -> 150): what a potion gives stays a measured fact, as the model says.
+
+### 9. Cost (Python prototypes on the kept replay; one core, other jobs running - upper bounds, not gate numbers)
+| Part | ms a frame p50 / p90 / p99 | Note |
+|---|---|---|
+| today: `world.py` + its looks (Line 1, the kept replay's own clock) | 0.7 / 2.0 / 2.7 | of 15.1 / 16.8 / 19.4 ms for the whole frame |
+| mob prototype: sightings + pairing | 0.44 / 1.67 / 3.21 | plain Python loops over tracks x sightings x readings |
+| mob prototype: checking the unseen tracks | 0.73 / 2.3 / 5.1 | numpy on the CPU bitmaps; live it is one gather on the GPU |
+| drops prototype (its looks included) | 0.14 / 0.40 / 0.80 | |
+| players prototype | 0.04 / 0.06 / 0.09 | |
+| hotkey reader | 0.009 average; 0.84 for a full read of 8 slots | re-reads a cell only when its pixels changed |
+| placement of 20 things (Part 1) | 0.016 (median map) - 0.062 (largest) | one array call |
+The parts that are new work every frame (drops, players, slots, placement) sum to ~0.2 ms; the mob part must be
+written with arrays, not loops, to stay at today's 0.7 ms.
+
+---
+
+## The design
+**1. One tracker, one state, the same code live and from a recording.** A new package `maplebrain/track/`;
+nothing in it knows the brain. Per frame it gets perception's facts (`FrameFacts`: the fit's sightings, the drop
+finder's, the name tags, our tag, the HUD's numbers, the slots, the camera), our key events since the last frame,
+and an *evidence* handle; it returns the state of `docs/state_model.md` (the frame, us, mobs, drops, players)
+and the events since the last frame. Fixed inputs: the graph and the facts registry. A frame without a camera
+changes nothing (`cover = blind`).
+
+**2. Evidence: "does this place show the scene?"** One interface, two sources: the kept replay's two bitmaps
+(CPU) and the fit's own tensors on the GPU (frame, expected scene, valid: one gather for every place asked
+this frame, one transfer back). So the real tracker is graded on the kept replay without re-making it, and the
+GPU source is proved equal to the bitmap source on fresh footage.
+
+**3. Placement: the one rule of the model, with motion.** `stand` = the feet within 3 px of a surface and the
+step since the last frame within 1 px up or down (+ 0.9 x the sideways step, the steepest slope walked); else
+`air` (or `fly`; `rope` for us and players). The node changes only on `stand`. Look-alike poses: every reading
+of the picture is kept; one under the floor the mob stands on or jumped from is dropped (unless all are), and
+of the rest the reading that continues its motion wins (measurement 3).
+
+**4. Mobs** (measurement 1; the prototype's rules and constants are the reference):
+- *Pairing* sightings with tracks: one cost over all tracks - the distance to where the track's motion puts it,
+  half the vertical distance, 12 px for another kind, 8 px for a turned facing, 3 px for a track not seen on the
+  last frame; nearest first. A track seen on the last frame can be off by 6 px + 1.5 x its speed bound x the
+  time; a remembered track takes a sighting within half a body + 6 px of its possible set.
+- *Tentative until seen clearly:* a new track is a mob (a `mob_new` event, memory) once one sighting shows 25 %
+  of its kind's full size with 30 % of its body on screen, or after 0.5 s of sightings; unseen 0.3 s before
+  that: dropped without a trace.
+- *Memory:* a confirmed track that is not seen keeps its possible set - places every 4 px along its node,
+  starting one knockback (35 px) either side, widening at its kind's speed (the files' x 2.0), tested every
+  frame: a place is empty when 40 % of the body's core shows the scene (a jumper: at every height of a hop). A
+  flyer's set is the same in two directions, within 160 px. The set empty: gone at once. Nothing can be checked
+  (out of view, behind the UI, drawn over): kept 4 s since it was last seen, then gone - one limit for all.
+  A mob last seen fading in is not checked for 0.4 s. `can_lo..can_hi` = the set's ends; `cover` = what is over
+  the nearest place left (us, a player, a mob, a drop, the UI, the edge, an effect).
+- *Death:* a die pose = dying, gone when `die1` ends; a living pose within 0.2 s takes it back. *Kind:* voted,
+  a clear sighting counts for more.
+- *Not kept from today:* `lose_s`, `fight_s`, `covered_s`, `hidden_s`, the cover masks, the 60 %-on-screen rule,
+  the duplicate merge. Whether `Fitter.look` stays (a look that sees the mob = a sighting) is decided in step
+  3 by its numbers and its milliseconds.
+
+**5. Drops** (measurement 5): same item, same x, on its own bob; born from a resting sighting, confirmed after
+0.25 s; gone by the hop seen, by its place shown empty, or at 130 s; "we took it" = the hop or the empty place
+with our pickup key down and our feet within reach; `from_mob` = the one death 0.6-1.8 s before within 110 px
+on its level.
+
+**6. Other players** (measurement 7): the tag list sorted into ours, log lines, mobs' own tags, pets, players;
+a player = a tag followed in map coordinates with its width as its name; two tags side by side are split by the
+widths already known; kept through a 1 s cover in view; placed by rule 3. Pets are sorted out, not tracked.
+
+**7. Us:** the feet from our tag (taken from the tag list when the reader's own tag is missing: 1,179 frames),
+placed by rule 3 with the rope; `facing` = the last left / right key; `act` from the place, the keys and the MP
+step; the HUD's numbers; the 8 slots from the hotkey reader (measurement 8); buffs and cooldowns = a cast seen +
+the skill's length / cooldown from the client files (Rush's 2 s: 12 presses inside it did nothing).
+
+**8. Events** (measurement 6): a cast = a skill key's key-down with no swing running, confirmed by the MP step;
+`mob_hit` / `mob_died` by us = the pose begins in that cast's landing window with the mob in the skill's box, a
+death also when it is the only one an EXP step of the mob's full EXP can pay for; every HUD step gets its cause;
+drop and player events from 5 and 6; a mob's own name tag as a second witness of our hit.
+
+**9. Facts and dynamic values** (state_model.md 5-6): one registry; the profile file (keys -> skills and
+levels, the weapon); Skill.img built into `assets/mcw`; measured live: our walk / jump / climb, the swing length
+(the gap between casts: 0.85-0.87 s), what a potion gives, hits per kill, each mob kind's speed against the
+files' (the factor 2.0 lives here, with its source).
+
+**10. Stored:** the tables of state_model.md 8, written by the recorder and the hunt, readable with a field
+added later.
 
 ---
 
