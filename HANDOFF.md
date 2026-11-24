@@ -143,8 +143,9 @@ that led to it: HISTORY.md, the block of 2026-11-24).
   64f9713, in another session's scratchpad - leave it to that session.
 - `moving-scenery`: steps 1-5, merged into `dev` 2026-11-23 (9085f5b); nothing on it is missing from `dev`.
 - `tracker-plan` (2026-11-24): the plan session's tools - `tools/model/` (Part 1) and the prototypes in
-  `tools/perc/track/` (Part 2) - off `dev`; **the main folder is on it**. Nothing in `maplebrain/` differs from
-  `dev`. **To be merged into `dev` by the user before PLAN-tracker's step 2** (the executors port from it).
+  `tools/perc/track/` (Part 2); **merged into `dev` 2026-11-24 on the user's word** (8f00b8e), can be deleted.
+- **`tracker-build`** (2026-11-24, off `dev` at 8f00b8e): PLAN-tracker's steps; **the main folder is on it**. A
+  step that runs beside another works in its own worktree on `tracker-build-<step>` and is merged back.
 - `main` has not moved since 2026-11-09 (02a639a) and has no CLAUDE.md. Parked: `vnc-keys` (the VM attempt).
 
 ## Waiting on the user
@@ -153,7 +154,7 @@ that led to it: HISTORY.md, the block of 2026-11-24).
   cover 2 s, no buffs / cooldowns for the warrior, HP x 1.24 = the warrior's passive; the empty-place rule 40 %.
 - **Its footage** ("Footage asked of the user"): 5 minutes of farming on Line 1 (step 3); 1-2 minutes of the
   quickslot bar with a skill on a key, an amount at 0, a tooltip, a window over it (step 7); welcome: a map with
-  flying mobs, an Ant Tunnel map; a buff cast 5 times if the character has one. And the merge of `tracker-plan`.
+  flying mobs, an Ant Tunnel map (the buff ask is dropped: the warrior has none).
 - PLAN-moving-scenery.md's questions (its last section), if any are still open; footage for its steps 6-7.
 - The "explained" reading of PLAN-data's stop rule (REPORT-track-before.md section 3), to confirm or change:
   map places the scene model misses on more than half of the frames that show them (what moves over the
