@@ -8,6 +8,7 @@ the hindsight truth (cache.chains), the fair counts (`sticky`), the memory's epi
     python tools/perc/track/replay_mobs.py feet [--sound | CAP ...] [--tag T]                  measurement 3 on its tracks
     python tools/perc/track/replay_mobs.py labels [--tag T]                                    L1, L2, L3, L8
     python tools/perc/track/replay_mobs.py live CAP --kept NAME                                the shadow rows vs these
+    python tools/perc/track/replay_mobs.py time CAP [--n 3000] [--runs 3]       the ms: the live Perceiver, shadow on / off
 
 `run` writes OUT/<cap>[_<kept>][_<tag>].pkl (OUT = CORPUS/work/track-plan/step3): the rows ({"n", "t", "mobs"}: the
 prototype's row layout, so score.py / proto_mobs read them), per seen track-frame the reading used, the tracker's
@@ -320,7 +321,15 @@ def cmd_labels(tag):
 
     def rows_of(cap):
         if cap not in res:
-            res[cap] = {r["n"]: r for r in pickle.loads(out_path(cap, None, tag).read_bytes())["rows"]}
+            if tag == "proto":                  # the prototype's own rows (label_sets.py `mobs`: proto_mobs v5)
+                import label_sets
+                rs = pickle.loads(label_sets.mobs_path(cap).read_bytes())["rows"]
+                for r in rs:
+                    for m in r["mobs"]:
+                        m.setdefault("born_how", m.get("born_how"))
+            else:
+                rs = pickle.loads(out_path(cap, None, tag).read_bytes())["rows"]
+            res[cap] = {r["n"]: r for r in rs}
         return res[cap]
 
     def cam(cap):
@@ -475,6 +484,47 @@ def cmd_live(cap, kept):
           f" over {len(ev)} frames")
 
 
+def cmd_time(cap, n, runs):
+    """The ms gate (PLAN-tracker step 3): the live Perceiver over the capture's first `n` frames (its video), with the
+    shadow tracker ON and OFF in turn, `runs` times each, a fresh rig each run, in this one process -> per run the
+    whole frame's observe ms and the parts (track; world + hints = today's tracker and its looks)."""
+    sys.path.insert(0, str(ROOT / "tools" / "perc"))
+    sys.path.insert(0, str(ROOT / "tools" / "perc" / "replay"))
+    import frames as rec
+    import run as replay
+    from maplebrain.procperf import prefer_performance
+    print(prefer_performance())
+    c = dump.clip_of(cap)
+    fr = c.frames(0.0, 1e9)[:n]
+    res = {"on": [], "off": []}
+    for k in range(2 * runs):
+        mode = "on" if k % 2 == 0 else "off"
+        per = replay.bench_module().build(c.map_id)[0]
+        if mode == "off":
+            per.mob_tracker = None
+        obs_ms, parts = [], []
+        for j, (nn, name, t) in enumerate(fr):
+            img = rec.read(c.run, name)
+            a = time.perf_counter()
+            per.observe(img, t)
+            if j >= 30:                                 # the first second: warm-up
+                obs_ms.append(1000 * (time.perf_counter() - a))
+                parts.append(dict(per.parts or {}))
+        o = np.array(obs_ms)
+        tr = np.array([p.get("track", 0.0) for p in parts])
+        wl = np.array([p.get("world", 0.0) + p.get("hints", 0.0) for p in parts])
+        res[mode].append((o, tr, wl))
+        print(f"run {k + 1} shadow {mode}: {len(o)} frames, observe p50 / p90 {S.pct(o, (50, 90))} ms; track p50 / p90 / "
+              f"p99 {S.pct(tr, (50, 90, 99))}; world + hints p50 / p90 {S.pct(wl, (50, 90))}", flush=True)
+        del per
+    on = np.concatenate([x[0] for x in res["on"]])
+    off = np.concatenate([x[0] for x in res["off"]])
+    tr = np.concatenate([x[1] for x in res["on"]])
+    print(f"ALL: observe p50 on {np.median(on):.2f} / off {np.median(off):.2f} ms (+{np.median(on) - np.median(off):.2f};"
+          f" gate <= +0.3); track p50 {np.median(tr):.2f} (<= 1.0), p90 {np.percentile(tr, 90):.2f} (<= 2.5), "
+          f"p99 {np.percentile(tr, 99):.2f}")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd")
@@ -484,6 +534,8 @@ def main():
     ap.add_argument("--hints", action="store_true")
     ap.add_argument("--jobs", type=int, default=1)
     ap.add_argument("--tag", default=None)
+    ap.add_argument("--n", type=int, default=3000, help="time: frames")
+    ap.add_argument("--runs", type=int, default=3, help="time: runs on and off each")
     a = ap.parse_args()
     if a.kept:
         dump.KEPT = a.kept
@@ -509,6 +561,8 @@ def main():
         cmd_labels(a.tag)
     elif a.cmd == "live":
         cmd_live(caps[0], a.kept)
+    elif a.cmd == "time":
+        cmd_time(caps[0], a.n, a.runs)
     else:
         raise SystemExit(f"unknown command {a.cmd}")
 

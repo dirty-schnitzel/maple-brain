@@ -157,12 +157,16 @@ def test_a_live_pose_right_after_one_die_pose_takes_it_back():
 
 
 def test_blind_frame_changes_nothing():
+    """No camera: nothing begins or ends, every value is kept - but nothing is found on it: not `seen`."""
     trk = a_tracker()
     trk.update(facts(0.0, [mob(600)]), ev(False, True))
     before = trk.mobs()[0]
+    assert before.seen
     assert trk.update(facts(DT, [mob(900)], C=None), ev(True, True)) == []
     m = trk.mobs()[0]
-    assert (m.id, m.x, m.seen, m.cover) == (before.id, before.x, before.seen, "blind")
+    assert (m.id, m.x, m.state, m.seen, m.cover) == (before.id, before.x, before.state, False, "blind")
+    trk.update(facts(2 * DT, [mob(601)]), ev(False, True))           # the camera back: the same mob, seen
+    assert trk.mobs()[0].id == before.id and trk.mobs()[0].seen
 
 
 def test_what_covers_it_is_named_by_the_boxes():

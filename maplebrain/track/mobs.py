@@ -32,7 +32,8 @@ the camera, the players' tags, the drops, our tag) -> the mob records (track/sta
 5. NEW TRACKS from the sightings left over (not over a platform and not a flyer: none): born "there at entry"
    (within entry_s of the first frame with a camera), "dying", "faded in" (opacity under fade_o), "came into view"
    (at the screen's edge) or "uncovered"; tentative until confirmed (then a `mob_new` event).
-A frame without a camera (blind) changes nothing: the records keep their values with cover "blind".
+A frame without a camera (blind) changes nothing: the records keep their values with cover "blind" and `seen` False
+(nothing is found on it; the prototype kept a track seen on the frame before "seen" through the blind frames).
 Events: mob_new (confirmed; how born), mob_died (a die pose seen, its animation over), mob_gone (its places show the
 scene / drawn over for drawn_s / a flyer's set outgrew fly_r), mob_left (nothing to check for offscreen_s).
 """
@@ -633,7 +634,7 @@ class MobTracker:
                 can = (float(px.min()), float(px.max()))
             out.append(Mob(tr.id, tr.mob, tr.conf is not None, st, tr.x, tr.y, tr.sx, tr.sy, tr.x_seen, tr.y_seen,
                            PLACES[tr.place], tr.cur_node, tr.node, tr.off, tr.vx, tr.vy, tr.facing, tr.pose, tr.o,
-                           life, tr.seen, tr.vis, "blind" if blind else tr.cover, t - tr.t_seen,
+                           life, tr.seen and not blind, tr.vis, "blind" if blind else tr.cover, t - tr.t_seen,
                            None if can is None else can[0], None if can is None else can[1], tr.born, tr.born_how,
                            seen_share=tr.n_seen / max(1, tr.n_frames)))
         return out
