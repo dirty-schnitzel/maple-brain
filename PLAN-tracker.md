@@ -124,7 +124,10 @@ life 73.2 % (66.8) and 91.2 % (84.3) not counting changes beside another mob, ne
 
   So: the possible set is the gain (timers: one id for life 69.7 instead of 77.3); the 4 s limit holds the long
   covers; 8 s buys nothing; "empty at 60 %" is better on every identity number with 22 % more remembered frames
-  (being run on all 13 captures: `...\mobs\run_v5_abs60.txt`); the tentative stage costs 1.2 points of found and
+  - on all 13 captures (`...\mobs\run_v5_abs60.txt`): id kept across a cover 94.1 % against 93.4, one id for
+  life not beside another mob 91.5 % against 90.9, but 244 tracks instead of 148 run unchecked into the 4 s
+  limit. **The plan keeps 40 %**: under a point of identity does not pay for 65 % more memory nobody could
+  check; the tentative stage costs 1.2 points of found and
   buys ids; the last row's four settings change nothing measurable (the look-alike feet matter for the feet and
   the placement - measurement 3 - not for the ids).
 
