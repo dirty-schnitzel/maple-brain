@@ -575,7 +575,7 @@ the BORN scene (case 46: the camera lost?).
 The user: the tracker places us by motion over frames, a labeller saw one frame - so us at a rope's top, or a jump
 pose with a rope behind us, was read two ways. `label_sets.py ropes` (set **L1R**): every L1 case where we or a mob
 stand within 20 px of a rope / ladder (sideways; between its top and its bottom + 20 px) - **75 of the 200 cases, 85
-things** (us on 58 of them, mobs 27) -
+things** (us on 58 of them, mobs 27) - on its try-2 sheet plus, per such thing, a strip of the frames
 0.2 s before to 0.2 s after (every 3rd, 9 frames, the case's frame red, the lines' and ropes' ids along them).
 Both looks labelled those cases again, blind, on their own re-ordered, re-numbered sheets (the first look all 75;
 the second look the 9 of them in L1's second-look sample of 20); the other 125 cases keep try 2's labels
