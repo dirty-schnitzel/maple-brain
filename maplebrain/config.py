@@ -156,6 +156,59 @@ class Track:
     stand_slope: float = 0.9        # ...+ this x the sideways step (the steepest slope walked: the client's walkSlant)
     rope_tol: float = 7.0           # climbers: the feet within this of a rope's x, and of its ends in y (today's
                                     # SelfTracker value for our exact tag; nav/selfstate.py)
+    # ---- mobs (track/mobs.py; PLAN-tracker design 4 = the prototype tools/perc/track/proto_mobs.py, its Cfg and the
+    # numbers inline in it, measurement 1). Mob speed: the kind's top speed from the client files x mob_speed_x.
+    shadow: bool = True             # the Perceiver runs the mob tracker beside world.py (step 3: nothing reads it)
+    mob_speed_x: float = 2.0        # Classic World's mobs move at this many times the v83 rule's top speed (measured
+                                    # on 8 kinds, proto_feet.py: 1.97-1.99 x at the median; PLAN-tracker measurement 4)
+    knock_v: float = 125.0          # px/s: the frame-to-frame bound of any mob (a knockback), x mob_speed_x
+    solid_seen: float = 0.25        # a sighting with this share of the kind's full size seen ...
+    solid_on: float = 0.3           # ... and this share of its body box on screen confirms a track (a mob)
+    confirm_s: float = 0.5          # ... or sightings over this long
+    tentative_s: float = 0.3        # a tentative track unseen this long is dropped (no event)
+    settle_tol: float = 1.5         # a look-alike reading "stands" for the first choice when this close to a surface
+    under_tol: float = 3.0          # a reading this far under the floor the track stands on / jumped from: dropped
+    alt_cost: float = 2.0           # px added to a pairing that takes a look-alike pose's other reading
+    facing_cost: float = 8.0        # px added to a pairing that flips the mob's facing
+    other_type: float = 12.0        # px added to a pairing with a sighting of another kind
+    remembered_cost: float = 3.0    # px added to a pairing with a track not seen on the last frame
+    gate: float = 6.0               # px a mob seen on the last frame may be off its place, + gate_v x its bound x time
+    gate_v: float = 1.5
+    gate_y: tuple = (10.0, 200.0)   # px + px/s x time a walker seen on the last frame may be off in y
+    gate_y_jump: tuple = (14.0, 700.0)  # ... a jumper
+    mem_dy: float = 12.0            # px a remembered walker's sighting may be off in y (a jumper: mem_dy_jump)
+    mem_dy_jump: float = 110.0
+    mem_jump_x: float = 40.0        # px more sideways a remembered jumper may be found on another node
+    mem_fly_x: float = 16.0         # px more a remembered flyer's set reaches
+    mem_vx_s: float = 0.4           # a remembered track's motion is taken this long at most for the pairing cost
+    dy_cap: float = 40.0            # px: the vertical part of the pairing cost is half of at most this
+    ballistic_s: float = 0.1        # a track seen this recently is predicted on its own vertical motion (a hop)
+    vx_s: float = 0.25              # its speed: over the sightings of this long
+    vx_min_s: float = 0.05          # ... taken when they span at least this
+    vy_s: float = 0.05              # its vertical speed: from the last sighting if this recent
+    vote_min: float = 0.05          # a sighting's vote for its kind: its seen share, at least this
+    abs_share: float = 0.4          # this share of the body's core showing the scene: the mob is not there
+    set_step: int = 4               # px between the places of a possible set
+    knock: float = 35.0             # px: one knockback's travel (game_rules D1: ~27 + ~4), the set's first half width
+    margin: float = 6.0             # px beyond the set + half a body a sighting may be
+    drawn_s: float = 4.0            # unseen with something drawn over its places: kept this long at most
+    offscreen_s: float = 4.0        # unseen with nothing to check (out of view, behind the UI): kept this long
+    die_revert_s: float = 0.2       # a live pose on a "dying" track this soon after its first die pose: it lives
+    die_revert_px: float = 8.0      # ... within this of where it died
+    die_extra_s: float = 0.1        # a dying track is gone this long after its die1 animation's length
+    fly_r: float = 160.0            # a flyer's set is kept within this of its last place; past it: lost
+    fly_step: int = 8               # px between a flyer's places (two directions)
+    fly_start: float = 12.0         # px: a flyer's first set, either way
+    jump_h: int = 96                # a jumper is looked for up to this far over its platform (game_rules C4: 89-98)
+    jump_dh: int = 16               # ... every this many px
+    fade_o: float = 0.9             # a sighting under this opacity is fading in (a spawn)
+    fade_s: float = 0.4             # a mob last seen fading in is not checked for this long (the fade-in: 0.32 s)
+    entry_s: float = 0.5            # a track born this soon after the first frame with a camera: "there at entry"
+    edge_px: tuple = (70, 70, 10, 60)   # "came into view": the feet within this of the left / right / bottom / top
+    check_share: float = 0.5        # a place can be checked when this share of its core is world (shows a mob)
+    cover_share: float = 0.3        # what is over the nearest place: the box over more than this share of its core
+    us_box: tuple = (-34, -80, 34, 12)  # our body around our tag (centre x, top y), for `cover`
+    player_box: tuple = (-24, -70, 24, 0)   # a player's body around its tag (centre x, top y)
 
 
 @dataclass

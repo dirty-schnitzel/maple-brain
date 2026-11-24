@@ -13,6 +13,9 @@ Moving scenery (PLAN-moving-scenery.md): the moving backgrounds followed (scene.
 scene; on a weather-cloud map the clouds followed (perception/clouds.py) and taken out of the frame before D, the fit
 and the drops (a cloud too thick to undo: those pixels not valid) -> FrameFacts.movers / clouds, the fit's cloud
 numbers per sighting and look.
+The mob tracker (PLAN-tracker step 3, track/mobs.py) runs in shadow after the drops: the fit's mobs + the GPU evidence
+(track/evidence.Gpu on the fit's own tensors) -> `mob_tracker.records`, `mob_events`, part `track`; world.py stays
+the brain's tracker until step 9 (config Track.shadow off: not run).
 """
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor
@@ -67,6 +70,7 @@ class MapKit:
     fitter: object = None                   # fit.Fitter on that scene
     cover: object = None                    # cover.Cover (world.py's `hidden` state; until step 4)
     drops: object = None                    # drops.DropFinder: ONE per process, shared by every map's kit (None: off)
+    graph: object = None                    # track.graph.Graph (nodes and placement, no edges): the mob tracker's
     why: str = ""                           # no scene camera on this map: why (the hunt refuses to start)
 
     @property
@@ -142,6 +146,16 @@ class Perceiver:
             if kit.drops is not None:                   # drops (PLAN-loot.md, in shadow): this map's footholds and
                 self.drops = kit.drops                  # front planes
                 self.drops.set_map(kit.map_id, kit.scene)
+        # the mob tracker in shadow (PLAN-tracker step 3; track/mobs.py): beside world.py, nothing reads it yet
+        self.mob_tracker = self.evidence = None
+        self.mob_events = []                            # its events of this frame
+        if self.world is not None and cfg.track.shadow and kit.graph is not None:
+            from ..track.evidence import Gpu
+            from ..track.kinds import kinds
+            from ..track.mobs import MobTracker
+            t = cfg.track
+            self.mob_tracker = MobTracker(kit.graph, kinds(kit.mobs, kit.fitter.poses, t.mob_speed_x, t.knock_v), t)
+            self.evidence = Gpu(kit.fitter, kit.fitter.cfg.tol)
         self._fit_ui = (None, None)                     # (hud.ui_mask array, the fit's GPU mask of it)
         self._look_ms = 0.0                             # this tick's looks (the search around tracks)
         self.minimap_t = -1e9                           # last minimap read (only ~1 / s while the scene camera holds)
@@ -325,6 +339,7 @@ class Perceiver:
         self._mark("scenecam")
         if exact is None:
             f.tags = tags.result()
+            self._shadow(f)                             # a blind frame: the mob tracker changes nothing
             return
         f.scene_cam, f.scene_share = exact, round(sc.share, 3)
         obs.scene_cam, obs.cam_src = exact, "exact"
@@ -373,12 +388,21 @@ class Perceiver:
             f.drops = self._fetch_drops(me_s, f.tags, [h.box for h in hits])
             f.drops_ms = self.drops.ms
             self._mark("drops")
+        self._shadow(f)
         if d_list is not None:
             f.patches, self.parts["patches"] = d_list.result()
         obs.mobs = [tr.as_dict(obs.t) for tr in trs]
         obs.cam = tuple(round(v, 1) for v in self.world.cam.C)
         if me_s is not None:                           # our feet on the map, exact px (the tag's screen x + camera)
             obs.me_map = (round(me_s[0] + obs.cam[0], 1), round(me_s[1] + obs.cam[1], 1))
+
+    def _shadow(self, f):
+        """The mob tracker (track/mobs.py) on this frame's facts and the fit's own tensors (the GPU evidence) ->
+        `mob_tracker.records`, `mob_events`. Part `track`. Nothing reads it before PLAN-tracker step 9."""
+        if self.mob_tracker is None:
+            return
+        self.mob_events = self.mob_tracker.update(f, self.evidence)
+        self._mark("track")
 
     def _look(self, trs) -> list:
         """The search around tracks (step 3.4; world.update's `look`): the fit's look at each track's predicted

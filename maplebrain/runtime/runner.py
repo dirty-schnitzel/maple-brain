@@ -148,6 +148,8 @@ def _load_map(rig: "Rig", map_id: int, say) -> bool:
                 for i in ids if (mcw / "mobs" / str(i) / "mob.json").exists()}
         navmap = NavMap.for_map(map_id, mcw, cfg.nav)
         kit = MapKit(map_id, navmap, mobs)
+        from ..track.graph import Graph                             # the tracker's graph (nodes + placement)
+        kit.graph = Graph(mj, cfg.nav, cfg.track, edges=False)
         try:
             import torch
             kit.dev = "cuda" if torch.cuda.is_available() else None
