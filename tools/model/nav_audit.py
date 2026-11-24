@@ -7,6 +7,9 @@ Reads only; nothing in maplebrain/ is touched.
     python tools/model/nav_audit.py edges [--n N]  link counts by kind, build time and where it goes, drop edges
     python tools/model/nav_audit.py routes         route() time, an all-pairs table's build time and size
     python tools/model/nav_audit.py all
+    python tools/model/nav_audit.py graph [--no-edges]   PLAN-tracker step 2's gate: maplebrain/track/graph.py on
+                                                         every map against navmap (nodes, floors, placement, the
+                                                         edges and the seconds table; ~5 minutes with the edges)
 
 Timing: this process pins itself to the performance cores (maplebrain/procperf.py); say what else was running.
 """
@@ -428,10 +431,162 @@ def cmd_routes(ms, cfg):
               f"{D.nbytes / 1024:.0f} KB; ordered pairs with a way {reach.mean():.0%}")
 
 
+# ---------------------------------------------------------------------------------------------------- graph
+def frame_things(g, xs, ys):
+    """20 things as a frame hands them to the placement: a 2 px step sideways, none up or down, the node each
+    stood on last (the nearest within 16 px), the first three climbers (us, two players)."""
+    n = len(xs)
+    last, _ = g.nearest(xs, ys, 16)
+    climb = np.zeros(n, bool)
+    climb[:3] = True
+    return dict(dx=np.full(n, 2.0), dy=np.zeros(n), last=last, last_from=last, climb=climb)
+
+
+def today_footholds(m) -> dict:
+    """navmap's platform id -> its foothold ids in order (NavMap.from_json's own loop, replayed on the ids)."""
+    fh = {int(k): v for k, v in m["footholds"].items()}
+    floor = {i for i, f in fh.items() if f["x1"] < f["x2"]}
+    out, seen = {}, set()
+    for i in sorted(floor):
+        if i in seen or fh[i]["prev"] in floor:
+            continue
+        ch, j = [], i
+        while j in floor and j not in seen:
+            seen.add(j)
+            ch.append(j)
+            j = fh[j]["next"]
+        out[i] = ch
+    for i in sorted(floor - seen):
+        out[i] = [i]
+    return out
+
+
+def time_place(g, xs, ys, rounds=7):
+    """us per call of 20 things (the same 20 slices of the 200 points as `place`), the median of `rounds`."""
+    args = [(xs[k * 10 % 180:k * 10 % 180 + 20], ys[k * 10 % 180:k * 10 % 180 + 20]) for k in range(20)]
+    extra = [frame_things(g, x, y) for x, y in args]
+    out = []
+    for _ in range(rounds):
+        t0 = time.perf_counter()
+        for (x, y), e in zip(args, extra):
+            g.place(x, y, **e)
+        out.append(1e6 * (time.perf_counter() - t0) / len(args))
+    return float(np.median(out))
+
+
+def cmd_graph(ms, cfg, edges=True):
+    """PLAN-tracker step 2's gate: maplebrain/track/graph.py built on every map, against navmap."""
+    from maplebrain.config import Track
+    from maplebrain.track.graph import Graph, route_table
+    tr = Track()
+    rnd = random.Random(1)                              # the same 72,800 points as `place`
+    n_chains = 0
+    id_diff, comp_diff, ok_maps = [], [], 0
+    links_same = links_cmp = 0
+    floors_j, floors_bad, joints_all = [], 0, Counter()
+    eq = checked = 0
+    t_build, t_links, t_table, sizes, timed = [], [], [], [], {}
+    for m in ms:
+        t0 = time.perf_counter()
+        g = Graph(m, cfg, tr, edges=edges)
+        t_build.append(time.perf_counter() - t0)
+        nm = nav_nolinks(m, cfg)
+        n_chains += g.n_chains
+        mine = {int(i): tuple((s.x1, s.y1, s.x2, s.y2) for s in g.platforms[int(i)].segs) for i in g.ids[:g.n_chains]}
+        today = {p.id: tuple((s.x1, s.y1, s.x2, s.y2) for s in p.segs) for p in nm.platforms.values()}
+        if set(mine) != set(today):
+            id_diff.append((m["id"], m["name"]))
+        elif mine != today:
+            comp_diff.append((m["id"], m["name"]))
+        else:
+            ok_maps += 1
+        # floors: every joint with no wall is one floor; nothing else is joined
+        for a, b, x, y, wall, links in g.joints:
+            joints_all[("a wall stands at the joint" if wall else "no wall") + ", links " + links] += 1
+        for a, b, *_ in g.floor_joints:
+            floors_j.append((m["id"], a, b))
+            floors_bad += int(g.floor[g.index[a]] != g.floor[g.index[b]])
+        floors_bad += int(g.n_floors != g.n_chains - len({tuple(sorted((a, b))) for a, b, *_ in g.floor_joints}))
+        # placement: the node = platform_at's (16 px), mapped through the foothold under it at x
+        ps = list(nm.platforms.values())
+        if not ps:
+            continue
+        pts = []
+        for _ in range(200):
+            p = rnd.choice(ps)
+            x = rnd.uniform(p.left, p.right)
+            pts.append((x, p.y_at(x) + rnd.uniform(-10, 10)))
+        xs, ys = np.array([p[0] for p in pts]), np.array([p[1] for p in pts])
+        got, _ = g.nearest(xs, ys, 16)
+        fhs = today_footholds(m)
+        for (x, y), gv in zip(pts, got):
+            r = nm.platform_at(x, y, tol=16)
+            if r is None:
+                continue
+            k = next(k for k, s in enumerate(r.segs) if s.x1 <= x <= s.x2)
+            checked += 1
+            eq += int(g.chain_of[fhs[r.id][k]] == gv)
+        sizes.append((len(ps), m["id"], m["name"]))
+        timed[m["id"]] = (m, xs, ys)
+        if edges:
+            t_links.append(g.edges.links_s)
+            t_table.append(g.edges.table_s)
+            if mine == today:                           # the edges are navmap's own where the nodes are
+                ref = NavMap.from_json(m, cfg).links
+                links_cmp += 1
+                links_same += int(sorted(ref, key=repr) == sorted(g.edges.nav.links, key=repr))
+    print(f"maps built {len(t_build)} of {len(ms)}; build s p50 / p90 / max {pct(t_build, (50, 90, 100))}")
+    print(f"chains {n_chains}; against navmap: other ids on {len(id_diff)} maps, the same ids but other footholds on "
+          f"{len(comp_diff)} maps {comp_diff}, the same nodes on {ok_maps}")
+    print(f"joints of two chains' ends at one point: {dict(joints_all)}")
+    print(f"floor joints {len(floors_j)} (one floor each, nothing else joined: {'yes' if not floors_bad else f'NO, {floors_bad} wrong'})"
+          f" e.g. {floors_j[:3]}")
+    print(f"the node = platform_at's (16 px, through the foothold at x): {eq} of {checked}")
+    order = np.argsort([s[0] for s in sizes])
+    med, big = sizes[order[len(order) // 2]], sizes[order[-1]]
+    for name, s in (("median map", med), ("largest", big)):
+        m, xs, ys = timed[s[1]]
+        g = Graph(m, cfg, tr, edges=False)
+        print(f"20 things placed in one call, {name} {s[2]} ({s[1]}, {s[0]} chains): {time_place(g, xs, ys):.1f} us "
+              f"(steps, last nodes, 3 climbers); bare {time_place_bare(g, xs, ys):.1f} us")
+    if not edges:
+        return
+    print(f"edges: navmap's own links on {links_same} of {links_cmp} maps with navmap's nodes; build s p50 / p90 / max "
+          f"{pct(t_links, (50, 90, 100))}; the table ms p50 / p90 / max {pct(1e3 * np.array(t_table), (50, 90, 100))}")
+    line1 = next(m for m in ms if m["id"] == 10003061)
+    g = Graph(line1, cfg, tr)
+    nav = g.edges.nav
+    bt = []
+    for _ in range(7):
+        t0 = time.perf_counter()
+        route_table(nav, g.ids, g.start)
+        bt.append(1e3 * (time.perf_counter() - t0))
+    r2 = random.Random(3)
+    bad = 0
+    for _ in range(1000):
+        a, b = r2.sample(range(len(g.ids)), 2)
+        r = nav.route(int(g.ids[a]), float(g.start[a]), int(g.ids[b]), with_cost=True)
+        bad += int((np.inf if r is None else r[1]) != g.edges.seconds[a, b])
+    print(f"the table on Line 1 ({len(g.ids)} nodes): = route()'s seconds on {1000 - bad} of 1000 random pairs; built in "
+          f"{min(bt):.2f} ms (best of 7; p50 {np.median(bt):.2f})")
+
+
+def time_place_bare(g, xs, ys, rounds=7):
+    args = [(xs[k * 10 % 180:k * 10 % 180 + 20], ys[k * 10 % 180:k * 10 % 180 + 20]) for k in range(20)]
+    out = []
+    for _ in range(rounds):
+        t0 = time.perf_counter()
+        for x, y in args:
+            g.place(x, y)
+        out.append(1e6 * (time.perf_counter() - t0) / len(args))
+    return float(np.median(out))
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("what", choices=("nodes", "place", "edges", "routes", "all"))
+    ap.add_argument("what", choices=("nodes", "place", "edges", "routes", "all", "graph"))
     ap.add_argument("--n", type=int, default=None, help="edges: only about N maps, spread by size")
+    ap.add_argument("--no-edges", action="store_true", help="graph: nodes, floors and placement only")
     a = ap.parse_args()
     try:
         from maplebrain.procperf import prefer_performance
@@ -448,6 +603,8 @@ def main():
         cmd_edges(ms, cfg, a.n)
     if a.what in ("routes", "all"):
         cmd_routes(ms, cfg)
+    if a.what == "graph":
+        cmd_graph(ms, cfg, edges=not a.no_edges)
 
 
 if __name__ == "__main__":

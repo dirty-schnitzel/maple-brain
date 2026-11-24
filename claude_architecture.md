@@ -54,6 +54,31 @@ comments and the user's own words all say "handoff".
    updated, commit and push on the side branch, and a ten-line summary with the one line to type next.
 4. `/clear`, or a new terminal, and back to 1.
 
+### The plan manager (the user, 2026-11-24)
+Between a plan being written and its last step there is a third session: **the plan manager**, usually Opus at
+medium effort, started when the planner's session ends (the plan PROPOSED) and kept open while the executors run.
+First used for PLAN-tracker.md on 2026-11-24.
+
+**Why:** an executor's context is big by the middle of its step (the code, the measurements, the replays), so
+even a small action there - a question answered, a note added, a prompt written - is costly and crowds the step's
+own work. The manager's context holds the plan and the conversation about it, not a step's working files.
+
+**What it does:**
+- Walks the user through the plan before the OK: the steps in plain words, the questions with a recommendation
+  each, the footage asked; records the answers in the plan and marks it APPROVED on the user's word.
+- Writes each executor's start: the step's prompt (the plan's, plus what changed since it was written), the
+  worktree and branch when steps run side by side (section 7), the model and effort per step.
+- Explains each step's findings when it ends or stops (a gate missed, a decision left to the user), recommends,
+  and writes the user's decision into the plan; a fix session for a missed gate gets its prompt here.
+- Checks things itself: that footage is in the bank, a step's numbers against the plan, a source the plan rests
+  on (v83 code, a client file), a small measurement on the kept data.
+- Resolves small things: notes and questions added to the plan, HANDOFF.md and REWORKS.md kept true, memory
+  updated, merges and branches on the user's word.
+
+**What it does not do:** a step's own work (code in `maplebrain/`, a gate's measurement), or anything an
+executor is running on: it never switches a folder an executor works in, and edits docs from its own worktree or
+a detached copy of `dev`. A fix bigger than a note or a question becomes an executor session with its own prompt.
+
 ## 4. What was built, what was decided against
 
 | Piece | State | Note |

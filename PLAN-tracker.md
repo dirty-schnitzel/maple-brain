@@ -1,7 +1,7 @@
 # PLAN-tracker: the tracker that fills the state model
 
 **Status: APPROVED by the user 2026-11-24** (proposed the same day by the tracker plan session, Part 2:
-`docs/prompts/tracker-plan.md`). Nothing is built in `maplebrain/` yet. **Questions 1-7 answered** (written under
+`docs/prompts/tracker-plan.md`). Built in `maplebrain/`: step 2 (`track/graph.py`), step 7 (`perception/slots.py`). **Questions 1-7 answered** (written under
 "Questions for the user" and into the design and steps). **The empty-place rule stays at 40 %** (the user: "keep
 40%"; 60 % measured on all 13 captures, under measurement 1). **Question 8 (EXP in the kill rule) is postponed to
 step 5** (the user): step 5's session puts it to the user before building the events.
@@ -9,8 +9,12 @@ step 5** (the user): step 5's session puts it to the user before building the ev
 L7, L8; try 3 (L1's cases near a rope, on strips of frames) **met on L1: 97.2 %**. L2 and L3: no third try, the
 user's decision - they keep only the cases both looks agreed on (L2 21, L3 22) for every later gate. The numbers
 under the steps ("Step 1, try 2", "Step 1, try 3").
-Waiting on the user per step: the merge of `tracker-plan` into `dev` before step 2; the Line 1 capture before
-step 3. The quickslot footage for step 7 is in the bank (2026-11-24, `20261124_093410_1#0`). Step 1 needs neither.
+Step 3 needs no new footage (stop rule 5, changed 2026-11-24: a new kept replay of a Line 1 capture instead).
+**Step 7 DONE (2026-11-24):** the gate met (L7 reworded by the user), merged into `tracker-build`; numbers under
+the steps ("Step 7, 2026-11-24").
+**Step 2 (2026-11-24, branch `tracker-build-graph`, 88ff6e8): built, the gate MET** - numbers under the steps ("Step
+2 - built 2026-11-24"). Merged into `dev` 2026-11-24 (the user). Its found-on-the-way 3 (the rebuild's worker thread
+delays frame work by up to ~20-30 ms while it runs): **the user, 2026-11-24: "keep same thread"**.
 The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
 in this session on the kept replay (no GPU); the tools are in `tools/perc/track/` (branch `tracker-plan`).
 
@@ -467,7 +471,7 @@ in `tools/perc/track/` are the reference: port their rules and constants, do not
 | **0** | **The user:** the footage and the answers of the last two sections | filed in the bank; answers written here | - |
 | **1** | **Label sets, by eye** (no code in `maplebrain/`; labels in the bank's `labels\`, picked from the prototypes' output so every class is in them): L1 200 frames - us and every mob: stand / air / rope and the node; L2 100 covered mobs - what covers them; L3 50 births - how born; L4 100 hit-pose begins - by us or not (the swing seen); L5 200 frames - every name tag's class, each player's node; L6 50 drops - the mob it came from; L7 100 frames - the 8 slots' item and amount; L8 40 remembered mobs - there / not there / cannot tell | each set readable by `tools/perc/label_eval.py`; 10 % of each labelled twice: the two agree on >= 95 % | 2, 7 |
 | **2** | **The graph and the placement** (`track/graph.py`; `tools/model/` is the reference): chains from complete links, floors, the nodes as arrays, rule 3 as one array call for every thing, the seconds table, the edges and the table rebuilt on a worker thread | 364 maps build; 10,873 chains, 39 maps differ from `navmap`, ids unchanged on the other 325; the 19 level joints are one floor each; the node = `platform_at`'s on 72,800 of 72,800 test points; 20 things placed in <= 20 us (median map), <= 70 us (the largest); on `proto_feet.py`'s hops: air frames called standing <= 0.8 %, standing called air <= 0.2 %; the table = `route()`'s seconds on 1,000 random pairs, built in <= 5 ms on Line 1; a rebuild does not block a frame (a test) | 1, 7 |
-| **3** | **Mobs, in shadow** (`track/kinds.py`, `evidence.py`, `mobs.py`, the mob records of `state.py`; the Perceiver calls it beside `world.py`; the replay tool): design 2-4 | *From the kept replay, 13 sound captures:* measurement 1's table within tolerance - found >= 98.4 %, id kept across a cover >= 93.1 % (by length >= 96.7 / 96.2 / 93.3 / 79.1 / 77.1), one id for life not beside another mob >= 90.6 %, extra ids <= 1,032, "the track changed mob" <= 10, next to its set >= 99.0 %, a death seen noticed p90 <= 0.05 s, no seen track-frame without a truth mob; measurement 3's feet: hops within 1.5 px rms >= 91 %, jolts <= 500. *Labels:* L1 mobs: stand / air >= 99 %, the node >= 99.5 % of standing mobs; L2 >= 90 %, L3 >= 95 %, both counted on the agreed cases only (L2 21, L3 22: `"agreed": true` in the bank's files; step 1, try 3); L8: reported. *Live, on the fresh capture:* the GPU evidence = the bitmaps' on >= 99.9 % of the places asked; the shadow rows = that capture's replay rows on >= 99.5 % of track-frames; the tracker's ms p50 <= 1.0, p90 <= 2.5 (today's `world` + looks: 0.7 / 2.0), the whole frame's p50 not above today's + 0.3; `gate.py` SAME | - (the GPU, and a speed number) |
+| **3** | **Mobs, in shadow** (`track/kinds.py`, `evidence.py`, `mobs.py`, the mob records of `state.py`; the Perceiver calls it beside `world.py`; the replay tool): design 2-4 | *From the kept replay, 13 sound captures:* measurement 1's table within tolerance - found >= 98.4 %, id kept across a cover >= 93.1 % (by length >= 96.7 / 96.2 / 93.3 / 79.1 / 77.1), one id for life not beside another mob >= 90.6 %, extra ids <= 1,032, "the track changed mob" <= 10, next to its set >= 99.0 %, a death seen noticed p90 <= 0.05 s, no seen track-frame without a truth mob; measurement 3's feet: hops within 1.5 px rms >= 91 %, jolts <= 500. *Labels:* L1 mobs: stand / air >= 99 %, the node >= 99.5 % of standing mobs; L2 >= 90 %, L3 >= 95 %, both counted on the agreed cases only (L2 21, L3 22: `"agreed": true` in the bank's files; step 1, try 3); L8: reported. *Live, on `20261120_235747_1#0` (Line 1, 4.2 min) with a new kept replay of it on today's scene build in its own folder (stop rule 5):* the GPU evidence = the bitmaps' on >= 99.9 % of the places asked; the shadow rows = that capture's replay rows on >= 99.5 % of track-frames; the tracker's ms p50 <= 1.0, p90 <= 2.5 (today's `world` + looks: 0.7 / 2.0), the whole frame's p50 not above today's + 0.3; `gate.py` SAME | - (the GPU, and a speed number) |
 | **4a** | **Drops** (`track/drops.py`): design 5; the finder (`perception/drops.py`) is not changed | from the kept replay, measurement 5 within tolerance: 746 drops, 0 lives with two items or over 131 s, 0 "gone" then seen again, pairs of one item within 3 px <= 9 and each looked at, exactly one death for >= 84.4 % of drops, "we took it" with the key down: no hop without it on any of the 13; L6 >= 90 %; PLAN-loot's gates still met; ms p50 <= 0.2 | 4b |
 | **4b** | **Other players and us** (`track/players.py`, `us.py`): design 6-7 | L5: players found >= 95 %, non-players called players <= 1 %, a pet called a player or a player called a pet <= 5 %, the node on >= 95 % of standing players; the 2 s players' cover (question 5): the same player back under a new number on <= 29 of the 30-minute capture's 308 tracks (within 1 %); L1 us: >= 99 %; every stuck case `nav/selfstate.py`'s docstring lists is a test; us against `SelfState` on the 30-minute capture: the same place on >= 99 % of frames, every difference listed; our feet known on >= 97.5 % of frames (today 96.7; the tag list gives 1.1 points); ms p50 <= 0.1 | 4a |
 | **5** | **Events** (`track/events.py`; needs 3-4): design 8 | 30-minute capture, from the kept replay and its keys: casts 500 / 78 / 10 (q / e / w) within 1 %; every HUD step has a cause; "by us" by chance <= 1 % (windows moved in time); kills against EXP: "us" with no EXP step <= 1 %, whole-EXP kills missed <= 2 %; L4 >= 95 %; the swing length measured live within 0.03 s of 0.85 / 0.87 | 6 |
@@ -619,6 +623,58 @@ label is now taken only from an exact read (the prototype's rule); a test proves
 Not in the gate, noted: the prototype's stored bar signature on frame 43357 of the 30-minute capture (65 %) is 100 % in
 this run and in a re-read with either pack - its run read that frame differently; nothing depends on it.
 
+### Step 2 - built 2026-11-24 (branch `tracker-build-graph`): gate MET; one reading for the user (the rebuild)
+Built: `maplebrain/track/graph.py` (its docstring holds the rules) + `tests/test_track_graph.py` (23 tests);
+`config.Track` (stand_tol 3, stand_step 1, stand_slope 0.9, rope_tol 7 = today's SelfTracker value for our exact
+tag). The gate tools: `tools/model/nav_audit.py graph` (new), `tools/perc/track/proto_feet.py` (a row for the real
+placement). nav/navmap.py is not changed: the edges are its own `_find_links` run over the graph's nodes, the table
+is its own `route()` search.
+- **Nodes:** `chains_fixed.py`'s rule; the chain lists equal the reference tool's on all 364 maps (a test).
+- **Placement:** the rule of design 3 for n things in one call (stand, rope for climbers, air / fly; `from_node`
+  changes only on stand or rope - proto_mobs's track node); no +-8 / 16 px retry at the feet's x (that is for the
+  minimap's coarse x). A test checks the fast call against a plain over-every-chain version of the rule on 7,500
+  random things on 5 real maps (ends, joints, slopes, ropes, last nodes).
+- **The seconds table:** `seconds[a, b]` = route()'s seconds **from the middle of node a** (a choice made here:
+  route() needs a start; the middle errs by at most half the node's width), `arrive[a, b]` = where that way lands.
+  It is route()'s own search run to the end from each node: route() stops when it pops its goal, and everything
+  popped before is the same, so a row holds route()'s answer for every goal exactly.
+
+| Gate | Result |
+|---|---|
+| 364 maps build | **364 of 364**: with the edges and the table 0.12 s p50, 0.64 p90, 5.2 max (nodes, floors and placement alone 0.01 s p90); the edges are navmap's own (`NavMap.from_json`'s links) on **300 of 300** maps with navmap's nodes; the table 2.4 ms p50, 26 ms p90, 0.65 s max (the largest map, on the worker) |
+| 10,873 chains; 39 maps differ from navmap, ids unchanged on the other 325 | **10,873**; other ids on **39** maps; **the same ids on 325** - but on 25 of them a chain holds other footholds (found on the way 1) |
+| the 19 level joints are one floor each | **19**, each one floor, nothing else joined (joints at one point: 19 with no wall and no link, 122 with a wall: 59 a->b, 63 b->a) |
+| the node = `platform_at`'s on 72,800 of 72,800 | **72,800 of 72,800** (the audit's points; through the foothold under it on the maps whose chains differ) |
+| 20 things placed <= 20 us (median map), <= 70 us (largest) | **19.0-19.5 us** on the median map (Kerning City Self-Defence Item Store), **19.0-19.4 us** on the largest (Physical Fitness Test <Normal Level 3>), 4 runs, pinned, nothing else computing; with steps, last nodes and 3 climbers (bare: 14.4-14.9). The prototype's 16 / 62 us was the nearest surface alone. **Thin margin:** a busy machine puts it over 20 |
+| `proto_feet.py`'s hops: air called standing <= 0.8 %, standing called air <= 0.2 % | **0 of 26,811 (0.00 %); 1,014 of 555,561 (0.183 %)**; the prototype's rows reproduce measurement 3 exactly |
+| the table = route()'s seconds on 1,000 random pairs, built <= 5 ms on Line 1 | **1,000 of 1,000** (exactly equal); **4.18 ms** (best of 7, p50 4.19; 4.2-4.4 in single builds) |
+| pytest, bot speed | whole suite green; **bot speed 14.5 ms** a tick (p90 16.1; recent runs 13.9-14.2: graph.py is not on the perception path); measured with nothing else computing, the game open. In a worktree, `assets/scene` (not in git) must be linked in first, or the bench runs without the scene model (3.5 ms, meaningless) |
+| a rebuild does not block a frame (a test) | **met as "the frame never waits for the rebuild"**: every read during it answers at once from the old set, whole, then the new one (38,000 calls in Line 1's 0.6 s); but see found on the way 3 |
+
+Found on the way:
+1. **25 more maps change than the 39** (counted by chains, not by ids): the same chain ids, other footholds - Perion,
+   Perion Street Corner, the Rocky Mountain / Rocky Road / Deep Valley maps, Drake's Meal Table and 13 more
+   (`nav_audit.py graph` names them). navmap follows a one-way `next` across a joint where another chain comes in
+   (Perion chain 153: foothold 156's next is 157, but 157's prev is 165), so its chain runs on; here it stops.
+   300 maps have navmap's nodes exactly (and the same edges: below).
+2. **The plan's bold row of measurement 3 (0.79 % / 0.072 %) is the "this step still" rule** (within 3 px of the last
+   y + the sideways step), not design 3's "within 1 px + 0.9 x the sideways step" (the prototype: 0.55 % / 0.183 %);
+   proto_mobs uses design 3's, and so does graph.py. Its 0 air frames called standing (148 in the prototype) is
+   the missing +-8 / 16 px retry: `platform_at` found a surface 8-16 px to the side.
+3. **The rebuild's worker thread shares Python's GIL with the frame.** While it runs, a call now and then waits for
+   the GIL: on Line 1 (0.6 s rebuild) 28 of 22,600 calls of 20 things waited over 6 ms, the longest 20 ms; a 2 ms
+   piece of frame work took 2.2 ms at the median, 31 ms at p99, 37 ms at most. On the largest map (6.9 s) the
+   longest call 31 ms, a 2 ms piece up to 171 ms. Not garbage collection (the same with gc off); Windows' timer
+   resolution makes it worse (at 1 ms: the longest call 12 ms, the 2 ms piece 25 / 60 ms); a shorter switch
+   interval makes every call 4 x slower. A process instead of a thread would remove it (the edges come back as
+   arrays; the Link objects are made once, ~5 ms on the largest map) - a change of the design, so not made:
+   **the user decides** (it matters when step 6's measured values change often enough to rebuild).
+4. Two chains lying on each other (In a Small Forest 29 and 62, y 605): equal distances go to the lower id, as
+   `platform_at`; the first count of 72,738 was the audit's own mapping back through the footholds' geometry.
+
+The gate's commands: `tools\model\nav_audit.py graph` (~3 minutes; `--no-edges`: 5 s), `tools\perc\track\proto_feet.py
+--sound` (its last stand / air row), `pytest tests\test_track_graph.py`.
+
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
 2. The real code cannot reproduce a prototype's number from the same kept replay within tolerance: stop - it is
@@ -626,7 +682,10 @@ this run and in a re-read with either pack - its run read that frame differently
 3. The tracker's ms over its line in step 3 or later: stop with the profile.
 4. Anything that needs a change in the fit, the scene model or the drop finder: stop and ask (this plan changes
    none of them).
-5. Anything that needs an old capture re-made: stop and ask the user for a capture instead.
+5. A kept replay may be made again on today's scene build, but **only into its own folder**: the kept replay the
+   plan's numbers were measured on (`work\SESSION#K\track\`) is never overwritten. (Changed by the user
+   2026-11-24: their "no re-make" of 2026-11-23 meant the old `--frames-png` recordings under `runs\`, not the
+   bank's captures.)
 6. A field's target in `docs/state_model.md` that cannot be met: report it with the numbers; the user decides.
 7. Fresh footage contradicts a measurement this plan rests on (the mob speed factor on another map, the bob's
    period, the landing window): stop with both numbers.
@@ -649,13 +708,15 @@ read from it). Gate as written (tools/model/nav_audit.py, tools/perc/track/proto
 in place of the prototype's); numbers into the plan; a gate missed: stop.
 ```
 ```text
-Tracker, step 3 (mobs, in shadow). Needs the user's fresh Line 1 capture and step 1's labels L1, L2, L3, L8.
+Tracker, step 3 (mobs, in shadow). Needs step 1's labels L1, L2, L3, L8 (L2 / L3: the agreed cases only).
 Read PLAN-tracker.md - measurements 1-4 and 9, design 1-4, step 3, the stop rules - and
 tools/perc/track/proto_mobs.py, proto_feet.py, births.py, mem_sheet.py (the reference: port the rules and the
 constants of Cfg, do not redesign). Branch tracker-build. Build track/kinds.py, evidence.py (two sources),
 mobs.py and the mob records; the Perceiver calls the tracker beside world.py, nothing reads it. Write it with
 arrays, not loops over pairs. Build the replay tool that runs the real code from a kept replay. Then the gate in
-its order: the 13 sound captures from the kept replay, the labels, the live path on the fresh capture, the ms.
+its order: the 13 sound captures from the kept replay, the labels, the live path, the ms. For the live path,
+make a new kept replay of 20261120_235747_1#0 (Line 1, 4.2 min) on today's scene build into its own folder -
+never over work\SESSION#K\track\ (stop rule 5) - and run the GPU path over the same capture's video.
 Decide by the numbers whether Fitter.look stays. Numbers into the plan; a gate missed: stop.
 ```
 ```text
@@ -707,8 +768,8 @@ pytest, the bench, then ask the user for the 3-minute hunt on Line 1. Numbers in
 ```
 
 ## Footage asked of the user (`python -m maplebrain record --label farming`, chat minimized, today's settings)
-1. **Line 1 <Area 1>, 5 minutes of farming** - step 3's live check (the kept replay is not re-made, so the GPU
-   path needs a capture of today's scene build).
+1. ~~**Line 1 <Area 1>, 5 minutes of farming**~~ - **dropped 2026-11-24**: step 3's live check uses the 4.2-minute
+   Line 1 capture `20261120_235747_1#0` with a new kept replay of it on today's scene build (stop rule 5).
 2. **The quickslot bar, 1-2 minutes** - step 7: a skill on one of the 8 keys and used a few times; an item used
    until its amount shows 0 (or a stack of 1-2 used up); the mouse resting on a slot until its tooltip shows; the
    inventory or another window over part of the bar for a few seconds.

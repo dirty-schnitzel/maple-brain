@@ -8,7 +8,9 @@
    prototype settles them (the reading that continues the motion). The residual says which feet are right.
 2. Stand or air. Truth = inside a fitted hop: air; on a surface for 10+ frames: stand. Four rules are graded:
    today's (within 16 px of a surface = on it), 3 px on the raw feet, 3 px on the settled feet, and the model's
-   rule (3 px + not moving up or down: 3 frames still before "standing").
+   rule (3 px + not moving up or down: 3 frames still before "standing"). PLAN-tracker step 2 adds the real
+   placement (maplebrain/track/graph.py, `Graph.place`) on the settled feet, frame by frame with the step and the
+   last frame's node: its gate is air frames called standing <= 0.8 %, standing frames called air <= 0.2 %.
 3. Speed: what each kind's sightings do in a quarter second against the client files' top speed (the possible
    set widens at that speed).
 """
@@ -62,11 +64,26 @@ def height(nav, x, y):
     return (None, None) if best is None else (max(0.0, best[1] - y), best[0].id if hasattr(best[0], "id") else best[0])
 
 
+def real_placement(gr, ser) -> list:
+    """Graph.place frame by frame along a tracklet's settled feet: [standing?]."""
+    from maplebrain.track.graph import NONE, STAND
+    out, last, frm = [], NONE, NONE
+    for q in range(len(ser)):
+        dx, dy = (ser[q][1] - ser[q - 1][1], ser[q][3] - ser[q - 1][3]) if q else (0.0, 0.0)
+        p = gr.place(np.array([ser[q][1]]), np.array([ser[q][3]]), np.array([dx]), np.array([dy]),
+                     np.array([last]), np.array([frm]))
+        out.append(bool(p.place[0] == STAND))
+        last, frm = int(p.node[0]), int(p.from_node[0])
+    return out
+
+
 def main():
+    from maplebrain.track.graph import Graph
     caps = cache.SOUND if "--sound" in sys.argv else [a for a in sys.argv[1:] if not a.startswith("--")]
     hops = []                                  # (kind, rms raw, rms settled, apex px, air s, gravity px/s2, frames)
+    REAL = "the real placement (graph.py)"
     lab = {r: Counter() for r in ("today (16 px)", "3 px, raw feet", "3 px, settled feet", "3 px + still (the model)",
-                                  "3 px + this step still", "3 px + step within 1 px")}
+                                  "3 px + this step still", "3 px + step within 1 px", REAL)}
     passing = Counter()
     jolt = {"raw": [0, 0], "settled": [0, 0]}
     speed = defaultdict(list)
@@ -75,6 +92,7 @@ def main():
         tk = ticks(cap)
         mp = Map(map_of(cap))
         nav, kinds = mp.nav, kinds_of(mp)
+        gr = Graph(mp.json, edges=False)
         names.update(mp.names)
         for tl in tracklets(tk, max_gap=0):
             k = kinds.get(tl["type"])
@@ -139,6 +157,7 @@ def main():
             # ---- the four rules against the truth
             still = 0
             air_m = False
+            real = real_placement(gr, ser) if truth.any() else [False] * n
             for q in range(n):
                 on_raw16 = nav.platform_at(ser[q][1], ser[q][2], tol=16) is not None
                 on_raw3 = nav.platform_at(ser[q][1], ser[q][2], tol=3) is not None
@@ -153,7 +172,8 @@ def main():
                 if truth[q]:
                     for name, st in (("today (16 px)", on_raw16), ("3 px, raw feet", on_raw3),
                                      ("3 px, settled feet", on_set3), ("3 px + still (the model)", stand_m),
-                                     ("3 px + this step still", stand_1), ("3 px + step within 1 px", stand_2)):
+                                     ("3 px + this step still", stand_1), ("3 px + step within 1 px", stand_2),
+                                     (REAL, real[q])):
                         lab[name][(truth[q], "stand" if st else "air")] += 1
     H = np.array([(a, b, c, d, e, f) for _, a, b, c, d, e, f in hops]) if hops else np.zeros((0, 6))
     print(f"hops fitted: {len(hops)} ({dict(Counter(names.get(h[0], h[0]) for h in hops))})")

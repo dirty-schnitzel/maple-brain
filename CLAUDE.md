@@ -14,10 +14,14 @@ lives: the last section.
   test-first fixes. Watches every live run and says what they saw. Their game knowledge fixes designs: ask game
   questions directly.
 - Reports are short: what was found, the fix, the command.
-- Hard problems run as two kinds of session. A planner (Fable, max) measures and prototypes first, then writes
+- Hard problems run as three kinds of session. A planner (Fable, max) measures and prototypes first, then writes
   PLAN-<topic>.md with a gate per step, stop rules and session prompts: PROPOSED until the user's OK, nothing
   built in maplebrain/. An executor (Opus, or Fable at medium) follows the plan's steps and gates exactly and stops with numbers
-  when one fails - no workarounds. Redoing a whole pillar: REWORKS.md first.
+  when one fails - no workarounds. A plan manager (Opus, medium) runs beside the executors from the plan's
+  review to its last step, so that small things never cost an executor's big context: it explains the plan and
+  each step's findings, records the user's answers, writes the step prompts and worktrees, re-checks a step's
+  numbers, makes small doc fixes and merges on the user's word (claude_architecture.md section 3, "The plan
+  manager"). Redoing a whole pillar: REWORKS.md first.
 - Discussing a plan session before it runs, Claude helps the user structure it: the goal in the user's words,
   the requirements (what it must output, how good, how fast), what is decided and what is left to the session,
   the user's game knowledge it needs, and what the user supplies first (footage, answers). Claude asks for a
@@ -90,6 +94,9 @@ A hunt writes `<out>\<date_time>_<n>\`: log.txt, ticks.jsonl, frames. Analysis t
   (`bench.py --baseline`) only for a deliberate speed change, in the same commit. One GPU job at a time while a
   speed number is being measured.
 - A live run shows that a change works; replays of recorded footage decide whether it is better.
+- Footage (the user, 2026-11-24): reuse the bank's captures when they serve - a new kept replay on today's build
+  goes into its own folder, never over the one a plan's numbers were measured on. When new footage is needed or
+  clearly better, ask for it: the user records it easily (say what to record, the label and the actions).
 - To prove a test catches a bug: revert the fix, see the test fail, restore.
 
 ## Editing gotchas
