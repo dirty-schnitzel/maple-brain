@@ -296,7 +296,8 @@ by perception (not part of this plan).
 
 ## Decided by the user (2026-11-23, the four questions this document ended on)
 1. **Mobs out of view: 4 s**, then forgotten ("4s ok").
-2. **Players: a 1 s cover, nothing more** ("yes 1s enough players move a lot").
+2. **Players: a 1 s cover, nothing more** ("yes 1s enough players move a lot"). **Changed 2026-11-24 to 2 s**
+   (PLAN-tracker.md question 5: 29 of 308 player tracks come back under a new number, against 52 with 1 s).
 3. **Buffs: cast seen + length, no perception. The hotkeys: every item and its amount on all 8 keys** (Shift, Ins,
    Home, PgUp, Ctrl, Del, End, PgDn), read and tracked - further than potions alone. A step of PLAN-tracker.md.
 4. **The profile file: good for now**; later a script that fills it from the game's equipment / stats windows.
