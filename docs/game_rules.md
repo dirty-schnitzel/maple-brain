@@ -226,6 +226,12 @@ All of it is HC `Gameplay/MapleMap/Mob.cpp` + `Gameplay/Physics/Physics.cpp`. On
 - **Flyers** (mobs with a `fly` animation): push = (`flySpeed` + 100) x 0.0005 px/tick^2, friction 0.05 x v on
   both axes: top speed **(flySpeed + 100) x 1.25 px/s** (0 -> 125 px/s), reached slowly (63 % after 20 ticks =
   0.16 s). Source: `Mob.cpp:46, 80-84, 200-213`, `Physics.cpp:27, 105-123`. Field: `flySpeed` (13 mobs).
+- **Measured on Classic World (2026-11-23, PLAN-tracker.md measurement 4; `tools/perc/track/proto_feet.py`):**
+  the seven walking kinds in the bank move at **1.97-1.99 x this rule** while in a move pose (Bubbling 137.0
+  px/s against 68.75, Slime / Green / Horny Mushroom 98.7-99.1 against 50, Zombie Mushroom 124.0 against 62.5,
+  Evil Eye 111.0 and Drake 110.6 against 56.25); the flyer Stirge reaches 185.6 px/s (p99) against 100. A mob's
+  hop takes off at ~555 px/s (apex 78 px, 0.56 s; C4 says 625), a knockback moves a Bubbling 19 px (D1: ~27)
+  and the hit pose lasts 0.55 s (D1: 0.248 s). The tracker uses the measured values (a fact with its source).
 - Ours: `perception/world.py:24` `vmax 160` px/s as one generous cap for every mob - **differs** (the rule
   gives a cap per mob type: 62.5 px/s at speed 0); `tests/test_brain_v2.py:487` FakeMobs walk at 40 px/s -
   **differs**.

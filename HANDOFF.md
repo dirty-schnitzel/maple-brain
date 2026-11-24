@@ -5,7 +5,7 @@ what is true NOW and what comes NEXT. The `handoff` skill rewrites it at the end
 appended to. Everything older is in HISTORY.md (grep it; what left this file on 2026-11-21 is its last
 blocks). Rules that stay true: CLAUDE.md and .claude/rules/. Plans and their progress: PLAN-*.md.
 
-## START HERE (2026-11-23): the tracker plan session (moving-scenery steps 1-5 done and in `dev`)
+## START HERE (2026-11-24): `PLAN-tracker.md` is PROPOSED - the user's OK, answers and footage, then its steps
 
 **The user's goal (2026-11-19):** "have a great perception / tracking / data model in order to feed that into an
 ai to see how many hours of farming on a specific map with a specific class and style are needed to teach it to
@@ -13,14 +13,15 @@ farm a map efficiently and humanlike. Then benchmark different models at the sam
 (2026-11-20):** "good tracking ready for ML applications, and a simulator that can 1 - show the current state of
 the game live just like livemap but with real assets, 2 - take our input and be used to train AI". **Left open by
 the user:** a full FSM or a cloned-behaviour AI. **OK'd 2026-11-23 with the tracker plan's prompt:** no guessing
-in the tracker, the data model first, no simulator engine now - "Proposed by Claude" below.
+in the tracker, the data model first, no simulator engine now (the model: `docs/state_model.md`; the discussion
+that led to it: HISTORY.md, the block of 2026-11-24).
 
 ### The order from here
 | # | Session | Run as | Status | Prompt |
 |---|---|---|---|---|
 | **P0.1-5** | **The plan's steps 1-5, one executor session each:** 1 the pictures right (the forest maps sound), 2-3 moving backs drawn and followed (40 maps hunt), 4-5 Perion's clouds followed and undone (42 maps hunt). Steps 4-5 need the user's Perion recording | Opus (high) | **steps 1-5 DONE 2026-11-23**, the numbers each missed gate fell short on ACCEPTED by the user (PLAN-moving-scenery.md's status); merged into `dev` 2026-11-23 (9085f5b). Steps 6-7 wait for footage | `PLAN-moving-scenery.md`, "Session prompts" |
-| 3 | The tracker plan session, in two parts: (1) the data model -> `docs/state_model.md`, stop for the user's OK; (2) the tracker that fills it -> `PLAN-tracker.md`, PROPOSED until the user's OK. Take along: per mob, on our platform or not (Open items, "Ideas from another bot") | Fable, max | **Part 1 DONE 2026-11-23: `docs/state_model.md`, OK'd by the user as a whole** (its 4 questions answered in its last section; the measuring tools: `tools/model/`, branch `tracker-plan`). **Part 2 UNDER WAY** (experiments on the kept replay, then PLAN-tracker.md) | `docs/prompts/tracker-plan.md` |
-| 4 | The tracker built in shadow beside today's, switched when it matches or beats it. Beside it, at any time: the viewer (PLAN-livemap.md Session 1 - its prompt says "from the current head of `perception`": use `dev`). No engine session | Opus | after 3 | PLAN-tracker.md, PLAN-livemap.md |
+| 3 | The tracker plan session, in two parts: (1) the data model -> `docs/state_model.md`, stop for the user's OK; (2) the tracker that fills it -> `PLAN-tracker.md`, PROPOSED until the user's OK. Take along: per mob, on our platform or not (Open items, "Ideas from another bot") | Fable, max | **DONE.** Part 1: `docs/state_model.md`, OK'd by the user 2026-11-23. Part 2: **`PLAN-tracker.md` PROPOSED 2026-11-24** - not OK'd yet; its 7 questions and 4 footage asks are open | done (the prompt, `docs/prompts/tracker-plan.md`, is in git history) |
+| 4 | **PLAN-tracker.md's steps, one executor session each** (branch `tracker-build` off `dev`, after `tracker-plan` is merged into `dev`): 1 label sets by eye, 2 the graph and placement, 3 mobs in shadow, 4a drops, 4b other players and us, 5 events, 6 the facts registry + profile + Skill.img, 7 the hotkey reader, 8 the stored tables, 9 the switch (the brain reads the new state, `world.py` goes). Steps 1, 2 and 7 could run beside each other, 4a beside 4b, 5 / 6 / 8 in pairs (the plan's table) - the user decides. Beside it, at any time: the viewer (PLAN-livemap.md Session 1: use `dev`). No engine session | Opus | **waits for the user's OK on the plan**; step 3 also for the fresh Line 1 capture, step 7 for the quickslot footage | `PLAN-tracker.md`, "Session prompts" |
 | 4b | Wide maps: plan, then execute, the scrolling minimap placed by several agreeing patches (Open items, "Ideas from another bot") | Fable, max -> Opus | after the tracker (the user, 2026-11-22) | - |
 | 5 | FSM or clone, decided on what both score in live runs, counted by the tracker's events | - | open | - |
 
@@ -52,6 +53,16 @@ in the tracker, the data model first, no simulator engine now - "Proposed by Cla
   plan OK'd 2026-11-21 ("execute moving-scenery plan"); its three questions are still open.
 
 ### What the next sessions build on
+- **`docs/state_model.md` (OK'd) + `PLAN-tracker.md` (PROPOSED 2026-11-24).** The model: the map's graph, the
+  facts, per frame us / mobs / drops / players with where each is on the graph and how it is seen, the events.
+  The plan: every part has a prototype that ran from the kept replay (`tools/perc/track/proto_*.py`, branch
+  `tracker-plan`; outputs in `F:\dev\maple-corpus\work\track-plan\`). Mobs, 13 captures: found 98.7 % (today
+  96.3), the id kept across a cover 93.4 % (78.5), 1,022 id changes (2,232) - by keeping the places an unseen
+  mob can be and dropping those that show the scenery, 4 s at most when nothing can be checked. Drops 746, none
+  lost and found again; every HP / MP / EXP step explained; the 8 hotkeys read exactly on every frame; other
+  players by name tag. **Found:** mobs move at 2 x the v83 rule's speed (noted in `docs/game_rules.md` C1); the
+  fit makes false sightings from slivers of players at the screen's edge; the truth (`oracle.py`) swaps two
+  mobs of a kind at crossings (457 of the prototype's 1,022 "id changes"), so the plan's gates use a fair count.
 - **`PLAN-moving-scenery.md` (steps 1-5 DONE 2026-11-23 and merged into `dev`; each step's numbers under its
   heading there; steps 6-7 wait for footage).** The forest
   maps hold no moving scenery: the export decoded the sky's colour wrong and Ellinia's light rays are an ADDED
@@ -75,44 +86,16 @@ in the tracker, the data model first, no simulator engine now - "Proposed by Cla
   per frame the camera, us, the fit's mobs, today's tracks and looks, drops, patches and the two bitmaps - a
   prototype runs from it with no GPU (`tools/perc/track/dump.py`, `load.ticks`). Perception is **sound on 13
   captures** (caves, dungeons, both Line 1); not sound on the 9 forest captures (PLAN-moving-scenery.md's step 1
-  makes them sound) nor on Cave of Evil Eye III (camera lost). Today's tracker, pooled over the 13: FOUND
-  96.4 %, HELD 96.8 % across <= 0.1 s but 31 % across 0.6-1.5 s, **64 % of mob lives on one track**, ghosts 1.4 %,
-  an unwitnessed death stays "alive" p90 5.9 s. The truth checked by eye on 60 cases: gaps 21 right / 0 wrong / 19
-  can't tell (mostly off screen), ends 15 / 3 / 2. Tools: `tools/perc/track/`. **Two scene builds in it** (open
-  items): re-made on the full build = the 9 forest captures + Ant Tunnel I; the other 8 stay as they are (the
-  user, 2026-11-23: no re-make, fresh captures as needed).
+  makes them sound) nor on Cave of Evil Eye III (camera lost). Today's tracker's numbers on the 13 stand beside
+  the prototype's in PLAN-tracker.md. The truth checked by eye on 60 cases: gaps 21 right / 0 wrong / 19 can't
+  tell (mostly off screen), ends 15 / 3 / 2; its chains are kept on disk (`cache.py`). **Two scene builds in
+  it:** re-made on the full build = the 9 forest captures + Ant Tunnel I; the other 8 stay as they are (the user,
+  2026-11-23: no re-make, fresh captures as needed).
 
-### Proposed by Claude in the planning sessions (the user works along it; not OK'd as a whole)
-- **OK'd 2026-11-23 with the tracker plan's prompt (discussed 2026-11-21..23): no guessing.** The user: "we simply shouldn't try
-  to guess, at all ... We see the actions with perception and we act upon them"; a human farming "doesnt have
-  memory of the exact location of every mob it has seen, he is basically looking at the map and following a set
-  of rules"; "the data model has to be chosen before designing tracking". What follows from it:
-  - **The data model = the map's graph + what is on screen now.** The graph is fixed per map and exists
-    (`nav/navmap.py`: platforms and ropes = nodes, walk / jump / drop / climb links = edges; 364 of 364 maps
-    build, portals are not edges). Per frame, for every mob, drop, other player and us: what it is, where on the
-    graph (platform + place along it), which thing of the previous frames it is, how it is seen (clear, or
-    covered by what). Plus the events since the last frame: spawned, hit, died by our last hit or not, dropped,
-    picked up, we got hurt = the training labels and the scoreboard. **Plus every attribute and fact of the
-    world state (the user, 2026-11-21):** our move speed, jump speed, current weapon range, and the like for
-    mobs and the map, each with its source (`docs/prompts/tracker-plan.md`, Part 1).
-  - **Out of the tracker:** behaviour predicted from assumed server rules (respawn, aggro, mob AI). Its inputs =
-    perception + static / calculated data; predicting where a thing is from what was seen and what covers it is
-    allowed (the user, 2026-11-23). A short cover = a few seconds, up for debate. **The goal (the user,
-    2026-11-23):** very fast, very accurate, all of perception into the model, the frame rate not lowered or as
-    little as possible. **Dynamic values** (skills and keys, move speed, jump, weapon reach...) change during
-    play: the session lists them and decides how each is set. **Memory is IN (the user, 2026-11-23: "we
-    definitely need memory, this needs to be designed in the tracker session")**, together with mobs that die
-    under cover and drops that vanish out of view - the session designs it (`docs/prompts/tracker-plan.md`).
-  - **Position (the user leans to it, 2026-11-23):** node + place along it, the raw map (x, y) kept beside it;
-    placement types standing / air / rope / flying, one rule for every kind (OK'd); "on our platform" = a derived
-    fact (same floor = joined by walk links), not a field.
-  - **No simulator engine now** (the user, 2026-11-22: "there might be an engine down the line, but after
-    tracking and at least full fsm behavior"). A clone learns from recordings (the state + the user's keys);
-    FSM and clone are benchmarked in live runs counted by the tracker's events. The viewer stays.
-  - **Kept from the earlier list:** the same tracks live and from a recording, nothing tied to the scripted
-    brain or one class; the hindsight twin as the truth (`tools/perc/track/oracle.py`); perception one-way.
-  - **Left to the session:** how long "a short cover" is, and the drops rule under "Decided by the user" (an
-    input to the memory design).
+### Parked
+- **No simulator engine now** (the user, 2026-11-22: "there might be an engine down the line, but after
+  tracking and at least full fsm behavior"). A clone learns from recordings (the state + the user's keys); FSM
+  and clone are benchmarked in live runs counted by the tracker's events. The viewer stays.
 - **Parked until the FSM-or-clone decision:** REWORKS.md's Execution and Brain reworks (Execution takes two ideas
   from another bot: Open items), v3 steps 4-6 (the FSM path); hours of recordings on one map, the dataset builder,
   the training code (the clone path). Parked without a date: by-eye validation of every map (PLAN-data Sessions
@@ -130,8 +113,14 @@ in the tracker, the data model first, no simulator engine now - "Proposed by Cla
 - **A lost scene camera** releases every key until it is found again, even on a 1-tick miss: to be handled as
   cases come up live (HISTORY.md "The deletion (DONE 2026-11-17)").
 - **`w` and `e` are skills the code does not know** (not in `Keys`); the bank's farming label counts only
-  `q` / `c` until they are. The user, 2026-11-23: q single-target, w multi-target, e mobility - subject to
-  change (the tracker plan decides how such values are set while running).
+  `q` / `c` until they are. Seen in the footage: q Power Strike, w Slash Blast, e Rush (PLAN-tracker.md
+  measurement 6); the profile file of its step 6 is where they will live.
+- **Perception, found by the tracker plan (not in its scope):** the fit sights "mobs" in slivers of players at
+  the screen's edge (PLAN-tracker.md measurement 2; the new tracker does not remember them); the play area's
+  bottom two rows (y 698-699) are the HUD's edge and are not masked; our own tag is in the tag list on 1,179
+  frames of the 30-minute capture where `FrameFacts.tag` is empty.
+- **`PLAN-moving-scenery.md` is not valid UTF-8** (the Read tool says so; the Edit tool refuses it): to be
+  converted on the user's word.
 - **Wide maps:** F7 now recognises maps whose minimap scrolls sideways; whether the locator and perception work
   on them is untested. To plan and execute (the user, 2026-11-22), with the other bot's minimap idea above.
 - **The scene camera waits ~1 s on every map entry** (the map is on screen before our character is drawn; the
@@ -146,16 +135,24 @@ in the tracker, the data model first, no simulator engine now - "Proposed by Cla
   with no way out, ladder 778's tag reading +10 px; the Lie Detector is not looked for while the game is
   unfocused, and there is no capture watchdog; a phone alert on a Lie Detector.
 
-## Branches (2026-11-23)
+## Branches (2026-11-24)
 - `dev` holds everything: `rules`, `claude-arch`, `tracker` and `data` are merged into it (2026-11-21, on the
   user's word) and can be deleted. One worktree is registered that is not this layout's: `wt64`, detached at
   64f9713, in another session's scratchpad - leave it to that session.
 - `moving-scenery`: steps 1-5, merged into `dev` 2026-11-23 (9085f5b); nothing on it is missing from `dev`.
-- `tracker-plan` (2026-11-23): the plan session's measuring tools (`tools/model/`), off `dev`; **the main folder
-  is on it**. Nothing in `maplebrain/` differs from `dev`.
+- `tracker-plan` (2026-11-24): the plan session's tools - `tools/model/` (Part 1) and the prototypes in
+  `tools/perc/track/` (Part 2) - off `dev`; **the main folder is on it**. Nothing in `maplebrain/` differs from
+  `dev`. **To be merged into `dev` by the user before PLAN-tracker's step 2** (the executors port from it).
 - `main` has not moved since 2026-11-09 (02a639a) and has no CLAUDE.md. Parked: `vnc-keys` (the VM attempt).
 
 ## Waiting on the user
+- **`PLAN-tracker.md`: the OK, and its 7 questions** (its "Questions for the user"): three of the model's
+  targets as the prototype met them; one 4 s limit for whatever cannot be checked; the mobs' doubled speed;
+  other players' pets; the players' 1 s cover; which skills have a length or a cooldown; HP items giving 1.24 x.
+- **Its footage** ("Footage asked of the user"): 5 minutes of farming on Line 1 (step 3); 1-2 minutes of the
+  quickslot bar with a skill on a key, an amount at 0, a tooltip, a window over it (step 7); welcome: a map with
+  flying mobs, an Ant Tunnel map; a buff cast 5 times if the character has one.
+- **Merge `tracker-plan` into `dev`** (tools only).
 - PLAN-moving-scenery.md's questions (its last section), if any are still open; footage for its steps 6-7.
 - The "explained" reading of PLAN-data's stop rule (REPORT-track-before.md section 3), to confirm or change:
   map places the scene model misses on more than half of the frames that show them (what moves over the
