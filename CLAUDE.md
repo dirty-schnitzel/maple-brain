@@ -118,7 +118,7 @@ A hunt writes `<out>\<date_time>_<n>\`: log.txt, ticks.jsonl, frames. Analysis t
 | The current state and the next step | HANDOFF.md (under 150 lines) | every session (imported below) |
 | A plan and its progress | PLAN-<topic>.md | when working on it |
 | A prompt for a session that has no plan | `docs/prompts/` | when run |
-| The game's rules, from v83 code | `docs/game_rules.md` | on demand |
+| The game's rules: our footage > meowdb's Classic World guides > v83 code | `docs/game_rules.md`; what meowdb says: `docs/meowdb.md` | on demand |
 | How a tool works | its docstring or README | on demand |
 | Finished work, old numbers, old decisions | HISTORY.md | grep it; never read it whole |
 | How this layout is meant to work | claude_architecture.md | on demand |

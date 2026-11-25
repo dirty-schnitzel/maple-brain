@@ -9,7 +9,10 @@ blocks). Rules that stay true: CLAUDE.md and .claude/rules/. Plans and their pro
 
 **The user's goal (2026-11-19):** "have a great perception / tracking / data model in order to feed that into an
 ai to see how many hours of farming on a specific map with a specific class and style are needed to teach it to
-farm a map efficiently and humanlike. Then benchmark different models at the same job". **Priorities
+farm a map efficiently and humanlike. Then benchmark different models at the same job". **The benchmark ends in
+a research paper (the user, 2026-11-24)** - what it needs and the reviewers' risks to design for (reproducible
+release without the frames, live-run ethics, other players' names, small n): the `north-star-learning-curve`
+memory; nothing scheduled for it yet. **Priorities
 (2026-11-20):** "good tracking ready for ML applications, and a simulator that can 1 - show the current state of
 the game live just like livemap but with real assets, 2 - take our input and be used to train AI". **Left open by
 the user:** a full FSM or a cloned-behaviour AI. **OK'd 2026-11-23 with the tracker plan's prompt:** no guessing
@@ -24,17 +27,20 @@ that led to it: HISTORY.md, the block of 2026-11-24).
 | 4b | Wide maps: plan, then execute, the scrolling minimap placed by several agreeing patches (Open items, "Ideas from another bot") | Fable, max -> Opus | after the tracker (the user, 2026-11-22) | - |
 | 5 | FSM or clone, decided on what both score in live runs, counted by the tracker's events | - | open | - |
 
-### Decided by the user (also: v83 is the rulebook - `.claude/rules/gamedata.md`; the graphics settings -
+### Decided by the user (also: the rules' sources - `.claude/rules/gamedata.md`; the graphics settings -
 `.claude/rules/perception.md`; earlier ones in HISTORY.md)
 - **Not wanted now:** the two bot hunts for PLAN-data gate (b)'s tick cost; loot scene 3 of PLAN-loot.md section
   13 (windows over drops: "inventory will come much later down the line and is not a part of tracking").
 - **Drops in the tracker:** "expect the loot to be there for 2 mins (max loot decay time) and if it disappears
   then update the model" - a drop stays in the model from its first resting sighting until its place is seen
   without it, or until it is 130 s old when we never look there again.
+- **Game rules (2026-11-25): our footage > meowdb's Classic World guides > v83 code** ("replace cosmic game
+  rules with meowdb when possible, observed data still beats server rules"). Done in `docs/game_rules.md`
+  (source MW; a replaced rule kept, marked) + `docs/meowdb.md` (what the guides say, checked against ours).
+  meowdb's swing formula is ours, `(10 + attackSpeed) / 16`; its 7.56 s respawn round lost to our measured ~7.1 s.
 - **Movement and server data (2026-11-21):** Classic World raised the base jump and move speed, so our fitted
-  movement values stand over v83's constants (`Nav.jump_vx` 155 etc.); the swing length stays
-  `(10 + attackSpeed) / 16` for now, to be recalculated with the tracker; **no further work on server data
-  (Cosmic: respawn, aggro, drop lifetime, EXP) until a job needs it.**
+  movement values stand over v83's constants (`Nav.jump_vx` 155 etc.; meowdb explains it: walking 150 px/s at
+  Speed 100); **no further work on server data (respawn, aggro, drop lifetime, EXP) until a job needs it.**
 - **PLAN-data's camera stop rule (2026-11-21):** counted from the first fix after a portal to the exit fade (the
   ~1 s blind start and the fade do not count) - OK'd as read in REPORT-track-before.md section 3.
 
@@ -56,8 +62,8 @@ that led to it: HISTORY.md, the block of 2026-11-24).
 - **The footage for the tracker:** `20261121_000219_2#0`, Line 1 <Area 1>, 30.6 minutes of the user's farming
   in one stay (110,082 frames at 60 a second, 0 dropped), and `20261120_235747_1#0` (the same map, 4.2 minutes) -
   both at today's graphics settings. Bank: 19 recordings, 50 captures, 93 minutes, 31.9 GB (`corpus.py list`).
-- **`docs/game_rules.md`**: the game's rules from v83 code, each with its source; **open = its table 3, 21
-  questions** (aggro movement, the walk range `rx0`/`rx1`, Classic World's skill list ...).
+- **`docs/game_rules.md`**: the game's rules from our footage, meowdb and v83 code, each with its source; **open =
+  its table 3** (21 questions, 4 answered by meowdb 2026-11-25: aggro movement, the walk range `rx0`/`rx1` ... stay).
 - **The kept replay** (`F:\dev\maple-corpus\work\SESSION#K\track\`, `tools/perc/track/dump.py`): the Perceiver's
   facts + two bitmaps for every frame of 23 captures - the tracker's steps run from it with no GPU; **sound on 13
   captures** (caves, dungeons, both Line 1). A new kept replay goes into its own folder, never over the old one (the
@@ -82,6 +88,10 @@ that led to it: HISTORY.md, the block of 2026-11-24).
   foothold heights; perception, lower priority: any client window over the world -> a stop + "covered by a window".
 - **A lost scene camera** releases every key until it is found again, even on a 1-tick miss: to be handled as
   cases come up live (HISTORY.md "The deletion (DONE 2026-11-17)").
+- **Found by meowdb (2026-11-25, `docs/game_rules.md` A1, E1-E2):** `Nav.walk_speed` is 125 (Physics.img) where the
+  rule is 150 px/s - measure our own walk from the bank's feet tracks before changing it (route costs); meowdb's map
+  capacity, 5 s spawn cooldown and 100 px block are checkable on the kept replay (most mobs alive at once, the time
+  between two spawns on a point, a mob near a ready point) - when a job needs spawning.
 - **`w` and `e` are skills the code does not know** (not in `Keys`); the bank's farming label counts only
   `q` / `c` until they are. Seen in the footage: q Power Strike, w Slash Blast, e Rush (PLAN-tracker.md
   measurement 6); the profile file of its step 6 is where they will live.
@@ -136,7 +146,8 @@ that led to it: HISTORY.md, the block of 2026-11-24).
 
 ## Waiting on the user
 - **Step 3b** (PLAN-tracker.md "Step 3b, 2026-11-25", "For the user"): (a) keep 10 px and accept 77.8 %, (b) a rule by
-  shape (flyers at `spriteY`; on the level / straight above: up to 89.7 %) with its own sheet, (c) else; the ~7.1 s round into game_rules E2?
+  shape (flyers at `spriteY`; on the level / straight above: up to 89.7 %) with its own sheet, (c) else. (The ~7.1 s round is in game_rules E2 as the rule since 2026-11-25: observed
+  beats meowdb's 7.56 s and Cosmic's 10 s.)
 - **Step 4b's five questions** (PLAN-tracker.md "Step 4b", "For the user"): L5 (the prototype's own rules: 85.1 % found,
   node 89.3 %) - accept or change rules; L1 us 83.5 % - relabel ~20 jump cases on strips + a motion test in the rope
   rule; SelfState 95.81 %, our feet known 97.04 %, the live 0.7 ms - accept or what.
