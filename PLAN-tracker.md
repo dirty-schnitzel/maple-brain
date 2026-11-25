@@ -1270,6 +1270,12 @@ plan manager's reading: each split is a **false death** (a mob "dies" untouched)
 4a's `from_mob` and the id counts - so the cause is fixed, not hidden in spawns.py. A death fades the body OUT, a
 spawn fades it IN: a die pose is taken only while the opacity is not rising, never on a track still fading in. The
 0.82 s fade into `docs/game_rules.md` E3: not yet asked.
+**The user, 2026-11-25, widened it:** "treat the fade direction as a general rule in the mob tracker ('dying needs
+falling opacity, a spawn needs rising'), not only as the narrow fix". So: a track turns `dying` only on a die pose
+with the opacity falling (or the die pose at full opacity, if the measurement shows deaths start there); a birth is
+`faded in` only with the opacity rising over its first sightings - a faint mob whose opacity is flat (seen through
+an effect) is neither. Measured first, because the death gate (noticed p90 <= 0.05 s) rests on when the fade-out
+starts in a death.
 
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
@@ -1380,17 +1386,26 @@ replay track_s3 of 20261120_235747_1#0) = the replay's, the ms p50 <= 0.1. pytes
 speed line. Numbers into the plan under "Step 3b, try 2"; a gate missed: stop.
 ```
 ```text
-Tracker, step 3b, try 3 (the mob tracker's split of a fading-in mob - the user's answer (b) - then spawn points).
-Read PLAN-tracker.md - "Step 3b, try 2" and "The user's answer" under it, step 3's row and gate, design 2-4, the
-stop rules - track/mobs.py, tools/perc/track/proto_spawns.py. Branch tracker-build (the main folder).
-1. COUNT FIRST, change nothing: over the 13 sound captures (the *_s4b rows), every track that turns dying and is
-   followed within 1 s by a new track of its kind within 30 px (a death "taken back" or a split): how many, how
-   many while the first track was fading in (born faded in, under 0.83 s old, opacity rising), and what the rest
-   are (overlaps swapping poses, knockback, other) - a few of each on strips.
-2. THE FIX in track/mobs.py: a die pose is taken only while the track's opacity is not rising; a track still fading
-   in (born faded in, under the measured fade, 0.83 s) never turns dying - its die-pose reading is kept as a
-   sighting of the same mob. Nothing else changes. A test that fails without it (a fading-in mob read in a die pose
-   at opacity 0.6 stays one live track), and one that a real death still turns dying at once (opacity falling).
+Tracker, step 3b, try 3 (the fade direction as a general rule of the mob tracker - the user's answer (b), widened by
+the user - then spawn points). Read PLAN-tracker.md - "Step 3b, try 2" and "The user's answer" under it (with the
+user's widening), step 3's row and gate, design 2-4, the stop rules - track/mobs.py,
+tools/perc/track/proto_spawns.py. Branch tracker-build (the main folder).
+1. MEASURE FIRST, change nothing, over the 13 sound captures (the *_s4b rows):
+   a. every track that turns dying and is followed within 1 s by a new track of its kind within 30 px (a death
+      "taken back" or a split): how many, how many while the first track was fading in (born faded in, under
+      0.83 s old), what the rest are (overlaps swapping poses, knockback, other) - a few of each on strips;
+   b. real deaths (dying, never seen alive again): the opacity over the die pose's first frames - from which frame
+      it falls (the first? after N frames at full opacity?), p50 / p90;
+   c. faded-in births: the opacity over the first sightings - rising on how many; births whose opacity is flat or
+      falling, what they are (through an effect, uncovered, other) on strips.
+   If b shows the fade-out starting later than ~2 frames into a death, the general rule would slow the death
+   gate: stop and report - the user decides.
+2. THE RULE in track/mobs.py (the user's): a track turns dying only on a die pose with the opacity falling (or at
+   full opacity on the die pose's first frames, as 1b measured); a die pose with the opacity rising is a sighting
+   of the same live mob. A birth is "faded in" only with its opacity rising over its first sightings; a faint mob
+   with a flat opacity is born by how it came into sight otherwise. Nothing else changes. Tests that fail without
+   each half (a fading-in mob read in a die pose at opacity 0.6 stays one live track; a real death still turns
+   dying within the gate; a flat-faint birth is not faded in).
 3. Re-run step 3's gate from the kept replay (replay_mobs.py run / pool / feet / labels, the sorted tags as live):
    every row as in the slope fix / 4b (found 98.70 %, id kept 93.48 %, one id 90.98 %, extra ids <= 1,032, changed
    mob <= 10, next to its set >= 99.0 %, a death seen noticed p90 <= 0.05 s, ghosts 0, jolts <= 556, L1-L3 as
