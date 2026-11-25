@@ -93,6 +93,10 @@ that led to it: HISTORY.md, the block of 2026-11-24).
   the screen's edge (PLAN-tracker.md measurement 2; the new tracker does not remember them); the play area's
   bottom two rows (y 698-699) are the HUD's edge and are not masked; our own tag is in the tag list on 1,179
   frames of the 30-minute capture where `FrameFacts.tag` is empty.
+- **The mob finder's misses, found by tracker step 3 (not in its scope, stop rule 4; cases in PLAN-tracker.md
+  "Step 3, 2026-11-24" and "Step 3, try 2"):** 46 L1-labelled mobs no track saw (the labellers added them, the fit
+  missed them); 5 L2 mobs in plain view the fit missed (cases 24, 29, 34, 36, 71); 6 mobs with the fit's feet 9-35 px
+  off the surface (L1 cases 24, 29, 34, 35, 42, 158: Evil Eye `jump_0` / `hit1_0`, Zombie Mushroom).
 - **The bot speed in a worktree:** `tools/perf/bench.py` and pytest's `bot speed` line run the fit only where
   `assets/scene` exists (not in git): in a worktree without it the tick is ~3.7 ms instead of ~14.5 ms (found by
   step 7, 2026-11-24). Measure speed in the main folder or with `assets/scene` linked (proposed for CLAUDE.md
