@@ -905,7 +905,7 @@ no try 3). What was missed is carried, not dropped:
    **step 9** measures it after world.py goes, against today's frame. The tracker's p50 1.04 ms is accepted.
 L3's 26, 47 (uncovered inside the edge band) and 41 (there at entry by the picture) stay as reported.
 
-### Step 3, the slope fix (2026-11-25): built; every row MET but L1, MISSED by one case (98.98 %; stopped)
+### Step 3, the slope fix (2026-11-25): built; every row MET but L1, MISSED by one case (98.98 %) - ACCEPTED by the user
 Branch `tracker-build` (the main folder). **Built:** `track/graph.py`'s step rule = `|dy| <= 1 px + ceil(|the
 foothold's own slope| x |dx|)` - the slope of the surface the thing stands on at its x (at a joint the one going
 on, at a chain's end its last foothold: a new block of the table's row, `[|own slope|] * K1`); the rise is
@@ -949,6 +949,7 @@ this gate.
 **For the user:** L1 misses 99 % by one case. (1) Accept at 98.98 % (155 and 184 are not slope steps; the rest is the
 fit's), or (2) a rule for 155 / 184 (e.g. the step per frame when the track was last seen frames ago, or a pose
 that does not move the feet), which is a new rule, not this fix - or (3) look at 155 / 184 frame by frame first.
+**The user's decision (2026-11-25): (1) accepted** ("1. accepted") - L1 stands at 98.98 %; the slope fix is DONE.
 
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
