@@ -48,7 +48,7 @@ comes next. If it grows past 150 lines, something in it belongs elsewhere.
    done (it stays in git).
 6. **Commit and push** (CLAUDE.md, "Git"): on a side branch, without asking; never on `main`. No Claude
    attribution.
-7. **Tell the user**, in at most ten lines and in plain words: what is done, with its numbers; what is next and
+7. **Tell the user**, in at most ten lines of normal technical English (CLAUDE.md, "Reports"): what is done, with its numbers; what is next and
    as which model and effort; what waits for them; the one line to type in the new session.
 
 ## Do not

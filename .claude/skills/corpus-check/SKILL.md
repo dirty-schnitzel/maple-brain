@@ -25,7 +25,7 @@ Lie Detector the recorder saw is copied into `lie\`. The result is printed in th
    recogniser (`nav/identify.py`) to close first, then `corpus.py add <folder>`; a shop / a closed minimap =
    `corpus.py add --unknown <folder>`. `class / level NOT READ` = a new digit or class: add its picture to
    `tools/data/hud_glyphs.json` (`corpus.char_glyphs(frame)` prints it), then `corpus.py char`.
-3. Report in plain words: the maps, the time on each, the labels, hold-out or not, frames a second / dropped
+3. Report (CLAUDE.md, "Reports"): the maps, the time on each, the labels, hold-out or not, frames a second / dropped
    (log.txt in `sessions\<recording>\`), the bank's totals (`corpus.py list`).
 
 ## Other kinds of recording
