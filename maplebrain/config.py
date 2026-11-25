@@ -255,6 +255,27 @@ class Track:
     from_down: float = 88.0         # ... to this below it (it lands on the foothold under 85 px above the mob)
     landed_s: tuple = ((0.1, 0.25), (0.4, 0.6))     # "landed in view": its place was on screen in both windows
     landed_px: tuple = (30, 60, 10)                 # ... this far inside the sides / under the top / over the bottom
+    pet_box: tuple = (-20, -40, 20, 0)  # a pet's body around its tag (35-45 px high: proto_players' col_body)
+    # ---- other players (track/players.py; PLAN-tracker design 6 = the prototype tools/perc/track/proto_players.py,
+    # measurement 7: its constants)
+    player_cover_s: float = 2.0     # a player whose tag is not found is kept this long while its place is in view
+                                    # (the user, 2026-11-24, question 5: was 1 s)
+    tag_gate: float = 16.0          # px a tag seen on the last frame may have moved (+ tag_vx / tag_vy x the time unseen)
+    tag_vx: float = 260.0
+    tag_vy: float = 800.0
+    tag_w_tol: int = 1              # px: "the same width" = the same name (78 % of whole sightings exact, 1 % 1-2 px)
+    tag_join: int = 6               # px: two boxes on one row this close are pieces of one tag (a ladder's rail)
+    tag_confirm: int = 3            # whole sightings before a track's width counts
+    tag_min_seen: int = 6           # sightings before a track gets a class
+    tag_edge: int = 6               # px: a box this close to the screen's border / a UI rectangle is cut there
+    body_tall: int = 55             # px: what stands on a tag reaches this far over it = a character (a pet ~40)
+    body_reach: int = 120           # px over the tag read for the body, in 2 body_half + 1 columns over its centre ...
+    body_half: int = 8
+    body_gap: int = 8               # ... upward until a break of more than this many rows
+    ours_list_s: float = 2.0        # our tag taken from the tag list only this long after our own tag was last found
+    mob_tag_n: int = 20             # a mob kind's own tag ("Lv. N name") box is known after this many sightings
+    log_rows: tuple = (602, 14, 6, 1363, 1369, 1000)   # the message log's tag boxes: first row's top y, pitch, rows,
+                                    # right edge range, the x a line's centre is right of (fixed on the screen)
 
 
 @dataclass

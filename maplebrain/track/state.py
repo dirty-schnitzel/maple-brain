@@ -1,5 +1,6 @@
 """The state's records (docs/state_model.md section 2). Built so far: the MOB record (PLAN-tracker step 3), one per
-mob the tracker holds, filled by track/mobs.py every frame; the DROP record (step 4a), filled by track/drops.py. Step 8
+mob the tracker holds, filled by track/mobs.py every frame; the PLAYER record (step 4b, track/players.py: another
+character followed by its name tag; us: track/us.py); the DROP record (step 4a), filled by track/drops.py. Step 8
 adds the stored tables (writer and reader) here.
 
 A mob is in the state once CONFIRMED (seen clearly once, or sighted for 0.5 s: PLAN-tracker design 4); a tentative
@@ -89,6 +90,31 @@ class Drop:
     seen: bool                          # sighted on this frame
     cover: str                          # DROP_COVERS
     unseen_s: float                     # seconds since it was last sighted
+# a player's cover: "none" (its tag found on this frame), "unseen" (in view, its tag not found: kept up to
+# Track.player_cover_s), "blind" (no camera this frame: every field keeps its last value)
+PLAYER_COVERS = ("none", "unseen", "blind")
+
+
+@dataclass
+class Player:
+    """Another character (docs/state_model.md "Every other player"): its name tag followed in map coordinates, the
+    tag's width = its name. Not perceived, so not fields: its facing, what it does, its party."""
+    id: int                             # its number while it is followed (never reused in a stay)
+    x: float                            # feet, map px: the tag's centre x, its top y - 1 (where it was last seen)
+    y: float
+    sx: float                           # ... on the screen
+    sy: float
+    w: int                              # the tag's own width (its name)
+    place: str                          # "stand" / "air" / "rope" (graph.PLACES) at its last sighting
+    node: int                           # stand / rope: that node; air: the first surface under it (graph.NONE)
+    from_node: int                      # the node it stood or hung on last
+    off: float                          # feet y - the node's surface y (rope: feet x - rope x); NaN over nothing
+    vx: float                           # px/s over its last 5 frames (0 when unknown)
+    vy: float                           # px/s from its last frame step
+    seen: bool                          # its tag found on this frame (whole, a piece, or inside a shared box)
+    cover: str                          # PLAYER_COVERS
+    unseen_s: float
+    born_t: float
 
     def as_dict(self) -> dict:
         return asdict(self)

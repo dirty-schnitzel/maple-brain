@@ -20,10 +20,14 @@ delays frame work by up to ~20-30 ms while it runs): **the user, 2026-11-24: "ke
 L2 13 of 16, L3 19 of 22 and the tracker's ms p50 1.04 accepted as they are. Three carry-overs (under "Step 3, try
 2", "The user's decision"): the step rule on steep slopes -> step 4b; L2 re-graded once tags are sorted -> step 4b;
 the whole frame's +0.3 ms -> step 9. Fitter.look: no gain, goes in step 9.
-**Step 4a (2026-11-25, branch `tracker-build-drops`): built, the gate MISSED on 2 rows, stopped** - 35 pickup hops
+**Step 4a DONE (2026-11-25, accepted by the user as it is; merged into `tracker-build`)**: the gate missed 2 rows - 35 pickup hops
 without our key down (the pet "Snail" on the 2026-11-18 captures, by eye) and 1 "gone then seen again" (a passing
 flight read as a pickup hop; the prototype had it too); every other row met (746 drops, L6 97.4 %, exactly one death
-88.5 %, ms p50 0.197). Numbers under the steps ("Step 4a, 2026-11-25"); the user decides.
+88.5 %, ms p50 0.197). Numbers and the user's decision under the steps ("Step 4a, 2026-11-25").
+**Step 4b (2026-11-25): built, in shadow, the port exact; the gate MISSED - stopped, the user decides** (under the
+steps: "Step 4b, 2026-11-25"): met - the 2 s cover (29), the stuck cases as tests, L2 on the 16 (93.8 %, carry-over 2);
+missed - L5 (found 73.9 %, the prototype's own rules 85.1 %), L1 us 83.5 % (~20 jump frames labelled stand), SelfState
+95.81 %, our feet known 97.04 % (the tag list gives 0.36, not 1.1), the ms (live 0.7: one GPU round trip).
 The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
 in this session on the kept replay (no GPU); the tools are in `tools/perc/track/` (branch `tracker-plan`).
 
@@ -482,6 +486,7 @@ in `tools/perc/track/` are the reference: port their rules and constants, do not
 | **1** | **Label sets, by eye** (no code in `maplebrain/`; labels in the bank's `labels\`, picked from the prototypes' output so every class is in them): L1 200 frames - us and every mob: stand / air / rope and the node; L2 100 covered mobs - what covers them; L3 50 births - how born; L4 100 hit-pose begins - by us or not (the swing seen); L5 200 frames - every name tag's class, each player's node; L6 50 drops - the mob it came from; L7 100 frames - the 8 slots' item and amount; L8 40 remembered mobs - there / not there / cannot tell | each set readable by `tools/perc/label_eval.py`; 10 % of each labelled twice: the two agree on >= 95 % | 2, 7 |
 | **2** | **The graph and the placement** (`track/graph.py`; `tools/model/` is the reference): chains from complete links, floors, the nodes as arrays, rule 3 as one array call for every thing, the seconds table, the edges and the table rebuilt on a worker thread | 364 maps build; 10,873 chains, 39 maps differ from `navmap`, ids unchanged on the other 325; the 19 level joints are one floor each; the node = `platform_at`'s on 72,800 of 72,800 test points; 20 things placed in <= 20 us (median map), <= 70 us (the largest); on `proto_feet.py`'s hops: air frames called standing <= 0.8 %, standing called air <= 0.2 %; the table = `route()`'s seconds on 1,000 random pairs, built in <= 5 ms on Line 1; a rebuild does not block a frame (a test) | 1, 7 |
 | **3** | **Mobs, in shadow** (`track/kinds.py`, `evidence.py`, `mobs.py`, the mob records of `state.py`; the Perceiver calls it beside `world.py`; the replay tool): design 2-4 | *From the kept replay, 13 sound captures:* measurement 1's table within tolerance - found >= 98.4 %, id kept across a cover >= 93.1 % (by length >= 96.7 / 96.2 / 93.3 / 79.1 / 77.1), one id for life not beside another mob >= 90.6 %, extra ids <= 1,032, "the track changed mob" <= 10, next to its set >= 99.0 %, a death seen noticed p90 <= 0.05 s, no seen track-frame without a truth mob; measurement 3's feet: hops within 1.5 px rms >= 91 %, jolts <= 556 (the prototype's own tracks counted alike; was 500, measured on the truth's tracklets - the user, 2026-11-24). *Labels:* L1 mobs: stand / air >= 99 %, the node >= 99.5 % of standing mobs; L2 >= 90 %, L3 >= 95 %, both counted on the agreed cases only (L2 21, L3 22: `"agreed": true` in the bank's files; step 1, try 3); L8: reported. *Live, on `20261120_235747_1#0` (Line 1, 4.2 min) with a new kept replay of it on today's scene build in its own folder (stop rule 5):* the GPU evidence = the bitmaps' on >= 99.9 % of the places asked; the shadow rows = that capture's replay rows on >= 99.5 % of track-frames; the tracker's ms p50 <= 1.0, p90 <= 2.5 (today's `world` + looks: 0.7 / 2.0), the whole frame's p50 not above today's + 0.3; `gate.py` SAME | - (the GPU, and a speed number) |
+| **3b** | **Spawn points as tracked things** (added by the user 2026-11-25; `track/spawns.py`, the spawn point records of `state.py`; "Step 3b" below) | first, measured: do new mobs appear on their spawn point (the faded-in births of the 13 sound captures against map.json's points of their kind) - >= 95 % within 10 px, else stop with the distribution; then from the kept replay: every faded-in birth near a point of its kind is that point's spawn, a 30-case sheet checked by eye >= 29 right; the live path's shadow rows = the replay's; ms p50 <= 0.1 | 4a, 4b (a new file: reads the mob tracker's births) |
 | **4a** | **Drops** (`track/drops.py`): design 5; the finder (`perception/drops.py`) is not changed | from the kept replay, measurement 5 within tolerance: 746 drops, 0 lives with two items or over 131 s, 0 "gone" then seen again, pairs of one item within 3 px <= 9 and each looked at, exactly one death for >= 84.4 % of drops, "we took it" with the key down: no hop without it on any of the 13; L6 >= 90 %; PLAN-loot's gates still met; ms p50 <= 0.2 | 4b |
 | **4b** | **Other players and us** (`track/players.py`, `us.py`): design 6-7 | L5: players found >= 95 %, non-players called players <= 1 %, a pet called a player or a player called a pet <= 5 %, the node on >= 95 % of standing players; the 2 s players' cover (question 5): the same player back under a new number on <= 29 of the 30-minute capture's 308 tracks (within 1 %); L1 us: >= 99 %; every stuck case `nav/selfstate.py`'s docstring lists is a test; us against `SelfState` on the 30-minute capture: the same place on >= 99 % of frames, every difference listed; our feet known on >= 97.5 % of frames (today 96.7; the tag list gives 1.1 points); ms p50 <= 0.1 | 4a |
 | **5** | **Events** (`track/events.py`; needs 3-4): design 8 | 30-minute capture, from the kept replay and its keys: casts 500 / 78 / 10 (q / e / w) within 1 %; every HUD step has a cause; "by us" by chance <= 1 % (windows moved in time); kills against EXP: "us" with no EXP step <= 1 %, whole-EXP kills missed <= 2 %; L4 >= 95 %; the swing length measured live within 0.03 s of 0.85 / 0.87 | 6 |
@@ -908,6 +913,7 @@ no try 3). What was missed is carried, not dropped:
 3. **The whole frame's +0.3 ms** cannot hold while world.py runs beside the shadow (both are paid: +0.97):
    **step 9** measures it after world.py goes, against today's frame. The tracker's p50 1.04 ms is accepted.
 L3's 26, 47 (uncovered inside the edge band) and 41 (there at entry by the picture) stay as reported.
+**Carry-over 2 done in step 4b** (L2 15 of 16 = 93.8 %: "Step 4b, 2026-11-25").
 
 ### Step 3, the slope fix (2026-11-25): built; every row MET but L1, MISSED by one case (98.98 %) - ACCEPTED by the user
 Branch `tracker-build` (the main folder). **Built:** `track/graph.py`'s step rule = `|dy| <= 1 px + ceil(|the
@@ -1033,6 +1039,167 @@ on screen on the 30-minute capture) is the largest part, the records ~0.03 ms. N
 or ask a pet-off re-check / a "taken by another" how; (2) the false "gone" by a passing flight (1 of 746) - a try 2
 with the hop rule (2 hop sightings, or starting at its own height), or accept; (3) the ms meets 0.2 by 0.003 (the
 30-minute capture alone 0.254) - as it is, or a cheaper look before step 9.
+**The user's decision (2026-11-25): step 4a DONE as it is** - (1) the 35 hops: accepted as the pet's pickups; (2) the
+false "gone" by a passing flight (1 of 746): accepted, the hop rule unchanged; (3) the ms: kept. Merged into
+`tracker-build` the same day.
+### Step 4b, 2026-11-25: other players and us built, in shadow; the port exact; the gate MISSED on L5, L1 us, SelfState, our feet known and the ms (stopped)
+Branch `tracker-build` (the main folder). **Built:**
+- `track/players.py` - proto_players ported (its rules and constants in `config.Track`): the tag list sorted per frame
+  (`tag_class`: ours / log / mob / npc / text / pattern / pet / player / unsure / short / none), tracks in map
+  coordinates by the tag's width, **two tags side by side split by the widths known** (the prototype's `_together`:
+  the other track placed inside the box by its own width at the edge that kept its place, both drawn), pets sorted out
+  and not tracked (their class kept), the 2 s cover, the feet (the tag's centre x, its top - 1) placed by the graph's
+  rule, `state.Player` records for the tracks whose class is player NOW, events `player_new` / `player_left`. Two
+  things the prototype did in hindsight are done as the frames come: **the class is the vote so far** (the
+  prototype's `cls()` at the track's end), and **mob kinds' own tag boxes are learned while running** (known after 20
+  sightings near the mode; the prototype learned them over the whole capture first). What stands on a tag (the body's
+  height) comes from the evidence: `Evidence.columns` (the bitmaps: a slice per tag; the GPU: dump.py's formula at the
+  asked pixels).
+- `track/us.py` - our feet = FrameFacts.tag (exact) or, within 2 s of it, a box of the tag list of **our own width**
+  (by its centre) or **a piece of our tag** / a wider box we are in (by the edge that kept its place); placed by the
+  graph's rule (we climb) + every stuck case of nav/selfstate.py's docstring (hovering at a rope's height within 16 px
+  of it = on it, staying on a rope while not moving sideways, a walk key held 0.4 s without moving next to a ladder =
+  hanging on it - not within 0.9 s of another key -, still just past a platform's end = on its end); vx, vy over 0.2 s;
+  `facing` = the last left / right key down; `act` = climb / air / walk / stand (swing, hit, dead: with step 5's casts);
+  the HUD's numbers held while unreadable; the slots (step 7).
+- `track/mobs.py` (step 3's carry-over 2): the covers' us / player boxes from the SORTED tags (`update(..., tags=)`:
+  our body around our tag, players and pets at their own widths - not mobs' own name tags, log lines, text); `edge` =
+  the screen's sides and the window's bottom (not the top). A pet is named a `player` cover (COVERS has no pet).
+- The Perceiver runs us, the players and the mob tracker in shadow (parts `us_players`, `track`; D's patches are read
+  before them now); our keys are not handed in live yet (step 9). `graph.npcs`; `state.Player`.
+- Tool `tools/perc/track/replay_players.py` (`run [--port]`, `port`, `l5 [--final] [--port]`, `cover`, `us`, `ms`,
+  `time`); `replay_mobs.py run` gives the mob tracker the sorted tags as live (`--unsorted`: step 3's runs). Outputs:
+  `F:\dev\maple-corpus\work\track-plan\step4b\`, `...\step3\*_s4b.pkl`.
+- Tests: `tests/test_track_us.py` (19: every stuck case, our tag from the list, facing, blind, HUD), `test_track_players.py`
+  (13: the classes, the split, the cover, ours, columns GPU = bitmaps), `test_track_mobs.py` +2 (the top is no edge, the
+  sorted tags); each rule switched off fails its tests (hover tolerance, hover time, the walk hang, the ledge, the
+  split, the two mob changes).
+
+**The port = the prototype** (`run --port`: the prototype's own inputs - its hindsight mob-tag boxes and its ours*
+rule): **every track equal** (id, final class, first frame, last sighting, how it ended) - **1,095 of 1,095** on the
+30-minute capture, **203 of 203** on the 4-minute one; **the body over a tag equal on 235,436 of 235,436 tags** (and
+35,541 of 35,541) against the prototype's slim cache. (The step-1 L5 picks ran `proto_players.run` with its DEFAULT
+minimap, 215 x 195, not the measured 277 x 152; the by-eye labels do not depend on it.)
+
+| Gate | Measured | |
+|---|---|---|
+| L5: players found (>= 95 %) | **178 of 241 = 73.9 %** (the class so far; 47 of the misses are `short`: a track under 6 sightings). On the track's final class 85.9 %; **the prototype's own rules and inputs: 85.1 %** | **MISSED** |
+| L5: non-players called players (<= 1 %) | **17 of 420 = 4.05 %** (15 pets, 1 none, 1 text); final 4.29 %; the prototype 4.29 % | **MISSED** |
+| L5: a pet called a player or a player called a pet (<= 5 %) | **22 of 323 = 6.81 %** (15 + 7); final 8.05 %; the prototype 8.05 % | **MISSED** |
+| L5: the node of standing players (>= 95 %) | **147 of 164 = 89.6 %**; final 88.4 %; the prototype 89.3 % | **MISSED** |
+| the 2 s cover: the same player back under a new number (<= 29) | **29 of 280 player tracks** (the prototype's inputs: 29 of 279) | met |
+| L1 us (>= 99 %) | **152 of 182 = 83.5 %** (the node 128 of 129) | **MISSED** |
+| every stuck case of selfstate.py's docstring a test | its 7 cases (a hover at a ladder, staying on a rope 10 px off, under a ladder's top, the walk hang, no hang within 0.9 s of another key, a found hang holds, a platform's end) + 5 guards that they do not reach too far (a jump apex, walking past a ladder top, leaping off, falling / walking off an end): 12 of `test_track_us.py`'s 19; each rule switched off fails them | met |
+| us against SelfState, 30-minute capture: the same place (>= 99 %), every difference listed | **101,964 of 106,428 = 95.81 %** (both from our own tag this frame; 3,654 frames without it apart) | **MISSED** |
+| our feet known (>= 97.5 %; today 96.7) | **97.04 %** (our own tag 96.68 + the tag list 0.36); the 13 captures 76.3-100 % (list +0.0-14.6) | **MISSED** |
+| ms p50 (<= 0.1) | **replay (CPU bitmaps, the decode apart): 0.19** (players 0.145, us 0.04); **live (the Perceiver, 4-minute capture, part `us_players`): 0.7** (us 0.09, players 0.62 - of it the GPU `columns` call 0.45 for one tag at the median) | **MISSED** |
+| carry-over 2: L2 on the 16 (>= 90 %) | **15 of 16 = 93.8 %** (`replay_mobs.py labels --tag s4b`): case 30 (the top) and 61 (our tag merged with a Bubbling's name) right now; 57 still `player` - the Horny Mushroom's own tag cut to 104 of its 132 px, the mob not seen that frame (no "mob" vote without a seen mob's feet), the mob standing on it read as a short body: a pet, named a player cover | met |
+| the 13 captures' rows with the sorted tags (step 3's gate) | found 98.70 %, id kept 93.48 % (97.0 / 96.5 / 94.1 / 79.4 / 77.4), one id 90.98 %, extra ids 1,019, changed mob 7, next to its set 99.35 % of 2,783, death p90 0.000 s, ghosts 0; L1 98.98 %, node 99.46 %, L3 19 of 22 - **identical to the slope fix's** (only cover names can change) | met |
+| pytest (whole suite: config and the Perceiver changed) | green; **bot speed 14.9 ms** a tick (p90 16.8), of it `us_players` 0.8 ms (the slope fix's runs: 14.0-14.5) | - |
+
+**Asked with the prompt: the mob tracker's ms on Ant Tunnel** (`replay_mobs.py time 20261118_232410_1#1` - Ant Tunnel II, the
+heaviest remembered jumpers on the replay: CPU evidence p90 15.9 ms; the live Perceiver, 3,000 frames, shadow on / off x
+3, performance cores, Ultimate Performance, the drops session idle): the part `track` **p50 0.30, p90 1.30, p99 1.9 ms**
+(Line 1, step 3: 1.04 / 1.25 / 1.5); the whole frame 13.84 against 12.50 = **+1.34 ms** with the shadow on (the switch
+now holds us + the players + the mobs; Line 1's +0.97 was the mobs alone).
+
+**Why, by case:**
+- **L5 (the rules', not the port's: the prototype scores the same):** players called `short` (live only: under 6
+  sightings, 3 whole); **pets and players swapped by the body's height** (55 px parts a character from a pet: measurement
+  7's by-eye check already had 5 of 20 "pets" be players); mobs' own tags called pet / short before their box is learned
+  (live: 16 `mob` against 29 on the final class). **The node, 17 misses:** 16 have the feet more than 3 px off the floor
+  - 7 stand still exactly **4 px over it** on a **21 px tag** (a medal over the name; ours is 17) or on a track whose
+  commonest box is 21 px: "feet = the tag's top - 1" holds for a 17 px tag only; from the box's bottom (bottom - 18) they
+  stand. The other 9 are 7-30 px off (jumps, a wrong box).
+- **L1 us, 30 misses** (every one with its motion: our own tag over frames -3..+3): **~20 are jumps labelled stand** -
+  our feet rise or fall 3-10 px a frame, 6-36 px off the labelled floor (cases 114, 127, 112, 162, 132, 121, 118, 61,
+  124, 137, 116, 129, 150, 42, 130, 24, 110 ...; by eye on a strip of 114 and 127: mid-jump, the floor out of view under
+  the tag). L1 try 3 gave strips only to cases near a rope; these were judged on one frame. **6 are a fall or jump past
+  a rope labelled air (strip-judged) that the graph's rope rule calls `rope`** (cases 77, 54, 104, 83, 107, 99: within
+  7 px of its x between its ends - the rule has no motion test). 3 others: a rope's id -6 / -5 (102), a rope not taken
+  while moving right after the tag came back (134), standing still near a platform's end (136).
+- **SelfState:** every difference is at a change of place, where the two rules differ by design: we air / SelfState
+  ground 2,118 (take-off and landing frames: feet 0-10 px off, moving 2-5 px a frame - its 9 px tolerance and 0.2 s
+  speed window), we stand / SelfState air 1,871 (feet exactly on the floor, still: its speed window still over 90 px/s
+  after a landing), we stand / SelfState rope 390 (stepped off a ladder: its "stays on the rope"), we rope / SelfState
+  ground 74 (climbing at a ladder's end), 11 rope / air either way.
+- **Our feet known:** the prototype's 1,179 "ours from the list" frames were its loose rule (any tag overlapping our
+  last place within 2 s, no width): by eye, 20 of them - **11 our own tag partly hidden by front scenery** ("Jenk",
+  "Jenki", "sJob": a post, a lever), 9 another player standing there, a Bubbling's own tag, a player beside us. On the
+  30-minute capture our whole 74 x 17 tag is in the list on 0 of the 3,654 frames our reader misses it. The width / edge
+  rule takes the pieces: +0.36 points (393 frames), never another tag.
+- **The ms:** live, the body question is one GPU round trip a frame (the gather is tiny; the transfer back waits ~0.4 ms
+  on this driver - step 3's evidence call pays the same); D's mask cannot answer it (eroded 3 x 3 and grown 13 x 13, not
+  the pixels) and changing D is the scene model (stop rule 4). Without it, us + players are ~0.15-0.25 ms of Python
+  (two placement calls ~15 us each, the vote, the records).
+
+**For the user:** (1) **L5** - the targets were never met by the prototype's rules (85.1 / 4.29 / 8.05 / 89.3): accept,
+or change rules - feet from the tag's bottom (the node), a pet by its name's width over the stay (proto_players'
+`name_vote` option), players before 6 sightings? (2) **L1 us** - relabel the ~20 jump cases on strips (as L1R did for
+ropes), and a motion test in the graph's rope rule (a fall past a rope is not on it)? (3) **SelfState 95.81 %** -
+accept the listed differences (SelfState's 9 px and its speed window are what the one rule replaced)? (4) **Feet known
+97.04 %** - the list gives 0.36, not 1.1: accept, or another source? (5) **The ms** - accept the live 0.7 ms while both
+trackers run beside world.py, ask the body one frame late (no wait), or merge it into the mob tracker's one transfer?
+
+### Step 3b - spawn points as tracked things (added by the user, 2026-11-25; one executor session, measure then build)
+**The user, 2026-11-25:** "keeping track of the time since last spawn (on spawn point) is a valid tracking object. It
+would not be trying to add predictive abilities to the tracking behavior (my original rule), it is a part of
+tracking's memory (which is OK) ... are mobs spawning exactly on the spawn point? If so we can treat spawn points as
+objects themselves and keep track on each one since last visible spawn. We are just tracking this, it doesn't have
+to be a part of the AI model, it is part of the overall data we collect."
+- **What it is:** memory, not prediction. Each spawn point of the map (map.json: kind, x, y, foothold -> the node,
+  `mobTime`) is a record: `last_spawn_t` (the last spawn SEEN there; None = none seen this stay), `last_mob` (the
+  mob id born there), `spawns` (the count this stay), `in_view` (the point is on screen and not covered now). No
+  respawn rule, no timer, no guess about spawns not seen.
+- **A spawn seen** = a mob track born `faded in` (step 3's `born_how`) whose first feet are within the measured
+  distance of a spawn point of its kind (two points near: the nearer). A mob born another way (came into view,
+  uncovered, there at entry) is never a spawn.
+- **Why the question comes first:** v83's client puts a new mob at its spawn point's position on its foothold
+  (`docs/game_rules.md` E3: HeavenClient), but Classic World may differ, and observed data beats the rule.
+- **Not in scope:** the 10 s respawn round, the refill target (E2) - not tracked, not predicted; the brain does
+  not read it. `docs/state_model.md` gets the record (section 3, the frame) with the user's words.
+
+### Step 3b, 2026-11-25: measured first; the gate MISSED (77.8 % within 10 px, >= 95 % asked) - stopped, nothing built
+`tools/perc/track/proto_spawns.py` (`measure`, `why`, `sheet`, `beat`) over the step-4b replay's rows of the 13 sound
+captures (`step3\*_s4b.pkl`: the current code); outputs `F:\dev\maple-corpus\work\track-plan\step3b\`. A birth = the
+first row of a track id (its x, y = the first sighting's feet, map px); its point = the nearest of its kind in
+map.json (x, y as given; no point is hidden on these 12 maps).
+- **Births by how:** came into view 990, faded in 641 (612 confirmed), uncovered 322, there at entry 40.
+- **Distance of the 612 confirmed faded-in births to the nearest point of their kind:** p50 **0.0**, p90 56.9, p95
+  70.4, p99 130.4, max 239.7 px; within 3 px **64.9 %**, 5 px 68.5 %, **10 px 77.8 %** (gate >= 95 %), 20 px 82.5 %.
+  |dx| alone: within 10 px 90.4 %; dy alone: within 10 px 87.6 %. No point of its kind within 20 / 40 / 100 px: 107
+  / 91 / 17; no point of its kind on the map: 0. The nearest point of ANY kind gives the same numbers (no other
+  kind's point is nearer). By kind (within 10 px): Bubbling 395 79.2 %, Horny Mushroom 66 90.9 %, Evil Eye 52
+  78.8 %, Zombie Mushroom 49 85.7 %, **Stirge 28 7.1 %**, Green Mushroom 9 100 %, Slime 8 50 %, Drake 5 100 %.
+- **Points near each other:** 0 pairs of the same kind within 20 px on all 12 maps (so "two points near: the
+  nearer" never comes up).
+- **The 136 births > 10 px, by what the numbers show** (`why`): **53 on the point's level, x off** (|dx| p50 20,
+  p90 73, max 105; 48 of them moving away from the point over their first 0.5 s): walked before the fit saw them;
+  **50 straight above the point** (x within 3 px, 35-50 px up; 47 in `jump_0`): hopped at once; **27 flyers**: 19
+  within 10 px of map.json's **`spriteY`** (a flyer appears at its sprite height, not at `y`, which is the
+  foothold), 8 not near either; 6 off in x and y. Their first sighting is later in the fade: the fit's opacity p50
+  0.27 (p90 0.77) against 0.18 (p90 0.26) for those within 10 px - the fit sees a mob only from ~0.15 opacity on,
+  so a mob that moves at once is first seen past its point. What-ifs, as numbers only: flyers against `spriteY` ->
+  495 = 80.9 %; x within 10 px and the feet 0-60 px above the point -> 517 = 84.5 %; on its level within 40 px or
+  above it within 60 px -> 549 = 89.7 %. None reaches 95 %.
+- **The sheet** (`step3b\sheet_s4b\`: `sheet.png` + a 4-frame strip per case, +0 / 6 / 12 / 20 frames, the point a
+  red cross): 30 random births matched within 10 px - **30 of 30 right by eye**: a mob fading in on the drawn point
+  (case 19 under a megaphone's text, its cap showing over it; case 29, d 9, fades in 9 px left of the point and
+  hops away).
+- **Reported, nothing built from it (the user's ask):** the 476 spawns seen within 10 px are on 204 points (101 with
+  2+): the time between spawns seen on one point p10 / p50 / p90 7.1 / 120.5 / 655 s (min 0.47 s, not looked
+  into). **No 10 s beat** (R at 10.00 s: 0.03-0.71, spread). **The spawns come in rounds every ~7.09
+  s**: per capture the best period in 6.5-7.6 s is 7.08-7.20 s with R 0.99-1.00 on 10 of 12 (the phase off p50
+  0.04-0.10 s), R 0.81 on 1#1 (9 spawns), 0.76 on the 30-minute capture (7.084 s; the phase off p50 0.41 s: a drift
+  or a shift over 30 min, not looked into); the gaps between rounds there fall at 7, 14, 21 s. So Classic World's
+  respawn round is ~7.1 s, not E2's 10 s (`docs/game_rules.md` E2 not changed: the user decides).
+
+**For the user (stopped, stop rule 1):** mobs DO appear exactly on their spawn point (p50 0.0 px; the sheet 30 of 30);
+what misses the 10 px is when the fit first sees them: a mob that walks or hops off at once is first seen 20-50 px
+away, and a flyer at its `spriteY`. Choose: (a) keep the 10 px rule and accept 77.8 % (a spawn the rule misses is
+simply not counted: memory, not prediction); (b) a rule by shape, its share measured above (flyers at `spriteY`;
+on its level within N px or straight above within 60 px), with its own sheet of the newly matched births; (c)
+something else. The 7.1 s round: whether it goes into `docs/game_rules.md` E2 as observed (observed beats the rule).
 
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
@@ -1100,6 +1267,24 @@ slope). Gate: L1 stand / air >= 99 % (replay_mobs.py labels); step 2's hops gate
 air called standing <= 0.8 %, standing called air <= 0.2 %); from the kept replay the 13 captures' rows and the
 feet still within step 3's gate (jolts <= 556); pytest of the areas touched. Numbers into the plan under "Step 3,
 the slope fix"; a gate missed: stop.
+```
+```text
+Tracker, step 3b (spawn points as tracked things; added by the user 2026-11-25). Read PLAN-tracker.md - "Step 3b"
+(the user's words), its row in the steps table, design 2-3, "Step 3, try 2" (born_how), the stop rules -
+docs/state_model.md section 3 and docs/game_rules.md E1-E3. Branch tracker-build (the main folder).
+FIRST MEASURE, build nothing: over the 13 sound captures of the kept replay (step 3's tracker output, the *_slope
+files or a fresh replay_mobs.py run), take every track born "faded in" and its first feet; match it to the spawn
+points of its kind on that map (map.json); report the distance (p50 / p95 / max, the share within 3, 5, 10, 20 px),
+how many births have no point of their kind near, and how many points stand within 20 px of another of the same
+kind. Make a sheet of 30 random matched births (the frame, the point drawn) and check each by eye. If fewer than
+95 % fall within 10 px, or the sheet shows them elsewhere: stop with the distribution - the user decides.
+If met: build track/spawns.py (reads the mob tracker's births each frame; nothing in track/mobs.py changes but the
+call), the SpawnPoint record in state.py (last_spawn_t, last_mob, spawns, in_view), the Perceiver calls it after the
+mob tracker, in shadow; add the record to docs/state_model.md section 3 with the user's words. Tests (a test fails
+without each rule). Gate: the row in the steps table - the 30-case sheet >= 29 right, the live path's rows (the
+kept replay track_s3 of 20261120_235747_1#0) = the replay's, the ms p50 <= 0.1. Also report, as numbers only
+(nothing built from them): the time between spawns seen on one point, and whether spawns seen fall on a 10 s beat.
+Numbers into the plan under "Step 3b"; a gate missed: stop.
 ```
 ```text
 Tracker, step 4a (drops). Needs step 1's labels L6. Read PLAN-tracker.md - measurement 5, design 5, step 4a, the
@@ -1229,5 +1414,7 @@ tools\perc\track\replay_mobs.py run --sound --jobs 4; ... pool --sound        # 
 tools\perc\track\replay_mobs.py feet --sound; ... labels [--tag proto]        # step 3: measurement 3's feet; L1-L3, L8
 tools\perc\track\dump.py CAP --out NAME; replay_mobs.py live CAP --kept NAME  # step 3: a new kept replay, the live path
 tools\perc\track\replay_mobs.py time CAP                                      # step 3: the ms, shadow on / off
+tools\perc\track\replay_players.py run --sound --jobs 4; ... run CAP --port; ... port CAP   # step 4b: the real code; the port
+tools\perc\track\replay_players.py l5 [--final] [--port]; ... cover; ... us; ... ms; ... time CAP   # step 4b: the gate
 ```
 Outputs, sheets and reports: `F:\dev\maple-corpus\work\track-plan\` (`mobs\`, `drops\`, `events\`, `players\`, `slots\`).

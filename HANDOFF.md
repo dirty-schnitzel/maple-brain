@@ -5,7 +5,7 @@ what is true NOW and what comes NEXT. The `handoff` skill rewrites it at the end
 appended to. Everything older is in HISTORY.md (grep it; what left this file on 2026-11-21 is its last
 blocks). Rules that stay true: CLAUDE.md and .claude/rules/. Plans and their progress: PLAN-*.md.
 
-## START HERE (2026-11-25): `PLAN-tracker.md` is APPROVED - steps 1, 2, 3 and 7 DONE; the slope fix DONE (L1 98.98 %, accepted); 4a running, 4b next
+## START HERE (2026-11-25): `PLAN-tracker.md` is APPROVED - steps 1, 2, 3, 4a, 7 DONE; 4b and 3b STOPPED (the user decides)
 
 **The user's goal (2026-11-19):** "have a great perception / tracking / data model in order to feed that into an
 ai to see how many hours of farming on a specific map with a specific class and style are needed to teach it to
@@ -20,7 +20,7 @@ that led to it: HISTORY.md, the block of 2026-11-24).
 | # | Session | Run as | Status | Prompt |
 |---|---|---|---|---|
 | **P0.1-5** | **The plan's steps 1-5, one executor session each:** 1 the pictures right (the forest maps sound), 2-3 moving backs drawn and followed (40 maps hunt), 4-5 Perion's clouds followed and undone (42 maps hunt). Steps 4-5 need the user's Perion recording | Opus (high) | **steps 1-5 DONE 2026-11-23**, the numbers each missed gate fell short on ACCEPTED by the user (PLAN-moving-scenery.md's status); merged into `dev` 2026-11-23 (9085f5b). Steps 6-7 wait for footage | `PLAN-moving-scenery.md`, "Session prompts" |
-| 4 | **PLAN-tracker.md's steps, one executor session each** (branch `tracker-build` off `dev`, after `tracker-plan` is merged into `dev`): 1 label sets by eye, 2 the graph and placement, 3 mobs in shadow, 4a drops, 4b other players and us, 5 events, 6 the facts registry + profile + Skill.img, 7 the hotkey reader, 8 the stored tables, 9 the switch (the brain reads the new state, `world.py` goes). Steps 1, 2 and 7 could run beside each other, 4a beside 4b, 5 / 6 / 8 in pairs (the plan's table) - the user decides. Beside it, at any time: the viewer (PLAN-livemap.md Session 1: use `dev`). No engine session | Opus (effort per step: 1 medium, 2 high, 3 xhigh, 4a / 4b high, 5 xhigh, 6-8 medium, 9 high) | **step 2 DONE 2026-11-24, gate met, merged into `dev` (0e68464)**: `maplebrain/track/graph.py`; its rebuild stays a worker thread (the user: "keep same thread"). **Step 1 DONE** on `tracker-build` (try 3, 86f6ff3: its plan section). **Step 7 DONE 2026-11-24, gate met** (L7's gate reworded by the user), merged into `tracker-build` (df8b20c): `perception/slots.py`, FrameFacts v7 `slots`, `track/us.py` (the plan's "Step 7"). **Step 3 DONE 2026-11-25, accepted by the user on try 2's numbers** (carry-overs: L2's re-grade -> step 4b, the whole frame's +0.3 ms -> step 9: the plan's "The user's decision"). **The slope fix (3's carry-over 1) DONE 2026-11-25, accepted by the user at L1 98.98 %** (71cc992; the plan's "Step 3, the slope fix"): the step = 1 px + the foothold's own rise, rounded up to a whole pixel; case 124 relabelled `stand`; every row met (hops 0.47 % / 0.175 %, the 13 captures' rows and jolts 550 unchanged) except **L1 775 of 783 = 98.98 % (99 %: missed by one case)** - cases 155 and 184 are not slope steps (a 6 px step for 1 px, 4 for 3 on near-flat ground). **Step 4a runs beside it** (worktree `.claude/worktrees/drops`, branch `tracker-build-drops`, its own session), **then 4b**; 5 / 6 / 8 follow the plan's table | `PLAN-tracker.md`, "Session prompts" |
+| 4 | **PLAN-tracker.md's steps, one executor session each** (branch `tracker-build` off `dev`, after `tracker-plan` is merged into `dev`): 1 label sets by eye, 2 the graph and placement, 3 mobs in shadow, 4a drops, 4b other players and us, 5 events, 6 the facts registry + profile + Skill.img, 7 the hotkey reader, 8 the stored tables, 9 the switch (the brain reads the new state, `world.py` goes). Steps 1, 2 and 7 could run beside each other, 4a beside 4b, 5 / 6 / 8 in pairs (the plan's table) - the user decides. Beside it, at any time: the viewer (PLAN-livemap.md Session 1: use `dev`). No engine session | Opus (effort per step: 1 medium, 2 high, 3 xhigh, 4a / 4b high, 5 xhigh, 6-8 medium, 9 high) | **Steps 1, 2, 3 (+ the slope fix: L1 98.98 %, accepted) and 7 DONE** (their plan sections; 2 is in `dev`). **Step 4b built and STOPPED 2026-11-25** (afcf13d, the plan's "Step 4b, 2026-11-25"): `track/players.py` (the tag list sorted, players followed by the tag's width, two tags side by side split, pets sorted out), `track/us.py` (our feet and place + every SelfState stuck case as a test), the mob tracker's covers from the sorted tags; the port exact (1,095 of 1,095 tracks). Met: the 2 s cover (29), the stuck cases, L2 on the 16 (93.8 %: step 3's carry-over 2). Missed: L5, L1 us, SelfState, our feet known, the ms - **the user decides** (Waiting on the user). **Step 3b (spawn points) measured and STOPPED 2026-11-25** (the plan's "Step 3b, 2026-11-25"; nothing built): mobs appear ON their point (p50 0.0 px, sheet 30 of 30) but only 77.8 % of faded-in births are first seen within 10 px (gate 95 %): walked / hopped off before the fit sees them, flyers at `spriteY`; spawns come in rounds every ~7.1 s, not 10 s - **the user decides**. **Step 4a DONE 2026-11-25, accepted by the user as it is, merged into `tracker-build`** (the plan's "Step 4a, 2026-11-25"): `track/drops.py` (proto_drops ported; "we took it" = the pickup key DOWN in the window; from_mob from the mob tracker's deaths), the port exact (746 of 746); 746 drops, L6 97.4 %, exactly one death 88.5 %, ms p50 0.197; accepted misses: 35 pickup hops without our key down (the pet "Snail" on the 2026-11-18 captures) and 1 false "gone" (a passing flight read as a pickup hop). Not in the live frame yet (no key events there). 5 / 6 / 8 follow the plan's table once 4b is settled | `PLAN-tracker.md`, "Session prompts" |
 | 4b | Wide maps: plan, then execute, the scrolling minimap placed by several agreeing patches (Open items, "Ideas from another bot") | Fable, max -> Opus | after the tracker (the user, 2026-11-22) | - |
 | 5 | FSM or clone, decided on what both score in live runs, counted by the tracker's events | - | open | - |
 
@@ -48,7 +48,9 @@ that led to it: HISTORY.md, the block of 2026-11-24).
   its pictures come from `tools/cwdata/export_slots.ps1` (called by `export.ps1`) -> `assets build` ->
   `assets/mcw/slots`; the mob tracker in shadow (step 3: `track/mobs.py`, `kinds.py`, `evidence.py`, `state.py`; the
   Perceiver runs it beside world.py, nothing reads it; `tools/perc/track/replay_mobs.py` grades it from a kept
-  replay). **Found:** mobs move at 2 x the v83 rule's speed (noted in `docs/game_rules.md` C1); the
+  replay); us and the other players in shadow (step 4b, stopped: `track/us.py`, `players.py`; the mob tracker's covers
+  read their sorted tags; `tools/perc/track/replay_players.py`); the drops (step 4a: `track/drops.py`, graded from the
+  kept replay by `tools/perc/track/replay_drops.py`; not called live yet). **Found:** mobs move at 2 x the v83 rule's speed (noted in `docs/game_rules.md` C1); the
   fit makes false sightings from slivers of players at the screen's edge; the truth (`oracle.py`) swaps two
   mobs of a kind at crossings (457 of the prototype's 1,022 "id changes"), so the plan's gates use a fair count.
 - **The footage for the tracker:** `20261121_000219_2#0`, Line 1 <Area 1>, 30.6 minutes of the user's farming
@@ -56,16 +58,10 @@ that led to it: HISTORY.md, the block of 2026-11-24).
   both at today's graphics settings. Bank: 19 recordings, 50 captures, 93 minutes, 31.9 GB (`corpus.py list`).
 - **`docs/game_rules.md`**: the game's rules from v83 code, each with its source; **open = its table 3, 21
   questions** (aggro movement, the walk range `rx0`/`rx1`, Classic World's skill list ...).
-- **The kept replay + the "before" numbers (`REPORT-track-before.md`, branch `tracker`).** Today's Perceiver,
-  unchanged, over every frame of 23 captures (204,131 frames, 2.5 GB) in `F:\dev\maple-corpus\work\SESSION#K\track\`:
-  per frame the camera, us, the fit's mobs, today's tracks and looks, drops, patches and the two bitmaps - a
-  prototype runs from it with no GPU (`tools/perc/track/dump.py`, `load.ticks`). Perception is **sound on 13
-  captures** (caves, dungeons, both Line 1); not sound on the 9 forest captures (PLAN-moving-scenery.md's step 1
-  makes them sound) nor on Cave of Evil Eye III (camera lost). Today's tracker's numbers on the 13 stand beside
-  the prototype's in PLAN-tracker.md. The truth's chains are kept on disk (`cache.py`). **Two scene builds in
-  it:** re-made on the full build = the 9 forest captures + Ant Tunnel I; the other 8 stay as they are. A new
-  kept replay of any capture may be made on today's build, into its own folder, never over the old one (the user,
-  2026-11-24: the "no re-make" of 11-23 meant the `--frames-png` recordings under `runs\`; PLAN-tracker stop rule 5).
+- **The kept replay** (`F:\dev\maple-corpus\work\SESSION#K\track\`, `tools/perc/track/dump.py`): the Perceiver's
+  facts + two bitmaps for every frame of 23 captures - the tracker's steps run from it with no GPU; **sound on 13
+  captures** (caves, dungeons, both Line 1). A new kept replay goes into its own folder, never over the old one (the
+  user, 2026-11-24; PLAN-tracker stop rule 5). Detail: REPORT-track-before.md, HISTORY.md 2026-11-25.
 
 ### Parked
 - **No simulator engine now** (the user, 2026-11-22: "there might be an engine down the line, but after
@@ -91,8 +87,8 @@ that led to it: HISTORY.md, the block of 2026-11-24).
   measurement 6); the profile file of its step 6 is where they will live.
 - **Perception, found by the tracker plan (not in its scope):** the fit sights "mobs" in slivers of players at
   the screen's edge (PLAN-tracker.md measurement 2; the new tracker does not remember them); the play area's
-  bottom two rows (y 698-699) are the HUD's edge and are not masked; our own tag is in the tag list on 1,179
-  frames of the 30-minute capture where `FrameFacts.tag` is empty.
+  bottom two rows (y 698-699) are the HUD's edge and are not masked; our tag reader misses our tag when front
+  scenery (a post, a lever) hides part of it - its piece is in the tag list (step 4b takes it by the edge: +0.36 points).
 - **The mob finder's misses, found by tracker step 3 (not in its scope, stop rule 4; cases in PLAN-tracker.md
   "Step 3, 2026-11-24" and "Step 3, try 2"):** 46 L1-labelled mobs no track saw (the labellers added them, the fit
   missed them); 5 L2 mobs in plain view the fit missed (cases 24, 29, 34, 36, 71); 6 mobs with the fit's feet 9-35 px
@@ -102,9 +98,13 @@ that led to it: HISTORY.md, the block of 2026-11-24).
   step 7, 2026-11-24). Measure speed in the main folder or with `assets/scene` linked (proposed for CLAUDE.md
   "Measuring"; not yet agreed by the user).
 - **When `tracker-build` merges into `dev`:** CLAUDE.md's code map gets `perception/slots.py` (the hotkey reader)
-  and a `track/` row (the new tracker: `graph.py`, `us.py`, `mobs.py`, `kinds.py`, `evidence.py`, `state.py`).
-- **The tag list is not only players** (step 3, try 2): our own tag (merged with a mob's) and mobs' own name tags
-  are in it, and the mob tracker takes each as a player's box (L2 57, 61) - step 4b's tag sorter parts them.
+  and a `track/` row (the new tracker: `graph.py`, `us.py`, `players.py`, `mobs.py`, `drops.py`, `kinds.py`, `evidence.py`, `state.py`).
+- **Found by step 4b (PLAN-tracker.md "Step 4b"):** a name tag with a medal is 19-22 px tall (ours 17), so "feet =
+  the tag's top - 1" puts such a player 2-5 px over the floor; the graph's rope rule takes a fall or a jump past a rope
+  as `rope` (no motion test); ~20 L1 "us" cases are jump frames labelled stand from one frame (strips were made only
+  near ropes); live, every extra GPU round trip costs ~0.4 ms (the transfer back waits on this driver).
+- **Found by step 4a:** the 2026-11-18 captures had the pet "Snail" out (it loots near us); a pickup hop is taken from
+  ONE sighting 12+ px over the drop, so an item flying past can end a drop that stays (1 of 746, accepted).
 - **`perception/perceiver.py`'s line endings** were rewritten by step 3's try 1 (85547b9: 468 / 444 lines in `git
   diff --numstat`, 24 real): harmless, noise in its diffs.
 - **`PLAN-moving-scenery.md` is not valid UTF-8** (the Read tool says so; the Edit tool refuses it): to be
@@ -123,21 +123,23 @@ that led to it: HISTORY.md, the block of 2026-11-24).
   with no way out, ladder 778's tag reading +10 px; the Lie Detector is not looked for while the game is
   unfocused, and there is no capture watchdog; a phone alert on a Lie Detector.
 
-## Branches (2026-11-24)
+## Branches (2026-11-25)
 - `dev` holds everything: `rules`, `claude-arch`, `tracker` and `data` are merged into it (2026-11-21, on the
   user's word) and can be deleted. One worktree is registered that is not this layout's: `wt64`, detached at
   64f9713, in another session's scratchpad - leave it to that session.
-- `moving-scenery`: steps 1-5, merged into `dev` 2026-11-23 (9085f5b); nothing on it is missing from `dev`.
-- `tracker-plan` (2026-11-24): the plan session's tools - `tools/model/` (Part 1) and the prototypes in
-  `tools/perc/track/` (Part 2); **merged into `dev` 2026-11-24 on the user's word** (8f00b8e), can be deleted.
+- `moving-scenery` and `tracker-plan`: merged into `dev` (2026-11-23 / 11-24), nothing missing; can be deleted.
 - **`tracker-build`** (2026-11-24, off `dev` at 8f00b8e): PLAN-tracker's steps; **the main folder is on it** (at
-  71cc992, the slope fix, pushed). `dev` is merged into it (steps 2 and 7 are in); a step that runs beside another
-  works in its own worktree on `tracker-build-<step>` and is merged back. Registered: `.claude/worktrees/drops` on
-  `tracker-build-drops` (step 4a, off ff01379 - it does not have the slope fix yet). `.claude/worktrees/slots` is an
-  empty folder left over (not a worktree) and can be deleted.
+  188db3f + step 3b's measurement, pushed). `dev` is merged into it (steps 2 and 7 are in); a step that runs beside another
+  works in its own worktree on `tracker-build-<step>` and is merged back. `tracker-build-drops` (step 4a) is merged into it (2026-11-25) and can be
+  deleted with its worktree `.claude/worktrees/drops`. `.claude/worktrees/slots`: an empty leftover, deletable.
 - `main` has not moved since 2026-11-09 (02a639a) and has no CLAUDE.md. Parked: `vnc-keys` (the VM attempt).
 
 ## Waiting on the user
+- **Step 3b** (PLAN-tracker.md "Step 3b, 2026-11-25", "For the user"): (a) keep 10 px and accept 77.8 %, (b) a rule by
+  shape (flyers at `spriteY`; on the level / straight above: up to 89.7 %) with its own sheet, (c) else; the ~7.1 s round into game_rules E2?
+- **Step 4b's five questions** (PLAN-tracker.md "Step 4b", "For the user"): L5 (the prototype's own rules: 85.1 % found,
+  node 89.3 %) - accept or change rules; L1 us 83.5 % - relabel ~20 jump cases on strips + a motion test in the rope
+  rule; SelfState 95.81 %, our feet known 97.04 %, the live 0.7 ms - accept or what.
 - **`PLAN-tracker.md` (APPROVED 2026-11-24): question 8** (EXP in the kill rule), put to the user by step 5's
   session. Questions 1-7 answered and written into the plan: observed data beats server rules, no pets, players'
   cover 2 s, no buffs / cooldowns for the warrior, HP x 1.24 = the warrior's passive; the empty-place rule 40 %.

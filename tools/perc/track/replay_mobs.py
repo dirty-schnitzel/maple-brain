@@ -4,6 +4,7 @@ placement, track/kinds.py, the bitmap evidence of track/evidence.py) over every 
 the hindsight truth (cache.chains), the fair counts (`sticky`), the memory's episodes, why ids switched.
 
     python tools/perc/track/replay_mobs.py run CAP [CAP ...] | --sound [--kept NAME] [--hints] [--jobs N] [--tag T]
+                                                              [--unsorted]
     python tools/perc/track/replay_mobs.py pool [--sound | CAP ...] [--kept NAME] [--tag T]    the gate's numbers
     python tools/perc/track/replay_mobs.py feet [--sound | CAP ...] [--tag T]                  measurement 3 on its tracks
     python tools/perc/track/replay_mobs.py labels [--tag T]                                    L1, L2, L3, L8
@@ -15,7 +16,9 @@ prototype's row layout, so score.py / proto_mobs read them), per seen track-fram
 stats / episodes / ends, the ms a frame (the evidence's decode left out, as the prototype's), and the per-capture
 scores (score.py, sticky, why_switch); `pool` adds them up. `--kept NAME`: the kept replay in CORPUS/work/SESSION#K/
 NAME (a new one, stop rule 5); `--hints`: the kept replay's looks (fit_hints) the fit's rule calls seen are taken as
-sightings too (does Fitter.look pay? PLAN-tracker design 4); `--tag`: a name for the variant's files.
+sightings too (does Fitter.look pay? PLAN-tracker design 4); `--tag`: a name for the variant's files. Since step 4b
+the run gives the mob tracker the SORTED tag list as the Perceiver does (track/us.py + players.py over the same kept
+replay: the covers' us / player boxes); `--unsorted`: every tag a player's box (step 3's runs).
 """
 import argparse
 import pickle
@@ -62,13 +65,19 @@ class LazyBits:
     def __init__(self, sh, wo):
         self.sh, self.wo, self.ready, self.dec, self._b = sh, wo, sh is not None, 0.0, None
 
-    def count(self, groups):
+    def _bits(self):
         from maplebrain.track.evidence import Bitmaps
         if self._b is None:
             a = time.perf_counter()
             self._b = Bitmaps(dump.bits(self.sh), dump.bits(self.wo))
             self.dec = time.perf_counter() - a
-        return self._b.count(groups)
+        return self._b
+
+    def count(self, groups):
+        return self._bits().count(groups)
+
+    def columns(self, cx, top, reach, half):
+        return self._bits().columns(cx, top, reach, half)
 
 
 def seen_rule():
@@ -105,9 +114,15 @@ def out_path(cap, kept=None, tag=None) -> Path:
     return OUT / ("_".join([cap.replace("#", "_")] + ([kept] if kept else []) + ([tag] if tag else [])) + ".pkl")
 
 
-def run(cap, hints=False) -> dict:
+def run(cap, hints=False, sort=True) -> dict:
     mp = Map(map_of(cap))
     trk = tracker(mp)
+    us = pl = None
+    if sort:                                    # the sorted tag list, as the Perceiver (step 4b)
+        from maplebrain.track.players import Players, sorted_boxes
+        from maplebrain.track.us import Us
+        from replay_players import Facts as PFacts, minimap_ui
+        us, pl = Us(trk.g, trk.cfg), Players(trk.g, trk.cfg, ui=minimap_ui(cap)[0], npcs=trk.g.npcs)
     d = dump.out_dir(cap)
     seen = seen_rule() if hints else None
     rows, feet, ms, asked = [], [], [], []
@@ -118,9 +133,16 @@ def run(cap, hints=False) -> dict:
             assert n == r["n"]
             f = Facts(r, hints, seen)
             ev = LazyBits(sh, wo)
+            tags = None
+            if us is not None:
+                pf = PFacts(r)
+                us.update(pf)
+                pl.update(pf, ev, ours=us.box, n=r["n"])
+                tags = sorted_boxes(us.box, pl.drawn, trk.cfg)
+            dec0 = ev.dec
             a = time.perf_counter()
-            trk.update(f, ev, n=r["n"])
-            ms.append(1000 * (time.perf_counter() - a) - 1000 * ev.dec)
+            trk.update(f, ev, n=r["n"], tags=tags)
+            ms.append(1000 * (time.perf_counter() - a) - 1000 * (ev.dec - dec0))
             asked.append(trk.asked)
             recs = trk.records
             rows.append({"n": r["n"], "t": r["t"], "mobs": [row_of(m) for m in recs]})
@@ -146,16 +168,16 @@ def grade(cap, res) -> dict:
     return {"score": s, "sticky": f, "why": P.why_switch.last, "ghosts": gh}
 
 
-def cmd_run(caps, kept, hints, tag):
+def cmd_run(caps, kept, hints, tag, sort=True):
     OUT.mkdir(parents=True, exist_ok=True)
     for cap in caps:
         a = time.perf_counter()
-        res = run(cap, hints)
+        res = run(cap, hints, sort)
         b = time.perf_counter()
         gr = grade(cap, res)
         res.pop("trk")
         res.update(gr)
-        res["cap"], res["kept"], res["hints"] = cap, kept, hints
+        res["cap"], res["kept"], res["hints"], res["sorted"] = cap, kept, hints, sort
         p = out_path(cap, kept, tag)
         p.write_bytes(pickle.dumps(res, protocol=pickle.HIGHEST_PROTOCOL))
         print(S.report(gr["score"], f"{name_of(cap)} [track/mobs.py{' + hints' if hints else ''}]"))
@@ -549,6 +571,7 @@ def main():
     ap.add_argument("--hints", action="store_true")
     ap.add_argument("--jobs", type=int, default=1)
     ap.add_argument("--tag", default=None)
+    ap.add_argument("--unsorted", action="store_true", help="run: every tag a player's box (step 3)")
     ap.add_argument("--n", type=int, default=3000, help="time: frames")
     ap.add_argument("--runs", type=int, default=3, help="time: runs on and off each")
     a = ap.parse_args()
@@ -562,12 +585,13 @@ def main():
                 while todo and len(procs) < a.jobs:
                     cap = todo.pop(0)
                     cmd = [sys.executable, str(Path(__file__)), "run", cap] + (["--kept", a.kept] if a.kept else []) \
-                        + (["--hints"] if a.hints else []) + (["--tag", a.tag] if a.tag else [])
+                        + (["--hints"] if a.hints else []) + (["--tag", a.tag] if a.tag else []) \
+                        + (["--unsorted"] if a.unsorted else [])
                     procs.append(subprocess.Popen(cmd, cwd=ROOT))
                 procs = [p for p in procs if p.poll() is None]
                 time.sleep(1)
             return
-        cmd_run(caps, a.kept, a.hints, a.tag)
+        cmd_run(caps, a.kept, a.hints, a.tag, not a.unsorted)
     elif a.cmd == "pool":
         cmd_pool(caps, a.kept, a.tag)
     elif a.cmd == "feet":

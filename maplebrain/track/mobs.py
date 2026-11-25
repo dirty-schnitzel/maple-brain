@@ -28,9 +28,12 @@ the camera, the players' tags, the drops, our tag) -> the mob records (track/sta
    of the body's core shows the scene (a jumper: at every height of a hop, every jump_dh up to jump_h). Empty set:
    gone at once. Nothing to check (out of view, behind the UI or animated scenery): kept offscreen_s; something
    drawn over it: kept drawn_s since it was last seen; `cover` = "edge" when its body box at x, y crosses the
-   screen's edge (the edge wins over what covers its in-view part: the user, 2026-11-24), else what is over the
-   nearest place left (us, a player, a seen mob, a drop by their boxes; else an effect). x, y = the middle of the
-   places left.
+   screen's left or right side or the window's bottom (the edge wins over what covers its in-view part: the user,
+   2026-11-24; the top is not an edge: step 3's carry-over 2, L2 case 30), else what is over the nearest place left
+   (us, a player, a seen mob, a drop by their boxes; else an effect). Us and the players come from the SORTED tag
+   list when the caller gives it (track/players.py + track/us.py, step 4b: our tag, other characters and their pets
+   at their own widths - not mobs' own name tags, log lines or text); without it every tag is a player's box (step
+   3). x, y = the middle of the places left.
 5. NEW TRACKS from the sightings left over (not over a platform and not a flyer: none), with two fields (the user,
    2026-11-24): how it came into sight - "there at entry" (within entry_s of the first frame with a camera),
    "faded in" (opacity under fade_o in a live pose: a die pose is faint because the death fades it out), "came into
@@ -111,8 +114,10 @@ class MobTracker:
         self._ev = []
 
     # ------------------------------------------------------------------ one frame
-    def update(self, facts, evidence, n=None) -> list:
-        """-> this frame's events; `records` = the mob records (track/state.Mob), tentative tracks included."""
+    def update(self, facts, evidence, n=None, tags=None) -> list:
+        """-> this frame's events; `records` = the mob records (track/state.Mob), tentative tracks included. `tags`:
+        the sorted tags' boxes on the screen, {"us": [(x0, y0, x1, y1)], "player": [...]} (bodies, not the tags);
+        None: our tag = facts.tag and every tag of facts.tags a player's."""
         c = self.cfg
         t, C = facts.t, facts.scene_cam
         self.n, self._ev = n, []
@@ -131,7 +136,7 @@ class MobTracker:
             tr.n_frames += 1
         used_s = self._pair(R, t)
         tb = time.perf_counter()
-        boxes = self._boxes(facts)
+        boxes = self._boxes(facts, tags)
         keep = self._unseen(t, dt, C, evidence, boxes)
         tc = time.perf_counter()
         self._born(R, used_s, t, keep)
@@ -379,18 +384,23 @@ class MobTracker:
                 tr.life = "hit" if R.hit[i, m] else "alive"
 
     # ------------------------------------------------------------------ the tracks nobody saw
-    def _boxes(self, facts) -> dict:
-        """This frame's known things on screen (boxes, screen px): us, other players (their tags), the mobs seen,
-        the drops."""
+    def _boxes(self, facts, tags=None) -> dict:
+        """This frame's known things on screen (boxes, screen px): us, other players (the sorted tags', else every
+        tag), the mobs seen, the drops."""
         c = self.cfg
         b = {"us": [], "player": [], "mob": [], "drop": []}
-        tag = facts.tag
-        if tag is not None:
-            mx, my = tag[0] + tag[2] / 2, tag[1]
-            b["us"].append((mx + c.us_box[0], my + c.us_box[1], mx + c.us_box[2], my + c.us_box[3]))
-        for x, y, w, h in facts.tags or []:
-            cx = x + w / 2
-            b["player"].append((cx + c.player_box[0], y + c.player_box[1], cx + c.player_box[2], y + c.player_box[3]))
+        if tags is not None:
+            b["us"] += list(tags.get("us") or [])
+            b["player"] += list(tags.get("player") or [])
+        else:
+            tag = facts.tag
+            if tag is not None:
+                mx, my = tag[0] + tag[2] / 2, tag[1]
+                b["us"].append((mx + c.us_box[0], my + c.us_box[1], mx + c.us_box[2], my + c.us_box[3]))
+            for x, y, w, h in facts.tags or []:
+                cx = x + w / 2
+                b["player"].append((cx + c.player_box[0], y + c.player_box[1], cx + c.player_box[2],
+                                    y + c.player_box[3]))
         for tr in self.tracks:
             if tr.seen:
                 k = self.kinds[tr.mob]
@@ -564,10 +574,10 @@ class MobTracker:
     @staticmethod
     def _crosses_edge(k, fx, fy, flyer: bool) -> bool:
         """Does the body box at the middle of the places left (screen px; where the record puts it: _after_test)
-        cross the screen's edge?"""
+        cross the screen's left or right side or the window's bottom? (Not the top: step 4b.)"""
         mx = float(fx.mean())
         my = float(fy.mean()) if flyer else float(fy[np.argmin(np.abs(fx - mx))])
-        return mx + k.lt[0] < 0 or mx + k.rb[0] > SW or my + k.lt[1] < 0 or my + k.rb[1] > SH
+        return mx + k.lt[0] < 0 or mx + k.rb[0] > SW or my + k.rb[1] > SH
 
     def _after_test(self, tr: _Tr, t, C) -> bool:
         """A tested track with places left: the limits, then its place = the middle of the places left."""

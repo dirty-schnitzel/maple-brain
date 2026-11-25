@@ -13,9 +13,10 @@ Moving scenery (PLAN-moving-scenery.md): the moving backgrounds followed (scene.
 scene; on a weather-cloud map the clouds followed (perception/clouds.py) and taken out of the frame before D, the fit
 and the drops (a cloud too thick to undo: those pixels not valid) -> FrameFacts.movers / clouds, the fit's cloud
 numbers per sighting and look.
-The mob tracker (PLAN-tracker step 3, track/mobs.py) runs in shadow after the drops: the fit's mobs + the GPU evidence
-(track/evidence.Gpu on the fit's own tensors) -> `mob_tracker.records`, `mob_events`, part `track`; world.py stays
-the brain's tracker until step 9 (config Track.shadow off: not run).
+The mob tracker (PLAN-tracker step 3, track/mobs.py) runs in shadow after the drops and D's patches, after us and the
+other players (step 4b, track/us.py, players.py: the tag list sorted, part `us_players`): the fit's mobs + the GPU
+evidence (track/evidence.Gpu on the fit's own tensors) -> `mob_tracker.records`, `players.records`, `us`,
+`mob_events`, part `track`; world.py stays the brain's tracker until step 9 (config Track.shadow off: not run).
 """
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor
@@ -32,6 +33,7 @@ from .facts import FrameFacts
 from .selfpos import find_self
 from .tags import find_tags
 from .vote import PLAY_H, SW
+from ..track.players import sorted_boxes
 
 
 @dataclass
@@ -147,15 +149,21 @@ class Perceiver:
                 self.drops = kit.drops                  # front planes
                 self.drops.set_map(kit.map_id, kit.scene)
         # the mob tracker in shadow (PLAN-tracker step 3; track/mobs.py): beside world.py, nothing reads it yet
-        self.mob_tracker = self.evidence = None
-        self.mob_events = []                            # its events of this frame
+        # + us and the other players (step 4b; track/us.py, players.py): the tag list sorted, so the mob tracker's
+        # covers name us / players by it
+        self.mob_tracker = self.evidence = self.us = self.players = None
+        self.mob_events = []                            # its events of this frame (+ us and the players')
         if self.world is not None and cfg.track.shadow and kit.graph is not None:
             from ..track.evidence import Gpu
             from ..track.kinds import kinds
             from ..track.mobs import MobTracker
+            from ..track.players import Players
+            from ..track.us import Us
             t = cfg.track
             self.mob_tracker = MobTracker(kit.graph, kinds(kit.mobs, kit.fitter.poses, t.mob_speed_x, t.knock_v), t)
             self.evidence = Gpu(kit.fitter, kit.fitter.cfg.tol)
+            self.us = Us(kit.graph, t)
+            self.players = Players(kit.graph, t, npcs=kit.graph.npcs)
         self._fit_ui = (None, None)                     # (hud.ui_mask array, the fit's GPU mask of it)
         self._look_ms = 0.0                             # this tick's looks (the search around tracks)
         self.minimap_t = -1e9                           # last minimap read (only ~1 / s while the scene camera holds)
@@ -339,7 +347,7 @@ class Perceiver:
         self._mark("scenecam")
         if exact is None:
             f.tags = tags.result()
-            self._shadow(f)                             # a blind frame: the mob tracker changes nothing
+            self._shadow(f)                             # a blind frame: the trackers change nothing
             return
         f.scene_cam, f.scene_share = exact, round(sc.share, 3)
         obs.scene_cam, obs.cam_src = exact, "exact"
@@ -388,20 +396,27 @@ class Perceiver:
             f.drops = self._fetch_drops(me_s, f.tags, [h.box for h in hits])
             f.drops_ms = self.drops.ms
             self._mark("drops")
-        self._shadow(f)
-        if d_list is not None:
+        if d_list is not None:                         # before the shadow trackers: what stands on a name tag
             f.patches, self.parts["patches"] = d_list.result()
+        self._shadow(f)
         obs.mobs = [tr.as_dict(obs.t) for tr in trs]
         obs.cam = tuple(round(v, 1) for v in self.world.cam.C)
         if me_s is not None:                           # our feet on the map, exact px (the tag's screen x + camera)
             obs.me_map = (round(me_s[0] + obs.cam[0], 1), round(me_s[1] + obs.cam[1], 1))
 
     def _shadow(self, f):
-        """The mob tracker (track/mobs.py) on this frame's facts and the fit's own tensors (the GPU evidence) ->
-        `mob_tracker.records`, `mob_events`. Part `track`. Nothing reads it before PLAN-tracker step 9."""
+        """Us, the other players and the mob tracker (track/us.py, players.py, mobs.py) on this frame's facts and the
+        fit's own tensors (the GPU evidence) -> `us`, `players.records`, `mob_tracker.records`, `mob_events`. Parts
+        `us_players` and `track`. Our keys are not known here (Us without them: no facing, no walk-stuck rule) -
+        PLAN-tracker step 9 hands them in. Nothing reads any of it before step 9."""
         if self.mob_tracker is None:
             return
-        self.mob_events = self.mob_tracker.update(f, self.evidence)
+        ev = self.us.update(f)
+        ev += self.players.update(f, self.evidence, ours=self.us.box,
+                                  ui=[self.minimap or hud.UI_RECTS[0]] + list(hud.UI_RECTS[1:]))
+        tags = sorted_boxes(self.us.box, self.players.drawn, self.cfg.track)
+        self._mark("us_players")
+        self.mob_events = ev + self.mob_tracker.update(f, self.evidence, tags=tags)
         self._mark("track")
 
     def _look(self, trs) -> list:

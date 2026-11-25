@@ -193,6 +193,29 @@ def test_the_edge_wins_over_what_covers_the_in_view_part():
         assert [e["ev"] for e in evs] == ["mob_gone"] and evs[0]["how"].startswith("gone: drawn over")
 
 
+def test_the_screens_top_is_not_an_edge():
+    """Step 4b (step 3's carry-over 2, L2 case 30): `edge` = the screen's sides and the window's bottom; a mob whose
+    body box crosses only the top is named by what is over it."""
+    g = Graph(mk([fh(1, -400, 30, 1800, 30)]), edges=False)             # a floor 30 px under the screen's top
+    trk = MobTracker(g, {1: a_kind()}, Track(), keep=True)
+    trk.update(facts(0.0, [mob(600, y=30)]), ev(False, True))
+    run_unseen(trk, 0.0, 0.5, shows=False, world=True)
+    assert trk.mobs()[0].cover == "effect"
+
+
+def test_covers_come_from_the_sorted_tags():
+    """Step 4b: with the sorted tag list (track/players.py) a mob's own name tag or our tag merged with it is not a
+    player's body over the mob; without it (step 3) every tag of the list is."""
+    for tags, want in ((None, "player"), ({"us": [], "player": []}, "effect"),
+                       ({"us": [(560, 440, 640, 532)], "player": []}, "us")):
+        trk = a_tracker()
+        trk.update(facts(0.0, [mob(600)]), ev(False, True))
+        f = facts(DT)
+        f.tags = [(557, 501, 87, 20)]                                   # the mob's own "Lv. N name" under its feet
+        trk.update(f, ev(False, True), tags=tags)
+        assert trk.mobs()[0].cover == want, (tags, trk.mobs()[0].cover)
+
+
 def test_how_it_came_into_sight_and_its_first_pose_are_two_fields():
     """The user, 2026-11-24 (L3): a mob first seen in its die pose is born by how it came into sight (uncovered,
     came into view or there at entry), with the die pose as its first pose - not born "dying", and not "faded in"

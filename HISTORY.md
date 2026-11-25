@@ -4699,3 +4699,37 @@ What the next sessions build on, the game_rules bullet in full:
 From the order table's row 4 (PLAN-tracker), replaced by the slope fix's result:
 **Step 3 DONE 2026-11-25, accepted by the user on try 2's numbers** (no try 3; carry-overs: the steep-slope step rule -> its own small session now (the user: "lets fix the slopes"), L2's re-grade -> step 4b, the whole frame's +0.3 ms -> step 9: the plan's "The user's decision") (f97dd4e, 48cbcb5; the plan's "Step 3, try 2"): the user's answers built (5 px on slopes, flyers never stand, `edge` first, `first_pose` apart; 29 L1 bounce mobs relabelled, L2's second covers `also` in the bank's files); MET: the 13 captures' rows, the feet (jolts 550 <= 556), the live path (shadow = replay 100 %, GPU = bitmaps 100 %, new kept replay `track_s3`), `gate.py` SAME; MISSED: L1 97.57 % (99), L2 13 of 16 (90 %), L3 19 of 22 (95 %), the tracker's p50 1.04 ms (1.0) and the frame +0.97 ms (+0.3). **Next: the slope fix (main folder), step 4a beside it** (worktree `.claude/worktrees/drops`, branch `tracker-build-drops`, links `.venv` / `runs` / `assets/scene`), **then 4b**; 5 / 6 / 8 follow the plan's table
 From Branches: `tracker-build` ... **the main folder is on it** (at 48cbcb5, pushed) ... No worktree is registered now.
+
+## 2026-11-25 - tracker step 4b (moved from HANDOFF.md)
+From HANDOFF.md:
+## START HERE (2026-11-25): `PLAN-tracker.md` is APPROVED - steps 1, 2, 3 and 7 DONE; the slope fix DONE (L1 98.98 %, accepted); 4a running, 4b next
+From HANDOFF.md:
+**step 2 DONE 2026-11-24, gate met, merged into `dev` (0e68464)**: `maplebrain/track/graph.py`; its rebuild stays a worker thread (the user: "keep same thread"). **Step 1 DONE** on `tracker-build` (try 3, 86f6ff3: its plan section). **Step 7 DONE 2026-11-24, gate met** (L7's gate reworded by the user), merged into `tracker-build` (df8b20c): `perception/slots.py`, FrameFacts v7 `slots`, `track/us.py` (the plan's "Step 7"). **Step 3 DONE 2026-11-25, accepted by the user on try 2's numbers** (carry-overs: L2's re-grade -> step 4b, the whole frame's +0.3 ms -> step 9: the plan's "The user's decision"). **The slope fix (3's carry-over 1) DONE 2026-11-25, accepted by the user at L1 98.98 %** (71cc992; the plan's "Step 3, the slope fix"): the step = 1 px + the foothold's own rise, rounded up to a whole pixel; case 124 relabelled `stand`; every row met (hops 0.47 % / 0.175 %, the 13 captures' rows and jolts 550 unchanged) except **L1 775 of 783 = 98.98 % (99 %: missed by one case)** - cases 155 and 184 are not slope steps (a 6 px step for 1 px, 4 for 3 on near-flat ground). **Step 4a runs beside it** (worktree `.claude/worktrees/drops`, branch `tracker-build-drops`, its own session), **then 4b**; 5 / 6 / 8 follow the plan's table
+From HANDOFF.md:
+  bottom two rows (y 698-699) are the HUD's edge and are not masked; our own tag is in the tag list on 1,179
+  frames of the 30-minute capture where `FrameFacts.tag` is empty.
+From HANDOFF.md:
+- **When `tracker-build` merges into `dev`:** CLAUDE.md's code map gets `perception/slots.py` (the hotkey reader)
+  and a `track/` row (the new tracker: `graph.py`, `us.py`, `mobs.py`, `kinds.py`, `evidence.py`, `state.py`).
+- **The tag list is not only players** (step 3, try 2): our own tag (merged with a mob's) and mobs' own name tags
+  are in it, and the mob tracker takes each as a player's box (L2 57, 61) - step 4b's tag sorter parts them.
+From HANDOFF.md:
+- `moving-scenery`: steps 1-5, merged into `dev` 2026-11-23 (9085f5b); nothing on it is missing from `dev`.
+- `tracker-plan` (2026-11-24): the plan session's tools - `tools/model/` (Part 1) and the prototypes in
+  `tools/perc/track/` (Part 2); **merged into `dev` 2026-11-24 on the user's word** (8f00b8e), can be deleted.
+
+From HANDOFF.md:
+  71cc992, the slope fix, pushed). `dev` is merged into it (steps 2 and 7 are in); a step that runs beside another
+  works in its own worktree on `tracker-build-<step>` and is merged back. Registered: `.claude/worktrees/drops` on
+  `tracker-build-drops` (step 4a, off ff01379 - it does not have the slope fix yet).
+From HANDOFF.md ("What the next sessions build on", compressed there):
+- **The kept replay + the "before" numbers (`REPORT-track-before.md`, branch `tracker`).** Today's Perceiver,
+  unchanged, over every frame of 23 captures (204,131 frames, 2.5 GB) in `F:\dev\maple-corpus\work\SESSION#K\track\`:
+  per frame the camera, us, the fit's mobs, today's tracks and looks, drops, patches and the two bitmaps - a
+  prototype runs from it with no GPU (`tools/perc/track/dump.py`, `load.ticks`). Perception is **sound on 13
+  captures** (caves, dungeons, both Line 1); not sound on the 9 forest captures (PLAN-moving-scenery.md's step 1
+  makes them sound) nor on Cave of Evil Eye III (camera lost). Today's tracker's numbers on the 13 stand beside
+  the prototype's in PLAN-tracker.md. The truth's chains are kept on disk (`cache.py`). **Two scene builds in
+  it:** re-made on the full build = the 9 forest captures + Ant Tunnel I; the other 8 stay as they are. A new
+  kept replay of any capture may be made on today's build, into its own folder, never over the old one (the user,
+  2026-11-24: the "no re-make" of 11-23 meant the `--frames-png` recordings under `runs\`; PLAN-tracker stop rule 5).
