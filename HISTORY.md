@@ -4694,3 +4694,8 @@ What the next sessions build on, the game_rules bullet in full:
   Each step's numbers under its heading there; tools `tools/perc/scenery/` (its README).
   (The kept replay:) The truth checked by eye on 60 cases: gaps 21 right / 0 wrong / 19 can't
   tell (mostly off screen), ends 15 / 3 / 2; its chains are kept on disk (`cache.py`).
+
+## 2026-11-25 - tracker step 3 and the slope fix's start (moved from HANDOFF.md)
+From the order table's row 4 (PLAN-tracker), replaced by the slope fix's result:
+**Step 3 DONE 2026-11-25, accepted by the user on try 2's numbers** (no try 3; carry-overs: the steep-slope step rule -> its own small session now (the user: "lets fix the slopes"), L2's re-grade -> step 4b, the whole frame's +0.3 ms -> step 9: the plan's "The user's decision") (f97dd4e, 48cbcb5; the plan's "Step 3, try 2"): the user's answers built (5 px on slopes, flyers never stand, `edge` first, `first_pose` apart; 29 L1 bounce mobs relabelled, L2's second covers `also` in the bank's files); MET: the 13 captures' rows, the feet (jolts 550 <= 556), the live path (shadow = replay 100 %, GPU = bitmaps 100 %, new kept replay `track_s3`), `gate.py` SAME; MISSED: L1 97.57 % (99), L2 13 of 16 (90 %), L3 19 of 22 (95 %), the tracker's p50 1.04 ms (1.0) and the frame +0.97 ms (+0.3). **Next: the slope fix (main folder), step 4a beside it** (worktree `.claude/worktrees/drops`, branch `tracker-build-drops`, links `.venv` / `runs` / `assets/scene`), **then 4b**; 5 / 6 / 8 follow the plan's table
+From Branches: `tracker-build` ... **the main folder is on it** (at 48cbcb5, pushed) ... No worktree is registered now.
