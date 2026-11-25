@@ -1265,6 +1265,12 @@ measured first, then a new sheet; (b) fix the split in the mob tracker first (a 
 track is fading in: step 3's code, its gates re-run); (c) accept the 1.5 %. And whether E3 gets the measured 0.82 s
 fade (observed beats the rule).
 
+**The user's answer (2026-11-25): (b), fix the split in the mob tracker** (prompt "Tracker, step 3b, try 3"). The
+plan manager's reading: each split is a **false death** (a mob "dies" untouched), which reaches step 5's kills,
+4a's `from_mob` and the id counts - so the cause is fixed, not hidden in spawns.py. A death fades the body OUT, a
+spawn fades it IN: a die pose is taken only while the opacity is not rising, never on a track still fading in. The
+0.82 s fade into `docs/game_rules.md` E3: not yet asked.
+
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
 2. The real code cannot reproduce a prototype's number from the same kept replay within tolerance: stop - it is
@@ -1372,6 +1378,29 @@ on the CPU - no GPU call. Add the record to docs/state_model.md section 3 with t
 without each rule). Gate: step 3b's row - the share >= 95 %, the sheet >= 29 of 30, the live path's rows (the kept
 replay track_s3 of 20261120_235747_1#0) = the replay's, the ms p50 <= 0.1. pytest of the areas touched + the bot
 speed line. Numbers into the plan under "Step 3b, try 2"; a gate missed: stop.
+```
+```text
+Tracker, step 3b, try 3 (the mob tracker's split of a fading-in mob - the user's answer (b) - then spawn points).
+Read PLAN-tracker.md - "Step 3b, try 2" and "The user's answer" under it, step 3's row and gate, design 2-4, the
+stop rules - track/mobs.py, tools/perc/track/proto_spawns.py. Branch tracker-build (the main folder).
+1. COUNT FIRST, change nothing: over the 13 sound captures (the *_s4b rows), every track that turns dying and is
+   followed within 1 s by a new track of its kind within 30 px (a death "taken back" or a split): how many, how
+   many while the first track was fading in (born faded in, under 0.83 s old, opacity rising), and what the rest
+   are (overlaps swapping poses, knockback, other) - a few of each on strips.
+2. THE FIX in track/mobs.py: a die pose is taken only while the track's opacity is not rising; a track still fading
+   in (born faded in, under the measured fade, 0.83 s) never turns dying - its die-pose reading is kept as a
+   sighting of the same mob. Nothing else changes. A test that fails without it (a fading-in mob read in a die pose
+   at opacity 0.6 stays one live track), and one that a real death still turns dying at once (opacity falling).
+3. Re-run step 3's gate from the kept replay (replay_mobs.py run / pool / feet / labels, the sorted tags as live):
+   every row as in the slope fix / 4b (found 98.70 %, id kept 93.48 %, one id 90.98 %, extra ids <= 1,032, changed
+   mob <= 10, next to its set >= 99.0 %, a death seen noticed p90 <= 0.05 s, ghosts 0, jolts <= 556, L1-L3 as
+   accepted) - report every row that moves and why; a row that falls past its gate: stop. Count 1. again: the
+   fading-in splits must be 0.
+4. Then step 3b try 2's measure (trace) and a new 30-case sheet of births matched by (c) and not by 10 px: the
+   share >= 95 %, the sheet >= 29 of 30 (a doubled spawn counts wrong). If met, build spawns.py exactly as try 2's
+   prompt says (in shadow, in_view on the CPU, no GPU call; state_model.md section 3 with the user's words; tests),
+   its gate: the live path's rows = the replay's, the ms p50 <= 0.1; pytest of the areas touched + the bot speed
+   line. Numbers into the plan under "Step 3b, try 3"; a gate missed: stop.
 ```
 ```text
 Tracker, step 4a (drops). Needs step 1's labels L6. Read PLAN-tracker.md - measurement 5, design 5, step 4a, the
