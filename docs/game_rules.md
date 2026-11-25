@@ -376,6 +376,10 @@ All of it is HC `Gameplay/MapleMap/Mob.cpp` + `Gameplay/Physics/Physics.cpp`. On
   frame ends**. Animation 2 = fades out over 40 ticks = 0.32 s. Animation 0 = vanishes at once (leaving view).
   A dying mob no longer touches us and cannot be targeted (`Mob.cpp:146-178, 388-405, 584-594`). For our own
   hit the death is shown when the hit lands (F2), not when the key is pressed (`Mob.cpp:558-561`).
+- **Measured** (PLAN-tracker.md "Step 3b, try 3", 899 deaths seen on 13 captures, the fit's opacity): the die pose
+  starts at **full opacity** (the first die sighting >= 0.97 on 99.1 %) and **stays there ~21 frames = 0.35 s**
+  (p50; p90 25 frames), then fades out. So a death is the die pose at full opacity, not a fade - a fade-out alone
+  shows only from ~0.35 s on. (Whether the fade is `die1`'s own frame alpha or a client fade: not looked into.)
 - A mob with `revive` spawns its listed mobs at its place after the `die1` length (`Monster.java:782-843`; 2 of
   our mobs).
 - Ours: `world.py:39` `die_sure`; FakeMobs dying 0.8 s (`test_brain_v2.py:515`) - **differs** (the rule is the
@@ -410,6 +414,12 @@ servers of its family, not Classic World's.
 - **The round: every ~7.1 s - measured** (7.08-7.20 s, R 0.99-1.00 on 10 of 12 captures, on 30 minutes 7.084 s;
   no 10 s beat). MW says **7.56 s** for the whole server; we searched 6.5-7.6 s and 7.56 lost, so the measured
   round is the rule. (v83, replaced: CO every 10 s, `config.yaml:175` `RESPAWN_INTERVAL`, `RespawnTask.java`.)
+  Checked against chance (the plan manager, 2026-11-25; every confirmed faded-in birth): the best period in
+  6.5-7.6 s is 7.01-7.20 s on all 13 captures (12 maps: Line 1, 10 dungeons / caves, Southern Forest III's
+  dungeon); the same search at other periods (4.5-12 s) finds far less, and 200 sets of random times over each
+  capture's span never reach its fit (p 0.005 on each). Pooled (each capture its own phase): the peak is 7.08 s
+  (Rayleigh Z 448) against 15 at 10 s (median over 4-13 s: 13). The 8 maps with 17+ spawns show it alone; the 5
+  with 5-11 only agree. No open field map yet. On the 30-minute capture the beat drifts (R 0.75 at 7.084 s).
 - **How many (MW):** at a round a map under its **capacity** gets up to one mob from every ready point (E1), all
   appearing together; so a map cleared at once refills in one wave at the next round.
   - **capacity = floor(W x (H - 450) x `mobRate` / 128,000)**, W = the map's left-to-right span - 40 px, H = its
@@ -432,9 +442,17 @@ servers of its family, not Classic World's.
   delay, default 5000 ms; `MapFactory.java:160, 312`, `SpawnPoint.java:105-107`): none of our maps has them.
 
 ### E3. How a new mob appears
-- **HC:** a newly spawned mob **fades in over 40 ticks = 0.32 s** (opacity +0.025 per tick); a mob that was
-  already there when we arrive is drawn at once (`Mob.cpp:103-112, 162-171`). It starts at the spawn point's
-  position on its foothold, in the stance the server sends; if we control it, it decides at once (C2).
+- **The fade-in: 0.82 s - measured** (PLAN-tracker.md "Step 3b, try 2": 612 spawns seen on 13 captures, the fit's
+  opacity per frame; a straight line fits 593 of them with R^2 >= 0.999; its length p10 / p50 / p90 0.803 / 0.816 /
+  0.827 s = ~49 frames at 60 a second). The opacity rises on 604 of the 612 from their first sightings. (v83,
+  replaced: HC fades in over 40 ticks = 0.32 s, opacity +0.025 per tick, `Mob.cpp:162-171`.)
+- A mob that was already there when we arrive is drawn at once (HC `Mob.cpp:103-112`; our footage agrees: "there at
+  entry" births are not faint).
+- It starts **on** its spawn point (measured: E1), in the stance the server sends; if we control it, it decides at
+  once (C2). **Measured:** many move while still fading - of 612 spawns, 53 had walked 20-105 px and 50 had hopped
+  35-50 px straight up by their first sighting (the fit sees a fading mob from ~0.14 opacity on, ~0.12 s in); a
+  Bubbling landing from that hop is squashed, and the fit can read the squash as `die1_2` (PLAN-tracker.md "Step 3b,
+  try 3": the mob tracker no longer takes a die pose with the opacity rising as a death).
 - CO sends new spawns with the appear effect -2 and existing ones with -1 (`tools/PacketCreator.java:1432-1442`).
 - **`summonType`: no rule found reads it** (question 6).
 
@@ -773,7 +791,8 @@ differ, so HC's and CO's per-skill code does not apply by id (table 3). Values: 
 | The client's update step | 8 ms (125 per second), drawing interpolated between steps | HC `Constants.h:29`, `MapleStory.cpp:92-109` |
 | A mob's decision | every > 1.6 s, at an animation end | HC `Mob.cpp:244-251` |
 | A mob's hit stance | 0.248 s | HC `Mob.cpp:244, 565` |
-| A new mob's fade-in | 0.32 s | HC `Mob.cpp:162-171` |
+| A new mob's fade-in | **0.82 s (measured)**; HC 0.32 s | PLAN-tracker.md "Step 3b, try 2"; HC `Mob.cpp:162-171` |
+| A death at full opacity before it fades | **~0.35 s (measured**, 21 frames p50, 25 p90) | PLAN-tracker.md "Step 3b, try 3" |
 | Our time safe from hits | 2 s | HC `Char.cpp:200` |
 | No rope grab after leaving one | 1 s | HC `Player.cpp:455-458` |
 | A damage number | 0.75 s | HC `DamageNumber.cpp:79, 181-184` |
