@@ -482,6 +482,7 @@ in `tools/perc/track/` are the reference: port their rules and constants, do not
 | **1** | **Label sets, by eye** (no code in `maplebrain/`; labels in the bank's `labels\`, picked from the prototypes' output so every class is in them): L1 200 frames - us and every mob: stand / air / rope and the node; L2 100 covered mobs - what covers them; L3 50 births - how born; L4 100 hit-pose begins - by us or not (the swing seen); L5 200 frames - every name tag's class, each player's node; L6 50 drops - the mob it came from; L7 100 frames - the 8 slots' item and amount; L8 40 remembered mobs - there / not there / cannot tell | each set readable by `tools/perc/label_eval.py`; 10 % of each labelled twice: the two agree on >= 95 % | 2, 7 |
 | **2** | **The graph and the placement** (`track/graph.py`; `tools/model/` is the reference): chains from complete links, floors, the nodes as arrays, rule 3 as one array call for every thing, the seconds table, the edges and the table rebuilt on a worker thread | 364 maps build; 10,873 chains, 39 maps differ from `navmap`, ids unchanged on the other 325; the 19 level joints are one floor each; the node = `platform_at`'s on 72,800 of 72,800 test points; 20 things placed in <= 20 us (median map), <= 70 us (the largest); on `proto_feet.py`'s hops: air frames called standing <= 0.8 %, standing called air <= 0.2 %; the table = `route()`'s seconds on 1,000 random pairs, built in <= 5 ms on Line 1; a rebuild does not block a frame (a test) | 1, 7 |
 | **3** | **Mobs, in shadow** (`track/kinds.py`, `evidence.py`, `mobs.py`, the mob records of `state.py`; the Perceiver calls it beside `world.py`; the replay tool): design 2-4 | *From the kept replay, 13 sound captures:* measurement 1's table within tolerance - found >= 98.4 %, id kept across a cover >= 93.1 % (by length >= 96.7 / 96.2 / 93.3 / 79.1 / 77.1), one id for life not beside another mob >= 90.6 %, extra ids <= 1,032, "the track changed mob" <= 10, next to its set >= 99.0 %, a death seen noticed p90 <= 0.05 s, no seen track-frame without a truth mob; measurement 3's feet: hops within 1.5 px rms >= 91 %, jolts <= 556 (the prototype's own tracks counted alike; was 500, measured on the truth's tracklets - the user, 2026-11-24). *Labels:* L1 mobs: stand / air >= 99 %, the node >= 99.5 % of standing mobs; L2 >= 90 %, L3 >= 95 %, both counted on the agreed cases only (L2 21, L3 22: `"agreed": true` in the bank's files; step 1, try 3); L8: reported. *Live, on `20261120_235747_1#0` (Line 1, 4.2 min) with a new kept replay of it on today's scene build in its own folder (stop rule 5):* the GPU evidence = the bitmaps' on >= 99.9 % of the places asked; the shadow rows = that capture's replay rows on >= 99.5 % of track-frames; the tracker's ms p50 <= 1.0, p90 <= 2.5 (today's `world` + looks: 0.7 / 2.0), the whole frame's p50 not above today's + 0.3; `gate.py` SAME | - (the GPU, and a speed number) |
+| **3b** | **Spawn points as tracked things** (added by the user 2026-11-25; `track/spawns.py`, the spawn point records of `state.py`; "Step 3b" below) | first, measured: do new mobs appear on their spawn point (the faded-in births of the 13 sound captures against map.json's points of their kind) - >= 95 % within 10 px, else stop with the distribution; then from the kept replay: every faded-in birth near a point of its kind is that point's spawn, a 30-case sheet checked by eye >= 29 right; the live path's shadow rows = the replay's; ms p50 <= 0.1 | 4a, 4b (a new file: reads the mob tracker's births) |
 | **4a** | **Drops** (`track/drops.py`): design 5; the finder (`perception/drops.py`) is not changed | from the kept replay, measurement 5 within tolerance: 746 drops, 0 lives with two items or over 131 s, 0 "gone" then seen again, pairs of one item within 3 px <= 9 and each looked at, exactly one death for >= 84.4 % of drops, "we took it" with the key down: no hop without it on any of the 13; L6 >= 90 %; PLAN-loot's gates still met; ms p50 <= 0.2 | 4b |
 | **4b** | **Other players and us** (`track/players.py`, `us.py`): design 6-7 | L5: players found >= 95 %, non-players called players <= 1 %, a pet called a player or a player called a pet <= 5 %, the node on >= 95 % of standing players; the 2 s players' cover (question 5): the same player back under a new number on <= 29 of the 30-minute capture's 308 tracks (within 1 %); L1 us: >= 99 %; every stuck case `nav/selfstate.py`'s docstring lists is a test; us against `SelfState` on the 30-minute capture: the same place on >= 99 % of frames, every difference listed; our feet known on >= 97.5 % of frames (today 96.7; the tag list gives 1.1 points); ms p50 <= 0.1 | 4a |
 | **5** | **Events** (`track/events.py`; needs 3-4): design 8 | 30-minute capture, from the kept replay and its keys: casts 500 / 78 / 10 (q / e / w) within 1 %; every HUD step has a cause; "by us" by chance <= 1 % (windows moved in time); kills against EXP: "us" with no EXP step <= 1 %, whole-EXP kills missed <= 2 %; L4 >= 95 %; the swing length measured live within 0.03 s of 0.85 / 0.87 | 6 |
@@ -1055,6 +1056,24 @@ accept the listed differences (SelfState's 9 px and its speed window are what th
 97.04 %** - the list gives 0.36, not 1.1: accept, or another source? (5) **The ms** - accept the live 0.7 ms while both
 trackers run beside world.py, ask the body one frame late (no wait), or merge it into the mob tracker's one transfer?
 
+### Step 3b - spawn points as tracked things (added by the user, 2026-11-25; one executor session, measure then build)
+**The user, 2026-11-25:** "keeping track of the time since last spawn (on spawn point) is a valid tracking object. It
+would not be trying to add predictive abilities to the tracking behavior (my original rule), it is a part of
+tracking's memory (which is OK) ... are mobs spawning exactly on the spawn point? If so we can treat spawn points as
+objects themselves and keep track on each one since last visible spawn. We are just tracking this, it doesn't have
+to be a part of the AI model, it is part of the overall data we collect."
+- **What it is:** memory, not prediction. Each spawn point of the map (map.json: kind, x, y, foothold -> the node,
+  `mobTime`) is a record: `last_spawn_t` (the last spawn SEEN there; None = none seen this stay), `last_mob` (the
+  mob id born there), `spawns` (the count this stay), `in_view` (the point is on screen and not covered now). No
+  respawn rule, no timer, no guess about spawns not seen.
+- **A spawn seen** = a mob track born `faded in` (step 3's `born_how`) whose first feet are within the measured
+  distance of a spawn point of its kind (two points near: the nearer). A mob born another way (came into view,
+  uncovered, there at entry) is never a spawn.
+- **Why the question comes first:** v83's client puts a new mob at its spawn point's position on its foothold
+  (`docs/game_rules.md` E3: HeavenClient), but Classic World may differ, and observed data beats the rule.
+- **Not in scope:** the 10 s respawn round, the refill target (E2) - not tracked, not predicted; the brain does
+  not read it. `docs/state_model.md` gets the record (section 3, the frame) with the user's words.
+
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
 2. The real code cannot reproduce a prototype's number from the same kept replay within tolerance: stop - it is
@@ -1121,6 +1140,24 @@ slope). Gate: L1 stand / air >= 99 % (replay_mobs.py labels); step 2's hops gate
 air called standing <= 0.8 %, standing called air <= 0.2 %); from the kept replay the 13 captures' rows and the
 feet still within step 3's gate (jolts <= 556); pytest of the areas touched. Numbers into the plan under "Step 3,
 the slope fix"; a gate missed: stop.
+```
+```text
+Tracker, step 3b (spawn points as tracked things; added by the user 2026-11-25). Read PLAN-tracker.md - "Step 3b"
+(the user's words), its row in the steps table, design 2-3, "Step 3, try 2" (born_how), the stop rules -
+docs/state_model.md section 3 and docs/game_rules.md E1-E3. Branch tracker-build (the main folder).
+FIRST MEASURE, build nothing: over the 13 sound captures of the kept replay (step 3's tracker output, the *_slope
+files or a fresh replay_mobs.py run), take every track born "faded in" and its first feet; match it to the spawn
+points of its kind on that map (map.json); report the distance (p50 / p95 / max, the share within 3, 5, 10, 20 px),
+how many births have no point of their kind near, and how many points stand within 20 px of another of the same
+kind. Make a sheet of 30 random matched births (the frame, the point drawn) and check each by eye. If fewer than
+95 % fall within 10 px, or the sheet shows them elsewhere: stop with the distribution - the user decides.
+If met: build track/spawns.py (reads the mob tracker's births each frame; nothing in track/mobs.py changes but the
+call), the SpawnPoint record in state.py (last_spawn_t, last_mob, spawns, in_view), the Perceiver calls it after the
+mob tracker, in shadow; add the record to docs/state_model.md section 3 with the user's words. Tests (a test fails
+without each rule). Gate: the row in the steps table - the 30-case sheet >= 29 right, the live path's rows (the
+kept replay track_s3 of 20261120_235747_1#0) = the replay's, the ms p50 <= 0.1. Also report, as numbers only
+(nothing built from them): the time between spawns seen on one point, and whether spawns seen fall on a 10 s beat.
+Numbers into the plan under "Step 3b"; a gate missed: stop.
 ```
 ```text
 Tracker, step 4a (drops). Needs step 1's labels L6. Read PLAN-tracker.md - measurement 5, design 5, step 4a, the
