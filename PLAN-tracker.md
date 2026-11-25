@@ -1074,6 +1074,48 @@ to be a part of the AI model, it is part of the overall data we collect."
 - **Not in scope:** the 10 s respawn round, the refill target (E2) - not tracked, not predicted; the brain does
   not read it. `docs/state_model.md` gets the record (section 3, the frame) with the user's words.
 
+### Step 3b, 2026-11-25: measured first; the gate MISSED (77.8 % within 10 px, >= 95 % asked) - stopped, nothing built
+`tools/perc/track/proto_spawns.py` (`measure`, `why`, `sheet`, `beat`) over the step-4b replay's rows of the 13 sound
+captures (`step3\*_s4b.pkl`: the current code); outputs `F:\dev\maple-corpus\work\track-plan\step3b\`. A birth = the
+first row of a track id (its x, y = the first sighting's feet, map px); its point = the nearest of its kind in
+map.json (x, y as given; no point is hidden on these 12 maps).
+- **Births by how:** came into view 990, faded in 641 (612 confirmed), uncovered 322, there at entry 40.
+- **Distance of the 612 confirmed faded-in births to the nearest point of their kind:** p50 **0.0**, p90 56.9, p95
+  70.4, p99 130.4, max 239.7 px; within 3 px **64.9 %**, 5 px 68.5 %, **10 px 77.8 %** (gate >= 95 %), 20 px 82.5 %.
+  |dx| alone: within 10 px 90.4 %; dy alone: within 10 px 87.6 %. No point of its kind within 20 / 40 / 100 px: 107
+  / 91 / 17; no point of its kind on the map: 0. The nearest point of ANY kind gives the same numbers (no other
+  kind's point is nearer). By kind (within 10 px): Bubbling 395 79.2 %, Horny Mushroom 66 90.9 %, Evil Eye 52
+  78.8 %, Zombie Mushroom 49 85.7 %, **Stirge 28 7.1 %**, Green Mushroom 9 100 %, Slime 8 50 %, Drake 5 100 %.
+- **Points near each other:** 0 pairs of the same kind within 20 px on all 12 maps (so "two points near: the
+  nearer" never comes up).
+- **The 136 births > 10 px, by what the numbers show** (`why`): **53 on the point's level, x off** (|dx| p50 20,
+  p90 73, max 105; 48 of them moving away from the point over their first 0.5 s): walked before the fit saw them;
+  **50 straight above the point** (x within 3 px, 35-50 px up; 47 in `jump_0`): hopped at once; **27 flyers**: 19
+  within 10 px of map.json's **`spriteY`** (a flyer appears at its sprite height, not at `y`, which is the
+  foothold), 8 not near either; 6 off in x and y. Their first sighting is later in the fade: the fit's opacity p50
+  0.27 (p90 0.77) against 0.18 (p90 0.26) for those within 10 px - the fit sees a mob only from ~0.15 opacity on,
+  so a mob that moves at once is first seen past its point. What-ifs, as numbers only: flyers against `spriteY` ->
+  495 = 80.9 %; x within 10 px and the feet 0-60 px above the point -> 517 = 84.5 %; on its level within 40 px or
+  above it within 60 px -> 549 = 89.7 %. None reaches 95 %.
+- **The sheet** (`step3b\sheet_s4b\`: `sheet.png` + a 4-frame strip per case, +0 / 6 / 12 / 20 frames, the point a
+  red cross): 30 random births matched within 10 px - **30 of 30 right by eye**: a mob fading in on the drawn point
+  (case 19 under a megaphone's text, its cap showing over it; case 29, d 9, fades in 9 px left of the point and
+  hops away).
+- **Reported, nothing built from it (the user's ask):** the 476 spawns seen within 10 px are on 204 points (101 with
+  2+): the time between spawns seen on one point p10 / p50 / p90 7.1 / 120.5 / 655 s (min 0.47 s, not looked
+  into). **No 10 s beat** (R at 10.00 s: 0.03-0.71, spread). **The spawns come in rounds every ~7.09
+  s**: per capture the best period in 6.5-7.6 s is 7.08-7.20 s with R 0.99-1.00 on 10 of 12 (the phase off p50
+  0.04-0.10 s), R 0.81 on 1#1 (9 spawns), 0.76 on the 30-minute capture (7.084 s; the phase off p50 0.41 s: a drift
+  or a shift over 30 min, not looked into); the gaps between rounds there fall at 7, 14, 21 s. So Classic World's
+  respawn round is ~7.1 s, not E2's 10 s (`docs/game_rules.md` E2 not changed: the user decides).
+
+**For the user (stopped, stop rule 1):** mobs DO appear exactly on their spawn point (p50 0.0 px; the sheet 30 of 30);
+what misses the 10 px is when the fit first sees them: a mob that walks or hops off at once is first seen 20-50 px
+away, and a flyer at its `spriteY`. Choose: (a) keep the 10 px rule and accept 77.8 % (a spawn the rule misses is
+simply not counted: memory, not prediction); (b) a rule by shape, its share measured above (flyers at `spriteY`;
+on its level within N px or straight above within 60 px), with its own sheet of the newly matched births; (c)
+something else. The 7.1 s round: whether it goes into `docs/game_rules.md` E2 as observed (observed beats the rule).
+
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
 2. The real code cannot reproduce a prototype's number from the same kept replay within tolerance: stop - it is

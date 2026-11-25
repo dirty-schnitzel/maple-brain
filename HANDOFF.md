@@ -5,7 +5,7 @@ what is true NOW and what comes NEXT. The `handoff` skill rewrites it at the end
 appended to. Everything older is in HISTORY.md (grep it; what left this file on 2026-11-21 is its last
 blocks). Rules that stay true: CLAUDE.md and .claude/rules/. Plans and their progress: PLAN-*.md.
 
-## START HERE (2026-11-25): `PLAN-tracker.md` is APPROVED - steps 1, 2, 3, 7 DONE; 4b built and STOPPED (the user decides); 4a running
+## START HERE (2026-11-25): `PLAN-tracker.md` is APPROVED - steps 1, 2, 3, 7 DONE; 4b and 3b STOPPED (the user decides); 4a running
 
 **The user's goal (2026-11-19):** "have a great perception / tracking / data model in order to feed that into an
 ai to see how many hours of farming on a specific map with a specific class and style are needed to teach it to
@@ -20,7 +20,7 @@ that led to it: HISTORY.md, the block of 2026-11-24).
 | # | Session | Run as | Status | Prompt |
 |---|---|---|---|---|
 | **P0.1-5** | **The plan's steps 1-5, one executor session each:** 1 the pictures right (the forest maps sound), 2-3 moving backs drawn and followed (40 maps hunt), 4-5 Perion's clouds followed and undone (42 maps hunt). Steps 4-5 need the user's Perion recording | Opus (high) | **steps 1-5 DONE 2026-11-23**, the numbers each missed gate fell short on ACCEPTED by the user (PLAN-moving-scenery.md's status); merged into `dev` 2026-11-23 (9085f5b). Steps 6-7 wait for footage | `PLAN-moving-scenery.md`, "Session prompts" |
-| 4 | **PLAN-tracker.md's steps, one executor session each** (branch `tracker-build` off `dev`, after `tracker-plan` is merged into `dev`): 1 label sets by eye, 2 the graph and placement, 3 mobs in shadow, 4a drops, 4b other players and us, 5 events, 6 the facts registry + profile + Skill.img, 7 the hotkey reader, 8 the stored tables, 9 the switch (the brain reads the new state, `world.py` goes). Steps 1, 2 and 7 could run beside each other, 4a beside 4b, 5 / 6 / 8 in pairs (the plan's table) - the user decides. Beside it, at any time: the viewer (PLAN-livemap.md Session 1: use `dev`). No engine session | Opus (effort per step: 1 medium, 2 high, 3 xhigh, 4a / 4b high, 5 xhigh, 6-8 medium, 9 high) | **Steps 1, 2, 3 (+ the slope fix: L1 98.98 %, accepted) and 7 DONE** (their plan sections; 2 is in `dev`). **Step 4b built and STOPPED 2026-11-25** (afcf13d, the plan's "Step 4b, 2026-11-25"): `track/players.py` (the tag list sorted, players followed by the tag's width, two tags side by side split, pets sorted out), `track/us.py` (our feet and place + every SelfState stuck case as a test), the mob tracker's covers from the sorted tags; the port exact (1,095 of 1,095 tracks). Met: the 2 s cover (29), the stuck cases, L2 on the 16 (93.8 %: step 3's carry-over 2). Missed: L5, L1 us, SelfState, our feet known, the ms - **the user decides** (Waiting on the user). **Step 4a runs beside it** (worktree `.claude/worktrees/drops`, branch `tracker-build-drops`, its own session); 5 / 6 / 8 follow the plan's table once 4b is settled | `PLAN-tracker.md`, "Session prompts" |
+| 4 | **PLAN-tracker.md's steps, one executor session each** (branch `tracker-build` off `dev`, after `tracker-plan` is merged into `dev`): 1 label sets by eye, 2 the graph and placement, 3 mobs in shadow, 4a drops, 4b other players and us, 5 events, 6 the facts registry + profile + Skill.img, 7 the hotkey reader, 8 the stored tables, 9 the switch (the brain reads the new state, `world.py` goes). Steps 1, 2 and 7 could run beside each other, 4a beside 4b, 5 / 6 / 8 in pairs (the plan's table) - the user decides. Beside it, at any time: the viewer (PLAN-livemap.md Session 1: use `dev`). No engine session | Opus (effort per step: 1 medium, 2 high, 3 xhigh, 4a / 4b high, 5 xhigh, 6-8 medium, 9 high) | **Steps 1, 2, 3 (+ the slope fix: L1 98.98 %, accepted) and 7 DONE** (their plan sections; 2 is in `dev`). **Step 4b built and STOPPED 2026-11-25** (afcf13d, the plan's "Step 4b, 2026-11-25"): `track/players.py` (the tag list sorted, players followed by the tag's width, two tags side by side split, pets sorted out), `track/us.py` (our feet and place + every SelfState stuck case as a test), the mob tracker's covers from the sorted tags; the port exact (1,095 of 1,095 tracks). Met: the 2 s cover (29), the stuck cases, L2 on the 16 (93.8 %: step 3's carry-over 2). Missed: L5, L1 us, SelfState, our feet known, the ms - **the user decides** (Waiting on the user). **Step 3b (spawn points) measured and STOPPED 2026-11-25** (the plan's "Step 3b, 2026-11-25"; nothing built): mobs appear ON their point (p50 0.0 px, sheet 30 of 30) but only 77.8 % of faded-in births are first seen within 10 px (gate 95 %): walked / hopped off before the fit sees them, flyers at `spriteY`; spawns come in rounds every ~7.1 s, not 10 s - **the user decides**. **Step 4a runs beside it** (worktree `.claude/worktrees/drops`, branch `tracker-build-drops`, its own session); 5 / 6 / 8 follow the plan's table once 4b is settled | `PLAN-tracker.md`, "Session prompts" |
 | 4b | Wide maps: plan, then execute, the scrolling minimap placed by several agreeing patches (Open items, "Ideas from another bot") | Fable, max -> Opus | after the tracker (the user, 2026-11-22) | - |
 | 5 | FSM or clone, decided on what both score in live runs, counted by the tracker's events | - | open | - |
 
@@ -126,13 +126,14 @@ that led to it: HISTORY.md, the block of 2026-11-24).
   64f9713, in another session's scratchpad - leave it to that session.
 - `moving-scenery` and `tracker-plan`: merged into `dev` (2026-11-23 / 11-24), nothing missing; can be deleted.
 - **`tracker-build`** (2026-11-24, off `dev` at 8f00b8e): PLAN-tracker's steps; **the main folder is on it** (at
-  afcf13d, step 4b, pushed). `dev` is merged into it (steps 2 and 7 are in); a step that runs beside another
+  188db3f + step 3b's measurement, pushed). `dev` is merged into it (steps 2 and 7 are in); a step that runs beside another
   works in its own worktree on `tracker-build-<step>` and is merged back. Registered: `.claude/worktrees/drops` on
-  `tracker-build-drops` (step 4a, off ff01379 - it has neither the slope fix nor 4b yet). `.claude/worktrees/slots` is an
-  empty folder left over (not a worktree) and can be deleted.
+  `tracker-build-drops` (step 4a, off ff01379: no slope fix, no 4b). `.claude/worktrees/slots`: an empty leftover, deletable.
 - `main` has not moved since 2026-11-09 (02a639a) and has no CLAUDE.md. Parked: `vnc-keys` (the VM attempt).
 
 ## Waiting on the user
+- **Step 3b** (PLAN-tracker.md "Step 3b, 2026-11-25", "For the user"): (a) keep 10 px and accept 77.8 %, (b) a rule by
+  shape (flyers at `spriteY`; on the level / straight above: up to 89.7 %) with its own sheet, (c) else; the ~7.1 s round into game_rules E2?
 - **Step 4b's five questions** (PLAN-tracker.md "Step 4b", "For the user"): L5 (the prototype's own rules: 85.1 % found,
   node 89.3 %) - accept or change rules; L1 us 83.5 % - relabel ~20 jump cases on strips + a motion test in the rope
   rule; SelfState 95.81 %, our feet known 97.04 %, the live 0.7 ms - accept or what.
