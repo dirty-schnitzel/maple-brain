@@ -20,6 +20,10 @@ delays frame work by up to ~20-30 ms while it runs): **the user, 2026-11-24: "ke
 L2 13 of 16, L3 19 of 22 and the tracker's ms p50 1.04 accepted as they are. Three carry-overs (under "Step 3, try
 2", "The user's decision"): the step rule on steep slopes -> step 4b; L2 re-graded once tags are sorted -> step 4b;
 the whole frame's +0.3 ms -> step 9. Fitter.look: no gain, goes in step 9.
+**Step 4a (2026-11-25, branch `tracker-build-drops`): built, the gate MISSED on 2 rows, stopped** - 35 pickup hops
+without our key down (the pet "Snail" on the 2026-11-18 captures, by eye) and 1 "gone then seen again" (a passing
+flight read as a pickup hop; the prototype had it too); every other row met (746 drops, L6 97.4 %, exactly one death
+88.5 %, ms p50 0.197). Numbers under the steps ("Step 4a, 2026-11-25"); the user decides.
 The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
 in this session on the kept replay (no GPU); the tools are in `tools/perc/track/` (branch `tracker-plan`).
 
@@ -950,6 +954,85 @@ this gate.
 fit's), or (2) a rule for 155 / 184 (e.g. the step per frame when the track was last seen frames ago, or a pose
 that does not move the feet), which is a new rule, not this fix - or (3) look at 155 / 184 frame by frame first.
 **The user's decision (2026-11-25): (1) accepted** ("1. accepted") - L1 stands at 98.98 %; the slope fix is DONE.
+
+### Step 4a, 2026-11-25: the drop tracker built; the gate MISSED on 2 rows (stopped)
+Branch `tracker-build-drops` (worktree `.claude\worktrees\drops`, off 7ef68e3). **Built:** `track/drops.py` (proto_drops
+ported: its docstring holds the rules; the constants in `config.Track`, the `drop_` / `bob_` / `hop_` / `look_` /
+`reach_` / `from_` fields), the drop record `state.Drop` (+ `DROP_COVERS`), `tools/perc/track/replay_drops.py` (`run`,
+`numbers` = proto_drops' own `numbers()` on the real tracker + the gate's rows, `port`, `l6`, `sheets pairs|hops`),
+`tests/test_track_drops.py` (14 tests). Outputs: `F:\dev\maple-corpus\work\track-plan\step4a\`. perception/drops.py,
+the Perceiver and FrameFacts are not changed; nothing calls the drop tracker live yet (the step does not ask it, and
+the live frame has no key events: step 4b / 9). Its look asks `track/evidence.py`'s one interface (one call a frame
+for every drop looked at), so the GPU source answers it as it answers the mob tracker.
+- **"We took it" reads the pickup key's STATE** (the user): the key down at some moment from 0.75 s before the drop's
+  last resting frame to 0.02 s after it - pressed in that window or held through it - with our feet in reach then.
+  `test_the_key_held_through_the_window_is_we_took_it` fails with the press rule (checked).
+- **from_mob reads the real mob tracker** (track/mobs.py's records: a track's first die pose = a death; taken back by
+  a live pose = forgotten), not the truth's chains the prototype read.
+- **The port (stop rule 2), `port --sound` on a `run --truth` (the truth's deaths, as the prototype):** the 13
+  captures give the prototype's 746 lives one for one - item, x, birth frame, end frame, how, from_mob, landed, twin,
+  covers equal on 746 of 746, except 1 "how": `232410_1#1` an Orange Potion is "we took it" (the key went down 0.778 s
+  before its last resting frame, still down 0.737 s before: in the window by its state, outside it by the press).
+
+| Gate (from the kept replay, 13 sound captures; the real mob tracker's deaths, keys.jsonl) | track/drops.py | the prototype | |
+|---|---:|---:|---|
+| drops (746, a count within 1 %) | **746** | 746 | met |
+| lives with two items; over 131 s (0) | 0; 0 | 0; 0 | met |
+| "gone" then seen again (0) | **1** (`232410_1#9`, below) | 0 as counted (1 by the same look: below) | **MISSED** |
+| pairs of one item within 3 px, not both sighted on a frame (<= 9, each looked at) | 9, all looked at: 8 two real drops, 1 one drop under two lives | 9 | met |
+| exactly one death (>= 84.4 % of those that landed in view) | **88.5 %** (630 of 712; none 6.5 %, several 5.1 %) | 84.7 % (the truth's deaths) | met |
+| "we took it" with the key down: no hop without it on any of the 13 | **35 hops without our key down**, on 8 captures of 2026-11-18 (`#1` 9, `#2` 7, `#4` 5, `#5` 4, `#7` 4, `#9` 4, `#3` 1, `#12` 1); 0 on the 30-minute and the 4-minute capture | 36 | **MISSED** |
+| L6 (>= 90 %; the 38 answered, 12 "?" left out) | **37 of 38 = 97.4 %** (the truth's deaths: 38 of 38) | - | met |
+| PLAN-loot's gates still met | the finder, the Perceiver, FrameFacts unchanged (`git diff`: config.py, track/state.py, proto_drops.py's report only) | - | met |
+| ms a frame p50 (<= 0.2; Python, its looks included, the bitmaps' decode apart) | **0.197** (p90 0.505, p99 0.925; the 30-minute capture alone 0.254) | 0.136 (0.192) | met (by 0.003) |
+
+Measurement 5's other rows, the real tracker: ended - we took it 236, 130 s old 180, capture ended 155, gone in view
+122, found gone 53 (the prototype 235 / 180 / 155 / 123 / 53: the Orange Potion above); alive at once p50 20, max 43;
+of a drop's frames on screen sighted 91.3 %, covered 3.0 %, at the edge 2.1 %, under the UI 3.3 %; "gone" noticed 0.163
+s (p50) after its place first shows empty, 0.05 s after the hop's last frame; deaths 981 (the truth: 964), 14 taken
+back. The L6 miss (case 24, `232410_1#5` n 25642): two Horny Mushrooms overlapping swap poses; the tracker took track
+8's first die pose (426.112 s, the label's death) back for 0.08 s and it died again 0.17 s later at the same place -
+from_mob names track 8, the labelled mob, but by a death 0.17 s after the label's (the grade asks 0.1 s).
+
+**The two misses, looked at:**
+1. **The 35 hops are the pet's pickups, not a key held.** Measurement 5 read the 36 hops of the older captures as "the
+   key was held"; the key log says otherwise: on all 35 the pickup key was UP - released 1-20 s before, or never
+   pressed in the stay before it (`#2`, `#4`, `#5`, `#9`, `#12`; `#9` has no pickup press at all). 28 of the 35 drops
+   were under 5 s old; our feet were over 32 px away on 29. By eye (`sheets hops`, 5 of the 16 sheets, 15 cases): a
+   pet named **"Snail"** (its own name tag) stands at or beside the drop on 13 and the item hops toward it; on 2 the
+   item leaves the tile away from us. The 2026-11-18 captures were played with that pet out; the 30-minute capture has
+   none and 0 such hops. The 3 on `#7` are a pile of 6+ drops where three presses came with our feet 64-113 px away
+   (reach 32) and the pet beside it. The 36th is the Orange Potion above (the key's state). So the rule answers right
+   (a pet's pickup is "gone in view", not "we took it"); the row assumed footage without a pet.
+2. **The one "gone then seen again" is real: a flight read as a pickup hop.** `232410_1#9`, an Evil Eye Tail at x 189:
+   life 45 was declared gone at 811.16 s because a second Evil Eye Tail (from another Evil Eye's death 50 px away) flew
+   past 20 px above it - rule (a) takes ONE hop sighting 12+ px up as "it left". The tail stayed (under another player
+   and effects, its sightings broken for 1.1 s): its heights go on with the old bob (top ~1880 at 810.9 s, bottom
+   ~1885 at 811.9 s; a drop that has just landed starts at its bob's bottom - HeavenClient Drop.cpp: `moved` = 0
+   when it lands), and the old bob fits life 55's first 65 sightings to 0.25 px. The prototype has the same two lives
+   (the port is exact); its count left this one out because its flight-following (a measurement aid, not ported) took
+   the passing tail for life 55's own flight - so its 0 was 1. A fix is a rule change (e.g. "gone by the hop" only
+   from 2 hop sightings on - the prototype's own "the hop seen" in its report - or the hop's sightings must start at
+   the drop's own height): not made (stop rule 1).
+**The 9 pairs:** P01-P03, P05, P09 the second item seen flying in and landing on the first (the sheets); P06-P08 the
+older life's bob is 3.3-3.6 px off the newer one's heights (one drop would fit to ~0.3 px): two drops 1-2 px apart;
+**P04** (`232410_1#1`, a Horny Mushroom Cap at x 1254, lives 9 and 45) is ONE drop: its place was out of view for 80
+s, and when it came back the cap's bob no longer fitted (the client restarted it although we were under 1,700 px
+away), so it was born again while life 9 was kept beside it - both ended together when the pet took it.
+**The ms:** measured alone on an idle machine, pinned to the performance cores, the 13 one after another in one
+process with the mob tracker beside it as live (`run --sound --pin --tag solo`: the same 746 lives). The first
+numbers (4 captures at once, each with its mob tracker) were p50 0.205; with the truth's deaths (no mob tracker) 0.150.
+Slower than the prototype: a look costs 0.11 ms against its 0.036 - the evidence interface counts every picture x
+height of a drop in one gather (`Bitmaps.count`'s indexing) where the prototype counted crops and stopped at the first
+fit; on a frame without looks the bob's 3 x 3 solve per sighted drop (`np.linalg.solve`, as the prototype: ~24 drops
+on screen on the 30-minute capture) is the largest part, the records ~0.03 ms. Not tuned (the row is met).
+**pytest:** the whole suite green (config.py changed); the bot speed line 15.0 ms a tick (p90 17.5) - unchanged (step
+3: 14.0-15.4; the drop tracker is not in the live frame).
+
+**For the user:** (1) the hop row on pet footage - accept 35 as the pet's (the rule is right, the row assumed no pet),
+or ask a pet-off re-check / a "taken by another" how; (2) the false "gone" by a passing flight (1 of 746) - a try 2
+with the hop rule (2 hop sightings, or starting at its own height), or accept; (3) the ms meets 0.2 by 0.003 (the
+30-minute capture alone 0.254) - as it is, or a cheaper look before step 9.
 
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.

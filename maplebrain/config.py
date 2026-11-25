@@ -211,6 +211,50 @@ class Track:
     cover_share: float = 0.3        # what is over the nearest place: the box over more than this share of its core
     us_box: tuple = (-34, -80, 34, 12)  # our body around our tag (centre x, top y), for `cover`
     player_box: tuple = (-24, -70, 24, 0)   # a player's body around its tag (centre x, top y)
+    # ---- drops (track/drops.py; PLAN-tracker design 5 = the prototype tools/perc/track/proto_drops.py, measurement
+    # 5: the 30-minute capture unless said; each constant's measurement is in the prototype's header)
+    drop_band: tuple = (-5, 6)      # a resting drop's feet y - its foothold's y (measured -4 .. +5, 1 px of slack)
+    drop_new_lo: int = -4           # a REST sighting above this is no birth (a pickup hop's first frame reads -7 / -6)
+    drop_y_step: float = 2.0        # no bob fit yet: |y - last y| <= this + drop_y_rate x the seconds since
+    drop_y_rate: float = 8.0
+    bob_t: float = 2.0              # s: the bob's period (147 drops fitted: a cosine of 5 px, rounding noise 0.29 px)
+    bob_tau: float = 8.0            # s: the bob's fit forgets with this time constant
+    bob_min_n: int = 40             # sightings ...
+    bob_min_s: float = 1.5          # ... and seconds before the fit is trusted (3/4 of a period)
+    bob_amp: tuple = (1.2, 4.5)     # px: a fit whose amplitude is outside this is not a bob (yet)
+    bob_tol: float = 1.25           # px a sighting may be off the fitted bob (830,167 sightings: p99.99 1.0)
+    bob_far: float = 1700.0         # px: unsighted with us farther than this, its bob may have begun anew (the client
+                                    # drops far things): any height of its band, the fit learnt again
+    drop_confirm_s: float = 0.25    # s of sightings before a tentative drop is a drop (drop_new)
+    drop_tentative_s: float = 0.10  # a tentative drop unsighted this long is forgotten (no event)
+    hop_gap: float = 0.07           # s between a pickup hop's sightings (a game frame is ~33 ms)
+    hop_dx: int = 8                 # px a hop sighting may be from the last one sideways ...
+    hop_up: int = 24                # ... and up
+    hop_gone: int = 12              # px risen: it left (the hop is seen)
+    look_abs: float = 0.50          # its place shows the scenery on more than this share of the WHOLE picture, at
+                                    # every resting height and frame: not there (calib: a drop there <= 43.1 %)
+    look_dy: int = 7                # px around the heights it was sighted at that the look tries
+    look_edge: float = 0.7          # the look: under this share of the picture on screen = "edge"
+    look_ui: float = 0.3            # ... this share not world (the UI, animated scenery) = "ui"
+    look_front: float = 0.3         # ... this share under front scenery of its layer = "scenery"
+    look_out: tuple = (20, 8, 40)   # px: the feet this far past the sides / over the top / under the bottom = "out"
+    absent_s: float = 0.15          # s the look must say "not there" without a break (a meso's edge-on frame ~0.08 s)
+    drop_life_s: float = 130.0      # s: gone this old (the user, 2026-11-21: 2 min + the server's 10 s rounds)
+    in_view_s: float = 1.5          # gone this soon after its last sighting = in view (else "found gone")
+    pick_s: float = 0.75            # "we took it": our pickup key DOWN at some moment from this long before its last
+                                    # resting frame (185 pickups whose hop was seen: p99 0.54 s, max 0.62) ...
+    pick_after_s: float = 0.02      # ... to this long after it ...
+    reach_x: float = 32.0           # ... with our feet within this sideways of it then (p99 21, max 25) ...
+    reach_up: float = 12.0          # ... and from this above its foothold ...
+    reach_down: float = 36.0        # ... to this below it (181 of 185 within -1 .. +2)
+    me_hold_s: float = 2.0          # our tag missed: where we were this recently stands for our feet
+    from_s: tuple = (0.6, 1.8)      # s: from_mob = a death (its first die pose) this long before the first resting
+    from_mid_s: float = 1.39        # sighting (p5 1.09, p50 1.39, p95 1.54); several: the one nearest the usual delay
+    from_dx: float = 110.0          # px: ... within this sideways of the drop (|landing - death| max 107) ...
+    from_up: float = 100.0          # ... from this above its foothold (a mob killed in the air) ...
+    from_down: float = 88.0         # ... to this below it (it lands on the foothold under 85 px above the mob)
+    landed_s: tuple = ((0.1, 0.25), (0.4, 0.6))     # "landed in view": its place was on screen in both windows
+    landed_px: tuple = (30, 60, 10)                 # ... this far inside the sides / under the top / over the bottom
 
 
 @dataclass

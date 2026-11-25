@@ -1,5 +1,6 @@
 """The state's records (docs/state_model.md section 2). Built so far: the MOB record (PLAN-tracker step 3), one per
-mob the tracker holds, filled by track/mobs.py every frame. Step 8 adds the stored tables (writer and reader) here.
+mob the tracker holds, filled by track/mobs.py every frame; the DROP record (step 4a), filled by track/drops.py. Step 8
+adds the stored tables (writer and reader) here.
 
 A mob is in the state once CONFIRMED (seen clearly once, or sighted for 0.5 s: PLAN-tracker design 4); a tentative
 track is kept beside it (`confirmed` False) and is not yet a mob - a reader leaves it out. Two places, on purpose:
@@ -56,6 +57,38 @@ class Mob:
     last_hit_t: float | None = None
     last_hit_by: str | None = None
     seen_share: float = 1.0             # the share of its frames since birth it was seen on
+
+    def as_dict(self) -> dict:
+        return asdict(self)
+
+
+# a drop's cover (track/drops.py): sighted - "none" (fully seen), "partly" (a weak sighting or part of it unseen),
+# "drop" (partly under another drop), "scenery" (part of it under front scenery); not sighted - what the look at its
+# place said: "out of view", "edge" (too little of it on screen), "ui" (under the UI / unknown scenery), "scenery"
+# (behind front scenery of its layer), "covered" (something is drawn over its place), "empty" (its place shows the
+# scenery: gone after 0.15 s of it); "blind" = no camera this frame.
+DROP_COVERS = ("none", "partly", "drop", "scenery", "out of view", "edge", "ui", "covered", "empty", "blind")
+
+
+@dataclass
+class Drop:
+    """One drop the drop tracker holds (docs/state_model.md section 2, "Every drop"). In the state once CONFIRMED
+    (sighted at rest over 0.25 s: PLAN-tracker design 5); a tentative one is kept beside it (`confirmed` False)."""
+    id: int                             # never reused in a stay
+    item: int                           # the picture class's item id (items.json); mesos 9000000-9000003
+    cls: str                            # meso bronze / gold / bundle / sack, equip, use, etc, setup
+    confirmed: bool
+    x: int                              # map px, exact: the picture's bottom-centre
+    y: int                              # its foothold's surface y under it (the bob is 0..5 px around it)
+    fh: int | None                      # that foothold's id, its layer
+    layer: int | None
+    node: int                           # the graph's node it lies on (graph.NONE: no graph / not found)
+    born_t: float                       # its first resting sighting
+    landed: bool                        # its place was on screen before it lay there (else it came into view lying)
+    from_mob: int | None                # the mob track whose death fits it (time and place); None: none fits
+    seen: bool                          # sighted on this frame
+    cover: str                          # DROP_COVERS
+    unseen_s: float                     # seconds since it was last sighted
 
     def as_dict(self) -> dict:
         return asdict(self)

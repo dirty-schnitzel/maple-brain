@@ -740,7 +740,7 @@ def numbers(results, title):
         return min(c, key=lambda z: (abs(z[2]) > 30, abs(z[1]))) if c else None
     if took:
         lag = [zlag(l) for l in took]
-        pr = [press(l) for l in took]
+        pr = [p for p in (press(l) for l in took) if p]      # (track/drops.py: the key held through it has none)
         print(f"   'we took it': the LAST key down before it -> the first frame without the drop: p50 / p90 / max "
               f"{pct(lag, (50, 90, 100))} s; at the fitting press our feet to the drop |dx| p50 / p90 / p99 / max "
               f"{pct([abs(p[1]) for p in pr])} px, dy (our feet - its foothold) min / p5 / p50 / p95 / max "
