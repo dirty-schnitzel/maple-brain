@@ -1,9 +1,15 @@
-# Game rules, as v83 code has them
+# Game rules: our footage, then meowdb, then v83 code
 
-Written 2026-11-21 (branch `rules`). The rulebook for the tracker redesign (how a mob can move, be thrown, die and
-respawn between two frames) and for the simulator's engine (how the world advances from our input). Every rule is
-taken from a source below; where no source has a rule it says **NOT FOUND** and the question is in table 3. Nothing
-here was measured or guessed. No code was changed for it, except one line of `tools/cwdata/export.ps1` (below).
+Written 2026-11-21 (branch `rules`) from v83 code; meowdb's Classic World guides put over it 2026-11-25. The
+rulebook for the tracker redesign (how a mob can move, be thrown, die and respawn between two frames) and for the
+simulator's engine (how the world advances from our input). Every rule is taken from a source below; where no
+source has a rule it says **NOT FOUND** and the question is in table 3. Nothing is guessed. No code was changed for
+it, except one line of `tools/cwdata/export.ps1` (below).
+
+**Which source wins (the user, 2026-11-24 and 2026-11-25):** (1) **what we measured on our own footage**, then (2)
+**MW**, meowdb's guides to Classic World itself, then (3) v83 code: RU over HC for our character, CO for the server.
+Where a higher one replaces a lower one, the lower one's rule stays written below it, marked "(v83, replaced)", as
+its source.
 
 ## Sources
 
@@ -13,6 +19,7 @@ here was measured or guessed. No code was changed for it, except one line of `to
 | **CO** | Cosmic, a GMS v83 server emulator (Java). Respawn, controller and aggro, damage checks, EXP, drops, potions | `C:\Users\Yoav\dev\v83-ref\Cosmic` (github.com/P0nk/Cosmic), paths below are under `src/main/java/` | `fec53bc7714dc0f1ae3f50b2986cdf2727e0912a` |
 | **RU** | github.com/neeerp/RustMS/issues/295: v83 player physics read out of the original client's movement code (`CVecCtrl`, a MapleLegends client). Read through a fetch that returned a structured account, not the verbatim text | the issue page | - |
 | **CW** | Our Classic World client files: `C:\Users\Yoav\dev\cw-data\export\` (XML) and `assets/mcw/` | - | export re-run 2026-11-21 |
+| **MW** | meowdb.com's MapleStory Classic guides (one author, a fan database; the user: "a very reputable source"). What each page says, its method and date, and each claim against our measurements: **`docs/meowdb.md`** | https://meowdb.com/msclassic/guides | read 2026-11-25 |
 
 Both clones are reading material (AGPL-3.0): nothing was built or run from them. Rules are in my own words.
 
@@ -21,7 +28,9 @@ wins over HC. HC is a re-implementation: its structure is right, several of its 
 approximations (it says so itself in places, e.g. `CharStats.cpp:215` "need to find the actual formula"). CO is a
 server emulator descended from HeavenMS: packet handling is v83, but some policies are its authors' own design
 (the respawn rate by player count, the aggro bookkeeping) and its timers are config values. Each such place is
-marked **(source's own design)** and listed in table 3.
+marked **(source's own design)** and listed in table 3. **MW** is about Classic World itself, which v83 code is
+not; where it can be checked it matches the client files to the pixel (the spear's reach, F3) and our measured
+swing (F1). Its spawn page names no source, and its respawn round is off our footage (E2). It is one author's.
 
 **The export was extended (a small job):** `tools/cwdata/export.ps1` now also writes `Skill\130.img.xml` (Spearman)
 and `String\Skill.img.xml` (skill names). Re-run clean ("failed: 0", 57 s). `assets build` was not re-run.
@@ -36,6 +45,10 @@ and `String\Skill.img.xml` (skill names). Re-run clean ("failed: 0", 57 s). `ass
   tracker once it exists.
 - **Server data is parked:** nothing further on Cosmic's side (respawn numbers, aggro, drop lifetime, EXP
   tables: sections D2, E, G, H and their questions) until a job needs it. The questions stay listed, unanswered.
+- **2026-11-25: meowdb over v83 code where it has a rule; what we measured still over both.** Put in: A1 (walking
+  150 px/s), A3, A7, B1, E1-E2 (the spawn cooldown, capacity, `mobRate`; the round stays our measured ~7.1 s), F1
+  (the swing length = ours; the 60 / 40 split), F3, F4 (the damage formula), F6 (Rush), G (Classic World's EXP
+  table), K and the tables.
 
 ## Units and conversions
 
@@ -58,7 +71,11 @@ and `String\Skill.img.xml` (skill names). Re-run clean ("failed: 0", 57 s). `ass
 ## A. Our character's movement
 
 ### A1. Walking: force, drag, top speed, the speed stat
-- **RU (original client):** holding left or right pushes with `walkForce` 1400 px/s^2 until the top speed
+- **The rule (MW, Classic World; measured by its author frame by frame on video):** top speed = 125 x (Speed +
+  20) / 100 px/s - Classic World adds 20 to the Speed stat inside - so **150 px/s at Speed 100**, 1.25 px/s a
+  point, **200 px/s at the cap 140**. Speed 100 here walks like v83's 120. RU's force and drag below keep their
+  shape; only the top speed moves. Agrees with our fitted jump (A3).
+- **RU (original client) (v83, replaced for the top speed):** holding left or right pushes with `walkForce` 1400 px/s^2 until the top speed
   `walkSpeed` 125 px/s x the speed stat; with no key held the character slows by `walkDrag` 800 px/s^2. The speed
   stat is clamped to 80-140 % (so top speed 100-175 px/s). Reaching 125 px/s takes 0.089 s; stopping from it takes
   0.156 s and 9.8 px. The position advances by the average of the old and new speed in a step.
@@ -73,7 +90,8 @@ and `String\Skill.img.xml` (skill names). Re-run clean ("failed: 0", 57 s). `ass
 - The two disagree (125 vs 100 px/s, constant drag vs proportional friction). RU is the original client and its
   constants are exactly our Physics.img's, so RU is the rule.
 - Ours: `nav/sim.py:12` (1400 / 125 / 800), `brain/moves.py:14-15` (WALK 125, DRAG 800), `config.py:102`
-  `Nav.walk_speed 125` - **same** as RU. The speed stat is **missing** (top speed is fixed at 125).
+  `Nav.walk_speed 125` - same as RU, **differs** from MW's 150 (125 is Physics.img's, not a measurement of ours;
+  our own walk speed from the bank's feet tracks would settle it). The speed stat is **missing**.
 
 ### A2. Slopes
 - **RU:** walking works on the speed along the foothold; the push is scaled by 1 +/- slant^2 (more downhill, less
@@ -86,6 +104,10 @@ and `String\Skill.img.xml` (skill names). Re-run clean ("failed: 0", 57 s). `ass
 - Ours: `nav/sim.py:79-80` same force and cap on any slope - **differs** (no slope term).
 
 ### A3. The jump: force, the jump stat
+- **MW (Classic World):** jumping "works the old way": take-off 555 px/s at Jump 100, 77 px high, 0.555 s in the
+  air; +5.55 px/s a Jump point; **the cap is 120** (RU's 123): 666 px/s, 110.9 px, 0.666 s. So RU below stands,
+  with the cap 120 and MW's walking speed: RU's sideways cap (the walking speed) is then **150 px/s** - our fitted
+  `Nav.jump_vx` 155 (question 1) is what MW's walking gives, not a quirk.
 - **RU:** take-off speed = `jumpSpeed` 555 px/s x the jump stat, clamped to 80-123 %. At 100 %: peak 77 px after
   0.2775 s, back at the take-off height after 0.555 s. **Holding a direction when jumping adds 80 % of the top
   walking speed to the horizontal speed, capped at the top walking speed** (so a jump is never faster sideways
@@ -137,8 +159,10 @@ and `String\Skill.img.xml` (skill names). Re-run clean ("failed: 0", 57 s). `ass
   rope's x and both speeds become 0. Source: `Gameplay/Stage.cpp:159-168, 235-242`,
   `Gameplay/MapleMap/MapInfo.cpp:126-136`, `Player.cpp:439-463`. Field: map.json `ladderRopes` (x, y1, y2,
   isLadder = the client's `l`).
-- **Climbing speed (HC):** speed stat / 100 px/tick = **125 px/s at 100 %**, 0 with no key or both keys
-  (`Player.cpp:475-478`, `PlayerStates.cpp:381-394`). RU does not give it.
+- **Climbing speed:** **measured: 128 px/s** (one rope, 1808: 160 px in 1.25 s; `Nav.climb_speed` 125) - the
+  rule while it is our only measurement. MW (Classic World): Speed + 20 px/s = 120 at Speed 100, 160 at the cap,
+  ladders the same, Haste counts. HC (v83, replaced): speed stat / 100 px/tick = 125 px/s at 100 %, 0 with no key
+  or both keys (`Player.cpp:475-478`, `PlayerStates.cpp:381-394`). RU does not give it.
 - **Off the ends (HC):** climbing ends (a fall starts) when our y + 5 is above the rope's top, or, going down, our
   y + 5 is below its bottom (`MapInfo.cpp:138-143`, `PlayerStates.cpp:411-419`).
 - **Jumping off:** needs jump + left or right.
@@ -176,11 +200,20 @@ and `String\Skill.img.xml` (skill names). Re-run clean ("failed: 0", 57 s). `ass
   our feet. The mob's attack value = a random whole number in [0.8 x `PADamage`, `PADamage`].
   Source: `Stage.cpp:180-190`, `MapMobs.cpp:126-160`, `Mob.cpp:572-582, 596-605`.
   Fields: mob.json info `bodyAttack`, `PADamage`; frames `lt`, `rb`.
-- **Damage against our defence: NOT FOUND.** HC's formula (`attack/2 + attack/defence`) is marked by its author
-  as a placeholder (`CharStats.cpp:213-224`); CO does not compute it - it takes the damage number our client
-  sends (`net/server/channel/handlers/TakeDamageHandler.java:73`).
-- **The miss chance (our avoidability): NOT FOUND.** HC calls damage <= 0 a miss and has no avoid roll; CO reads
-  damage -1 from the client as a miss (`TakeDamageHandler.java:191`).
+- **Damage against our defence (MW, Classic World):** raw = the mob's attack x (1.2 + 0.2 x uniform(0, 1));
+  taken = raw x (1 - DEF / (DEF + 300 + 2 x raw)) - (DEF / 25 + our level / 10), whole, at least 1. Our WDEF from
+  STR = floor(STR / 4). A shield's guard: max(0.05, shield WDEF / (shield WDEF + 500)).
+  (v83, replaced: HC's formula `attack/2 + attack/defence` is marked by its author as a placeholder,
+  `CharStats.cpp:213-224`; CO takes the number our client sends, `TakeDamageHandler.java:73`.)
+- **Whether it hits us (MW):** G = max(0, our level - the mob's); a = the mob's ACC x 100 / (5 x (G + 51)); e =
+  our EVA / (1 + EVA / 80) / (1 + G / 40); f = 0.15 + 0.20 / (1 + exp((a - e) / 12)); it hits when a x uniform(1 -
+  f, 1 + f) >= e; when e > a x (1 + f) still exp((a - e) / 18) x 0.03 held to 2-3 %; then the chance + (1 - it) x
+  0.08. Our EVA = floor(LUK / 3) + floor(DEX / 6) + 5 + gear. (v83, replaced: HC has no avoid roll; CO reads -1
+  from the client as a miss, `TakeDamageHandler.java:191`.) Whether touch damage uses this check or only attacks
+  do: MW does not say.
+- MW also lists each pose's body box per mob (a knocked-back or attacking mob's box is often far taller / wider than
+  standing), one box per frame - the same thing as the client's frame `lt` / `rb` above, which we have (not
+  compared box by box; `docs/meowdb.md` section 6).
 - Ours: nothing computes it; we read our HP from the HUD - **missing** (needed by the engine only).
 
 ### B2. The knockback
@@ -352,35 +385,51 @@ All of it is HC `Gameplay/MapleMap/Mob.cpp` + `Gameplay/Physics/Physics.cpp`. On
 
 ## E. Spawning
 
-All CO. The periods are config values of the emulator (`config.yaml`), so they describe v83 servers of this
-family, not necessarily Classic World's (table 3).
+Our footage first (PLAN-tracker.md "Step 3b, 2026-11-25"), then MW's spawn page (`docs/meowdb.md` section 2; it
+names no source), then CO. CO's periods are config values of the emulator (`config.yaml`), so they describe v83
+servers of its family, not Classic World's.
 
 ### E1. Spawn points and `mobTime`
 - Every mob entry of a map (`life`, type m) is a spawn point: mob id, x, y (moved down to the foothold under it,
-  -1 px), foothold, facing `f`, `hide`, `mobTime` (`server/maps/MapFactory.java:59-83, 116-129`,
-  `MapleMap.java:3013-3021`).
-- A spawn point holds **at most one living mob**. It may spawn again when it has none and its time has come
-  (`server/life/SpawnPoint.java:69-74`):
-  - `mobTime` = 0 (8,268 of our 8,623 spawns): the time is the death + the mob's `die1` length (`SpawnPoint.java:
-    89-96`) - i.e. as soon as the body is gone, at the next round (E2).
-  - `mobTime` > 0: death + `mobTime` **seconds**.
-  - `mobTime` < 0: spawned once when the map loads, never again.
-- Fields: map.json mobs `mobTime`, `footholdId`, `flip`, `hidden`, `x`, `y`.
+  -1 px), foothold, facing `f`, `hide`, `mobTime` (CO `server/maps/MapFactory.java:59-83, 116-129`,
+  `MapleMap.java:3013-3021`). **Measured:** a new mob appears ON its point (p50 0.0 px from it, 30 of 30 by eye);
+  a flyer at the point's `spriteY`, not at `y`.
+- A spawn point holds **at most one living mob** (CO `SpawnPoint.java:69-74`; MW "up to one from every ready
+  point"). It is ready again (MW):
+  - `mobTime` = 0 (8,268 of our 8,623 spawns, MW's "wave" points): **5 s after the death**, and **not while
+    another mob stands within 100 px of it** (it spawns once that mob walks away). Then at the next round (E2).
+  - `mobTime` > 0: death + `mobTime` **seconds**, at the first round after it (a 300 s boss ~304 s on average).
+  - (v83, replaced: CO frees a `mobTime` 0 point after the mob's `die1` length, `SpawnPoint.java:89-96`, and has
+    no distance rule.)
+  - `mobTime` < 0 (CO; MW silent): spawned once when the map loads, never again.
+- Measured, not yet set against the 5 s: on one point the time between two spawns seen p10 / p50 / p90 7.1 / 120.5
+  / 655 s, min 0.47 s (not looked into). The 100 px block is not measured.
+- Fields: map.json mobs `mobTime`, `footholdId`, `flip`, `hidden`, `x`, `y`, `spriteY`.
 
 ### E2. How often the server refills, how many, which points
-- Every **10 s** (`config.yaml:175` `RESPAWN_INTERVAL`; `net/server/task/RespawnTask.java`) each map with at
-  least one player runs a round (`MapleMap.java:3541-3574`):
-  - the target = ceil((0.70 + 0.05 x min(6, players on the map)) x number of spawn points): 75 % of the spawn
-    points with one player, 100 % with six **(source's own design**, `MapleMap.java:3519-3539`; an option spawns
-    everything missing instead, `config.yaml:259`, off);
-  - to spawn = target - mobs alive; the spawn points are **shuffled** and the first ones that may spawn (E1) are
-    used until the number is reached.
-- A map with no player on it does not respawn.
-- **`mobRate`: no rule found reads it** - CO stores it (`MapleMap.java:134, 198`) and nothing uses it; HC does
-  not load it (question 8).
-- **The map's mob cap:** `info.fixedMobCapacity`, default 500 (`MapFactory.java:312`, `MapleMap.java:1922`);
-  none of our maps has the field. `info.createMobInterval` (default 5000 ms) is the first-spawn delay of a
-  `mobTime` 0 point (`MapFactory.java:160`, `SpawnPoint.java:105-107`); none of our maps has it.
+- **The round: every ~7.1 s - measured** (7.08-7.20 s, R 0.99-1.00 on 10 of 12 captures, on 30 minutes 7.084 s;
+  no 10 s beat). MW says **7.56 s** for the whole server; we searched 6.5-7.6 s and 7.56 lost, so the measured
+  round is the rule. (v83, replaced: CO every 10 s, `config.yaml:175` `RESPAWN_INTERVAL`, `RespawnTask.java`.)
+- **How many (MW):** at a round a map under its **capacity** gets up to one mob from every ready point (E1), all
+  appearing together; so a map cleared at once refills in one wave at the next round.
+  - **capacity = floor(W x (H - 450) x `mobRate` / 128,000)**, W = the map's left-to-right span - 40 px, H = its
+    top-to-bottom span + 330 px (walls and floors not counted in the spans; which coordinates exactly - footholds
+    or VR bounds - MW does not say), W at least 800, H - 450 at least 600, then held to **1..40**. One capacity for
+    all mob kinds of the map. Examples (solo): Ant Tunnel III 99 points, mobRate 0.5 -> 21; Henesys Hunting
+    Ground I 39, 0.9 -> 18.
+  - **never more mobs than ready points.**
+  - **players:** up to six share one player's capacity; each further player adds 0.75 mob, rounded down (MW says
+    "past five" in one place and "from the seventh" in another). Timed bosses ignore the player count.
+  - Which ready points when there are more than the gap: MW does not say (CO: the points shuffled, the first ones
+    used).
+  - (v83, replaced: CO's target = ceil((0.70 + 0.05 x min(6, players)) x the number of points), 75 % of the points
+    solo **(source's own design**, `MapleMap.java:3519-3574`); to spawn = target - mobs alive.)
+  - Not measured yet: the capacity against the most mobs alive at once on a capture of ours.
+- A map with no player on it does not respawn (CO; MW silent).
+- **`mobRate`** (0.3-1.9 on the maps, 1.0 the most common): multiplies the capacity (MW). (CO stores it and reads
+  it nowhere, `MapleMap.java:134, 198`; HC does not load it.)
+- `info.fixedMobCapacity` (CO default 500) and `info.createMobInterval` (CO: a `mobTime` 0 point's first-spawn
+  delay, default 5000 ms; `MapFactory.java:160, 312`, `SpawnPoint.java:105-107`): none of our maps has them.
 
 ### E3. How a new mob appears
 - **HC:** a newly spawned mob **fades in over 40 ticks = 0.32 s** (opacity +0.025 per tick); a mob that was
@@ -394,7 +443,8 @@ family, not necessarily Classic World's (table 3).
   once: the map starts **full** (`MapleMap.java:3013-3021`; `mobTime` -1 points too). After that only E2 applies,
   and E2 is skipped while nobody is on the map, so a map left empty stays as it was left.
 - Ours: FakeMobs respawn at their own spawn 6-9 s after death (`test_brain_v2.py:472`) - **differs** (the rule:
-  the next 10 s round after the body is gone, at a random free spawn point, up to the target count).
+  at the next ~7.1 s round at least 5 s after the death, at a ready point with no mob within 100 px, up to the
+  map's capacity).
 
 ---
 
@@ -408,22 +458,32 @@ family, not necessarily Classic World's (table 3).
 - **Which animation:** a plain attack picks at random from the weapon's attack type list. For a **spear**
   (attack type 2): `stabT1` or `swingP1`; lying down: `proneStab` (`Character/Look/CharLook.cpp:450-510`). HC's
   list is shorter than the weapon data: CW's `Afterimage\spear.img` also has `stabT2`, `swingP2`, `swingT2` and
-  the finishers `stabTF`, `swingPF`. Which the original client picks, and with what odds: **NOT FOUND**
-  (question 9).
+  the finishers `stabTF`, `swingPF`. **MW: a plain attack swings 60 % and stabs 40 %** (sword, axe, blunt, spear,
+  polearm, dagger; a bow always swings, a crossbow 50 / 50); Power Strike, Slash Blast and Final Attack's extra hit
+  the same. Which swing or stab stance within each half: **NOT FOUND** (question 9). MW names the Final Attack
+  stances "full sweep" (144 px) and "deep thrust" (124 px) = `swingPF`, `stabTF` by their reach (F3).
 - **The swing's length:** the stance's frame delays (CW `Character\00002000.img`: `stabT1` / `stabT2` 300 + 100 +
   350 = **750 ms**, `swingP1` / `swingP2` / `swingT2` 300 + 150 + 350 = **800 ms**, `stabTF` / `swingPF` 100 + 200
   x 3 = 700 ms, `proneStab` 300 + 400 = 700 ms), played faster or slower by the attack speed.
-  - **HC's factor:** the animation advances by 8 ms x (1.7 - attackSpeed / 10) per tick, attackSpeed = the
+  - **The rule (MW, "confirmed"): each frame lasts trunc(its delay x (10 + tier) / 16)**, tier = the weapon's
+    `attackSpeed` + the Booster's change (a matching Booster = 2 tiers faster), held to 0..10; the length = the
+    sum. The time MW shows players = that rounded up to 30 ms ("a model"). **This is `brain/reach.py`'s factor**,
+    which neither v83 source has: question 10 is settled - ours is the rule. Its table, an ordinary attack by
+    tier: 4 720 ms, 5 750, 6 810, 7 870, **8 900** (the live polearm swing ends 0.89-0.92 s), 9 960; a spear's stab
+    at 4 660, 6 750, 7 810. From the stance delays above at tier 6: swing 800, stab 750 ms; at 4: 700 / 656 (MW's
+    rounded 720 / 660). Spear 6-7, polearm 7-8 by weapon (MW).
+  - **HC's factor (v83, replaced):** the animation advances by 8 ms x (1.7 - attackSpeed / 10) per tick, attackSpeed = the
     weapon's `attackSpeed` + the booster's change, i.e. **length = delays / (1.7 - attackSpeed / 10)**
     (`Char.cpp:147-152`, `Player.cpp:191-204`). At attackSpeed 6: / 1.1 -> stab 682 ms, swing 727 ms; at 4: / 1.3
     -> 577 / 615 ms.
   - **`brain/reach.py`'s factor, (10 + attackSpeed) / 16:** at 6: x 1.0 -> 750 / 800 ms; at 4: x 0.875 -> 656 /
     700 ms. **This formula is in neither HC nor CO** (CO never computes a swing length). The two cross near
     attackSpeed 8 (a polearm's usual: 900 ms ours, 889 ms HC - the live swing ends of 0.89-0.92 s fit both) and
-    part below it: at a spear's 6 they are 68-73 ms apart (table 3, question 10).
+    part below it: at a spear's 6 they are 68-73 ms apart (table 3, question 10). MW's formula is ours.
 - Fields: `assets/mcw/attacks.json` `stance_ms`, `items` (weapon id -> type, `attackSpeed`); skill 1301002 Spear
   Booster `x` = -2.
-- Ours: `brain/reach.py:94` - **differs** from HC, as above.
+- Ours: `brain/reach.py:94` - **same** as MW (the per-frame truncation and the 30 ms display rounding aside);
+  differs from HC.
 
 ### F2. When in the swing the hit lands
 - **HC:** the targets and their damage are decided **at the press** (from the positions at that tick); the
@@ -457,6 +517,9 @@ family, not necessarily Classic World's (table 3).
 
   Note the box does not start at our body: a mob closer than the box's near edge is outside it unless its own
   body box reaches in.
+  **MW's weapon-reach page gives the same far edges** (from "the game's own data"): overhead swing 133, side
+  swing 120, short swing 116, thrust 1 130, thrust 2 111, crouched 113, Final Attack's full sweep 144 and deep
+  thrust 124 - our client's boxes to the pixel. Its reach for every other weapon family: `docs/meowdb.md` section 5.
 - **A mob is in reach** when its current frame's body box (`lt` / `rb` at its position) overlaps the attack box,
   and it is alive (not dying) (`Mob.cpp:596-605`).
 - **How many:** the mobs in reach are sorted by the distance from our feet to theirs and the closest N are hit;
@@ -470,6 +533,26 @@ family, not necessarily Classic World's (table 3).
   targeting is "strict closest" (memory, session 8) - **same** as the closest-N rule.
 
 ### F4. The damage range, the mob's defence, hit or miss
+**The rule (MW, Classic World; the site's calculator method, `docs/meowdb.md` section 7).** S = the skill's
+damage % / 100 (1 for a plain attack); WATK = all weapon attack worn; P / Q = STR / DEX for a spear or polearm; A =
+Attack Power from buffs (0 without).
+- **Mastery:** M = (the mastery skill's `mastery` / 10 + 0.1) x 0.7, `mastery` held to 0..10 - Classic World's
+  1-10 scale (F6): 0.07 with none, 0.14 / 0.42 / 0.77 at Spear Mastery level 1 / 10 / 20.
+- **MIN = S x WATK x (0.8 + (P x M x W + Q + 2A) / 100); MAX = S x WATK x (1.0 + (P x W + Q + 2A) / 100)**; a
+  hit = S x WATK x (uniform(0.8, 1.0) + (uniform(P x M, P) x W + Q) / 100 + A / 50).
+- **W by the action: spear swing 1.5, stab 3.5; polearm swing 3.5, stab 1.5** (with F1's 60 / 40: spear 2.30,
+  polearm 2.70 on average). The other weapons' W: `docs/meowdb.md` section 7. A crouched attack: W 1.0, the stat
+  part / 300, the base 0.2-0.3.
+- **Against the mob, in order:** x 100 / (`PDDamage` + 100); x the element (0 .. 1.5); x the level gap scale (gap
+  = mob level - ours: <= 0: 1; 1-9: 1 / (1 + gap^2 x 0.005); >= 10: 1 / (1 + gap x 0.05)); x a critical (1 +
+  d; base chance c 5 %, d 20 %, more from Precise Strikes' `crtX`); whole, held to 1..99,999.
+- **Our hit chance:** L = max(0, mob level - ours); a = our ACC x 100 / (10 L + 255); f = 0.15 + 0.20 / (1 +
+  exp((a - `eva`) / 12)); a hit when a x uniform(1 - f, 1 + f) >= `eva`, so with q = `eva` / a: P(hit) = 1 when q
+  <= 1 - f, 0 when q >= 1 + f, else (1 + f - q) / (2f); always a hit when a - `eva` >= 25 + L x (15 + 0.5 x our
+  level). A warrior's ACC = floor((1.2 DEX + 2 x level + 0.6 LUK) / 2.5 + 10) + gear + Precise Strikes' `accX`.
+- Whether `PDDamage` (our mob.json) is MW's "DEF": by the name, yes; not checked.
+
+**v83 (replaced), kept as the source it was:**
 - **Our range (HC):** max = (STR x 5.0 + DEX) x weapon attack / 100; min = (STR x 5.0 x 0.9 x mastery + DEX) x
   weapon attack / 100, mastery = 0.5 + the mastery skill's `mastery` / 100 (`CharStats.cpp:65-137, 192-195`,
   `Character/PassiveBuffs.cpp:64-65`). 5.0 is HC's multiplier for both spear and polearm. A skill multiplies both
@@ -525,7 +608,7 @@ differ, so HC's and CO's per-skill code does not apply by id (table 3). Values: 
 | 1301002 | Spear Booster (20) | buff, spear | 30 / 20 / 10 MP + 30 / 20 / 10 HP | - | - | - | action `alert2` 600 ms; lasts 100 / 200 / 300 s; attackSpeed `x` -2 |
 | 1301003 | Polearm Booster (20) | buff, polearm | same | - | - | - | same |
 | 1301004 | Iron Will (30) | buff | 10 / 17 / 25 | - | - | - | action `alert2` 600 ms; lasts 150 / 225 / 300 s; defence +20 / 35 / 50; `prop` 5 / 20 / 35 % no knockback |
-| 1301005 | Rush (20) | attack, moves us | 35 / 25 / 15 | 60 / 69 / 80 | 6 | own: lt (-200, -50) rb (0, 0) at level 1, lt (-220, -50) from level 11; `range` 130 / 150 / 150 % | action `rushT` / `rushO`: 100 + 300 = 400 ms; cooldown `cooltime` 2 s |
+| 1301005 | Rush (20) | attack, moves us | 35 / 25 / 15 | 60 / 69 / 80 | 6 | own: lt (-200, -50) rb (0, 0) at level 1, lt (-220, -50) from level 11; `range` 130 / 150 / 150 % | action `rushT` / `rushO`: 100 + 300 = 400 ms; cooldown `cooltime` 2 s. MW: 450 ms on a tier-8 polearm, 360 at tier 4, 300 with Booster (F1's factor on the 400) |
 
 - Rush in HC: we slide to the last hit mob's x during the attack's delay, stopping at a platform end
   (`Player.cpp:322-330`, `Combat.cpp:239-247`) - HC has it for the fourth-job Rush ids only.
@@ -547,12 +630,19 @@ differ, so HC's and CO's per-skill code does not apply by id (table 3). Values: 
   plus a bonus of 5 % x the number of members on top (members > 1). Options limit sharers to within 5 levels of
   the mob or of a damaging member (`Monster.java:548-600`, `config.yaml:293-297`). CO credits a GMS formula page
   for it (`Monster.java:665`).
-- **The level table (CO):** EXP needed to go from level L to L + 1, `constants/game/ExpTable.java:25`:
+- **The level table (MW, Classic World):** EXP from level L to L + 1 = (floor(L^2 / 2) + 15) x L for L 1-5;
+  with q = floor(L^2 / 3), (q + 19) x q for L 6-50; trunc(the last x 1.0548) for 51-89; trunc(the last x 2.1) for
+  90-99 (100 is the cap). E.g. 9: 1,242, 10: 1,716, 20: 20,216, 25: 47,216, 27: 63,666, 30: 95,700, 31: 108,480,
+  35: 174,216, 40: 294,216, 50: 709,716, 70: 2,062,925. Every level: `docs/meowdb.md` section 8. With the EXP
+  points our HUD reader gives, it turns EXP per hour into the time to a level.
+- **The level table (CO) (v83, replaced - it parts from MW's at level 9):** EXP needed to go from level L to L + 1, `constants/game/ExpTable.java:25`:
   1: 15, 2: 34, 3: 57, 4: 92, 5: 135, 6: 372, 7: 560, 8: 840, 9: 1,144, 10: 1,242, 11: 1,573, 12: 2,144, 13:
   2,800, 14: 3,640, 15: 4,700, 16: 5,893, 17: 7,360, 18: 9,144, 19: 11,120, 20: 13,477, 21: 16,268, 22: 19,320,
   23: 22,880, 24: 27,008, 25: 31,477, 26: 36,600, 27: 42,444, 28: 48,720, 29: 55,813, 30: 63,800, **31: 86,784**,
   32: 98,208, 33: 110,932, 34: 124,432, 35: 139,372 (to 200 in the file). Classic World's own table is not in
-  our client export (question 15).
+  our client export (question 15: MW's above).
+- **Grinding EXP / hour that players log** (MW; a human yardstick for the benchmark, not a rule): Line 1 <Area 1>
+  19K-32K at Lv 27, Ant Tunnel maps 34K-81K, The Cave of Evil Eye III 68K-85K (`docs/meowdb.md` section 8).
 - Field: mob.json info `exp` (120 of 128 mobs).
 - Ours: memory "EXP is split by damage" - **same**; the HUD's EXP is read, no table - **missing**.
 
@@ -688,8 +778,9 @@ differ, so HC's and CO's per-skill code does not apply by id (table 3). Values: 
 | No rope grab after leaving one | 1 s | HC `Player.cpp:455-458` |
 | A damage number | 0.75 s | HC `DamageNumber.cpp:79, 181-184` |
 | Another player's attack shown | 400 ms after its packet | HC `Combat.cpp:270-273` |
-| Respawn round | every 10 s (config) | CO `config.yaml:175` |
-| A spawn point free again | the `die1` length (mobTime 0) or mobTime s after the death | CO `SpawnPoint.java:89-96` |
+| Respawn round | **every ~7.1 s (measured)**; MW 7.56 s; CO 10 s (config) | PLAN-tracker.md "Step 3b"; MW; CO `config.yaml:175` |
+| A spawn point free again | 5 s after the death and no mob within 100 px (mobTime 0), or mobTime s after it | MW (CO: the `die1` length, `SpawnPoint.java:89-96`) |
+| An attack's length | each frame's delay x (10 + tier) / 16, truncated | MW = `brain/reach.py` (HC: / (1.7 - tier / 10)) |
 | Drop expiry | 180 s (config; our footage: 120 s), swept every 10 s | CO `config.yaml:316, 322` |
 | A drop is the owner's | 15 s; untouchable its first 0.4 s | CO `MapItem.java:131-133`, `Character.java:1983` |
 | Aggro bookkeeping | every 5 s (config) | CO `config.yaml:332` |
@@ -745,7 +836,7 @@ differ, so HC's and CO's per-skill code does not apply by id (table 3). Values: 
 
 | Field | Rule |
 |---|---|
-| mobs: id, x, y, footholdId, flip (`f`) | E1, E3 |
+| mobs: id, x, y, footholdId, flip (`f`) | E1, E3 (measured: a flyer appears at `spriteY`) |
 | mobs: mobTime | E1 |
 | mobs: walkAreaX1 / X2 (`rx0` / `rx1`) | no rule found reads it (C3) |
 | mobs: hidden (`hide`) | CO loads it (`MapFactory.java:80`); no spawn rule found uses it |
@@ -755,7 +846,7 @@ differ, so HC's and CO's per-skill code does not apply by id (table 3). Values: 
 | footholds: forbidFallDown (17,271), cantThrough (150), piece, groupId | no rule found reads it (A6, question 3) |
 | ladderRopes (x, y1, y2, isLadder) | A7 |
 | vrBounds / info VRLeft, VRTop, VRRight, VRBottom | J; CO: the map area for drop placement (`MapFactory.java:171`) |
-| mobRate / info.mobRate | no rule found reads it (E2) |
+| mobRate / info.mobRate | E2: x the map's capacity (MW; no v83 rule reads it) |
 | info.town, isTown | HC loads it; CO: return-map logic. No movement rule |
 | info.swim | HC: swimming physics in place of walking (`MapInfo.cpp:45`, `Physics.cpp:125-146`); 0 of our maps have it set |
 | info.fly | no rule found reads it (HC flies only when `swim`) |
@@ -767,7 +858,8 @@ differ, so HC's and CO's per-skill code does not apply by id (table 3). Values: 
 | info.MRLeft / MRTop / MRRight / MRBottom, LBBottom | no rule found reads it (not v83 fields) |
 | info.limitSpeedAndJump (33 maps) | no rule found reads it - by its name it bears on A1 / A3 (question 21) |
 | info.moveLimit, fieldType, fieldLimit2, fieldLimit_tw, version, standAlone, partyStandAlone, quarterView, noMapCmd, AmbientBGM, AmbientBGMv, fieldScript, onFirstUserEnter, onUserEnter, mapDesc, personalShop, hiredMerchant, genReturnMap, syncEffectObjectOnEnter, miniMapOnOff, housing, reviveCurField, noChair, limitUseShop, limitUseTrunk, offSoulAbsorption, noHekatonEffect, blockScriptItem, vanishPet, vanishAndroid, vanishDragon, limitUserEffectField, limitUI | no rule found reads it (scripts, shops and post-v83 flags; `onUserEnter` / `fieldScript` run server scripts in CO) |
-| (absent in all our maps) info.fixedMobCapacity, createMobInterval | E2 defaults: 500 mobs, 5000 ms |
+| (absent in all our maps) info.fixedMobCapacity, createMobInterval | CO defaults: 500 mobs, 5000 ms (E2) |
+| footholds' and VR bounds' extent | E2: W and H of the capacity (MW; which of the two: not said) |
 | portals, npcs, miniMap, cover | not rules of this document |
 
 ### Physics.img (raw value -> in our units)
@@ -775,7 +867,7 @@ differ, so HC's and CO's per-skill code does not apply by id (table 3). Values: 
 | Field | Raw | Ours | Rule |
 |---|---|---|---|
 | walkForce | 140000 | 1400 px/s^2 | A1 |
-| walkSpeed | 125 | 125 px/s | A1, A3 (the jump's sideways cap), A4 |
+| walkSpeed | 125 | 125 px/s | A1 (x (Speed + 20) / 100: 150 px/s at Speed 100, MW), A3 (the jump's sideways cap), A4 |
 | walkDrag | 80000 | 800 px/s^2 | A1 |
 | slipForce | 60000 | 600 px/s^2 | A2 (named; its use NOT FOUND) |
 | slipSpeed | 120 | 120 px/s | A2 (same) |
@@ -802,20 +894,20 @@ HC reads none of Physics.img (its constants are in `Physics.cpp:22-28` and `Play
 
 | Ours | Value | The rule | Verdict |
 |---|---|---|---|
-| `nav/sim.py:12` WALK_FORCE / SPEED / DRAG | 1400 / 125 / 800 | A1 (RU) | same; the speed stat missing |
+| `nav/sim.py:12` WALK_FORCE / SPEED / DRAG | 1400 / 125 / 800 | A1: MW 150 px/s at Speed 100 (RU 125) | differs (the speed); the speed stat missing |
 | `nav/sim.py:13` GRAVITY / FALL_SPEED / JUMP_SPEED | 2000 / 670 / 555 | A3, A4 (RU) | same; the jump stat missing |
-| `nav/sim.py:18-19, 66` JUMP_VX | speed x 155 / 125 at take-off | A3: + 80 % of top speed, capped at the walking speed | differs (question 1) |
+| `nav/sim.py:18-19, 66` JUMP_VX | speed x 155 / 125 at take-off | A3: + 80 % of top speed, capped at the walking speed = 150 px/s with MW's walking | close (155 measured; question 1) |
 | `nav/sim.py:123` air | sideways speed frozen | A4: air control 200 px/s^2 toward 8.9 px/s, drag 10 px/s^2 | differs |
 | `nav/sim.py:128-130` landing | speed set to 0 | A5: speed kept, then dragged at 800 | differs |
 | `nav/sim.py:58-63` drop through | any platform below | A6: only when the next foothold is < 600 px below | differs |
-| `nav/sim.py:14` CLIMB_SPEED | 125 | A7: speed stat / 100 px/tick = 125 px/s | same |
+| `nav/sim.py:14` CLIMB_SPEED | 125 | A7: measured 128 px/s (one rope); MW 120; HC 125 | same as measured |
 | `nav/sim.py:15` GRAB_DX | 10 | A7: within 10 px | same |
 | `nav/sim.py:16-17` ROPE_JUMP_VY / VX | 300 / 125 | A7 (RU): 277.5 / 162.5 | differs |
 | `nav/sim.py:117` rope grab in the air | up held, not in the first instant of a jump | A7: any tick with up held; no grab for 1 s after leaving a rope | differs |
 | `nav/sim.py:79-80` slopes | flat rule everywhere | A2 | differs |
-| `config.py:102-104` Nav.walk_speed / jump_speed / gravity | 125 / 555 / 2000 | A1, A3, A4 | same |
+| `config.py:102-104` Nav.walk_speed / jump_speed / gravity | 125 / 555 / 2000 | A1 (MW 150), A3, A4 | walk_speed differs; the rest same |
 | `config.py:98` Nav.jump_height 70 | measured 60-80 | A3: peak 77 px at 100 % jump | same (within its margin) |
-| `config.py:100, 105` Nav.jump_reach 85, jump_vx 155 | measured | A3: 125 px/s x 0.555 s = 69 px on level ground | differs (question 1) |
+| `config.py:100, 105` Nav.jump_reach 85, jump_vx 155 | measured | A3 with MW's walking: 150 px/s x 0.555 s = 83 px on level ground (RU's 125: 69) | close (question 1) |
 | `config.py:110` Nav.climb_speed | 125 | A7 | same |
 | `config.py:108, 111-115` rope_grab, grab_body, rope_leap, leap_drop, leap_land | measured | A7 gives the take-off speeds (277.5 up, 162.5 sideways) they follow from | not derived from the rule |
 | `brain/moves.py:14-15` WALK, DRAG | 125, 800 | A1 | same |
@@ -826,7 +918,7 @@ HC reads none of Physics.img (its constants are in `Physics.cpp:22-28` and `Play
 | `world.py:38` hit_s | 0.6 s | D1: HC 0.248 s; the `hit1` animation 0.6 s | differs (question 7) |
 | `world.py:32-37, 45` lose_s, covered_s, fight_s, offscreen_s, hidden_s | timeouts | no game rule (perception limits); E3: a new mob fades in 0.32 s; D4: a body lasts its `die1` length | - |
 | `world.py:39` die_sure | - | D4 | - |
-| `brain/reach.py:94` swing length | stance ms x (10 + attackSpeed) / 16 | F1: HC stance ms / (1.7 - attackSpeed / 10) | differs; ours is in neither source (question 10) |
+| `brain/reach.py:94` swing length | stance ms x (10 + attackSpeed) / 16 | F1: MW each frame x (10 + tier) / 16, truncated (HC: / (1.7 - attackSpeed / 10)) | same as MW (question 10) |
 | `brain/reach.py:27` SWING_LAND_S | 0.45 s | F2: 450 ms swing, 400 ms stab (factor 1) | same for swings |
 | `brain/v2/combat.py:73` SWING_MARGIN_S 0.02 | live 0.89-0.92 vs 0.90 (polearm) | F1: at attackSpeed 8 ours gives 900 ms, HC 889 ms | fits both factors: it does not decide between them |
 | `brain/v2/combat.py:76` KNOCK_PX | 30 px in a tick | D1: ~27 px over 0.25 s | same |
@@ -834,7 +926,7 @@ HC reads none of Physics.img (its constants are in `Physics.cpp:22-28` and `Play
 | `test_brain_v2.py:510` FakeMobs turning | 0.2 % per step, never stand | C2 | differs |
 | `test_brain_v2.py:498-501` FakeMobs hit | reach tested at landing, 0.6 s hit, no push, 3 hits to die | F2 (targets fixed at the press), D1 (pushed ~27 px, 0.25 s), D3 (HP) | differs |
 | `test_brain_v2.py:515` FakeMobs dying | 0.8 s | D4: the mob's `die1` length | differs |
-| `test_brain_v2.py:472` FakeMobs respawn | own spawn, 6-9 s | E2: the next 10 s round, a random free point, up to 75 % of the points (one player) | differs |
+| `test_brain_v2.py:472` FakeMobs respawn | own spawn, 6-9 s | E1-E2: the next ~7.1 s round at least 5 s after the death, a ready point with no mob within 100 px, up to the map's capacity | differs |
 | `config.py:62-63` potions at 50 % / 10 % | policy | I | - |
 | the tracker's drop rule (HANDOFF: 2 minutes, 130 s at most) | from footage | H3: lifetime + 10 s sweep (Cosmic 180 s) | same mechanism |
 | `gamedata.py:140` "walkAreaX1/X2 = the x range the mob may wander" | a comment | C3: no rule found reads it | unsupported |
@@ -858,20 +950,21 @@ HC reads none of Physics.img (its constants are in `Physics.cpp:22-28` and `Play
 6. **`rx0` / `rx1` (walkAreaX1/X2), `fs`, `summonType`:** no source reads them. HC keeps mobs on their foothold
    chain instead.
 7. **The hit pose's length:** HC 0.248 s by a counter vs the `hit1` animation (0.6 s) our tracker uses.
-8. **`mobRate`:** stored by CO, read by nothing.
-9. **Which attack stance** a spear's plain attack plays and with what odds (HC: `stabT1` or `swingP1`, 50 / 50;
-   the data has five more).
-10. **ANSWERED: ours for now, recalculated with tracking.** The swing-length factor: HC `/ (1.7 - attackSpeed / 10)` vs our `(10 + attackSpeed) / 16`, which is in
+8. **ANSWERED by MW (E2): `mobRate` multiplies the map's capacity.** Stored by CO, read by nothing.
+9. **Half ANSWERED by MW (F1): swing 60 % / stab 40 %.** Which attack stance a spear's plain attack plays and with
+   what odds (HC: `stabT1` or `swingP1`, 50 / 50; the data has five more) - which stance within each half is open.
+10. **ANSWERED: ours, and MW has the same formula (F1).** Before: ours for now, recalculated with tracking. The swing-length factor: HC `/ (1.7 - attackSpeed / 10)` vs our `(10 + attackSpeed) / 16`, which is in
     neither source. The live polearm swing ends (0.89-0.92 s) fit both; with the spear (attackSpeed 6, or 4
     under Booster) they differ by ~70-80 ms. Which is the rule?
-11. **Spear / polearm damage:** both sources use x 5.0 for every hit; the stab (x 3.0 polearm, x 5.0 spear) /
+11. **ANSWERED by MW (F4): Classic World's own formula** - W spear swing 1.5 / stab 3.5, polearm 3.5 / 1.5, mastery
+    M = (`mastery` / 10 + 0.1) x 0.7 on the 1-10 scale. Before: **Spear / polearm damage:** both sources use x 5.0 for every hit; the stab (x 3.0 polearm, x 5.0 spear) /
     swing split exists only as unused constants in CO. And Classic World's `mastery` values (1-10) are not
     v83's (10-60): HC's `0.5 + mastery / 100` would give 0.51-0.60.
 12. **Our own stats** (STR, DEX, weapon attack, accuracy, the speed and jump stats, the weapon's id and
     attackSpeed): needed for F4, A1, A3; not in any file.
 13. **Small damage numbers:** HC only has the normal size (digit widths 20-24 px, rows 30 px).
 14. **Which key is which skill:** `q` (835 presses), `e` (130), `w` (30) against table F6. And the skill levels.
-15. **Classic World's level table** (CO's is v83's).
+15. **ANSWERED by MW (G).** Classic World's level table (CO's is v83's; they part at level 9).
 16. **A drop's fade when it expires:** HC 0.38 s, our footage ~1 s.
 17. **The pickup's reach:** HC's box is 0-32 px to the right of the drop's left edge; our footage shows ~50 px
     around.
@@ -881,12 +974,19 @@ HC reads none of Physics.img (its constants are in `Physics.cpp:22-28` and `Play
 20. **The camera** in the original client: where the character sits vertically, the follow speed (HC: centred,
     12 / view size per tick, 5 px dead zone).
 21. **`limitSpeedAndJump`** (33 maps): no source reads it.
-- Also NOT FOUND, smaller: touch damage against our defence and our avoid chance (B1); the slope slide's
-  formula (A2); Improved HP Recovery's effect on potions (I).
+- Also NOT FOUND, smaller: the slope slide's formula (A2); Improved HP Recovery's effect on potions (I). (A
+  mob's damage on us and our avoid chance: MW's, B1.)
+
+**Where the sources and our footage disagree (2026-11-25)**
+- The respawn round: measured ~7.1 s, MW 7.56 s, CO 10 s. Taken: measured.
+- Walking: MW 150 px/s at Speed 100 vs RU / Physics.img 125 and our code's 125 (not a measurement). Taken: MW
+  until we measure our own walk.
+- Climbing: measured 128 px/s on one rope vs MW 120. Taken: measured.
+- MW's spawn page contradicts itself on the player count (extra mobs "past five" / "from the seventh" player).
 
 **Where the sources disagree**
 - Walking: RU 125 px/s, 1400 / 800 px/s^2 vs HC 100 px/s with proportional friction. Taken: RU (it is the
-  original client and equals our Physics.img).
+  original client and equals our Physics.img); its top speed is now MW's 150 px/s (A1).
 - Jump: RU 555 px/s vs HC 562.5; gravity RU 2000 vs HC 2187.5; fall cap RU 670 vs HC none; rope jump RU 277.5 up
   / 162.5 sideways vs HC 375 / 160. Taken: RU.
 - **Mobs move by HC's physics** (gravity 2187.5, friction 0.2 x v): there is no original-client source for mob
@@ -896,8 +996,7 @@ HC reads none of Physics.img (its constants are in `Physics.cpp:22-28` and `Play
 
 **The source's own design, not v83 client code** (CO, inherited from HeavenMS)
 - The respawn target by player count (75 % of the spawn points with one player .. 100 % with six) and the 10 s
-  round are CO's config and heuristics. Real servers of the time are commonly described the same way, but this
-  code is not proof for Classic World.
+  round are CO's config and heuristics - both replaced (E2: MW's capacity, the measured ~7.1 s round).
 - The aggro bookkeeping (damage-based leader, the expiry schedule).
 
 **Classic World fields and rules v83 code does not know**
