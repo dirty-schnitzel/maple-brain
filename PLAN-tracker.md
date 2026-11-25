@@ -893,9 +893,10 @@ accept?
 no try 3). What was missed is carried, not dropped:
 1. **The step rule on steep slopes (L1's 12 within 5 px):** a mob walking a slope steeper than 0.9 (Drakes, Evil
    Eyes, Horny Mushrooms on 1.8-1.9), or a 2 px whole-pixel step on any slope, is placed in the air on that frame.
-   A real tracker mistake (not the labels'): **step 4b** lets the step follow the foothold's own slope + 1 px (us
-   are placed by the same rule) and re-runs L1 - the 99 % then stands as the gate for L1 there. Case 124 (a dying
-   Horny Mushroom labelled `fly`) is relabelled `stand` with it. The 6 feet 9-35 px off are the fit's (stop rule 4).
+   A real tracker mistake (not the labels'): **fixed now, in its own session before step 4b** (the user,
+   2026-11-25: "lets fix the slopes"; prompt "Tracker, step 3, the slope fix"): the step follows the foothold's own
+   slope + 1 px (us are placed by the same rule), L1 re-run (>= 99 %). Case 124 (a dying Horny Mushroom labelled
+   `fly`) is relabelled `stand` with it. The 6 feet 9-35 px off are the fit's (stop rule 4).
 2. **L2's cases 57 and 61** (our own tag and a mob's own name taken as players) and **case 30** (the screen's top
    edge): **step 4b** sorts the tag list (ours / a mob's own / pets / players) and uses the sides and the window's
    bottom only for `edge`, then re-grades L2 on the 16 (>= 90 %).
@@ -959,6 +960,18 @@ of 20261120_235747_1#0 into its own folder, never over work\SESSION#K\track\ - s
 the main folder: assets/scene is there). Numbers into the plan under "Step 3, try 2"; a gate missed: stop.
 ```
 ```text
+Tracker, step 3, the slope fix (the user, 2026-11-25). Read PLAN-tracker.md - design 3, step 2's row, "Step 3,
+try 2" with its "The user's decision" (carry-over 1), the stop rules. Branch tracker-build (the main folder). In
+track/graph.py the step rule (1 px + 0.9 x the sideways step) becomes: the step follows the foothold's own slope
+(its rise over the sideways step) + 1 px of whole-pixel slack; nothing else changes. Relabel L1 case 124
+(232410_1#4 n 21529, a dying Horny Mushroom labelled fly) to stand in the bank's file, with `was` + the user's
+words, backup first. A test that fails without the fix (a mob walking a 1.8 slope, a 2 px step for 1 px on a 0.6
+slope). Gate: L1 stand / air >= 99 % (replay_mobs.py labels); step 2's hops gate still met (proto_feet.py --sound:
+air called standing <= 0.8 %, standing called air <= 0.2 %); from the kept replay the 13 captures' rows and the
+feet still within step 3's gate (jolts <= 556); pytest of the areas touched. Numbers into the plan under "Step 3,
+the slope fix"; a gate missed: stop.
+```
+```text
 Tracker, step 4a (drops). Needs step 1's labels L6. Read PLAN-tracker.md - measurement 5, design 5, step 4a, the
 stop rules - PLAN-loot.md sections 10 and 13, and tools/perc/track/proto_drops.py (the reference). Branch
 tracker-build. Build track/drops.py; perception/drops.py is not changed. "We took it" reads the pickup key's
@@ -969,9 +982,8 @@ stop.
 Tracker, step 4b (other players and us). Needs step 1's labels L1 and L5. Read PLAN-tracker.md - measurement 7,
 design 6-7, step 4b, the stop rules - tools/perc/track/proto_players.py (the reference) and nav/selfstate.py's
 docstring (its stuck cases become tests). Branch tracker-build. Build track/players.py and us.py; two tags side
-by side are split by the widths already known; pets are sorted out. Also step 3's carry-overs 1 and 2 ("Step 3,
-try 2", "The user's decision"): the step rule follows the foothold's own slope + 1 px, case 124 relabelled, L1
-re-run (>= 99 %); the mob tracker's covers use the sorted tags, `edge` = the sides and the window's bottom, L2
+by side are split by the widths already known; pets are sorted out. Also step 3's carry-over 2 ("Step 3, try 2",
+"The user's decision"): the mob tracker's covers use the sorted tags, `edge` = the sides and the window's bottom, L2
 re-graded on the 16 (>= 90 %). Gate as written; numbers into the plan; a gate missed: stop.
 ```
 ```text
