@@ -1216,6 +1216,55 @@ E3), the distance by its kind's walk speed (kinds.py: 2 x v83) or one hop up; a 
 screen and not under the UI or a known cover box, on the CPU from what the trackers hold - no GPU call (a round
 trip is ~0.4 ms: step 4b).
 
+### Step 3b, try 2 (2026-11-25): rule (c) measured - the share MET (97.4 %), the sheet MISSED (3 wrong) - stopped, nothing built
+`tools/perc/track/proto_spawns.py fade | trace | sheet2` (the step-4b replay's rows, `*_s4b.pkl`; outputs
+`...\track-plan\step3b\`: `spawns_s4b.pkl`, `sheet2_s4b\`).
+- **1. The fade on Classic World is 0.82 s, not v83's 0.32 s** (`fade`): each faded-in track's opacity (the fit's) on
+  every frame of its first 1.5 s; a line o = (t - t0) / L over its sightings with 0.1 <= o <= 0.9 fits 593 of the
+  612 with R^2 >= 0.999 (p10); **L p10 / p50 / p90 = 0.803 / 0.816 / 0.827 s** (49 frames at 60 a second; E3's HC
+  0.32 s = 19 frames). From a faint first sighting (opacity <= 0.25, 423 tracks) to 0.95: 36 / 39 / 40 frames. So the
+  time since appearing = the first opacity x 0.827 s (the p90, the reach's upper side). `docs/game_rules.md` E3 not
+  changed (another session's file on `dev`): the user decides. The first sighting's opacity p10 / p50 / p90 0.14 /
+  0.18 / 0.35 (the fit sees a fading mob from ~0.14 on: ~0.12 s after it appears).
+- **2. Rule (c)** (`trace`; a walker: the point of its kind on the birth's node (the tracker's), |dx| <= its kind's
+  `v` (kinds.py, 2 x v83) x the time + 10 px, the feet within 10 px of the node's surface or up to one hop (78 px,
+  measurement 3) + 10 px over it when the kind jumps; a flyer: (x, `spriteY`) within `v` x the time + 10 px; two
+  candidates -> no match): **596 of 612 = 97.4 % matched** (>= 95 % met); 7 = 1.1 % two candidates; 9 = 1.5 % none.
+  The 10 px rule's 476: 475 matched by (c) too, 1 not (a Stirge at its point's `y`, 154 px from its `spriteY`).
+  - By group (matched / two / none): within 10 px 476: 475 / 0 / 1; walked 53: 45 / 7 / 1; hopped 50: 48 / 0 / 2;
+    flyers 26: 26 / 0 / 0; other 7: 2 / 0 / 5.
+  - By kind: Bubbling 385 of 395 (97.5 %), Horny Mushroom 64 of 66, Evil Eye 51 of 52, Zombie Mushroom 47 of 49
+    (95.9 %), Stirge 27 of 28, Green Mushroom 9 / 9, Slime 8 / 8, Drake 5 / 5.
+  - The 16 left: **7 two candidates** (Bubblings on Line 1 first seen at opacity 0.78-0.89, i.e. 0.65-0.74 s old:
+    two points 100-220 px apart on one node both within reach); **5 no point of its kind on its node** (two
+    Bubblings first seen over node 285, their point 7 is on node 244; a Zombie Mushroom, an Evil Eye likewise; first
+    seen in the air over another platform); **3 farther than the reach** (|dx| 60 / 61 / 106 against 50 / 51 / 61:
+    a Horny Mushroom, a Zombie Mushroom, both 2026-11-18); **1 Stirge** 154 px from its point's `spriteY`.
+  - Same-kind point pairs within 100 px on one node: 0 on 10 of the 12 maps; 4 on 10005064, 2 on 10005065.
+- **3. The sheet** (`sheet2`; 30 random births matched by (c) and not by the 10 px rule, seed 5: 13 hopped, 12
+  walked, 5 Stirges; a 4-frame strip each - the frame it appeared on, halfway, its first sighting, +10 - the crop
+  fixed on the point in map coordinates, each frame's own camera): **the point is the right one on 29 of 30**
+  (case 25: the point stands 25-45 px past the screen's right edge, the mob walks in fading - not checkable by eye,
+  nothing against it), **but 3 births are not a new spawn: cases 11, 23, 29 are the SECOND track of a mob already
+  credited to the same point** -> 27 of 30 right (>= 29 asked): **MISSED**.
+  - Why (the rows): one fading-in mob, two tracks. Of the matched births, **9 pairs on one point come < 1 s apart**
+    (0.05 s once, 0.47-0.57 s eight times; the next gap is 3 s+): in the eight, the first track turns `dying` at
+    0.47-0.57 s into the fade (opacity ~0.6) while a new track carries on, born `faded in` - the mob tracker takes a
+    die pose of the faint mob (the fit's reading) and ends the first track; the 0.05 s one is a knockback in the fade
+    (ids 61 / 62 / 63 of `20261120_235747_1#0`, one Bubbling). That is step 3's mob tracker, outside this step
+    ("nothing in track/mobs.py changes but the call").
+  - The bug found on the way (fixed in the tool before these numbers): a first sighting read as its look-alike pose
+    (17 px over) had its opacity taken from a later frame (case 18: 0.98 instead of 0.41); now the birth frame's
+    sighting within 20 px, or an error.
+
+**For the user (stopped, stop rule 1):** rule (c) finds the right point (97.4 % matched; the point right on 29 of
+30), but 9 of the 596 matched births (1.5 %) double one spawn because the mob tracker splits a fading-in mob in two.
+Choose: (a) spawns.py takes E1's / MW's "a point holds at most one living mob": a birth on a point whose last mob is
+still in the state (alive or dying) within one fade (0.83 s) of its spawn is the same spawn, not a new one -
+measured first, then a new sheet; (b) fix the split in the mob tracker first (a die pose not taken while the
+track is fading in: step 3's code, its gates re-run); (c) accept the 1.5 %. And whether E3 gets the measured 0.82 s
+fade (observed beats the rule).
+
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
 2. The real code cannot reproduce a prototype's number from the same kept replay within tolerance: stop - it is
