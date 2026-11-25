@@ -1201,6 +1201,21 @@ simply not counted: memory, not prediction); (b) a rule by shape, its share meas
 on its level within N px or straight above within 60 px), with its own sheet of the newly matched births; (c)
 something else. The 7.1 s round: whether it goes into `docs/game_rules.md` E2 as observed (observed beats the rule).
 
+**The user's answers (2026-11-25):** the 7.1 s round is in `docs/game_rules.md` E2 as measured (done on `dev`,
+another session). Checked again by the plan manager, every confirmed faded-in birth, per capture: the best period
+in 6.5-7.6 s is 7.01-7.20 s on all 13 captures (12 maps: Line 1, 10 dungeons / caves, Southern Forest III's
+dungeon), and 200 sets of random times over the same span never reach its R (p 0.005 on each); the 13 pooled
+(each its own phase, Z = n R^2 summed) peak at 7.08 s, Z 448, against 15 at 10 s (median over 4-13 s: 13). The 8
+maps with 17+ spawns show it alone; the 5 with 5-11 only agree. No field map yet (not sound).
+**The matching: (c), "a spawn traced back to its point"** - a faded-in birth is its point's spawn when a point of
+its kind, on the same node, could have put the mob where it is first seen in the time it has existed: that time
+from its opacity at the first sighting (the fade's length measured on Classic World first, against v83's 0.32 s:
+E3), the distance by its kind's walk speed (kinds.py: 2 x v83) or one hop up; a flyer against the point's
+`spriteY`; two candidate points -> no match (never a guess). Estimated ~96 % of the 612 (the plan manager:
+476 + ~45 walked + ~47 hopped + 19 flyers + ~3), to be measured before anything is built. `in_view` = the point on
+screen and not under the UI or a known cover box, on the CPU from what the trackers hold - no GPU call (a round
+trip is ~0.4 ms: step 4b).
+
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
 2. The real code cannot reproduce a prototype's number from the same kept replay within tolerance: stop - it is
@@ -1285,6 +1300,29 @@ without each rule). Gate: the row in the steps table - the 30-case sheet >= 29 r
 kept replay track_s3 of 20261120_235747_1#0) = the replay's, the ms p50 <= 0.1. Also report, as numbers only
 (nothing built from them): the time between spawns seen on one point, and whether spawns seen fall on a 10 s beat.
 Numbers into the plan under "Step 3b"; a gate missed: stop.
+```
+```text
+Tracker, step 3b, try 2 (spawn points: a spawn traced back to its point - the user's answer (c)). Read
+PLAN-tracker.md - "Step 3b" (the user's words), "Step 3b, 2026-11-25" and "The user's answers" under it, step 3b's
+row, the stop rules - tools/perc/track/proto_spawns.py, docs/game_rules.md E1-E3. Branch tracker-build (the main
+folder). FIRST MEASURE, build nothing (extend proto_spawns.py):
+1. The fade's length on Classic World: births seen from their very first faint frame -> frames until full opacity
+   (against v83's 0.32 s); the opacity -> time-since-appearing mapping used below comes from this, not from E3.
+2. Rule (c) on the 612 confirmed faded-in births: a point of its kind, on the same node, reachable in the time since
+   appearing - walk at its kind's speed (kinds.py, the 2 x v83 factor) or one hop up; a flyer against the point's
+   spriteY; two candidate points -> no match. Report the share matched (>= 95 % asked), by kind and by the why-groups
+   (walked, hopped, flyers, other), the ones left with the reason, and how many births had two candidates; also the
+   same-kind point pairs within 100 px on one node, per map.
+3. A sheet of 30 random births matched by (c) that the 10 px rule did not match (the 4-frame strips, the point
+   drawn): each checked by eye.
+If the share is under 95 %, or the sheet has more than 1 wrong: stop with the numbers - the user decides.
+If met: build track/spawns.py (reads the mob tracker's births each frame; nothing in track/mobs.py changes but the
+call), the SpawnPoint record in state.py (last_spawn_t, last_mob, spawns, in_view), the Perceiver calls it after the
+mob tracker, in shadow. in_view = the point on screen and not under the UI or a cover box the trackers already hold,
+on the CPU - no GPU call. Add the record to docs/state_model.md section 3 with the user's words. Tests (a test fails
+without each rule). Gate: step 3b's row - the share >= 95 %, the sheet >= 29 of 30, the live path's rows (the kept
+replay track_s3 of 20261120_235747_1#0) = the replay's, the ms p50 <= 0.1. pytest of the areas touched + the bot
+speed line. Numbers into the plan under "Step 3b, try 2"; a gate missed: stop.
 ```
 ```text
 Tracker, step 4a (drops). Needs step 1's labels L6. Read PLAN-tracker.md - measurement 5, design 5, step 4a, the
