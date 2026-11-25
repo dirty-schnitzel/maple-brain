@@ -15,11 +15,11 @@ the steps ("Step 7, 2026-11-24").
 **Step 2 (2026-11-24, branch `tracker-build-graph`, 88ff6e8): built, the gate MET** - numbers under the steps ("Step
 2 - built 2026-11-24"). Merged into `dev` 2026-11-24 (the user). Its found-on-the-way 3 (the rebuild's worker thread
 delays frame work by up to ~20-30 ms while it runs): **the user, 2026-11-24: "keep same thread"**.
-**Step 3 (2026-11-24, `tracker-build`): built, in shadow; the gate MISSED (stopped before the live path)** - from the
-kept replay every row met but the feet's jolts (550 against 500; the prototype's own tracks counted alike: 556); L1
-91.3 % / 99.42 %, L2 10 of 21, L3 17 of 22 - the prototype's own answers on every case. Fitter.look: no gain, goes.
-Four questions for the user under the step ("Step 3, 2026-11-24") - **answered 2026-11-24** ("The user's answers"
-under the step); **step 3, try 2 next** (its prompt: "Session prompts").
+**Step 3 DONE (2026-11-25, accepted by the user on try 2's numbers):** the mob tracker runs in shadow
+(`track/mobs.py`); the kept replay's rows, the feet and the live path met (100.000 % equal); L1 stand / air 97.57 %,
+L2 13 of 16, L3 19 of 22 and the tracker's ms p50 1.04 accepted as they are. Three carry-overs (under "Step 3, try
+2", "The user's decision"): the step rule on steep slopes -> step 4b; L2 re-graded once tags are sorted -> step 4b;
+the whole frame's +0.3 ms -> step 9. Fitter.look: no gain, goes in step 9.
 The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
 in this session on the kept replay (no GPU); the tools are in `tools/perc/track/` (branch `tracker-plan`).
 
@@ -889,6 +889,20 @@ world.py (then the shadow cannot meet it while both run: +0.97) or against world
 0.9-1.0)? And the p50 1.04 against 1.0: make the GPU evidence call cheaper (the `shows` map and the gather), or
 accept?
 
+**The user's decision (2026-11-25): step 3 accepted as it is, DONE** ("seems good to me ... stop here and continue";
+no try 3). What was missed is carried, not dropped:
+1. **The step rule on steep slopes (L1's 12 within 5 px):** a mob walking a slope steeper than 0.9 (Drakes, Evil
+   Eyes, Horny Mushrooms on 1.8-1.9), or a 2 px whole-pixel step on any slope, is placed in the air on that frame.
+   A real tracker mistake (not the labels'): **step 4b** lets the step follow the foothold's own slope + 1 px (us
+   are placed by the same rule) and re-runs L1 - the 99 % then stands as the gate for L1 there. Case 124 (a dying
+   Horny Mushroom labelled `fly`) is relabelled `stand` with it. The 6 feet 9-35 px off are the fit's (stop rule 4).
+2. **L2's cases 57 and 61** (our own tag and a mob's own name taken as players) and **case 30** (the screen's top
+   edge): **step 4b** sorts the tag list (ours / a mob's own / pets / players) and uses the sides and the window's
+   bottom only for `edge`, then re-grades L2 on the 16 (>= 90 %).
+3. **The whole frame's +0.3 ms** cannot hold while world.py runs beside the shadow (both are paid: +0.97):
+   **step 9** measures it after world.py goes, against today's frame. The tracker's p50 1.04 ms is accepted.
+L3's 26, 47 (uncovered inside the edge band) and 41 (there at entry by the picture) stay as reported.
+
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
 2. The real code cannot reproduce a prototype's number from the same kept replay within tolerance: stop - it is
@@ -955,8 +969,10 @@ stop.
 Tracker, step 4b (other players and us). Needs step 1's labels L1 and L5. Read PLAN-tracker.md - measurement 7,
 design 6-7, step 4b, the stop rules - tools/perc/track/proto_players.py (the reference) and nav/selfstate.py's
 docstring (its stuck cases become tests). Branch tracker-build. Build track/players.py and us.py; two tags side
-by side are split by the widths already known; pets are sorted out. Gate as written; numbers into the plan; a
-gate missed: stop.
+by side are split by the widths already known; pets are sorted out. Also step 3's carry-overs 1 and 2 ("Step 3,
+try 2", "The user's decision"): the step rule follows the foothold's own slope + 1 px, case 124 relabelled, L1
+re-run (>= 99 %); the mob tracker's covers use the sorted tags, `edge` = the sides and the window's bottom, L2
+re-graded on the 16 (>= 90 %). Gate as written; numbers into the plan; a gate missed: stop.
 ```
 ```text
 Tracker, step 5 (events). Needs steps 3-4 and step 1's labels L4. Read PLAN-tracker.md - measurement 6, design
@@ -989,7 +1005,8 @@ as written; numbers into the plan; a gate missed: stop.
 Tracker, step 9 (the switch). Needs every step before it, and the user at the game. Read PLAN-tracker.md - step
 9, the stop rules - and PLAN-livemap.md. Branch tracker-build. The brain reads the state through one adapter;
 world.py, its tests and what only it needed are deleted; gate.py and the bench are re-based in that commit.
-pytest, the bench, then ask the user for the 3-minute hunt on Line 1. Numbers into the plan; a gate missed: stop.
+pytest, the bench, step 3's carry-over 3 (the whole frame's p50 not above today's + 0.3 ms, world.py gone), then
+ask the user for the 3-minute hunt on Line 1. Numbers into the plan; a gate missed: stop.
 ```
 
 ## Footage asked of the user (`python -m maplebrain record --label farming`, chat minimized, today's settings)
