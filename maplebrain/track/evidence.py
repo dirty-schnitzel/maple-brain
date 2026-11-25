@@ -15,6 +15,9 @@ scene, inside it, and inside it AND world. A source that has nothing for this fr
 `columns(cx, top, reach, half)` (the players' tracker, track/players.py: what stands on a name tag) -> per tag the
 `reach` rows over its top (row i = top - reach + i), each counted over the 2 half + 1 columns around cx: pixels that
 are world and do NOT show the scene (something is drawn there), world, inside the play area.
+`ask_columns(...)` -> an Answer whose `get()` is `columns`' result: the bitmaps answer at once; on the GPU the gather
+is queued and its result RIDES in the next `count` transfer of this frame (the mob tracker's) - one round trip a frame
+(PLAN-tracker step 4b try 2, the user's answer 6); `get()` before any `count` makes the transfer itself.
 """
 import numpy as np
 
@@ -32,6 +35,22 @@ class Evidence:
     def columns(self, cx, top, reach: int, half: int):
         """cx, top (n,) screen px -> (over, world, inside): (n, reach) int64 counts (the module's docstring)."""
         raise NotImplementedError
+
+    def ask_columns(self, cx, top, reach: int, half: int) -> "Answer":
+        return Answer(self.columns(cx, top, reach, half))
+
+
+class Answer:
+    """A question's answer: `get()`. `owner` (a Gpu) delivers it on its next transfer."""
+    __slots__ = ("value", "owner")
+
+    def __init__(self, value=None, owner=None):
+        self.value, self.owner = value, owner
+
+    def get(self):
+        if self.value is None:
+            self.owner.flush()
+        return self.value
 
 
 def _grid(cx, top, reach, half):
@@ -92,6 +111,8 @@ class Gpu(Evidence):
         self._shows = self._valid = None
         self._cores = {}                                # id of the offsets array -> (dx, dy) on the GPU
         self.asked = 0                                  # places asked on the last frame (all groups)
+        self._waiting = []                              # [(Answer, (2, m) bool tensor, (n, reach, w), inside)]
+        self.trips = 0                                  # transfers back (a tool counts them per frame)
 
     @property
     def ready(self) -> bool:
@@ -136,7 +157,7 @@ class Gpu(Evidence):
             sizes.append(n)
             a += n
         self.asked = a
-        allc = t.cat(parts, dim=1).cpu().numpy()            # the one transfer back
+        allc = self._transfer(parts)                    # the one transfer back (+ any columns waiting)
         out, a = [], 0
         for n in sizes:
             out.append((allc[0, a:a + n], allc[1, a:a + n], allc[2, a:a + n]))
@@ -144,11 +165,41 @@ class Gpu(Evidence):
         self.last = (self._key, groups, out)            # this frame's questions and answers (a tool's check)
         return out
 
+    def _transfer(self, parts):
+        """One transfer back of `parts` ((3, m) int64 tensors) + the columns waiting -> parts' numpy (3, sum m)."""
+        t = self.torch
+        w = self._waiting
+        self._waiting = []
+        flat = [x for x in parts] + [x.to(t.int64).reshape(2, -1) for _, x, _, _ in w]
+        if not flat:
+            return np.zeros((3, 0), np.int64)
+        m = sum(x.shape[1] for x in parts)
+        z = [x if x.shape[0] == 3 else t.cat([x, t.zeros_like(x[:1])]) for x in flat]
+        allc = t.cat(z, dim=1).cpu().numpy()
+        self.trips += 1
+        a = m
+        for ans, x, shape, inside in w:
+            k = int(np.prod(shape))
+            ov = allc[0, a:a + k].reshape(shape).astype(bool) & inside
+            wo = allc[1, a:a + k].reshape(shape).astype(bool) & inside
+            ans.value = (ov.sum(2), wo.sum(2), inside.sum(2))
+            a += k
+        return allc[:, :m]
+
+    def flush(self):
+        """Deliver the columns waiting (their own transfer: no `count` came this frame)."""
+        if self._waiting:
+            self._transfer([])
+
     last = None
 
     def columns(self, cx, top, reach: int, half: int):
+        """`ask_columns` answered at once (its own transfer)."""
+        return self.ask_columns(cx, top, reach, half).get()
+
+    def ask_columns(self, cx, top, reach: int, half: int) -> Answer:
         """The same formula as `count`, at the asked pixels only (the whole frame's shows map only when this frame
-        already has it: a few thousand pixels need no full-frame pass); one transfer back."""
+        already has it: a few thousand pixels need no full-frame pass); queued for the next transfer."""
         t = self.torch
         xs, ys, inside = _grid(cx, top, reach, half)
         idx = np.clip(ys, 0, PLAY_H - 1) * SW + np.clip(xs, 0, SW - 1)
@@ -162,5 +213,6 @@ class Gpu(Evidence):
         else:
             sh = (frame.reshape(-1, 3)[it].float() - exp.reshape(-1, 3)[it]).abs().amax(dim=1) <= self.tol
             sh &= v
-        both = t.stack([v & ~sh, v]).cpu().numpy().reshape(2, *idx.shape) & inside[None]
-        return both[0].sum(2), both[1].sum(2), inside.sum(2)
+        ans = Answer(owner=self)
+        self._waiting.append((ans, t.stack([v & ~sh, v]), idx.shape, inside))
+        return ans

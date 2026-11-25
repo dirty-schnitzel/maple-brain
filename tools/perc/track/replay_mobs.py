@@ -80,6 +80,10 @@ class LazyBits:
     def columns(self, cx, top, reach, half):
         return self._bits().columns(cx, top, reach, half)
 
+    def ask_columns(self, cx, top, reach, half):
+        from maplebrain.track.evidence import Answer
+        return Answer(self.columns(cx, top, reach, half))
+
 
 def seen_rule():
     from maplebrain.perception.fit import FitConfig

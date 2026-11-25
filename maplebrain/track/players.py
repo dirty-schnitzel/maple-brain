@@ -21,12 +21,20 @@ class per tag of the list: `tag_class`), the player records (track/state.Player)
      pieces of one tag. A young track that now shows the width of an older one still covered nearby is that one back.
   3. A track's CLASS is voted over its sightings so far, every frame (the prototype voted over the whole life in
      hindsight): mob / pattern / npc / text (nothing stands on it, or it stays put on the screen while the camera
-     moves) / pet (a short body) / player (a tall body) / unsure (no body readable) / short (under tag_min_seen
-     sightings). Pets are sorted out, not tracked (the user, 2026-11-24, question 4): their class stays, so a later
-     step can track them without re-sorting.
+     moves) / pet or player / unsure (no body readable) / short (under tag_min_seen sightings: "not yet known").
+     PET OR PLAYER by the body's heights over the stay (step 4b try 2, the user's answer 3): pet_q (75th) percentile of
+     its whole, alone sightings (else of every reading) under pet_line (50 px) = a pet - measured on L5's tracks: pets
+     35-41 px, players 57-120; a player in an attack stance reads 10-22 px between its legs on some sightings, which
+     the percentile rides over (the prototype voted per sighting at 55 px). Pets are sorted out, not tracked (the
+     user, 2026-11-24, question 4): their class stays, so a later step can track them without re-sorting.
   4. A track not found is kept up to player_cover_s (2 s: the user, question 5) while its place is in view, and ends
      at once when its place is at the screen's edge or under the UI. A blind frame changes nothing.
-  5. A player's feet = the tag's centre x, its top y - 1, placed by the one rule (stand / air / rope: it climbs).
+  5. A player's feet = the tag's centre x, its top y - 1 - or, for a tag box of tag_medal_h (21 px: a medal grows the
+     box UP), its bottom - 18 (the user, 2026-11-26: 19-22 px boxes grow down, their top stays); placed by the one
+     rule (stand / air / rope: it climbs).
+One GPU round trip a frame (step 4b try 2, the user's answer 6): `begin` sorts the tags up to the body question and
+ASKS it of the evidence (`ask_columns`); the mob tracker's own evidence transfer carries the answer; `end` (or the
+mob tracker's call for the sorted boxes) finishes the frame. `update` = begin + end.
 Mob kinds' own tag boxes are LEARNED while running (the prototype learned them over the whole capture first): the
 commonest (w, h, dx, dy) of the tags 0-4 px under a seen mob's feet, known after mob_tag_n near it (once known, the
 commonest is looked at again every 30th sighting).
@@ -43,6 +51,7 @@ from .state import Player
 
 SW, SH, PLAY_H = 1366, 768, 700
 KIND_WHOLE, KIND_PART = 0, 1
+BODY_BINS = 160                     # body heights 0..159 px (col_body reads at most body_reach = 120)
 CLASSES = ("ours", "log", "mob", "npc", "text", "pet", "pattern", "player", "unsure", "short", "none")
 
 
@@ -78,7 +87,7 @@ class Det:
 class _Track:
     __slots__ = ("id", "x", "y", "w", "h", "wc", "hc", "t", "n", "t0", "n0", "unseen", "seen", "ev", "hist", "born",
                  "end", "sx", "sy", "scr", "merged", "wlast", "clean", "into", "vx", "px", "known", "shared", "place",
-                 "node", "from_node", "off", "vy", "was_player", "cls_now")
+                 "node", "from_node", "off", "vy", "was_player", "cls_now", "hb1", "hb", "bseq", "known_n")
 
     def __init__(self, tid, d, t, n):
         self.id = tid
@@ -103,6 +112,10 @@ class _Track:
         self.place, self.node, self.from_node, self.off = 1, NONE, NONE, float("nan")
         self.was_player = False
         self.cls_now = "short"
+        self.hb1 = np.zeros(BODY_BINS, np.int32)    # the body's heights over the stay: whole, alone, own width
+        self.hb = np.zeros(BODY_BINS, np.int32)     # ... every sighting with a body read
+        self.bseq = []                               # a tool's (keep): (n, body, whole and alone, cut)
+        self.known_n = None                          # the frame its class was first more than "short"
 
     def cls(self, c: Track) -> str:
         """Its class by what was seen of it so far (the prototype's Track.cls)."""
@@ -117,12 +130,16 @@ class _Track:
             return "npc"
         if (e["b0"] >= 3 and e["b0"] >= e["bs"] + e["bt"]) or (self.scr[1] >= 5 and self.scr[0] >= 0.8 * self.scr[1]):
             return "text"                                    # nothing stands on it / it stays put on the screen
-        one, body = e["bs1"] + e["bt1"], e["bs"] + e["bt"]   # the body's height: on its whole sightings, else all
-        if one >= 5:
-            return "pet" if 2 * e["bs1"] >= one else "player"
-        if body >= 5:
-            return "pet" if 2 * e["bs"] >= body else "player"
-        return "unsure"                                      # no body could be read (under the play area, at the UI)
+        hist = self.hb1 if self.hb1.sum() >= 5 else self.hb if self.hb.sum() >= 5 else None
+        if hist is None:                                     # the heights: of its whole, alone sightings, else all
+            return "unsure"                                  # no body could be read (under the play area, at the UI)
+        q = int(np.searchsorted(np.cumsum(hist), c.pet_q / 100.0 * hist.sum(), side="left"))
+        return "pet" if q < c.pet_line else "player"
+
+    def feet_y(self, c: Track) -> float:
+        """The feet's map y from the track's own box (top y, commonest height): top - 1; a medal box (tag_medal_h)
+        grew up: its bottom - 18."""
+        return self.y + self.h - 18.0 if self.h == c.tag_medal_h else self.y - 1.0
 
 
 def col_body(over, world, inside, top, c: Track) -> int:
@@ -168,11 +185,18 @@ class Players:
         self.frames = []                                 # keep: per frame (n, tag_class, tag_track)
         self.drawn = []                                  # this frame: (class, screen box x0, y0, x1, y1) of each
         self._ev = []                                    # track seen, at its own width
+        self._pend = None                                # a frame `begin` started and `end` has not finished
+        self._dirty = set()                              # tracks whose counts changed this frame
 
     # ------------------------------------------------------------------ one frame
     def update(self, facts, evidence=None, ours=None, n=None, ui=None) -> list:
         """`ours`: our tag on the screen as track/us.py found it - (x, y, w, h, list index or None) or None; `ui`: the
         UI rectangles now (the minimap window as measured; None: as before). -> this frame's events."""
+        self.begin(facts, evidence, ours, n, ui)
+        return self.end()
+
+    def begin(self, facts, evidence=None, ours=None, n=None, ui=None):
+        """The frame up to the body question, which is ASKED of the evidence (answered in `end`)."""
         c = self.cfg
         if ui is not None:
             self.ui = list(ui)
@@ -180,6 +204,7 @@ class Players:
         self.n = self.n + 1 if n is None else n
         n = self.n
         self._ev = []
+        self._pend = None
         tags = [tuple(int(v) for v in tg[:4]) for tg in facts.tags or []]
         self.tag_class, self.tag_track = ["none"] * len(tags), [0] * len(tags)
         self.drawn = []
@@ -187,7 +212,7 @@ class Players:
             self.records = self._records(t, blind=True)
             if self.keep:
                 self.frames.append((n, None, None))
-            return self._ev
+            return
         dt = 0.0 if self.t is None else max(0.0, t - self.t)
         self.t = t
         cx0, cy0 = C
@@ -212,7 +237,21 @@ class Players:
                             cand.append(d)
                     continue
             boxes.append((x, y, w, h, i))
-        bodies = self._bodies(boxes, facts.patches, evidence)
+        ask = None
+        if boxes and evidence is not None and getattr(evidence, "ready", False):
+            ask = evidence.ask_columns(np.array([x + w // 2 for x, y, w, h, i in boxes]),
+                                       np.array([y for x, y, w, h, i in boxes]), c.body_reach, c.body_half)
+        self._pend = (facts, boxes, cand, ask, t, dt, cx0, cy0, moved, n)
+
+    def end(self) -> list:
+        """The rest of the frame `begin` started (the body's answer read) -> its events; a second call: []."""
+        if self._pend is None:
+            ev, self._ev = self._ev, []
+            return ev
+        c = self.cfg
+        facts, boxes, cand, ask, t, dt, cx0, cy0, moved, n = self._pend
+        self._pend = None
+        bodies = self._bodies(boxes, facts.patches, ask)
         r0, pitch, nrows, rlo, rhi, x0log = c.log_rows
         for d in self._join(boxes, bodies):
             k, r = divmod(r0 + 1 - d.y, pitch)                # a log line: on a row of the log, right-aligned - or a
@@ -227,9 +266,13 @@ class Players:
             d.to_map(cx0, cy0)
             d.cut = d.joined or d.nobirth or bool(self._why(d.x, d.y, d.x + d.w, d.y + d.h))
         self._evidence(cand, facts.fit)
+        self._dirty = set()
         self._associate(cand, n, t, dt, cx0, cy0, moved)
         for tr in self.live:
-            tr.cls_now = tr.cls(c)
+            if id(tr) in self._dirty:                       # its counts changed this frame: its class again
+                tr.cls_now = tr.cls(c)
+                if tr.known_n is None and tr.cls_now != "short":
+                    tr.known_n = n
         for d in cand:
             if d.tr is None:
                 continue
@@ -241,7 +284,8 @@ class Players:
         self.records = self._records(t)
         if self.keep:
             self.frames.append((n, list(self.tag_class), list(self.tag_track)))
-        return self._ev
+        ev, self._ev = self._ev, []
+        return ev
 
     # ------------------------------------------------------------------ the tags' evidence
     def _learn(self, tags, fit):
@@ -266,17 +310,15 @@ class Players:
                     if near >= c.mob_tag_n:
                         self.mob_tags[m["type"]] = (w0, h0, dx2 / 2.0, dy)
 
-    def _bodies(self, boxes, patches, evidence) -> list:
-        """Per box: (the body's height over it from the evidence, D's blob over it) - proto_players' col_body and
-        blob_over."""
+    def _bodies(self, boxes, patches, ask) -> list:
+        """Per box: (the body's height over it from the evidence's answer, D's blob over it) - proto_players'
+        col_body and blob_over."""
         c = self.cfg
         out = [(-1, self._blob(b[:4], patches)) for b in boxes]
-        if not boxes or evidence is None or not getattr(evidence, "ready", False):
+        if ask is None:
             return out
-        cx = np.array([x + w // 2 for x, y, w, h, i in boxes])
-        top = np.array([y for x, y, w, h, i in boxes])
-        over, world, inside = evidence.columns(cx, top, c.body_reach, c.body_half)
-        return [(col_body(over[k], world[k], inside[k], int(top[k]), c), out[k][1]) for k in range(len(boxes))]
+        over, world, inside = ask.get()
+        return [(col_body(over[k], world[k], inside[k], int(boxes[k][1]), c), out[k][1]) for k in range(len(boxes))]
 
     def _blob(self, tag, patches) -> int:
         """proto_players.blob_over: how far the tallest of D's blobs that lies over the tag's centre and comes down to
@@ -476,8 +518,11 @@ class Players:
                 seen[h[0]] = h
         old.hist = [seen[k] for k in sorted(seen)]
         old.seen = len(old.hist)
+        self._dirty.add(id(old))
         for k, v in new.ev.items():
             old.ev[k] += v
+        old.hb1 += new.hb1
+        old.hb += new.hb
         if why == "back":
             old.wc.update(new.wc)
             old.hc.update(new.hc)
@@ -491,6 +536,7 @@ class Players:
     def _update(self, tr, d, n, t, moved, shared=False, new=False):
         c = self.cfg
         G0, WT = c.tag_gate, c.tag_w_tol
+        self._dirty.add(id(tr))
         whole = not d.cut and not shared
         if whole:                                            # its own width: the commonest whole one
             k = tr.wc[d.w] = tr.wc[d.w] + 1
@@ -532,8 +578,13 @@ class Players:
         elif d.body > 0:
             k = "bs" if d.body < c.body_tall else "bt"
             e[k] += 1
+            b = min(d.body, BODY_BINS - 1)
+            tr.hb[b] += 1
             if whole and full:                               # the tag whole and alone: its centre is its owner's
                 e[k + "1"] += 1
+                tr.hb1[b] += 1
+        if self.keep:
+            tr.bseq.append((n, d.body, whole and full, d.cut))
         h = tr.hist
         if moved and tr.sx is not None and tr.n == n - 1 and not shared:
             tr.scr[1] += 1
@@ -565,13 +616,14 @@ class Players:
         if not seen:
             return
         xs = np.array([tr.x for tr in seen], np.float64)
-        ys = np.array([tr.y - 1.0 for tr in seen], np.float64)
+        ys = np.array([tr.feet_y(c) for tr in seen], np.float64)
         prev = [tr.hist[-2] if len(tr.hist) >= 2 and tr.hist[-2][0] == self.n - 1 else None for tr in seen]
         dx = np.array([0.0 if p is None else tr.x - p[2] for tr, p in zip(seen, prev)])
         dy = np.array([0.0 if p is None else tr.y - p[3] for tr, p in zip(seen, prev)])
         last = np.array([tr.node for tr in seen], np.int64)
         lfrom = np.array([tr.from_node for tr in seen], np.int64)
-        P = self.g.place(xs, ys, dx, dy, last, lfrom, climb=np.ones(len(seen), bool))
+        P = self.g.place(xs, ys, dx, dy, last, lfrom, climb=np.ones(len(seen), bool),
+                         vx=np.array([tr.vx for tr in seen]), vy=np.array([tr.vy for tr in seen]))
         for q, tr in enumerate(seen):
             tr.place, tr.node, tr.from_node, tr.off = int(P.place[q]), int(P.node[q]), int(P.from_node[q]), float(P.off[q])
             cls = tr.cls_now
@@ -591,7 +643,8 @@ class Players:
             if tr.into is not None or tr.cls_now != "player":
                 continue
             seen = tr.n == self.n and not blind
-            out.append(Player(tr.id, tr.x, tr.y - 1.0, tr.x - C[0], tr.y - 1.0 - C[1], tr.w, PLACES[tr.place], tr.node,
+            fy = tr.feet_y(self.cfg)
+            out.append(Player(tr.id, tr.x, fy, tr.x - C[0], fy - C[1], tr.w, PLACES[tr.place], tr.node,
                               tr.from_node, tr.off, tr.vx, tr.vy, seen,
                               "blind" if blind else "none" if seen else "unseen", tr.unseen, tr.t0))
         return out

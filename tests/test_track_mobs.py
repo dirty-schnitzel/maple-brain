@@ -303,6 +303,22 @@ def test_covers_come_from_the_sorted_tags():
         assert trk.mobs()[0].cover == want, (tags, trk.mobs()[0].cover)
 
 
+def test_the_sorted_tags_are_asked_for_only_when_a_cover_is_named():
+    """Step 4b try 2 (the user's answer 6): `tags` may be a callable - called once, and only after the evidence was
+    asked (a cover is named), so the players' body question can ride in that transfer."""
+    calls = []
+
+    def tags():
+        calls.append(1)
+        return {"us": [(560, 440, 640, 532)], "player": []}
+    trk = a_tracker()
+    trk.update(facts(0.0, [mob(600)]), ev(False, True), tags=tags)
+    assert calls == []                                              # every track seen: no cover to name
+    f = facts(DT)
+    trk.update(f, ev(False, True), tags=tags)
+    assert calls == [1] and trk.mobs()[0].cover == "us"
+
+
 def test_how_it_came_into_sight_and_its_first_pose_are_two_fields():
     """The user, 2026-11-24 (L3): a mob first seen in its die pose is born by how it came into sight (uncovered,
     came into view or there at entry), with the die pose as its first pose - not born "dying", and not "faded in"

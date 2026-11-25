@@ -8,6 +8,7 @@ nav/selfstate.SelfTracker and the 2 s players' cover.
     python tools/perc/track/replay_players.py l5 [--final]        L5: classes, players found, the node (2 captures)
     python tools/perc/track/replay_players.py cover [CAP]         the 2 s cover: tracks, the same tag back as a new id
     python tools/perc/track/replay_players.py us [--sound]        L1's us, our feet known, SelfState on the same frames
+    python tools/perc/track/replay_players.py heights             the body heights of L5's pets and standing players
     python tools/perc/track/replay_players.py ms [--sound]        players + us ms a frame (the decode apart)
     python tools/perc/track/replay_players.py time CAP [--n 3000] the live Perceiver: part us_players p50 / p90
 
@@ -74,6 +75,10 @@ class LazyBits:
 
     def columns(self, cx, top, reach, half):
         return self._bits().columns(cx, top, reach, half)
+
+    def ask_columns(self, cx, top, reach, half):
+        from maplebrain.track.evidence import Answer
+        return Answer(self.columns(cx, top, reach, half))
 
 
 def minimap_ui(cap):
@@ -184,8 +189,10 @@ def run(cap, port=False) -> dict:
                                                             ss.rope, round(ss.x, 1), round(ss.y, 1)),
                            "players": [(m.id, round(m.x, 1), round(m.y, 1), m.place, m.node, m.seen) for m in pl.records]})
     tracks = pl.finish()
-    trs = [{"id": tr.id, "cls": tr.cls(cfg), "w": tr.w, "n0": tr.n0, "t0": tr.t0, "end": tr.end, "born": tr.born,
-            "seen": tr.seen, "first": tr.hist[0][:4], "last": tr.hist[-1][:4], "ev": dict(tr.ev)} for tr in tracks]
+    trs = [{"id": tr.id, "cls": tr.cls(cfg), "w": tr.w, "h": tr.h, "n0": tr.n0, "t0": tr.t0, "end": tr.end,
+            "born": tr.born, "seen": tr.seen, "first": tr.hist[0][:4], "last": tr.hist[-1][:4], "ev": dict(tr.ev),
+            "hb1": tr.hb1.copy(), "hb": tr.hb.copy(), "bseq": list(tr.bseq), "known_n": tr.known_n,
+            "hist": [(h[0], round(h[2], 1), round(h[3], 1), h[4], h[5], h[6]) for h in tr.hist]} for tr in tracks]
     return {"cap": cap, "map": mid, "port": port, "frames": frames, "tracks": trs, "ms": np.array(ms),
             "ms_us": np.array(ms_us), "stats": dict(pl.stats), "us_stats": dict(us.tag.stats), "minimap": mm,
             "mob_tags": dict(pl.mob_tags)}
@@ -266,7 +273,8 @@ def cmd_l5(final=False, port=False):
     """L5 (2 captures, 200 frames): each labelled tag's class against the real tracker's sorting on that frame (the
     class voted so far: live; `final`: its track's class at the track's end, in hindsight - as the prototype's sheets
     the cases were picked from). Players found, non-players called players, pet <-> player, the node of standing
-    players."""
+    players. A tag on a track seen under 6 times (`short`) is NOT YET KNOWN (the user, step 4b try 2, answer 1): not a
+    miss, counted apart, with the delay until a track's class is known (frames from its first sighting, p50 / p90)."""
     conf = Counter()
     nodes = [0, 0]
     rows_miss = []
@@ -306,6 +314,20 @@ def cmd_l5(final=False, port=False):
     non_pl = sum(v for (a, b), v in conf.items() if a not in ("player", "?") and b == "player")
     pp = pl + sum(v for (a, b), v in conf.items() if a == "pet")
     swap = conf[("pet", "player")] + conf[("player", "pet")]
+    unk = sum(v for (a, b), v in conf.items() if b == "short")
+    unk_pl = conf[("player", "short")]
+    pl -= unk_pl
+    non -= sum(v for (a, b), v in conf.items() if a not in ("player", "?") and b == "short")
+    pp -= unk_pl + conf[("pet", "short")]
+    print(f"not yet known (a track seen under 6 times): {unk} labelled tags ({unk_pl} players), left out of the rows")
+    dl = []
+    for cap in L5_CAPS:
+        for t in load(cap, port)["tracks"]:
+            if t["known_n"] is not None and t["cls"] in ("player", "pet"):
+                dl.append(t["known_n"] - t["n0"])
+    if dl:
+        print(f"the delay until a player's / pet's class is known: frames from its first sighting p50 / p90 / p99 "
+              f"{np.percentile(dl, [50, 90, 99]).round(1).tolist()} ({len(dl)} tracks; 60 frames a second)")
     print(f"players found {found} of {pl} = {100 * found / max(1, pl):.1f} % (>= 95)")
     print(f"non-players called players {non_pl} of {non} = {100 * non_pl / max(1, non):.2f} % (<= 1)")
     print(f"a pet called a player or a player called a pet {swap} of {pp} = {100 * swap / max(1, pp):.2f} % (<= 5)")
@@ -411,6 +433,94 @@ def cmd_us(caps):
         print(f"     {k}: {v}  {ex[k][:8]}")
 
 
+def pct_s(v, ps=(0, 1, 5, 50, 95, 100)):
+    v = np.asarray(v, float)
+    return "n 0" if not len(v) else f"n {len(v)}: " + " / ".join(f"{np.percentile(v, q):.0f}" for q in ps)
+
+
+def hpct(hist, q):
+    """The q-th percentile of a height histogram (counts per px), or None."""
+    n = int(hist.sum())
+    if not n:
+        return None
+    return int(np.searchsorted(np.cumsum(hist), q / 100.0 * n, side="left"))
+
+
+def cmd_heights():
+    """Answer 3 (PLAN-tracker step 4b, try 2): the body over the tag of every L5-labelled pet and standing player -
+    (a) on the labelled frame, (b) over its track's whole stay (whole, alone sightings: the heights a track is judged
+    by), (c) per track, high percentiles; and which player sightings read short (under 55 px): at the screen's edge /
+    the UI (cut), inside a shared or joined box, in the air or on a rope, the rest (looked at by eye)."""
+    lab_tr = {"pet": {}, "player": {}}                  # class -> {(cap, track id): [labelled frames]}
+    frame_h = {"pet": [], "player": []}
+    other = Counter()                                   # labelled tags on a track of another name (width)
+    for cap in L5_CAPS:
+        res = load(cap)
+        by = {f["n"]: f for f in res["frames"]}
+        tracks = {t["id"]: t for t in res["tracks"]}
+        lab = json.loads((LABELS / cap / "labels" / "L5.json").read_text(encoding="utf-8"))
+        for n, fr in lab["frames"].items():
+            n = int(n)
+            f = by[n]
+            idx = {tuple(b): i for i, b in enumerate(f["tags"])}
+            for e in fr["tags"]:
+                k = e["class"]
+                if k not in ("pet", "player") or (k == "player" and e.get("place") != "stand"):
+                    continue
+                i = idx.get(tuple(e["box"]))
+                tid = None if i is None else f["trk"][i]
+                if not tid or tid not in tracks:
+                    continue
+                if abs(e["box"][2] - tracks[tid]["w"]) > 1:     # the tag is not the track's name: another
+                    other[k] += 1                                # character's track took it on that frame
+                    continue
+                lab_tr[k].setdefault((cap, tid), []).append(n)
+                b = [x for x in tracks[tid]["bseq"] if x[0] == n]
+                if b and b[0][1] > 0:
+                    frame_h[k].append(b[0][1])
+        for k in lab_tr:
+            for (c, tid), ns in lab_tr[k].items():
+                if c == cap:
+                    lab_tr[k][(c, tid)] = (ns, tracks[tid], {h[0]: h for h in tracks[tid]["hist"]},
+                                           {f["n"]: f for f in res["frames"] if any(t == tid for t in f["trk"])})
+    print("ANSWER 3 - the body over the tag (px), min / p1 / p5 / p50 / p95 / max; only labelled tags of their track's "
+          f"own width (its name) - left out, the tag on a track of another name that frame: {dict(other)}")
+    for k in ("pet", "player"):
+        print(f"  (a) labelled {k}s{' (standing)' if k == 'player' else ''}, on the labelled frame: {pct_s(frame_h[k])}")
+    for k in ("pet", "player"):
+        whole = [b for (ns, tr, hh, ff) in lab_tr[k].values() for (n, b, w, cut) in tr["bseq"] if b > 0 and w]
+        allb = [b for (ns, tr, hh, ff) in lab_tr[k].values() for (n, b, w, cut) in tr["bseq"] if b > 0]
+        print(f"  (b) their {len(lab_tr[k])} tracks over the stay - whole, alone: {pct_s(whole)}; every reading: {pct_s(allb)}")
+    for q in (75, 90, 95):
+        for k in ("pet", "player"):
+            v = [hpct(tr["hb1"], q) if tr["hb1"].sum() >= 5 else hpct(tr["hb"], q)
+                 for (ns, tr, hh, ff) in lab_tr[k].values()]
+            v = [x for x in v if x is not None]
+            print(f"  (c) per track, p{q} of its heights ({k}s): {pct_s(v)}  {sorted(v)[:6] if k == 'player' else sorted(v)[-6:]}")
+    # why players read short: every sighting of a labelled standing player's track under 55 px
+    why = Counter()
+    short = []
+    for (cap, tid), (ns, tr, hh, ff) in lab_tr["player"].items():
+        for n, b, w, cut in tr["bseq"]:
+            if b <= 0 or b >= 55:
+                continue
+            f = ff.get(n)
+            pl = None
+            if f is not None:
+                for i, t in enumerate(f["trk"]):
+                    if t == tid and f["tplace"][i] is not None:
+                        pl = f["tplace"][i][0]
+            k = "cut (screen edge / UI)" if cut else "air / rope" if pl in ("air", "rope") else \
+                "a shared / joined box" if not w else "whole, standing"
+            why[k] += 1
+            short.append((cap, tid, n, b, k))
+    tot = sum(1 for (ns, tr, hh, ff) in lab_tr["player"].values() for x in tr["bseq"] if x[1] > 0)
+    print(f"  player sightings under 55 px: {sum(why.values())} of {tot} with a body read: {dict(why)}")
+    out = OUT / "heights_short.json"
+    out.write_text(json.dumps(short), encoding="utf-8")
+    print(f"  -> {out}")
+
+
 def cmd_ms(caps):
     a = np.concatenate([load(c)["ms"] for c in caps])
     b = np.concatenate([load(c)["ms_us"] for c in caps])
@@ -431,9 +541,11 @@ def cmd_time(cap, n):
     c = dump.clip_of(cap)
     fr = c.frames(0.0, 1e9)[:n]
     per = replay.bench_module().build(c.map_id)[0]
-    up, tr, ob = [], [], []
+    up, tr, ob, trips = [], [], [], []
+    ev = getattr(per, "evidence", None)
     for j, (nn, name, t) in enumerate(fr):
         img = rec.read(c.run, name)
+        k0 = getattr(ev, "trips", 0)
         a = time.perf_counter()
         per.observe(img, t)
         e = time.perf_counter()
@@ -441,9 +553,11 @@ def cmd_time(cap, n):
             up.append(per.parts.get("us_players", 0.0))
             tr.append(per.parts.get("track", 0.0))
             ob.append(1000 * (e - a))
+            trips.append(getattr(ev, "trips", 0) - k0)
     up, tr, ob = np.array(up), np.array(tr), np.array(ob)
     print(f"{cap}: {len(up)} frames; us_players p50 / p90 / p99 {np.percentile(up, [50, 90, 99]).round(2).tolist()} "
-          f"(p50 <= 0.1; the part is kept to 0.1 ms); track p50 {np.median(tr):.2f}; observe p50 {np.median(ob):.2f}")
+          f"(p50 <= 0.1; the part is kept to 0.1 ms); track p50 / p90 {np.percentile(tr, [50, 90]).round(2).tolist()}; "
+          f"observe p50 {np.median(ob):.2f}; the evidence's transfers back a frame {dict(Counter(trips))}")
 
 
 def main():
@@ -477,6 +591,8 @@ def main():
         cmd_cover(caps[0] if caps else cache.DESIGN)
     elif a.cmd == "us":
         cmd_us(caps or cache.SOUND)
+    elif a.cmd == "heights":
+        cmd_heights()
     elif a.cmd == "ms":
         cmd_ms(caps or cache.SOUND)
     elif a.cmd == "time":

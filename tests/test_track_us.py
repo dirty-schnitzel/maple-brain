@@ -185,6 +185,30 @@ def test_leaving_a_platforms_end_lets_go_of_it(graph):
     assert us.state()["place"] == "air" and us.place.ledge is None
 
 
+def test_falling_or_jumping_past_a_ladder_is_not_on_it(graph):
+    """Step 4b try 2 (the user's answer 5): a fall straight down past ladder 778 (x 778) and a jump arc across it are
+    air; climbing it at ~125 px/s is on it."""
+    us = Us(graph)
+    for i in range(8):                                        # falling at 300 px/s right at the ladder's x
+        us.update(at(i / 60, 778, 40 + 5 * i))
+    assert us.state()["place"] == "air"
+    us = Us(graph)
+    for i in range(10):                                       # a jump across it: 150 px/s sideways
+        us.update(at(i / 60, 760 + 2.5 * i, 90))
+    assert us.state()["place"] == "air"
+    us = Us(graph)
+    for i in range(10):                                       # hanging on it, then letting go: the fall leaves it
+        us.update(at(i * 0.04, 778, 100))
+    assert us.state()["place"] == "rope"
+    for i in range(1, 10):
+        us.update(at(0.4 + i / 60, 778, 100 + 6 * i))
+    assert us.state()["place"] == "air"
+    us = Us(graph)
+    for i in range(10):                                       # climbing: on it
+        us.update(at(i / 60, 778, 120 - 2 * i))
+    assert us.state()["place"] == "rope"
+
+
 def test_our_tag_from_the_list_by_its_width_and_the_edge_that_kept_its_place(graph):
     """Our tag reader missed it: a list box of our width, or a piece of it (front scenery over part of it: "Jenk",
     "sJob") by the edge that kept its place - never another tag at our place."""

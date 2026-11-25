@@ -65,6 +65,42 @@ def test_a_player_by_its_tall_body_a_pet_by_its_short_one():
     assert [b[0] for b in trk.drawn] == ["player", "pet"]
 
 
+def test_pet_or_player_by_the_upper_quartile_of_its_heights():
+    """Step 4b try 2 (the user's answer 3): a track's class by the 75th percentile of its body heights over the stay
+    against pet_line (50 px), not by a vote of sightings: a player whose attack stance reads 15 px between its legs on
+    two thirds of its sightings stays a player (the prototype's vote: a pet); a pet that reads tall on a quarter (its
+    owner over it) stays a pet; a pet a little larger than today's (46 px) is still a pet."""
+    def run_heights(heights):
+        trk = tracker()
+        t = 0.0
+        for k, b in enumerate(heights):
+            t += DT
+            f, ev = frame(t, [(400, 501, 60, 17)], [body(400, 60, b)])
+            trk.update(f, ev)
+        return trk.tag_class[0]
+    assert run_heights([68, 15, 15] * 6) == "player"          # the prototype's per-sighting vote: pet (12 of 18)
+    assert run_heights([40, 40, 40, 70] * 5) == "pet"
+    assert run_heights([46] * 10) == "pet"
+    assert run_heights([57] * 10) == "player"
+
+
+def test_feet_from_the_top_or_a_medal_tags_bottom():
+    """The user, 2026-11-26: feet = the tag's top - 1; a 21 px tag (a medal grows the box UP): its bottom - 18."""
+    for h, top in ((17, 501), (19, 501), (21, 497)):               # every box's feet on the floor (y 500)
+        trk = tracker()
+        run(trk, 8, 0.0, [(400, top, 60, h)], [body(400, 60, 70, top)])
+        p = trk.records[0]
+        assert p.y == FLOOR and p.place == "stand" and p.node == 1, (h, p.y, p.place)
+
+
+def test_when_the_class_is_known():
+    trk = tracker()
+    t = run(trk, 5, 0.0, [(400, 501, 60, 17)], [body(400, 60)])
+    assert trk.live[0].known_n is None
+    run(trk, 1, t, [(400, 501, 60, 17)], [body(400, 60)])
+    assert trk.live[0].known_n == 6 and trk.tag_class == ["player"]
+
+
 def test_short_until_seen_six_times():
     trk = tracker()
     run(trk, 5, 0.0, [(400, 501, 60, 17)], [body(400, 60)])
@@ -208,3 +244,12 @@ def test_gpu_columns_equal_the_bitmaps():
     gpu.count([(cx, top, np.array([0]), np.array([0]))])         # the frame's shows map made: read from it
     b = gpu.columns(cx, top, 120, 8)
     assert all(np.array_equal(x, y) for x, y in zip(a, b))
+    # step 4b try 2 (the user's answer 6): asked, then the mob tracker's count -> ONE transfer carries both
+    gpu.trips = 0
+    ans = gpu.ask_columns(cx, top, 120, 8)
+    groups = [(cx, top, np.array([0, 1]), np.array([0, -1]))]
+    got = gpu.count(groups)
+    assert gpu.trips == 1 and all(np.array_equal(x, y) for x, y in zip(a, ans.get())) and gpu.trips == 1
+    assert all(np.array_equal(x, y) for x, y in zip(cpu.count(groups)[0], got[0]))
+    gpu.trips = 0
+    assert all(np.array_equal(x, y) for x, y in zip(a, gpu.ask_columns(cx, top, 120, 8).get())) and gpu.trips == 1

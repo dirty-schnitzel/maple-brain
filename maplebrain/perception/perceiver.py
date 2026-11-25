@@ -415,14 +415,24 @@ class Perceiver:
         PLAN-tracker step 9 hands them in. Nothing reads any of it before step 9."""
         if self.mob_tracker is None:
             return
-        ev = self.us.update(f)
-        ev += self.players.update(f, self.evidence, ours=self.us.box,
-                                  ui=[self.minimap or hud.UI_RECTS[0]] + list(hud.UI_RECTS[1:]))
-        tags = sorted_boxes(self.us.box, self.players.drawn, self.cfg.track)
-        self._mark("us_players")
-        mev = self.mob_tracker.update(f, self.evidence, tags=tags)
-        self._mark("track")
         ui = [self.minimap or hud.UI_RECTS[0]] + list(hud.UI_RECTS[1:])
+        ev = self.us.update(f)
+        self.players.begin(f, self.evidence, ours=self.us.box, ui=ui)   # its body question rides in the mob
+        self._mark("us_players")                                       # tracker's evidence transfer (step 4b try 2)
+        done, end_s = [], [0.0]
+
+        def tags():                                     # the players' frame finished on the first need
+            if not done:
+                a = time.perf_counter()
+                ev.extend(self.players.end())
+                done.append(sorted_boxes(self.us.box, self.players.drawn, self.cfg.track))
+                end_s[0] = time.perf_counter() - a
+            return done[0]
+        mev = self.mob_tracker.update(f, self.evidence, tags=tags)
+        tags = tags()
+        self._mark("track")
+        self.parts["us_players"] = round(self.parts["us_players"] + 1000 * end_s[0], 1)   # the players' end where
+        self.parts["track"] = round(self.parts["track"] - 1000 * end_s[0], 1)             # it belongs
         self.mob_events = ev + mev + self.spawns.update(f.t, f.scene_cam, self.mob_tracker.records, mev, tags,
                                                         f.drops, ui)
         self._mark("spawns")

@@ -6,6 +6,8 @@ look's agreement. Nothing here is product code; the reference is the look, never
     python tools/perc/track/label_sets.py pick SET [SET ...] [--seed 1]   the cases + their sheets (SET = L1 .. L8)
     python tools/perc/track/label_sets.py redo SET [SET ...] [--nb 30]    try 2: the same cases, sheets anew, a new second look
     python tools/perc/track/label_sets.py ropes                           try 3 of L1: the cases near a rope, with strips (L1R)
+    python tools/perc/track/label_sets.py jumps                           L1's us around a jump or fall, on strips (L1J)
+    python tools/perc/track/label_sets.py jumps-write                     judged/L1J_a.jsonl -> the bank's L1.json (`was`)
     python tools/perc/track/label_sets.py write SET [SET ...]             judged/SET_a.jsonl -> CORPUS/labels/CAP/labels/SET.json
     python tools/perc/track/label_sets.py agree [SET ...] [--judged DIR]  the second look (SET_b) against the first
     python tools/perc/track/label_sets.py check [SET ...]                 every set's files read back by label_eval.py
@@ -565,6 +567,99 @@ class L1R(L1):
             if near:
                 out.append(dict(c, l1=k, rope=near))
         return out
+
+
+@a_set
+class L1J(L1):
+    """PLAN-tracker step 4b try 2 (the user's answer 4): L1's cases where OUR tag moves MOVE px or more in a frame
+    within 0.1 s of the case's frame (a jump or a fall around it) and that L1R did not already judge on strips - us
+    labelled again from L1R's strip (0.2 s before to 0.2 s after, the lines' ids along them); the mobs are left as they
+    are. Chosen by our tag's motion only, not by any label or tracker answer. Judgments: judged/L1J_a.jsonl
+    {"case": k, "U": "s<node>" / "a" / "r<node>" / "?"}."""
+    name, size = "L1J", 0
+    MOVE = 3
+
+    def pick(self):
+        L = WORK / "L1"
+        cases = json.loads((L / "cases.json").read_text(encoding="utf-8"))
+        rope = {c["l1"] for c in json.loads((WORK / "L1R" / "cases.json").read_text(encoding="utf-8"))}
+        out = []
+        for k, c in enumerate(cases):
+            if not c["me"] or k in rope:
+                continue
+            cp = Cap(c["cap"])
+            i0 = cp.by_n[c["n"]]
+            ys = [(cp.rows[i]["n"], cp.rows[i]["me_map"][1]) for i in range(i0 - 6, i0 + 7)
+                  if 0 <= i < len(cp.rows) and cp.rows[i]["me_map"] is not None]
+            d = [abs(b[1] - a[1]) for a, b in zip(ys, ys[1:]) if b[0] == a[0] + 1]
+            if d and max(d) >= self.MOVE:
+                out.append(dict(c, l1=k))
+        return out
+
+    def tile(self, c, k):
+        cp = Cap(c["cap"])
+        img = cp.img(c["n"])
+        C = c["C"]
+        x, y = c["me"]
+        Z, W, H, UP = 2.5, 150, 130, 20
+        cr = crop(img, x, y - UP, W, H, Z)
+        draw_graph(cp, cr, C, Z, x - W // 2, y - UP - H // 2, alpha=0.45, ids="every", every=150)
+        tick(cr, W // 2 * Z, (H // 2 + UP) * Z, GREEN, 22)
+        st = self.strip(cp, c, "U", x + C[0], y + C[1], GREEN)
+        head = header(f"L1J case {k}   ({c['cap']} n {c['n']})   judge U (green tick, the red frame): s<node> / a / "
+                      f"r<node> / ?", st.shape[1])
+        return vstack([head, cr, st], 4)
+
+
+def cmd_jumps(seed):
+    """L1J: its cases (in a new order, numbered anew) and one sheet per case."""
+    S = SETS["L1J"](seed)
+    S.dir().mkdir(parents=True, exist_ok=True)
+    cases = S.pick()
+    random.Random(seed + 500).shuffle(cases)
+    (S.dir() / "cases.json").write_text(json.dumps(cases, indent=0), encoding="utf-8")
+    pa = S.sheets(cases, "a")
+    print(f"L1J: {len(cases)} cases, {len(pa)} sheets -> {S.dir()}")
+
+
+def cmd_jumps_write(note):
+    """judged/L1J_a.jsonl -> the bank's L1.json: each case's `us` place / node as judged on the strip, `was` = the
+    label it replaces (only where it changed), the file's `relabelled_us` note. A backup of every file first
+    (CORPUS/work/track-plan/step4b/labels_before_l1j/)."""
+    import shutil
+    S = SETS["L1J"](1)
+    cases = json.loads((S.dir() / "cases.json").read_text(encoding="utf-8"))
+    judged = {j["case"]: j for j in (json.loads(x) for x in
+                                     (JUDGED / "L1J_a.jsonl").read_text(encoding="utf-8").splitlines() if x.strip())}
+    back = CORPUS / "work" / "track-plan" / "step4b" / "labels_before_l1j"
+    files, changed, same, unsure = {}, [], 0, 0
+    for k, c in enumerate(cases):
+        j = judged.get(k)
+        if j is None:
+            raise SystemExit(f"L1J case {k} not judged")
+        p = CORPUS / "labels" / c["cap"] / "labels" / "L1.json"
+        if p not in files:
+            (back / c["cap"]).mkdir(parents=True, exist_ok=True)
+            shutil.copy2(p, back / c["cap"] / "L1.json")
+            files[p] = json.loads(p.read_text(encoding="utf-8"))
+        fr = files[p]["frames"][str(c["n"])]
+        e = S.frame_entry(dict(c, fit=[]), {"e": {"U": j["U"]}})["us"]
+        old = fr.get("us")
+        if e["place"] == "?":
+            unsure += 1
+        if old and (old.get("place"), old.get("node")) == (e["place"], e["node"]):
+            same += 1
+            continue
+        fr["us"] = dict(e, was={"place": old.get("place"), "node": old.get("node")} if old else None, relabel="L1J")
+        changed.append((c["cap"], c["n"], c["l1"], old and (old.get("place"), old.get("node")), (e["place"], e["node"])))
+    for p, d in files.items():
+        d.setdefault("relabelled_us", []).append({"when": "2026-11-26", "set": "L1J", "why": note,
+                                                  "cases": [x[2] for x in changed if x[0] == d["run"]]})
+        p.write_text(json.dumps(d, indent=1), encoding="utf-8")
+    print(f"L1J -> the bank: {len(cases)} cases, {len(changed)} us labels changed, {same} the same, {unsure} '?'; "
+          f"backups in {back}")
+    for x in changed:
+        print("   ", x)
 
 
 def cmd_ropes(seed):
@@ -1350,7 +1445,7 @@ def cmd_check(names):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["mobs", "pick", "redo", "ropes", "write", "agree", "check"])
+    ap.add_argument("cmd", choices=["mobs", "pick", "redo", "ropes", "jumps", "jumps-write", "write", "agree", "check"])
     ap.add_argument("args", nargs="*")
     ap.add_argument("--sound", action="store_true")
     ap.add_argument("--seed", type=int, default=1)
@@ -1367,6 +1462,11 @@ def main():
             cmd_pick(nm, a.seed)
     elif a.cmd == "ropes":
         cmd_ropes(a.seed)
+    elif a.cmd == "jumps":
+        cmd_jumps(a.seed)
+    elif a.cmd == "jumps-write":
+        cmd_jumps_write("our tag moving 3 px or more a frame around the case: us judged again on L1R's strip (one "
+                        "frame read a jump as standing; PLAN-tracker step 4b try 2, the user's answer 4)")
     elif a.cmd == "redo":
         for nm in a.args:
             cmd_redo(nm, a.nb, a.seed)

@@ -28,6 +28,11 @@ flight read as a pickup hop; the prototype had it too); every other row met (746
 steps: "Step 4b, 2026-11-25"): met - the 2 s cover (29), the stuck cases as tests, L2 on the 16 (93.8 %, carry-over 2);
 missed - L5 (found 73.9 %, the prototype's own rules 85.1 %), L1 us 83.5 % (~20 jump frames labelled stand), SelfState
 95.81 %, our feet known 97.04 % (the tag list gives 0.36, not 1.1), the ms (live 0.7: one GPU round trip).
+**Step 4b, try 2 (2026-11-26): the user's answers built; stopped again, the user decides** ("Step 4b, try 2"): met -
+step 3's rows unchanged, the hops gate unchanged, one GPU transfer a frame, L1J (18 jump labels stand -> air, second
+look 5 of 5); missed - L5 (found 92.8 %, non-players 5.62 %, pet / player 8.56 %, node 94.0 %), the cover (33: the
+pet rule), L1 us 84.62 % (93.41 % without the rope motion test, which breaks 22 rope grabs), the ms (0.7: Python and
+torch calls, not the GPU - try 1's reason was wrong). SelfState 95.81 % and our feet 97.04 % accepted by the user.
 The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
 in this session on the kept replay (no GPU); the tools are in `tools/perc/track/` (branch `tracker-plan`).
 
@@ -1140,6 +1145,109 @@ ropes), and a motion test in the graph's rope rule (a fall past a rope is not on
 accept the listed differences (SelfState's 9 px and its speed window are what the one rule replaced)? (4) **Feet known
 97.04 %** - the list gives 0.36, not 1.1: accept, or another source? (5) **The ms** - accept the live 0.7 ms while both
 trackers run beside world.py, ask the body one frame late (no wait), or merge it into the mob tracker's one transfer?
+
+**The user's answers (2026-11-25), built in "Step 4b, try 2":**
+1. Players seen fewer than 6 times are graded **"not yet known"**, not as misses; the delay (frames until the class
+   is known, p50 / p90) is reported beside L5.
+2. A player's feet come from the tag's **BOTTOM** (a 21 px medal tag stood 4 px high with "the top - 1").
+   **Amended by the user (2026-11-26) on try 2's measurement** (players standing still, whole tags, the 30-minute
+   capture: tag bottom - floor = 18 for 17 px tags (14,975), **20 for 19 px (16,903: the box grows DOWN)**, 21 for 20
+   px, 23 for 22 px, **18 for 21 px (3,355: the medal grows the box UP)**): **"top, except 21 px"** - feet = the tag's
+   top - 1, and for a 21 px tag its bottom - 18.
+3. **Pets:** the user - "pets have no discernible difference in name from another player, height rule is ok, but
+   don't be pixel perfect on height, give it some slack as slightly larger pets might be introduced (still they will
+   always be shorter than players)". So MEASURE first, from L5 and the replay: the body heights of labelled pets and
+   of standing players (min / p1 / p5 / p50), and which sightings make players look short (prone, sitting, covered,
+   the edge, a jump). The line goes just under the shortest standing players (a margin below their p1), as far above
+   the tallest pet as that allows - both gaps reported; a track is judged by its tall sightings over the stay (a high
+   percentile of its heights), not per frame. Players and pets overlapping (no gap): stop with the numbers.
+4. L1's ~20 "us" jump cases are **relabelled on strips** (as L1R did for ropes; the bank's file, `was` + a note,
+   backup first).
+5. The graph's rope rule gets a **motion test**: falling or jumping fast past a rope is not on it (cases 77, 54, 104,
+   83, 107, 99); what it changes on step 2's hops gate is reported.
+6. **One GPU round trip a frame:** the tag list's body question rides in the mob tracker's evidence transfer; the
+   live ms before / after (the Perceiver, the 4-minute capture, parts `us_players` and `track`).
+7. **Accepted as they are:** us against SelfState 95.81 %, our feet known 97.04 %.
+
+### Step 4b, try 2 (2026-11-26): the answers built; step 3's rows, the hops gate and one transfer a frame MET; L5, the cover, L1 us and the ms MISSED (stopped)
+Branch `tracker-build` (the main folder). **Built** (each rule's test fails with the rule switched off - checked):
+- **Answer 1** (`replay_players.py l5`): a tag on a track seen under 6 times = "not yet known", left out of the rows;
+  `_Track.known_n` = the frame its class first was more than `short`.
+- **Answer 2, as amended by the user** (the measurement above): `_Track.feet_y` = top - 1; a 21 px box
+  (`Track.tag_medal_h`): bottom - 18. Test `test_feet_from_the_top_or_a_medal_tags_bottom`.
+- **Answer 3, measured first** (`replay_players.py heights`, `tools/perc/track/height_sheet.py`; sheets
+  `...\track-plan\step4b\heights_*.png`, `short_*.png`): L5's labelled pets and standing players, each through its
+  track over the stay. **Per sighting the two overlap** (pets p95 73 px, players p1 9 px); **per track, the 75th
+  percentile of its whole, alone sightings, on tracks of the labelled tag's own name: pets 35-41 px (30 tracks) +
+  2 at 64 and 95; players 57-120 (p5 64, p50 68; 80 tracks) + 1 at 36.** By eye every crossing track is **two
+  characters on one track** (a pet's and its owner's tags merged and parted: "GODxWAR"+"Snail", "CGFzealot",
+  "GTH" / "Blac" pieces), not a height. 34 labelled pet tags and 66 player tags sat on a track of another name on
+  their frame (left out of the heights). **Players reading short** (2,858 of 31,829 readings under 55 px): a shared or
+  joined box 893, the screen's edge / UI 225, in the air or on a rope 441, whole and standing 1,299 - 19 of 20 of
+  those by eye one player in a spear attack stance, the column falling **between its legs** (10-22 px); that
+  player's tracks read >= 50 px on 79-93 % of sightings, p75 64-68. **Built:** `pet_q` 75, `pet_line` 50 (7 px under
+  the shortest clean player track, 57; 9 px over the tallest clean pet track, 41); the class from `hb1` / `hb`, the
+  track's height counts (`cls()`), recomputed only for tracks that changed. Test
+  `test_pet_or_player_by_the_upper_quartile_of_its_heights` (the prototype's vote calls its first case a pet).
+- **Answer 4:** set **L1J** (`label_sets.py jumps`, `jumps-write`; BRIEF.md "Us around a jump or a fall"): every L1
+  case where our own tag moves >= 3 px a frame within 0.1 s and L1R had not judged on strips - **43 cases**, one
+  strip sheet each; first look (a fresh labeller, all 43): 36 `a`, 7 stand, 0 `?`; **second look (another, blind, 5
+  cases): 5 of 5 agree**. Written into the bank (backups `...\step4b\labels_before_l1j\`, each changed label with
+  `was` + `relabel: L1J`, each file a `relabelled_us` note): **18 labels stand -> air**, 25 the same.
+- **Answer 5:** `graph.place(..., vx, vy)`: a climber faster than `rope_vx` 100 px/s sideways or `rope_vy` 200 px/s up /
+  down is not on a rope (measured: 27,105 rope frames of our own feet - sideways p90 27 px/s, climbing 100-150; the
+  six cases 148-437 px/s sideways but case 54: the first frame of a jump OFF a rope, 1 px); us passes its 0.2 s speed,
+  players their 5-frame vx and last-step vy; us's "stays on a rope" also needs |vy| <= rope_vy, and its loop adds a
+  rope only for the stuck cases' wider reach (the plain 7 px case is the graph's, with its test). Tests
+  `test_a_climber_moving_fast_past_a_rope_is_not_on_it`, `test_falling_or_jumping_past_a_ladder_is_not_on_it`.
+- **Answer 6:** `Players.begin` sorts up to the body question and asks it (`Evidence.ask_columns` -> an `Answer`);
+  the GPU queues the gather and **the mob tracker's `count` carries it in its one transfer** (`Gpu._transfer`; no
+  count this frame: `end` makes it); the mob tracker takes the sorted boxes as a callable, asked only when it names
+  a cover (`update(tags=callable)`); the Perceiver counts the players' `end` in `us_players`. Tests: the GPU columns
+  ride in `count` (`trips` 1), the boxes asked only on need.
+
+| Gate | try 1 | **try 2** | |
+|---|---:|---:|---|
+| L5 players found (>= 95 %; "not yet known" apart: 111 tags, 47 players) | 73.9 % | **180 of 194 = 92.8 %** | **MISSED** |
+| L5 non-players called players (<= 1 %) | 4.05 % | **20 of 356 = 5.62 %** (17 pets) | **MISSED** |
+| L5 a pet called a player or a player a pet (<= 5 %) | 6.81 % | **22 of 257 = 8.56 %** | **MISSED** |
+| L5 the node of standing players (>= 95 %) | 89.6 % | **156 of 166 = 94.0 %** | **MISSED** |
+| the delay until a player's / pet's class is known (reported) | - | p50 **9 frames** (0.15 s), p90 42 (0.7 s), p99 106; 496 tracks | - |
+| the 2 s cover: back under a new number (<= 29) | 29 of 280 | **33 of 309** | **MISSED** (met in try 1) |
+| L1 us (>= 99 %) | 83.5 % | **154 of 182 = 84.62 %** (93.41 % with the rope motion test off) | **MISSED** |
+| step 3's rows (`replay_mobs.py --tag t4b2`) | - | found 98.70 %, id kept 93.51 % (97.0 / 96.5 / 94.1 / 79.4 / 77.4), one id 92.33 %, extra ids 994, changed 7, next to its set 99.35 % of 2,786, death p90 0.000, ghosts 0, hops 91.4 %, jolts 524, L1 98.98 %, L2 15 of 16, L3 19 of 22 - **identical to step 3b's (`f3s`)** | met |
+| step 2's hops gate (`proto_feet.py --sound`, the real placement) | 126 / 970 | **126 of 26,811 (0.47 %) / 970 of 555,561 (0.175 %)** - unchanged (mobs do not climb) | met |
+| one GPU round trip a frame (live, 4-minute capture, 2,970 frames) | two on most frames | **one on 2,669 frames, none on 301** | met |
+| the live ms (the Perceiver, the same 3,000 frames, twice each) | us_players p50 0.7 (p90 0.9), track 1.0, frame 15.5 | **us_players 0.7 (p90 1.0), track p50 1.1 / p90 1.4, frame 15.65** | **MISSED** (p50 <= 0.1) |
+| pytest (whole suite), bot speed | 14.9 ms | **green; 16.3 ms a tick** (p90 17.6; `us_players` 0.9, `fit` 7.2: step 3b's run 15.6 with `fit` 7.1) | - |
+
+**Why, by row:**
+- **L5 and the cover - the pet rule made pets worse:** 113 pet tracks against 142 (29 more players: 309). Of the 13
+  labelled pet tracks now called players, **10 are the pet's tag taken by its owner's track** (the owner's box
+  takes the pet's "by an edge" when the two merge and part - the track's identity, not its height) and 3 are the
+  pet's own track reading tall under its owner (p75 64 / 95; one at 40 is "player" only on the labelled frame).
+  The 75th percentile turns a pet that stands under its owner a quarter of the time into a player; the prototype's
+  per-sighting vote needed half. The players found rose to 92.8 % and the node to 94.0 % (the medal anchor: 7 of the
+  10 node misses left are 7-30 px off - jumps, a wrong box).
+- **L1 us:** the 18 relabelled jump cases are right now; **the rope motion test breaks 22 grabs** - frames just after
+  we caught a rope from a jump, strip-labelled `r` (the climbing pose shows), whose 0.2 s speed still carries the
+  jump (104-257 px/s sideways) - and fixes 5 of the 6 pass-bys (54: a jump's first frame, 1 px). Measured on the
+  same labels: **no motion test 93.41 %** (6 pass-bys, 1 rope, 5 stand), this frame's own step (> 1 px sideways or
+  > 4 px up / down) 92.86 % (7 grabs), the 0.2 s window as built 84.62 %. The 5 "stand" left: cases 61, 137, 116, 110,
+  136 (moving 58-221 px/s sideways; not in L1J: they were judged on rope strips or move under 3 px a frame).
+- **The ms - try 1's reason was wrong:** a GPU sync right before the trackers costs **0.03 ms** - the GPU is idle
+  there; the transfer does not wait on the driver. Live, p50: `players.begin` 0.39 ms, of it **`ask_columns` 0.37**
+  (a 120 x 17 index block per tag built and uploaded, ~15 small torch calls), `players.end` 0.31, the one transfer
+  0.17, `us.update` 0.09, the mob tracker 0.42. So one transfer a frame saves nothing; the cost is Python and torch
+  calls, and players + us are ~0.8 ms.
+
+**For the user (stopped, stop rule 1):** (1) **Pets** - keep the 75th percentile (pets standing under their owner turn
+players), go back to a share (e.g. the prototype's "half"), or first stop a track taking another name's box (the
+association: 10 of the 13)? (2) **The cover** fell to 33 with the pet rule - it follows (1). (3) **L1 us** - drop the
+rope motion test (93.41 %), take this frame's own step (92.86 %), or keep the window (84.62 %)? 99 % is not reached by
+any of them. (4) **The ms** - accept ~0.8 ms for players + us (the 0.1 was the prototype's 0.04 without the body), or a
+cheaper body question (the index built on the GPU from the tags' corners; a track whose class is settled not asked
+again)?
 
 ### Step 3b - spawn points as tracked things (added by the user, 2026-11-25; one executor session, measure then build)
 **The user, 2026-11-25:** "keeping track of the time since last spawn (on spawn point) is a valid tracking object. It

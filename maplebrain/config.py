@@ -158,6 +158,10 @@ class Track:
                                     # rise over the sideways step, in whole px (track/graph.py; the user, 2026-11-25)
     rope_tol: float = 7.0           # climbers: the feet within this of a rope's x, and of its ends in y (today's
                                     # SelfTracker value for our exact tag; nav/selfstate.py)
+    rope_vx: float = 100.0          # px/s: a climber moving faster than this sideways ...
+    rope_vy: float = 200.0          # ... or this up / down is not on a rope (step 4b try 2, measured on our own feet
+                                    # over 27,105 rope frames: sideways p90 27 px/s, climbing 100-150 px/s; a jump or a
+                                    # fall past a rope 148-437 px/s sideways - L1 cases 77, 104, 83, 107, 99)
     # ---- mobs (track/mobs.py; PLAN-tracker design 4 = the prototype tools/perc/track/proto_mobs.py, its Cfg and the
     # numbers inline in it, measurement 1). Mob speed: the kind's top speed from the client files x mob_speed_x.
     shadow: bool = True             # the Perceiver runs the mob tracker beside world.py (step 3: nothing reads it)
@@ -284,7 +288,16 @@ class Track:
     tag_confirm: int = 3            # whole sightings before a track's width counts
     tag_min_seen: int = 6           # sightings before a track gets a class
     tag_edge: int = 6               # px: a box this close to the screen's border / a UI rectangle is cut there
-    body_tall: int = 55             # px: what stands on a tag reaches this far over it = a character (a pet ~40)
+    body_tall: int = 55             # px: what stands on a tag reaches this far over it = a character (a pet ~40) -
+                                    # D's blob test (a pattern on a character's clothes); the class uses pet_line
+    pet_q: int = 75                 # a track is a pet when this percentile of its body heights over the stay (whole,
+    pet_line: int = 50              # alone sightings; else every reading) is under pet_line px. Measured (step 4b try
+                                    # 2, L5's tracks of their own name): pets 35-41 px, players 57-120 (p50 68); a
+                                    # player's attack stance reads 10-22 px between the legs on up to ~20 % of its
+                                    # sightings - p75 keeps it 64-68; the user: slack for larger pets, always shorter
+    tag_medal_h: int = 21           # a tag box this tall grew UP (a medal): feet = its bottom - 18; any other height
+                                    # grew down (descenders, 19-22 px) or not at all: feet = its top - 1 (the user,
+                                    # 2026-11-26, on try 2's measurement)
     body_reach: int = 120           # px over the tag read for the body, in 2 body_half + 1 columns over its centre ...
     body_half: int = 8
     body_gap: int = 8               # ... upward until a break of more than this many rows

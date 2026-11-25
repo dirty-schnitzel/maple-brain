@@ -130,8 +130,10 @@ class MobTracker:
     # ------------------------------------------------------------------ one frame
     def update(self, facts, evidence, n=None, tags=None) -> list:
         """-> this frame's events; `records` = the mob records (track/state.Mob), tentative tracks included. `tags`:
-        the sorted tags' boxes on the screen, {"us": [(x0, y0, x1, y1)], "player": [...]} (bodies, not the tags);
-        None: our tag = facts.tag and every tag of facts.tags a player's."""
+        the sorted tags' boxes on the screen, {"us": [(x0, y0, x1, y1)], "player": [...]} (bodies, not the tags), or
+        a callable that returns them - called only when a cover is named, after this frame's evidence transfer (the
+        players' body question rides in it: step 4b try 2); None: our tag = facts.tag and every tag of facts.tags a
+        player's."""
         c = self.cfg
         t, C = facts.t, facts.scene_cam
         self.n, self._ev = n, []
@@ -150,7 +152,12 @@ class MobTracker:
             tr.n_frames += 1
         used_s = self._pair(R, t)
         tb = time.perf_counter()
-        boxes = self._boxes(facts, tags)
+        got = []
+
+        def boxes():                                    # the known things' boxes, made on the first need
+            if not got:
+                got.append(self._boxes(facts, tags() if callable(tags) else tags))
+            return got[0]
         keep = self._unseen(t, dt, C, evidence, boxes)
         tc = time.perf_counter()
         self._born(R, used_s, t, keep)
@@ -622,7 +629,7 @@ class MobTracker:
                 j = int(cj[np.argmin(np.abs(fx[checkable] - (tr.x_seen - C[0])))])
                 px, py = fx[j] + k.cdx, fy[j] + k.cdy
                 best, share = "effect", c.cover_share
-                for name, bx in boxes.items():
+                for name, bx in boxes().items():
                     if not len(bx):
                         continue
                     inb = ((px[None, :] >= bx[:, 0:1]) & (px[None, :] < bx[:, 2:3])

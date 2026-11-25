@@ -11,8 +11,9 @@ the players' gates of our last place - and only within ours_list_s (2 s) of the 
 pieces, but also other players standing there, pets and mobs' own tags (by eye, 20 cases: 11 ours). No tag: our feet
 are not known on this frame (`seen` False; the last values kept). No camera: likewise (cover "blind").
 
-PLACE: the graph's one rule (track/graph.py: stand / rope / air; we climb) with the step since our last sighting,
-then the stuck cases nav/selfstate.py found live (its docstring; each one a test in tests/test_track_us.py):
+PLACE: the graph's one rule (track/graph.py: stand / rope / air; we climb; on a rope only while not moving faster than
+rope_vx / rope_vy - our 0.2 s speed) with the step since our last sighting, then the stuck cases nav/selfstate.py
+found live (its docstring; each one a test in tests/test_track_us.py):
   - hovering: off every surface, not moving (HOVER_V) for HOVER_S, within HOVER_TOL of a rope's x at its height = on
     that rope (ladder 778's tag reads x +10 px, past rope_tol); once on a rope we stay on it within HOVER_TOL while not
     moving sideways;
@@ -238,7 +239,8 @@ class Place:
             self.hist.popleft()
         self.vx, self.vy = self._velocity(t)
         P = self.g.place(np.array([x]), np.array([y]), np.array([dx]), np.array([dy]), np.array([self.node]),
-                         np.array([self.from_node]), climb=np.array([True]))
+                         np.array([self.from_node]), climb=np.array([True]), vx=np.array([self.vx]),
+                         vy=np.array([self.vy]))
         place, node, off = int(P.place[0]), int(P.node[0]), float(P.off[0])
         self.why = "rule"
         keys = set(held or ())
@@ -267,8 +269,11 @@ class Place:
             was = -1 - node if place == ROPE else (-1 - self.node if self.place == ROPE else None)
             best = None
             for i, rx, top, bot in self._ropes:
-                stays = was == i and abs(self.vx) < HOVER_V             # climbing on, not leaving sideways
-                tol = max(c.rope_tol, HOVER_TOL) if hovering or stays else c.rope_tol
+                stays = was == i and abs(self.vx) < HOVER_V and abs(self.vy) <= c.rope_vy   # climbing on, not
+                #                                                 leaving sideways nor falling past (the rope's motion test)
+                if not (hovering or stays):             # the plain rope_tol case is the graph's rule (with its
+                    continue                            # motion test); here only the stuck cases' wider reach
+                tol = max(c.rope_tol, HOVER_TOL)
                 if abs(rx - x) <= tol and top - c.rope_tol <= y <= bot + c.rope_tol \
                         and (best is None or abs(rx - x) < best[0]):
                     best = (abs(rx - x), i)

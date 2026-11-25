@@ -149,6 +149,17 @@ def test_stand_within_5px_of_a_slope_3px_of_flat_ground():
     assert place1(g, 150, 85.5, dx=0.0, dy=-2.0)[0] == AIR           # the step rule still holds
 
 
+def test_a_climber_moving_fast_past_a_rope_is_not_on_it():
+    """PLAN-tracker step 4b try 2 (the user's answer 5; L1 cases 77, 104, 83, 107, 99): holding still or climbing
+    (~125 px/s) is on the rope; a jump or a fall past it (faster than rope_vx sideways or rope_vy up / down) is not."""
+    g = Graph(demo(), edges=False)
+    assert place1(g, 150, 30, climb=True, vx=0.0, vy=0.0)[:2] == (ROPE, -1)
+    assert place1(g, 150, 30, climb=True, vx=0.0, vy=-125.0)[:2] == (ROPE, -1)      # climbing
+    assert place1(g, 150, 30, climb=True, vx=150.0, vy=0.0)[:2] == (AIR, 1)         # a jump arc past it
+    assert place1(g, 150, 30, climb=True, vx=0.0, vy=300.0)[:2] == (AIR, 1)         # falling past it
+    assert place1(g, 150, 30, climb=True)[:2] == (ROPE, -1)                         # no speed given: no test
+
+
 def test_a_flyer_never_stands():
     """The user, 2026-11-24: "Stirges never land" - a kind that flies is never `stand`, whatever its distance to a
     surface; its node is the first surface under it, its from_node is not changed."""

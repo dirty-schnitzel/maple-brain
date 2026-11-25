@@ -35,6 +35,13 @@ the one the feet touch). Magenta lines are ropes / ladders, "r-<id>".
   frame, using the motion the strip shows. `r<id>` - it holds the rope / ladder on that frame (climbing or hanging:
   on the rope's line, moving only along it, or still). `a` - it jumps onto it, jumps off it or passes in front of
   it without holding it. `s<id>` - its feet are on a line, also at a rope's top or bottom when it has stepped off.
+- **Us around a jump or a fall (L1J, 2026-11-26: one sheet per case - the case's frame enlarged, then a strip from
+  0.2 s before to 0.2 s after, the case's frame red, OUR feet ticked green):** judge only our character ("JenkinsJob")
+  on the red frame, using the motion the strip shows. `s<id>` - our feet are on that line on the red frame (still
+  on it before a take-off, or landed on it). `a` - our feet are clear of every line on the red frame: rising,
+  at the top of a jump, falling, or passing a line on the way up or down (a jump that passes a platform's level is
+  not standing on it). `r<id>` - holding a rope / ladder on that frame. Read the line's id on the piece under the
+  feet. `?` when the strip does not settle it.
 
 **L3 - how a mob was born.** Take the first rule from the top that fits:
 1. `notmob` - at BORN the yellow mark is on no mob.
