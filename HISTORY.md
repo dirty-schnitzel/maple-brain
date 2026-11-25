@@ -4733,3 +4733,47 @@ From HANDOFF.md ("What the next sessions build on", compressed there):
   it:** re-made on the full build = the 9 forest captures + Ant Tunnel I; the other 8 stay as they are. A new
   kept replay of any capture may be made on today's build, into its own folder, never over the old one (the user,
   2026-11-24: the "no re-make" of 11-23 meant the `--frames-png` recordings under `runs\`; PLAN-tracker stop rule 5).
+
+## 2026-11-26 - tracker step 4b try 2 (moved from HANDOFF.md)
+From HANDOFF.md:
+**Step 4b built and STOPPED 2026-11-25** (afcf13d, the plan's "Step 4b, 2026-11-25"): `track/players.py` (the tag list sorted, players followed by the tag's width, two tags side by side split, pets sorted out), `track/us.py` (our feet and place + every SelfState stuck case as a test), the mob tracker's covers from the sorted tags; the port exact (1,095 of 1,095 tracks). Met: the 2 s cover (29), the stuck cases, L2 on the 16 (93.8 %: step 3's carry-over 2). Missed: L5, L1 us, SelfState, our feet known, the ms - **the user decides** (Waiting on the user).
+From HANDOFF.md:
+  reference; their numbers are its measurements. **Built so far** (`tracker-build`): the graph and placement (`track/graph.py`, step 2), the
+  hotkey reader (`perception/slots.py` + `track/us.py`'s slots, step 7: every key's item / skill and amount, exact
+  or "unreadable" - a fade, the cursor, a window - never a wrong item; ~0.016 ms a frame, the bot speed unchanged);
+  its pictures come from `tools/cwdata/export_slots.ps1` (called by `export.ps1`) -> `assets build` ->
+  `assets/mcw/slots`; the mob tracker in shadow (step 3: `track/mobs.py`, `kinds.py`, `evidence.py`, `state.py`; the
+  Perceiver runs it beside world.py, nothing reads it; `tools/perc/track/replay_mobs.py` grades it from a kept
+  replay); us and the other players in shadow (step 4b, stopped: `track/us.py`, `players.py`; the mob tracker's covers
+  read their sorted tags; `tools/perc/track/replay_players.py`); the drops (step 4a: `track/drops.py`, graded from the
+  kept replay by `tools/perc/track/replay_drops.py`; not called live yet). **Found:** mobs move at 2 x the v83 rule's speed (noted in `docs/game_rules.md` C1); the
+From HANDOFF.md:
+- **Found by step 4b (PLAN-tracker.md "Step 4b"):** a name tag with a medal is 19-22 px tall (ours 17), so "feet =
+  the tag's top - 1" puts such a player 2-5 px over the floor; the graph's rope rule takes a fall or a jump past a rope
+  as `rope` (no motion test); ~20 L1 "us" cases are jump frames labelled stand from one frame (strips were made only
+  near ropes); live, every extra GPU round trip costs ~0.4 ms (the transfer back waits on this driver).
+From HANDOFF.md:
+- **Found by step 4a:** the 2026-11-18 captures had the pet "Snail" out (it loots near us); a pickup hop is taken from
+  ONE sighting 12+ px over the drop, so an item flying past can end a drop that stays (1 of 746, accepted).
+
+From HANDOFF.md:
+- **`perception/perceiver.py`'s line endings** were rewritten by step 3's try 1 (85547b9: 468 / 444 lines in `git
+  diff --numstat`, 24 real): harmless, noise in its diffs.
+
+From HANDOFF.md:
+- **The chat was open** in the 2026-11-18/19 exploration captures (mobs behind it seen through it or lost).
+
+From HANDOFF.md:
+- **PLAN-data's camera stop rule (2026-11-21):** counted from the first fix after a portal to the exit fade (the
+  ~1 s blind start and the fade do not count) - OK'd as read in REPORT-track-before.md section 3.
+
+From HANDOFF.md:
+  step 3b, pushed). `dev` is merged into it
+From HANDOFF.md:
+- **Step 4b's five questions** (PLAN-tracker.md "Step 4b", "For the user"): L5 (the prototype's own rules: 85.1 % found,
+  node 89.3 %) - accept or change rules; L1 us 83.5 % - relabel ~20 jump cases on strips + a motion test in the rope
+  rule; SelfState 95.81 %, our feet known 97.04 %, the live 0.7 ms - accept or what.
+From HANDOFF.md:
+- **Its footage** ("Footage asked of the user"): welcome: a map with flying mobs, an Ant Tunnel map. Step 3's new
+  kept replay of `20261120_235747_1#0` is made (`work\20261120_235747_1#0\track_s3\`, f97dd4e; stop rule 5); the
+  buff ask is dropped (the warrior has none).
