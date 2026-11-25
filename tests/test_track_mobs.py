@@ -185,6 +185,36 @@ def test_a_fading_in_mob_read_in_a_die_pose_stays_one_live_track():
     assert [(m.id, m.life) for m in trk.records] == [(1, "alive")]
 
 
+def test_full_opacity_is_checked_first_a_death_even_after_a_faint_sighting():
+    """The user, 2026-11-25 (a): die_full_o 0.99 checked FIRST - a death at full opacity on a track last seen at
+    0.98 is a death, not "rising" (the ghost of `20261120_235747_1#0` n 14359: a real die1_0 at 1.00 taken as the live
+    mob, its feet left 46 px away)."""
+    trk = a_tracker()
+    trk.update(facts(0.0, [mob(600, o=0.98)]), ev(False, True))
+    trk.update(facts(DT, [mob(596, pose="die1_0", o=1.0)]), ev(False, True))
+    m = trk.records[0]
+    assert (m.life, m.state, round(m.x)) == ("dying", "dying", 596)    # a death: its own feet taken
+
+
+def test_a_die_pose_on_a_remembered_track_is_held_and_judged_on_its_next_sighting():
+    """The user, 2026-11-25 (b): the fade's direction only from two NEIGHBOURING sightings. A faint die pose on a
+    track not seen on the frame before is held (seen, its feet kept) and judged on its next sighting: fallen ->
+    dying (from the held frame), rising or flat -> the live mob."""
+    for o2, life in ((0.80, "dying"), (0.92, "alive"), (0.90, "alive")):
+        trk = a_tracker(jump=True)
+        trk.update(facts(0.0, [mob(600, o=1.0)]), ev(False, True))
+        trk.update(facts(DT), ev(False, False))                      # unseen, nothing to check: remembered
+        trk.update(facts(2 * DT, [mob(600, 490, pose="die1_2", o=0.90)]), ev(False, True))
+        m = trk.records[0]
+        assert (m.seen, m.life, round(m.y)) == (True, "alive", 500)  # held: seen, not dying, the feet kept
+        assert trk.stats["die pose on a remembered track: held"] == 1
+        trk.update(facts(3 * DT, [mob(600, 490, pose="die1_2", o=o2)]), ev(False, True))
+        m = trk.records[0]
+        assert m.life == life, (o2, m.life)
+        if life == "dying":
+            assert trk.tracks[0].die_t == 2 * DT                     # it began dying on the held frame
+
+
 def test_a_death_at_full_opacity_or_fading_out_turns_dying_at_once():
     """A death's die pose starts at full opacity (99.1 %; its fade-out begins ~20 frames in): dying on that frame,
     so the death gate is not slowed. A faint die pose with the opacity falling is a death too."""

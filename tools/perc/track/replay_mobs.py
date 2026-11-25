@@ -8,6 +8,7 @@ the hindsight truth (cache.chains), the fair counts (`sticky`), the memory's epi
     python tools/perc/track/replay_mobs.py pool [--sound | CAP ...] [--kept NAME] [--tag T]    the gate's numbers
     python tools/perc/track/replay_mobs.py feet [--sound | CAP ...] [--tag T]                  measurement 3 on its tracks
     python tools/perc/track/replay_mobs.py labels [--tag T]                                    L1, L2, L3, L8
+    python tools/perc/track/replay_mobs.py spawns [--sound | CAP ...] [--tag T]                 step 3b: the spawn points
     python tools/perc/track/replay_mobs.py live CAP --kept NAME                                the shadow rows vs these
     python tools/perc/track/replay_mobs.py time CAP [--n 3000] [--runs 3]       the ms: the live Perceiver, shadow on / off
 
@@ -110,6 +111,11 @@ def row_of(m) -> dict:
             "can": None if m.can_lo is None else [m.can_lo, m.can_hi]}
 
 
+def spawn_view(sp) -> bytes:
+    """The spawn points' in_view on this frame, packed (one bit a point, map.json's order without hidden ones)."""
+    return np.packbits(np.array([p.in_view for p in sp.points], bool)).tobytes()
+
+
 def out_path(cap, kept=None, tag=None) -> Path:
     return OUT / ("_".join([cap.replace("#", "_")] + ([kept] if kept else []) + ([tag] if tag else [])) + ".pkl")
 
@@ -118,14 +124,17 @@ def run(cap, hints=False, sort=True) -> dict:
     mp = Map(map_of(cap))
     trk = tracker(mp)
     us = pl = None
+    from maplebrain.track.spawns import Spawns  # the spawn points after the mobs, as the Perceiver (step 3b)
+    from replay_players import minimap_ui
+    sp, ui = Spawns(trk.g, trk.kinds, trk.cfg), minimap_ui(cap)[0]
     if sort:                                    # the sorted tag list, as the Perceiver (step 4b)
         from maplebrain.track.players import Players, sorted_boxes
         from maplebrain.track.us import Us
-        from replay_players import Facts as PFacts, minimap_ui
-        us, pl = Us(trk.g, trk.cfg), Players(trk.g, trk.cfg, ui=minimap_ui(cap)[0], npcs=trk.g.npcs)
+        from replay_players import Facts as PFacts
+        us, pl = Us(trk.g, trk.cfg), Players(trk.g, trk.cfg, ui=ui, npcs=trk.g.npcs)
     d = dump.out_dir(cap)
     seen = seen_rule() if hints else None
-    rows, feet, ms, asked = [], [], [], []
+    rows, feet, ms, asked, sp_ms = [], [], [], [], []
     for kch in range(dump.meta(cap)["chunks"]):
         rs = pickle.loads((d / f"rows_{kch:03d}.pkl").read_bytes())
         bs = pickle.loads((d / f"bits_{kch:03d}.pkl").read_bytes())
@@ -141,14 +150,19 @@ def run(cap, hints=False, sort=True) -> dict:
                 tags = sorted_boxes(us.box, pl.drawn, trk.cfg)
             dec0 = ev.dec
             a = time.perf_counter()
-            trk.update(f, ev, n=r["n"], tags=tags)
+            mev = trk.update(f, ev, n=r["n"], tags=tags)
             ms.append(1000 * (time.perf_counter() - a) - 1000 * (ev.dec - dec0))
             asked.append(trk.asked)
             recs = trk.records
-            rows.append({"n": r["n"], "t": r["t"], "mobs": [row_of(m) for m in recs]})
+            a = time.perf_counter()
+            sev = sp.update(r["t"], r["C"], recs, mev, tags, f.drops, ui)
+            sp_ms.append(1000 * (time.perf_counter() - a))
+            rows.append({"n": r["n"], "t": r["t"], "mobs": [row_of(m) for m in recs], "sp_ev": sev,
+                         "sp_view": spawn_view(sp)})
             if r["C"] is not None:
                 feet += [(m.id, m.kind, r["n"], r["t"], m.x, m.y, m.pose, m.facing) for m in recs if m.seen]
     return {"rows": rows, "feet": feet, "ms": np.array(ms), "asked": np.array(asked), "stats": trk.stats,
+            "sp_ms": np.array(sp_ms), "sp_stats": dict(sp.stats), "sp_points": [p.as_dict() for p in sp.points],
             "rem": trk.rem, "episodes": trk.episodes, "ended": trk.ended, "trk": trk}
 
 
@@ -183,6 +197,7 @@ def cmd_run(caps, kept, hints, tag, sort=True):
         print(S.report(gr["score"], f"{name_of(cap)} [track/mobs.py{' + hints' if hints else ''}]"))
         print(P.sticky_report(gr["sticky"]))
         print(gr["ghosts"])
+        print(f"  spawn points (track/spawns.py): {res['sp_stats']}; ms a frame p50 / p90 {S.pct(res['sp_ms'], (50, 90))}")
         print(f"  ms a frame p50 / p90 / p99 / max {S.pct(res['ms'], (50, 90, 99, 100))}; run {b - a:.0f} s, grade "
               f"{time.perf_counter() - b:.0f} s -> {p}", flush=True)
 
@@ -489,6 +504,23 @@ def cmd_labels(tag):
 
 
 # ---------------------------------------------------------------------------------------------- the live path
+def cmd_spawns(caps, kept, tag):
+    """Step 3b: the spawn points over the captures - the spawns seen (traced back, rule (c)), the births left, the ms."""
+    st, ms, pts = Counter(), [], 0
+    for cap in caps:
+        res = pickle.loads(out_path(cap, kept, tag).read_bytes())
+        st.update(res["sp_stats"])
+        ms.append(res["sp_ms"])
+        pts += len(res["sp_points"])
+        seen = sum(p["spawns"] for p in res["sp_points"])
+        print(f"  {cap:22s} points {len(res['sp_points']):3d}  spawns seen {seen:4d}  {res['sp_stats']}")
+    tot = sum(st.values())
+    m = np.concatenate(ms)
+    print(f"spawn points: {pts}; faded-in mobs (mob_new): {tot}; traced to one point {st['matched']} "
+          f"({100 * st['matched'] / max(1, tot):.1f} %), two or more {st['two or more points']}, none {st['no point']}")
+    print(f"  ms a frame p50 / p90 / p99 {S.pct(m, (50, 90, 99))} (<= 0.1 at p50)")
+
+
 def cmd_live(cap, kept):
     """The new kept replay's shadow rows (the GPU path: the Perceiver's own tracker, dump.py) against the rows of
     this tool over the same kept replay (the bitmap path), and the GPU evidence against the bitmaps."""
@@ -512,6 +544,21 @@ def cmd_live(cap, kept):
             if not eq and len(diff) < 20:
                 diff.append((r["n"], i, ma and {k: ma[k] for k in keys}, mb and {k: mb[k] for k in keys}))
     print(f"shadow rows = replay rows on {same} of {n} track-frames ({100 * same / max(1, n):.3f} %, >= 99.5)")
+    sn = ss = 0
+    sd = []
+    for r in rows:                              # the spawn points (step 3b): this frame's spawns seen + in_view
+        if "sp_view" not in r:
+            continue
+        b = by[r["n"]]
+        sn += 1
+        eq = r["sp_view"] == b.get("sp_view") and [(e["point"], e["id"]) for e in r["sp_ev"]] ==             [(e["point"], e["id"]) for e in b.get("sp_ev", [])]
+        ss += eq
+        if not eq and len(sd) < 10:
+            sd.append((r["n"], r["sp_ev"], b.get("sp_ev")))
+    if sn:
+        print(f"spawn rows (spawns seen + in_view) = the replay's on {ss} of {sn} frames ({100 * ss / sn:.3f} %)")
+        for x in sd:
+            print("   ", x)
     for x in diff:
         print("   ", x)
     ev = [r["ev_check"] for r in rows if r.get("ev_check")]
@@ -598,6 +645,8 @@ def main():
         cmd_feet(caps, a.kept, a.tag)
     elif a.cmd == "labels":
         cmd_labels(a.tag)
+    elif a.cmd == "spawns":
+        cmd_spawns(caps, a.kept, a.tag)
     elif a.cmd == "live":
         cmd_live(caps[0], a.kept)
     elif a.cmd == "time":

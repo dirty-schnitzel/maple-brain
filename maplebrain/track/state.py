@@ -1,7 +1,7 @@
 """The state's records (docs/state_model.md section 2). Built so far: the MOB record (PLAN-tracker step 3), one per
 mob the tracker holds, filled by track/mobs.py every frame; the PLAYER record (step 4b, track/players.py: another
-character followed by its name tag; us: track/us.py); the DROP record (step 4a), filled by track/drops.py. Step 8
-adds the stored tables (writer and reader) here.
+character followed by its name tag; us: track/us.py); the DROP record (step 4a), filled by track/drops.py; the SPAWN POINT
+record (step 3b), filled by track/spawns.py. Step 8 adds the stored tables (writer and reader) here.
 
 A mob is in the state once CONFIRMED (seen clearly once, or sighted for 0.5 s: PLAN-tracker design 4); a tentative
 track is kept beside it (`confirmed` False) and is not yet a mob - a reader leaves it out. Two places, on purpose:
@@ -115,6 +115,29 @@ class Player:
     cover: str                          # PLAYER_COVERS
     unseen_s: float
     born_t: float
+
+    def as_dict(self) -> dict:
+        return asdict(self)
+
+
+@dataclass
+class SpawnPoint:
+    """A spawn point of the map as a tracked thing (PLAN-tracker step 3b; docs/state_model.md section 3) - memory, not
+    prediction. The user, 2026-11-25: "keeping track of the time since last spawn (on spawn point) is a valid tracking
+    object ... it is a part of tracking's memory ... We are just tracking this". Fixed: map.json's point (non-hidden);
+    seen: the spawns this stay SAW there (a mob track born faded in and traced back to this point: track/spawns.py).
+    No respawn rule, no timer, no guess about spawns not seen."""
+    index: int                          # map.json's mob entry index
+    kind: int                           # the client's mob id it spawns
+    x: float                            # map px: the point (x, y: on its foothold); a flyer appears at sy
+    y: float
+    sy: float                           # map.json spriteY (a flyer's height; = y for a walker)
+    node: int                           # its foothold's node (graph.spawn_node)
+    mob_time: int                       # map.json mobTime (0: the round; > 0 s after a death; < 0: once)
+    last_spawn_t: float | None = None   # the last spawn SEEN here: its mob's first sighting (None: none this stay)
+    last_mob: int | None = None         # that mob's track id
+    spawns: int = 0                     # the spawns seen here this stay
+    in_view: bool = False               # on screen now and not under the UI or a known cover box
 
     def as_dict(self) -> dict:
         return asdict(self)

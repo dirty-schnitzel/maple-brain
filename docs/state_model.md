@@ -187,6 +187,19 @@ No timers on what can be seen. The rules, by why a thing is not seen:
 4. **Players**: kept through a cover of up to 1 s (OK'd 2026-11-23: "players move a lot"); out of view = gone
    (`player_left`).
 5. **Blind frames** (no camera): everything stays as it was, `cover = blind`; no thing begins or ends.
+6. **Spawn points** (PLAN-tracker step 3b; `track/spawns.py`, `state.SpawnPoint`). The user, 2026-11-25: "keeping
+   track of the time since last spawn (on spawn point) is a valid tracking object. It would not be trying to add
+   predictive abilities to the tracking behavior (my original rule), it is a part of tracking's memory (which is OK)
+   ... We are just tracking this, it doesn't have to be a part of the AI model, it is part of the overall data we
+   collect." Each point of the map (map.json, not hidden: `index`, `kind`, `x`, `y`, `sy` = spriteY - where a flyer
+   appears -, `node`, `mob_time`) is a record with: `last_spawn_t` (the last spawn SEEN there: its mob's first
+   sighting; None = none this stay), `last_mob` (that mob's id), `spawns` (seen this stay), `in_view` (the point on
+   screen, not under the UI or a box the trackers hold). A spawn seen = a mob born `faded in` (its opacity rising:
+   the fade-in is 0.82 s on Classic World) traced back to the one point of its kind that could have put it where it
+   was first seen in the time it has existed (its kind's speed, or one hop up; two such points: none; event
+   `spawn_seen`: point, mob id). Measured:
+   98.0 % of 597 faded-in mobs on the 13 sound captures. No respawn rule, no timer, no guess about spawns not seen.
+   Spawns come in rounds every ~7.1 s (`docs/game_rules.md` E2) - not tracked or predicted here.
 Each thing's history is in its own fields (section 2: `born_t`, `born_how`, `hits`, `last_hit_*`, `seen_share`,
 `unseen_s`, and `x`, `y` = where it was last seen). How it left is in its last event.
 

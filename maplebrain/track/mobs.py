@@ -21,9 +21,11 @@ the camera, the players' tags, the drops, our tag) -> the mob records (track/sta
    and not moving up or down; its node changes only on stand), its speed over its last 0.25 s, its kind voted (a
    clear sighting counts for more), confirmed by a clear sighting or after confirm_s of sightings, its life from
    the pose and the fade's direction (the user, 2026-11-25: "dying needs falling opacity, a spawn needs rising"): a die
-   pose at full opacity (die_full_o: a death starts there) or with the opacity falling = dying; a die pose with the
-   opacity rising or flat under full = the live mob (a spawn's landing squash read as die1_2: PLAN-tracker "Step 3b,
-   try 3"); a live pose within die_revert_s of the first die pose takes a death back.
+   pose at full opacity (die_full_o 0.99, checked first: a death starts there) = dying; under it the direction from
+   two NEIGHBOURING sightings - fallen = dying, rising or flat = the live mob (a spawn's landing squash read as
+   die1_2: PLAN-tracker "Step 3b, try 3"); on a track not seen on the frame before, the die pose is HELD and judged on
+   its next sighting (fallen: dying from the held frame). A live-mob or held die pose keeps the track's last feet
+   and place (its reading's are 18 px off). A live pose within die_revert_s of the first die pose takes a death back.
 4. A track NOT SEEN: dying -> gone when its die1 animation is over (+ die_extra_s); tentative -> dropped after
    tentative_s; last seen fading in -> not checked for fade_s; else its POSSIBLE SET - the places of its node every
    set_step px, starting knock + set_step either side of where it was last seen, widening at its kind's speed (a
@@ -68,7 +70,8 @@ class _Tr:
     __slots__ = ("id", "votes", "mob", "x", "y", "t_seen", "born", "vx", "vy", "facing", "pose", "node", "air",
                  "life", "die_t", "seen", "poss", "gx", "gy", "carry", "out_since", "x_seen", "y_seen", "sx", "sy",
                  "born_how", "n_seen", "cover", "hist", "conf", "vis", "o", "rin", "rout", "n_seen_at", "place",
-                 "cur_node", "off", "n_frames", "first_pose", "how_alt", "o0", "new_held")
+                 "cur_node", "off", "n_frames", "first_pose", "how_alt", "o0", "new_held", "seen_prev",
+                 "hold_o", "hold_t")
 
     def __init__(self, tid, kind, pose, facing, x, y, sx, sy, node, air, place, off, o, vis, solid, die, t, how):
         self.id, self.votes, self.mob = tid, {kind: 1.0}, kind
@@ -92,6 +95,9 @@ class _Tr:
         self.how_alt = None                             # a faint birth not settled yet: how it came into sight if its
         self.o0 = o                                     # opacity does not rise from o0 (else "faded in")
         self.new_held = False                           # its mob_new event waits for that
+        self.seen_prev = False                          # seen on the frame before this one (blind frames skipped)
+        self.hold_o = self.hold_t = None                # a die pose under die_full_o on a remembered track: held,
+                                                        # judged on its next sighting (its opacity and time)
 
 
 class _Readings:
@@ -140,7 +146,7 @@ class MobTracker:
         ta = time.perf_counter()
         R = self._sights(facts, C)
         for tr in self.tracks:
-            tr.seen = False
+            tr.seen_prev, tr.seen = tr.seen, False
             tr.n_frames += 1
         used_s = self._pair(R, t)
         tb = time.perf_counter()
@@ -344,12 +350,38 @@ class MobTracker:
             i, m = int(mi[q]), int(mm[q])
             x, y = float(rx[q]), float(ry[q])
             o_last, o_new = tr.o, float(R.o[i])
-            # the fade rule: a die pose with the opacity rising (or flat, faint) is the live mob - the fit's misreading
-            # (a spawn's landing squash read as die1_2, its feet 18 px off): seen, but its feet and place stay the last
-            # ones (the user, 2026-11-25, answer (a))
-            live_die = bool(R.die[i, m]) and tr.life != "dying" and (
-                o_new > o_last + c.fade_eps or o_new < c.die_full_o and o_new >= o_last - c.fade_eps)
-            if live_die:
+            # the fade rule (the user, 2026-11-25): a die pose at full opacity (die_full_o) = a death; under it the
+            # direction from two NEIGHBOURING sightings - fallen = a death, rising or flat = the live mob (the fit's
+            # misreading: a spawn's landing squash read as die1_2, its feet 18 px off). On a track not seen on the
+            # frame before it is HELD (judged on its next sighting). A live-mob or held die pose: seen, but its feet
+            # and place stay the last ones (answer (a)).
+            die_now = held = live_die = False
+            die_t = t
+            if R.die[i, m] and tr.life != "dying":
+                if o_new >= c.die_full_o:
+                    die_now = True
+                    if tr.hold_o is not None:
+                        die_t = tr.hold_t               # it began dying on the held frame
+                elif tr.hold_o is not None:             # its held die pose's next sighting: judged now
+                    if o_new < tr.hold_o - c.fade_eps:
+                        die_now, die_t = True, tr.hold_t
+                        self.stats["held die pose: fallen, dying"] += 1
+                    else:
+                        live_die = True
+                        self.stats["held die pose: not fallen, alive"] += 1
+                elif tr.seen_prev:
+                    if o_new < o_last - c.fade_eps:
+                        die_now = True
+                    else:
+                        live_die = True
+                else:
+                    held = True
+                    self.stats["die pose on a remembered track: held"] += 1
+            elif tr.hold_o is not None:
+                self.stats["held die pose: a live pose next, alive"] += 1
+            if not held:
+                tr.hold_o = tr.hold_t = None
+            if live_die or held:
                 x, y = tr.x_seen, tr.y_seen
             if x != R.raw_x[i] or y != R.raw_y[i]:
                 self.stats["feet settled"] += 1
@@ -363,7 +395,7 @@ class MobTracker:
                                           tr.cover, round(t - tr.t_seen, 2), round(x), round(y)))
                 tr.rin = tr.rout = 0
             tr.n_seen_at = self.n
-            if not live_die:
+            if not (live_die or held):
                 tr.hist.append((t, x))
                 while len(tr.hist) > 2 and t - tr.hist[0][0] > c.vx_s:
                     tr.hist.pop(0)
@@ -397,12 +429,15 @@ class MobTracker:
                 if tr.conf:
                     self.stats["confirmed: " + tr.conf] += 1
                     self._new_ev(tr, t)
-            if live_die:
+            if held:
+                tr.hold_o, tr.hold_t = tr.o, t          # its life as it was until the next sighting
+            elif live_die:
                 tr.life = "alive"                       # a die pose with the opacity rising (or flat, faint): the
                 self.stats["die pose, opacity not falling: alive"] += 1     # live mob (a spawn's landing squash)
+            elif die_now:
+                tr.life, tr.die_t = "dying", die_t
             elif R.die[i, m]:
-                if tr.life != "dying":
-                    tr.life, tr.die_t = "dying", t
+                pass                                    # dying already
             elif tr.life == "dying":
                 tr.life, tr.die_t = "alive", None       # a live pose right after one die sighting: it lives
                 self.stats["death taken back"] += 1

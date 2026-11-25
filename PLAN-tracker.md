@@ -1361,6 +1361,50 @@ check first again (the first build's order, with the line the measurement gives)
 on a track seen on the last frame (the opacity compared across a gap of 8 frames says little), re-run; (c) accept
 the one frame. Then step 4 (trace + the sheet) and spawns.py.
 
+**The user's answer (2026-11-25): (a) and (b) together - built; every gate MET; spawns.py built, in shadow.**
+- **The rule** (`track/mobs.py`, `config.Track`): `die_full_o` **0.99, checked first** (full -> dying); under it the
+  direction only from two NEIGHBOURING sightings (fallen -> dying, rising or flat -> the live mob, its feet kept);
+  a die pose under 0.99 on a track not seen on the frame before is **held** (seen, feet kept) and judged on its next
+  sighting (fallen -> dying from the held frame). Tests (each fails with its rule switched off):
+  `test_full_opacity_is_checked_first_a_death_even_after_a_faint_sighting`,
+  `test_a_die_pose_on_a_remembered_track_is_held_and_judged_on_its_next_sighting` (+ the three of try 3).
+  **Die poses on a remembered track: 11** on the 13 sound captures (held; next sighting: 4 not fallen -> alive, 4 a
+  live pose, 0 fallen, 3 full or never seen again); 48 die poses taken as the live mob.
+- **Step 3's gate (`*_f3e`, = `*_f3s`):** found 98.70 %, id kept 93.51 % (97.0 / 96.5 / 94.1 / 79.4 / 77.4), one id
+  92.33 %, extra ids 994, changed mob 7, next to its set 99.35 % of 2,786, a death noticed p90 0.000 s, **ghosts 0**,
+  hops 91.4 %, **jolts 524**, L1 98.98 % / L2 15 of 16 / L3 19 of 22 (as accepted), splits while fading in **0** -
+  every row met.
+- **Step 4, rule (c) (`proto_spawns.py` on `*_f3e`):** 597 confirmed faded-in births (622 in all; 10 faint births now
+  settled otherwise by the rise rule); **585 = 98.0 % traced to one point (>= 95 %: met)**, 5 two candidates (Line 1
+  Bubblings 0.65-0.74 s old), 7 none; the fade 0.816 s (p10-p90 0.803-0.827). Doubled spawns (a point's two matched
+  births < 3 s apart): **1** (ids 60 / 61 at point 27 of `20261120_235747_1#0`: one Bubbling knocked back while it
+  faded in, split by the knockback - not the fade).
+- **The sheet** (`step3b\sheet2_f3e\`, 30 random births matched by (c) and not by 10 px): **29 of 30 right** - 1 wrong
+  (case 11: the doubled spawn above); 27 checked right by eye (case 7: a spawn hopping onto its point as another mob
+  dies 48 px away, its opacity rising 0.25 -> 0.77; case 8: first seen faintly on the point as a tentative track that
+  never confirmed, then 62 px on); cases 23 and 30: the point 25-45 px past the screen's edge, the mob coming in
+  fading straight over it (30) or walking away from it (23) - not checkable by eye, nothing against them, counted
+  right as try 2's case 25 was. **Met (>= 29).**
+- **Built:** `track/spawns.py` (`Spawns`: first sightings from the mob tracker's records, the spawn on its `mob_new`
+  event with how "faded in" - the event waits until that is settled -, rule (c), `in_view` on the CPU from the
+  boxes the trackers hold + the UI; event `spawn_seen`), `state.SpawnPoint` (index, kind, x, y, sy, node, mob_time,
+  last_spawn_t, last_mob, spawns, in_view), the graph keeps each point's index, spriteY and mobTime, `config.Track`
+  spawn_fade_s 0.827 / spawn_slack 10 / spawn_hop 78; the Perceiver calls it after the mob tracker, in shadow (part
+  `spawns`); `docs/state_model.md` section 3 item 6 with the user's words. Tests `tests/test_track_spawns.py`, 9 (each
+  rule's test fails with the rule removed: the time since it appeared, its node, one hop for jumpers, a flyer at
+  spriteY, two candidates -> none, only faded in, in_view's covers, blind). Tools: `replay_mobs.py` runs it (`run`
+  stores `sp_ev` / `sp_view`, `spawns` pools it, `live` compares it); `dump.py` keeps the shadow's spawn rows.
+- **The real code on the 13 sound captures** (`replay_mobs.py spawns --sound --tag f3s`): 594 faded-in mobs
+  (`mob_new`), **585 traced to one point (98.5 %)**, 5 two or more, 4 none - the prototype's 585 of 597 (its kind =
+  the last vote; the real code's = the vote at confirmation).
+- **The live path** (a new kept replay of `20261120_235747_1#0` on today's build: `work\20261120_235747_1#0\track_s3b\`,
+  its own folder - stop rule 5): shadow mob rows = the replay's on **79,109 of 79,109** track-frames, **spawn rows
+  (spawns seen + in_view) = the replay's on 15,211 of 15,211 frames**, the GPU evidence = the bitmaps' on 100 % of
+  9,866,248 places. **The ms:** the spawns' p50 / p90 / p99 **0.045 / 0.049 / 0.064 ms** live (64 points; the GPU
+  path, timed exactly over 2,970 frames; <= 0.1: met), 0.05 / 0.08 / 0.16 on the replay. pytest all green; bot
+  speed 15.6 ms a tick (the part list's `spawns` 0.1 rounded; `fit` alone 7.1 against 6.8 earlier: the machine) -
+  unchanged within noise.
+
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
 2. The real code cannot reproduce a prototype's number from the same kept replay within tolerance: stop - it is

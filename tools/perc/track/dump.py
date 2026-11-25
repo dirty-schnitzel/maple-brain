@@ -179,6 +179,11 @@ def dump(cap, t0: float, t1: float, force: bool) -> None:
             row["shadow"] = [row_of(m) for m in mt.records]
             row["shadow_ev"] = per.mob_events
             row["shadow_ms"] = round(per.parts.get("track", 0.0), 3)
+            if getattr(per, "spawns", None) is not None:     # the spawn points (step 3b): spawns seen, in_view
+                from replay_mobs import spawn_view
+                row["sp_ev"] = per.spawns.events
+                row["sp_view"] = spawn_view(per.spawns)
+                row["sp_ms"] = round(per.parts.get("spawns", 0.0), 3)
         if obs.scene_cam is None or per.fitter._last is None:
             no_cam += obs.scene_cam is None
             bts.append((n, None, None))

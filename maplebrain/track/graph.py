@@ -320,6 +320,9 @@ class Graph:
         placed = self.place(self.spawn_x, self.spawn_y).node if sp else np.zeros(0, np.int64)
         self.spawn_node = np.array([self.chain_of.get(int(v.get("footholdId") or 0), int(p))
                                     for v, p in zip(sp, placed)], np.int64)
+        self.spawn_index = np.array([int(v.get("index", i)) for i, v in enumerate(sp)], np.int64)    # map.json's
+        self.spawn_sy = np.array([v.get("spriteY", v["y"]) for v in sp], np.float64)   # a flyer appears there
+        self.spawn_time = np.array([int(v.get("mobTime") or 0) for v in sp], np.int64)
         po = m.get("portals") or []
         self.portal_name = [v.get("portalName", "") for v in po]
         self.portal_x = np.array([v["x"] for v in po], np.float64)

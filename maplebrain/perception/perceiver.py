@@ -16,7 +16,8 @@ numbers per sighting and look.
 The mob tracker (PLAN-tracker step 3, track/mobs.py) runs in shadow after the drops and D's patches, after us and the
 other players (step 4b, track/us.py, players.py: the tag list sorted, part `us_players`): the fit's mobs + the GPU
 evidence (track/evidence.Gpu on the fit's own tensors) -> `mob_tracker.records`, `players.records`, `us`,
-`mob_events`, part `track`; world.py stays the brain's tracker until step 9 (config Track.shadow off: not run).
+`mob_events`, part `track`; then the spawn points (step 3b, track/spawns.py: `spawns.points`, part `spawns`);
+world.py stays the brain's tracker until step 9 (config Track.shadow off: not run).
 """
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor
@@ -151,7 +152,7 @@ class Perceiver:
         # the mob tracker in shadow (PLAN-tracker step 3; track/mobs.py): beside world.py, nothing reads it yet
         # + us and the other players (step 4b; track/us.py, players.py): the tag list sorted, so the mob tracker's
         # covers name us / players by it
-        self.mob_tracker = self.evidence = self.us = self.players = None
+        self.mob_tracker = self.evidence = self.us = self.players = self.spawns = None
         self.mob_events = []                            # its events of this frame (+ us and the players')
         if self.world is not None and cfg.track.shadow and kit.graph is not None:
             from ..track.evidence import Gpu
@@ -164,6 +165,8 @@ class Perceiver:
             self.evidence = Gpu(kit.fitter, kit.fitter.cfg.tol)
             self.us = Us(kit.graph, t)
             self.players = Players(kit.graph, t, npcs=kit.graph.npcs)
+            from ..track.spawns import Spawns           # spawn points as tracked things (step 3b): after the mobs
+            self.spawns = Spawns(kit.graph, self.mob_tracker.kinds, t)
         self._fit_ui = (None, None)                     # (hud.ui_mask array, the fit's GPU mask of it)
         self._look_ms = 0.0                             # this tick's looks (the search around tracks)
         self.minimap_t = -1e9                           # last minimap read (only ~1 / s while the scene camera holds)
@@ -406,8 +409,9 @@ class Perceiver:
 
     def _shadow(self, f):
         """Us, the other players and the mob tracker (track/us.py, players.py, mobs.py) on this frame's facts and the
-        fit's own tensors (the GPU evidence) -> `us`, `players.records`, `mob_tracker.records`, `mob_events`. Parts
-        `us_players` and `track`. Our keys are not known here (Us without them: no facing, no walk-stuck rule) -
+        fit's own tensors (the GPU evidence) -> `us`, `players.records`, `mob_tracker.records`, `mob_events`; then the
+        spawn points (track/spawns.py, step 3b: `spawns.points`, its `spawn_seen` events). Parts `us_players`, `track`
+        and `spawns`. Our keys are not known here (Us without them: no facing, no walk-stuck rule) -
         PLAN-tracker step 9 hands them in. Nothing reads any of it before step 9."""
         if self.mob_tracker is None:
             return
@@ -416,8 +420,12 @@ class Perceiver:
                                   ui=[self.minimap or hud.UI_RECTS[0]] + list(hud.UI_RECTS[1:]))
         tags = sorted_boxes(self.us.box, self.players.drawn, self.cfg.track)
         self._mark("us_players")
-        self.mob_events = ev + self.mob_tracker.update(f, self.evidence, tags=tags)
+        mev = self.mob_tracker.update(f, self.evidence, tags=tags)
         self._mark("track")
+        ui = [self.minimap or hud.UI_RECTS[0]] + list(hud.UI_RECTS[1:])
+        self.mob_events = ev + mev + self.spawns.update(f.t, f.scene_cam, self.mob_tracker.records, mev, tags,
+                                                        f.drops, ui)
+        self._mark("spawns")
 
     def _look(self, trs) -> list:
         """The search around tracks (step 3.4; world.update's `look`): the fit's look at each track's predicted
