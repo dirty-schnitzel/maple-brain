@@ -47,6 +47,8 @@ def births(cap, tag) -> list:
                             "sy": m["sy"], "kind0": m["mob"], "how": m["born_how"], "pose": m.get("first_pose"),
                             "born": m["born"]}
             last_kind[i] = m["mob"]
+            first[i]["how"] = m["born_how"]          # settled (try 3: a faint birth is "faded in" until its
+            #                                           opacity rose, else how it came into sight otherwise)
             if m["state"] != "tentative":
                 conf.add(i)
     out = []

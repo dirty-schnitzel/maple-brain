@@ -168,10 +168,13 @@ def fade_in(trk, x=600, o0=0.2, frames=20, t0=1.0):
 
 def test_a_fading_in_mob_read_in_a_die_pose_stays_one_live_track():
     """The user, 2026-11-25: a die pose with the opacity RISING is the same live mob (a Bubbling's landing squash read
-    as die1_2 while it fades in: 33 false deaths + a second track each on the 13 sound captures)."""
-    trk = a_tracker()
+    as die1_2 while it fades in: 33 false deaths + a second track each on the 13 sound captures); answer (a): that
+    frame does not move its feet (the die reading's are 18 px off: the jolts)."""
+    trk = a_tracker(jump=True)                                       # a Bubbling jumps (its y gate takes 18 px)
     t = fade_in(trk, o0=0.2, frames=18)                              # opacity 0.2 .. 0.59
-    trk.update(facts(t, [mob(600, pose="die1_2", o=0.62)]), ev(False, True))
+    trk.update(facts(t, [mob(600, 482, pose="die1_2", o=0.62)]), ev(False, True))     # its feet 18 px off
+    m = trk.records[0]
+    assert (m.seen, round(m.x), round(m.y), m.place) == (True, 600, 500, "stand")    # seen; the feet not taken
     trk.update(facts(t + DT, [mob(602, o=0.64)]), ev(False, True))
     trk.update(facts(t + 2 * DT, [mob(604, o=0.66)]), ev(False, True))
     assert [(m.id, m.life) for m in trk.records] == [(1, "spawning")]

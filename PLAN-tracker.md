@@ -1336,6 +1336,31 @@ that frame) - the jolts expected back to ~550, re-run; (b) take the die reading 
 fading in is not checked for `fade_s` anyway); (c) accept 599 (the 49 are the fit's one-frame misreads, counted
 now that the tracks hold). Then step 4 (trace + the sheet) and spawns.py as the prompt says.
 
+**The user's answer (2026-11-25): (a)** - built: a die pose taken as the live mob is seen, but its feet, place,
+node and speed stay the last ones that frame (`track/mobs.py` `live_die`; the test's die reading 18 px over the
+floor on a jumping kind keeps the feet at 500, `stand` - it fails without (a): 482, `air`). pytest all green; bot
+speed 15.1 ms a tick (track 0.4) - unchanged. **Step 3's gate again (`*_f3d`):** found 98.70 %, id kept 93.51 %
+(97.0 / 96.5 / 94.1 / 79.4 / 77.4), one id 92.33 %, extra ids 994, changed mob 7, next to its set 99.35 % of 2,786,
+a death noticed p90 0.000 s, hops 91.4 %, **jolts 524 (<= 556: met**, under 4b's 550), L1 / L2 / L3 as accepted
+(98.98 % / 15 of 16 / 19 of 22), splits while fading in 0 (13 left: 10 real deaths / UI, 3 overlaps) - **but seen
+track-frames with no truth mob within 40 px: 1 (0): MISSED** - stopped again, step 4 not started.
+- **The one frame** (`20261120_235747_1#0` n 14359, track 169, a Bubbling born faded in 3.6 s before, remembered
+  for 8+ frames): a REAL death at the screen's left edge - the fit's `die1_0` at opacity **1.00** (feet at map x
+  715 = the truth's mob; 4 % of the body on screen) - paired with the remembered track, whose last opacity was a
+  little under 1.0: "risen more than 0.005" -> taken as the live mob (the first build's fix: rising wins at any
+  level, for the fade's last frames at 0.973), and (a) then put its feet at its last SEEN place, 761 - 46 px from
+  the mob. So the two halves of the rule meet: 0.973 at the end of a fade must be "rising", 1.00 at a death must be
+  "full".
+- **Measured** (the 4b rows): real deaths' first die sighting >= 0.99 on 887 of 896 (99.0 %; one in 0.97-0.99);
+  the fading-in false deaths' die readings reach 0.949 on the 4b rows and 0.973 on the first build's (f3b: the two
+  left at the fade's very end). A line at **0.99** checked FIRST (full -> dying; under it: rising -> the live mob,
+  fallen -> dying, flat -> the live mob) separates them on every case measured.
+
+**For the user (stopped, stop rule 1: "no changed constant"):** choose (a) `die_full_o` 0.97 -> 0.99 and the full
+check first again (the first build's order, with the line the measurement gives), re-run; (b) the fade rule only
+on a track seen on the last frame (the opacity compared across a gap of 8 frames says little), re-run; (c) accept
+the one frame. Then step 4 (trace + the sheet) and spawns.py.
+
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
 2. The real code cannot reproduce a prototype's number from the same kept replay within tolerance: stop - it is

@@ -343,6 +343,14 @@ class MobTracker:
         for q, tr in enumerate(tj):
             i, m = int(mi[q]), int(mm[q])
             x, y = float(rx[q]), float(ry[q])
+            o_last, o_new = tr.o, float(R.o[i])
+            # the fade rule: a die pose with the opacity rising (or flat, faint) is the live mob - the fit's misreading
+            # (a spawn's landing squash read as die1_2, its feet 18 px off): seen, but its feet and place stay the last
+            # ones (the user, 2026-11-25, answer (a))
+            live_die = bool(R.die[i, m]) and tr.life != "dying" and (
+                o_new > o_last + c.fade_eps or o_new < c.die_full_o and o_new >= o_last - c.fade_eps)
+            if live_die:
+                x, y = tr.x_seen, tr.y_seen
             if x != R.raw_x[i] or y != R.raw_y[i]:
                 self.stats["feet settled"] += 1
             if tr.poss is not None:                     # it was remembered: how did that go
@@ -355,22 +363,23 @@ class MobTracker:
                                           tr.cover, round(t - tr.t_seen, 2), round(x), round(y)))
                 tr.rin = tr.rout = 0
             tr.n_seen_at = self.n
-            tr.hist.append((t, x))
-            while len(tr.hist) > 2 and t - tr.hist[0][0] > c.vx_s:
-                tr.hist.pop(0)
-            t0, x0 = tr.hist[0]
-            tr.vx = (x - x0) / (t - t0) if t - t0 >= c.vx_min_s else tr.vx
-            tr.vy = (y - tr.y_seen) / (t - tr.t_seen) if 0 < t - tr.t_seen < c.vy_s else 0.0
-            stand = bool(P.place[q] == STAND)
+            if not live_die:
+                tr.hist.append((t, x))
+                while len(tr.hist) > 2 and t - tr.hist[0][0] > c.vx_s:
+                    tr.hist.pop(0)
+                t0, x0 = tr.hist[0]
+                tr.vx = (x - x0) / (t - t0) if t - t0 >= c.vx_min_s else tr.vx
+                tr.vy = (y - tr.y_seen) / (t - tr.t_seen) if 0 < t - tr.t_seen < c.vy_s else 0.0
+                stand = bool(P.place[q] == STAND)
+                tr.node, tr.air = int(P.from_node[q]), not stand
+                tr.place, tr.cur_node, tr.off = int(P.place[q]), int(P.node[q]), float(P.off[q])
             tr.x = tr.x_seen = x
             tr.y = tr.y_seen = y
             tr.sx, tr.sy = x - R.C[0], y - R.C[1]
             tr.t_seen, tr.seen, tr.poss, tr.out_since = t, True, None, None
             tr.facing, tr.pose = int(R.facing[i]), R.pose[i, m]
-            tr.node, tr.air, tr.cover = int(P.from_node[q]), not stand, "none"
-            tr.place, tr.cur_node, tr.off = int(P.place[q]), int(P.node[q]), float(P.off[q])
-            o_last = tr.o
-            tr.vis, tr.o = float(R.vis[i]), float(R.o[i])
+            tr.cover = "none"
+            tr.vis, tr.o = float(R.vis[i]), o_new
             tr.n_seen += 1
             if tr.how_alt is not None:                  # a faint birth: faded in only with its opacity rising
                 if tr.o - tr.o0 > c.fade_rise:
@@ -388,8 +397,7 @@ class MobTracker:
                 if tr.conf:
                     self.stats["confirmed: " + tr.conf] += 1
                     self._new_ev(tr, t)
-            if R.die[i, m] and tr.life != "dying" and (tr.o > o_last + c.fade_eps
-                                                      or tr.o < c.die_full_o and tr.o >= o_last - c.fade_eps):
+            if live_die:
                 tr.life = "alive"                       # a die pose with the opacity rising (or flat, faint): the
                 self.stats["die pose, opacity not falling: alive"] += 1     # live mob (a spawn's landing squash)
             elif R.die[i, m]:
