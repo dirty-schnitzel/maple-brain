@@ -311,7 +311,8 @@ class Graph:
 
     def _build_fixed(self, m):
         """The fixed places: spawn points (mob kind, x, y, node: its foothold's chain) and portals (x, y, node by the
-        placement rule, target map), the map's bounds (vrBounds)."""
+        placement rule, target map), the NPCs (x, y: a name tag near one is the NPC's, track/players.py), the map's
+        bounds (vrBounds)."""
         sp = [v for v in m.get("mobs") or [] if not v.get("hidden")]
         self.spawn_kind = np.array([int(v["id"]) for v in sp], np.int64)
         self.spawn_x = np.array([v["x"] for v in sp], np.float64)
@@ -325,6 +326,7 @@ class Graph:
         self.portal_y = np.array([v["y"] for v in po], np.float64)
         self.portal_to = np.array([int(v.get("toMap") or 0) for v in po], np.int64)
         self.portal_node = self.place(self.portal_x, self.portal_y).node if po else np.zeros(0, np.int64)
+        self.npcs = [(float(v["x"]), float(v["y"])) for v in m.get("npcs") or []]
         self.bounds = dict(m.get("vrBounds") or {})
 
     # ---------------------------------------------------------------- queries

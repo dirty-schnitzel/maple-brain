@@ -12,6 +12,9 @@
 A question is a GROUP: n places (screen feet fx, fy) x one body core (offsets dx, dy from the feet, track/kinds.py).
 `count(groups)` -> per group three int arrays over its places: the core's pixels inside the play area that show the
 scene, inside it, and inside it AND world. A source that has nothing for this frame (no camera): `ready` False.
+`columns(cx, top, reach, half)` (the players' tracker, track/players.py: what stands on a name tag) -> per tag the
+`reach` rows over its top (row i = top - reach + i), each counted over the 2 half + 1 columns around cx: pixels that
+are world and do NOT show the scene (something is drawn there), world, inside the play area.
 """
 import numpy as np
 
@@ -25,6 +28,20 @@ class Evidence:
     def count(self, groups: list) -> list:
         """[(fx (n,), fy (n,), dx (k,), dy (k,))] -> [(shows (n,), inside (n,), world (n,))] int64 counts."""
         raise NotImplementedError
+
+    def columns(self, cx, top, reach: int, half: int):
+        """cx, top (n,) screen px -> (over, world, inside): (n, reach) int64 counts (the module's docstring)."""
+        raise NotImplementedError
+
+
+def _grid(cx, top, reach, half):
+    """The pixels of `columns`: xs, ys (n, reach, 2 half + 1) and which are inside the play area."""
+    cx, top = np.asarray(cx, np.int64), np.asarray(top, np.int64)
+    xs = cx[:, None, None] + np.arange(-half, half + 1)[None, None, :]
+    ys = top[:, None, None] + np.arange(-reach, 0)[None, :, None]
+    xs, ys = np.broadcast_to(xs, (len(cx), reach, 2 * half + 1)), np.broadcast_to(ys, (len(cx), reach, 2 * half + 1))
+    inside = (xs >= 0) & (xs < SW) & (ys >= 0) & (ys < PLAY_H)
+    return xs, ys, inside
 
 
 class Bitmaps(Evidence):
@@ -44,6 +61,23 @@ class Bitmaps(Evidence):
             out.append(((self.shows[yc, xc] & inside).sum(axis=1), inside.sum(axis=1),
                         (self.world[yc, xc] & inside).sum(axis=1)))
         return out
+
+    def columns(self, cx, top, reach: int, half: int):
+        """Per tag one slice of the two bitmaps (the rows and columns inside the play area)."""
+        n = len(cx)
+        over, world, inside = (np.zeros((n, reach), np.int64) for _ in range(3))
+        for k in range(n):
+            c, t = int(cx[k]), int(top[k])
+            x0, x1 = max(0, c - half), min(SW, c + half + 1)
+            r0, r1 = max(0, t - reach), min(PLAY_H, t)
+            if x1 <= x0 or r1 <= r0:
+                continue
+            a, b = r0 - (t - reach), r1 - (t - reach)
+            wo = self.world[r0:r1, x0:x1]
+            world[k, a:b] = wo.sum(1)
+            over[k, a:b] = (wo & ~self.shows[r0:r1, x0:x1]).sum(1)
+            inside[k, a:b] = x1 - x0
+        return over, world, inside
 
 
 class Gpu(Evidence):
@@ -111,3 +145,22 @@ class Gpu(Evidence):
         return out
 
     last = None
+
+    def columns(self, cx, top, reach: int, half: int):
+        """The same formula as `count`, at the asked pixels only (the whole frame's shows map only when this frame
+        already has it: a few thousand pixels need no full-frame pass); one transfer back."""
+        t = self.torch
+        xs, ys, inside = _grid(cx, top, reach, half)
+        idx = np.clip(ys, 0, PLAY_H - 1) * SW + np.clip(xs, 0, SW - 1)
+        dev = self.fitter.dev
+        it = t.from_numpy(np.ascontiguousarray(idx.reshape(-1))).to(dev)
+        last = self.fitter._last
+        frame, _C, exp, valid = last
+        v = valid.reshape(-1)[it]
+        if self._key is last:
+            sh = self._shows[it]
+        else:
+            sh = (frame.reshape(-1, 3)[it].float() - exp.reshape(-1, 3)[it]).abs().amax(dim=1) <= self.tol
+            sh &= v
+        both = t.stack([v & ~sh, v]).cpu().numpy().reshape(2, *idx.shape) & inside[None]
+        return both[0].sum(2), both[1].sum(2), inside.sum(2)
