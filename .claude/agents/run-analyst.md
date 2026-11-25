@@ -54,11 +54,11 @@ A capture in the bank is named by its id `SESSION#K` (`tools\perc\frames.py`, `t
 - Speed numbers depend on the machine's state: report them, do not call a difference a regression.
 - Our facing is a belief built from the keys we sent: when combat looks wrong, check it first.
 
-## The report (at most about 60 lines, plain words)
+## The report (at most about 60 lines, normal technical English in full sentences)
 1. **Verdict** - two or three sentences: what happened, how sure you are.
 2. **Findings** - for each: the time in the run (seconds) and the ticks, what the log and the ticks say, what
    the frames show, the numbers with the command that produced them, the paths of at most six frames to open.
-   The first time a term appears, say what it means in the game.
+   The first time a plan label or a game-specific term appears, say what it means in the game.
 3. **Not determined** - what the data cannot answer, and what recording or run would answer it.
 4. **For a fix** - the smallest offline reproduction you can see: which ticks or frames would make a test.
 No raw log dumps, no long tick listings: the caller can ask for more.

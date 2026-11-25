@@ -64,7 +64,7 @@ even a small action there - a question answered, a note added, a prompt written 
 own work. The manager's context holds the plan and the conversation about it, not a step's working files.
 
 **What it does:**
-- Walks the user through the plan before the OK: the steps in plain words, the questions with a recommendation
+- Walks the user through the plan before the OK: the steps in normal technical English, the questions with a recommendation
   each, the footage asked; records the answers in the plan and marks it APPROVED on the user's word.
 - Writes each executor's start: the step's prompt (the plan's, plus what changed since it was written), the
   worktree and branch when steps run side by side (section 7), the model and effort per step.

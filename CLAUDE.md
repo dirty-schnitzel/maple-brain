@@ -13,7 +13,10 @@ lives: the last section.
 - Senior Python test-automation dev (Windows, infra, security QA). Wants evidence - logs, frames, numbers - and
   test-first fixes. Watches every live run and says what they saw. Their game knowledge fixes designs: ask game
   questions directly.
-- Reports are short: what was found, the fix, the command.
+- Reports are short: what was found, the fix, the command. Write them in normal technical English, in full
+  sentences: standard software terms are fine. Define a plan's own labels (L5, carry-over 2, stop rule 4) and
+  game-specific terms the first time they appear. Lead with the decision the user must make. Do not copy the
+  compressed style of HANDOFF.md or the plans.
 - Hard problems run as three kinds of session. A planner (Fable, max) measures and prototypes first, then writes
   PLAN-<topic>.md with a gate per step, stop rules and session prompts: PROPOSED until the user's OK, nothing
   built in maplebrain/. An executor (Opus, or Fable at medium) follows the plan's steps and gates exactly and stops with numbers
