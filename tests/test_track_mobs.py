@@ -156,6 +156,60 @@ def test_a_live_pose_right_after_one_die_pose_takes_it_back():
     assert trk.mobs()[0].life == "alive" and trk.stats["death taken back"] == 1
 
 
+def fade_in(trk, x=600, o0=0.2, frames=20, t0=1.0):
+    """A spawn fading in (+0.023 a frame, PLAN-tracker "Step 3b, try 3") from the stay's first camera at 0 -> last t."""
+    trk.update(facts(0.0), ev(False, True))
+    t = t0
+    for f in range(frames):
+        trk.update(facts(t, [mob(x, o=o0 + 0.023 * f)]), ev(False, True))
+        t += DT
+    return t
+
+
+def test_a_fading_in_mob_read_in_a_die_pose_stays_one_live_track():
+    """The user, 2026-11-25: a die pose with the opacity RISING is the same live mob (a Bubbling's landing squash read
+    as die1_2 while it fades in: 33 false deaths + a second track each on the 13 sound captures)."""
+    trk = a_tracker()
+    t = fade_in(trk, o0=0.2, frames=18)                              # opacity 0.2 .. 0.59
+    trk.update(facts(t, [mob(600, pose="die1_2", o=0.62)]), ev(False, True))
+    trk.update(facts(t + DT, [mob(602, o=0.64)]), ev(False, True))
+    trk.update(facts(t + 2 * DT, [mob(604, o=0.66)]), ev(False, True))
+    assert [(m.id, m.life) for m in trk.records] == [(1, "spawning")]
+    assert trk.records[0].born_how == "faded in" and trk.stats["die pose, opacity not falling: alive"] == 1
+    trk = a_tracker()                                                # the fade's last frames: 0.95 -> 0.973, rising
+    t = fade_in(trk, o0=0.789, frames=8)
+    trk.update(facts(t, [mob(600, pose="die1_2", o=0.973)]), ev(False, True))
+    assert [(m.id, m.life) for m in trk.records] == [(1, "alive")]
+
+
+def test_a_death_at_full_opacity_or_fading_out_turns_dying_at_once():
+    """A death's die pose starts at full opacity (99.1 %; its fade-out begins ~20 frames in): dying on that frame,
+    so the death gate is not slowed. A faint die pose with the opacity falling is a death too."""
+    trk = a_tracker()
+    trk.update(facts(0.0, [mob(600)]), ev(False, True))
+    trk.update(facts(DT, [mob(600, pose="die1_0", o=1.0)]), ev(False, True))
+    assert trk.records[0].life == "dying" and trk.records[0].state == "dying"
+    trk = a_tracker()
+    trk.update(facts(0.0, [mob(600, o=0.8)]), ev(False, True))
+    trk.update(facts(DT, [mob(600, pose="die1_1", o=0.7)]), ev(False, True))
+    assert trk.records[0].life == "dying"
+
+
+def test_a_faint_birth_is_faded_in_only_with_its_opacity_rising():
+    """The user, 2026-11-25: "a spawn needs rising". A faint mob with a flat opacity (0.5: seen through an effect,
+    the 2026-11-18 captures) is born by how it came into sight otherwise; its mob_new event waits until settled."""
+    trk = a_tracker()
+    trk.update(facts(0.0), ev(False, True))
+    evs = []
+    for f in range(4):
+        evs += trk.update(facts(1.0 + f * DT, [mob(600, o=0.5, n=800)]), ev(False, True))
+    assert trk.records[0].born_how == "uncovered"
+    assert [(e["ev"], e["how"]) for e in evs] == [("mob_new", "uncovered")]
+    trk = a_tracker()
+    fade_in(trk, frames=4)
+    assert trk.records[0].born_how == "faded in"
+
+
 def test_blind_frame_changes_nothing():
     """No camera: nothing begins or ends, every value is kept - but nothing is found on it: not `seen`."""
     trk = a_tracker()

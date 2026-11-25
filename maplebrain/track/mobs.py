@@ -20,7 +20,10 @@ the camera, the players' tags, the drops, our tag) -> the mob records (track/sta
 3. A PAIRED track: placed by the graph's rule with its step since the last frame (stand: within 3 px of a surface
    and not moving up or down; its node changes only on stand), its speed over its last 0.25 s, its kind voted (a
    clear sighting counts for more), confirmed by a clear sighting or after confirm_s of sightings, its life from
-   the pose (a die pose = dying; a live pose within die_revert_s of the first die pose takes it back).
+   the pose and the fade's direction (the user, 2026-11-25: "dying needs falling opacity, a spawn needs rising"): a die
+   pose at full opacity (die_full_o: a death starts there) or with the opacity falling = dying; a die pose with the
+   opacity rising or flat under full = the live mob (a spawn's landing squash read as die1_2: PLAN-tracker "Step 3b,
+   try 3"); a live pose within die_revert_s of the first die pose takes a death back.
 4. A track NOT SEEN: dying -> gone when its die1 animation is over (+ die_extra_s); tentative -> dropped after
    tentative_s; last seen fading in -> not checked for fade_s; else its POSSIBLE SET - the places of its node every
    set_step px, starting knock + set_step either side of where it was last seen, widening at its kind's speed (a
@@ -36,9 +39,11 @@ the camera, the players' tags, the drops, our tag) -> the mob records (track/sta
    3). x, y = the middle of the places left.
 5. NEW TRACKS from the sightings left over (not over a platform and not a flyer: none), with two fields (the user,
    2026-11-24): how it came into sight - "there at entry" (within entry_s of the first frame with a camera),
-   "faded in" (opacity under fade_o in a live pose: a die pose is faint because the death fades it out), "came into
-   view" (at the screen's edge) or "uncovered" - and its first pose (`first_pose`: a die pose = first seen dying);
-   tentative until confirmed (then a `mob_new` event).
+   "faded in" (opacity under fade_o in a live pose AND rising by more than fade_rise within its first fade_k
+   sightings: a spawn fades in; flat or falling - seen through an effect - it is "came into view" / "uncovered" as
+   below; until settled the record says "faded in" and its mob_new event waits), "came into view" (at the screen's
+   edge) or "uncovered" - and its first pose (`first_pose`: a die pose = first seen dying; a die pose is faint
+   because the death fades it out); tentative until confirmed (then a `mob_new` event).
 A frame without a camera (blind) changes nothing: the records keep their values with cover "blind" and `seen` False
 (nothing is found on it; the prototype kept a track seen on the frame before "seen" through the blind frames).
 Events: mob_new (confirmed; how born), mob_died (a die pose seen, its animation over), mob_gone (its places show the
@@ -63,7 +68,7 @@ class _Tr:
     __slots__ = ("id", "votes", "mob", "x", "y", "t_seen", "born", "vx", "vy", "facing", "pose", "node", "air",
                  "life", "die_t", "seen", "poss", "gx", "gy", "carry", "out_since", "x_seen", "y_seen", "sx", "sy",
                  "born_how", "n_seen", "cover", "hist", "conf", "vis", "o", "rin", "rout", "n_seen_at", "place",
-                 "cur_node", "off", "n_frames", "first_pose")
+                 "cur_node", "off", "n_frames", "first_pose", "how_alt", "o0", "new_held")
 
     def __init__(self, tid, kind, pose, facing, x, y, sx, sy, node, air, place, off, o, vis, solid, die, t, how):
         self.id, self.votes, self.mob = tid, {kind: 1.0}, kind
@@ -84,6 +89,9 @@ class _Tr:
         self.rin = self.rout = 0                        # frames remembered in view / with nothing to check
         self.n_seen_at = None
         self.n_frames = 1                               # frames with a camera since birth
+        self.how_alt = None                             # a faint birth not settled yet: how it came into sight if its
+        self.o0 = o                                     # opacity does not rise from o0 (else "faded in")
+        self.new_held = False                           # its mob_new event waits for that
 
 
 class _Readings:
@@ -361,8 +369,14 @@ class MobTracker:
             tr.facing, tr.pose = int(R.facing[i]), R.pose[i, m]
             tr.node, tr.air, tr.cover = int(P.from_node[q]), not stand, "none"
             tr.place, tr.cur_node, tr.off = int(P.place[q]), int(P.node[q]), float(P.off[q])
+            o_last = tr.o
             tr.vis, tr.o = float(R.vis[i]), float(R.o[i])
             tr.n_seen += 1
+            if tr.how_alt is not None:                  # a faint birth: faded in only with its opacity rising
+                if tr.o - tr.o0 > c.fade_rise:
+                    self._settle(tr, "faded in", t)
+                elif tr.o < tr.o0 - c.fade_rise or tr.n_seen >= c.fade_k:
+                    self._settle(tr, tr.how_alt, t)
             kind = int(R.kind[i])
             tr.votes[kind] = tr.votes.get(kind, 0.0) + max(c.vote_min, tr.vis)     # a clear sighting counts more
             tr.mob = max(tr.votes, key=tr.votes.get)
@@ -373,8 +387,12 @@ class MobTracker:
                     tr.conf = "sighted long"
                 if tr.conf:
                     self.stats["confirmed: " + tr.conf] += 1
-                    self._ev.append({"ev": "mob_new", "t": t, "id": tr.id, "kind": tr.mob, "how": tr.born_how})
-            if R.die[i, m]:
+                    self._new_ev(tr, t)
+            if R.die[i, m] and tr.life != "dying" and (tr.o > o_last + c.fade_eps
+                                                      or tr.o < c.die_full_o and tr.o >= o_last - c.fade_eps):
+                tr.life = "alive"                       # a die pose with the opacity rising (or flat, faint): the
+                self.stats["die pose, opacity not falling: alive"] += 1     # live mob (a spawn's landing squash)
+            elif R.die[i, m]:
                 if tr.life != "dying":
                     tr.life, tr.die_t = "dying", t
             elif tr.life == "dying":
@@ -636,12 +654,33 @@ class MobTracker:
             tr = _Tr(self.next_id, k.id, R.pose[i, 0], int(R.facing[i]), x, y, sx, sy, node, air,
                      int(R.place[i, 0]), float(R.off[i, 0]), o, float(R.vis[i]), bool(R.solid[i]), die, t, how)
             tr.n_seen_at = self.n
+            if how == "faded in":                       # settled by its next sightings (the opacity rising or not)
+                tr.how_alt, tr.o0 = ("came into view" if self._edge(sx, sy) else "uncovered"), o
             keep.append(tr)
             self.next_id += 1
             self.stats["new: " + how] += 1
             if tr.conf:
                 self.stats["confirmed: at once"] += 1
-                self._ev.append({"ev": "mob_new", "t": t, "id": tr.id, "kind": tr.mob, "how": how})
+                self._new_ev(tr, t)
+
+    def _new_ev(self, tr: _Tr, t: float):
+        """The mob_new event of a confirmed track - held while how it came into sight is not settled yet."""
+        if tr.how_alt is not None:
+            tr.new_held = True
+            return
+        self._ev.append({"ev": "mob_new", "t": t, "id": tr.id, "kind": tr.mob, "how": tr.born_how})
+
+    def _settle(self, tr: _Tr, how: str, t: float):
+        """A faint birth settled: "faded in" (its opacity rose) or how it came into sight otherwise (flat / falling:
+        seen through an effect or half under something, not a spawn)."""
+        if how != tr.born_how:
+            self.stats["new: " + tr.born_how] -= 1
+            self.stats["new: " + how] += 1
+            self.stats["faint birth, opacity not rising: " + how] += 1
+        tr.born_how, tr.how_alt = how, None
+        if tr.new_held:
+            tr.new_held = False
+            self._new_ev(tr, t)
 
     def _edge(self, sx, sy) -> bool:
         L, Rr, B, Tp = self.cfg.edge_px

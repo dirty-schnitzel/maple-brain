@@ -1277,6 +1277,65 @@ with the opacity falling (or the die pose at full opacity, if the measurement sh
 an effect) is neither. Measured first, because the death gate (noticed p90 <= 0.05 s) rests on when the fade-out
 starts in a death.
 
+### Step 3b, try 3 (2026-11-25): the fade direction built; step 3's gate MET on every row but the feet's jolts (599, <= 556) - stopped before spawns
+`tools/perc/track/fade_dir.py` (`series | splits | deaths | births | strips`; outputs `...\track-plan\step3b\fade\`).
+**1. Measured on the step-4b rows (`*_s4b`), nothing changed:**
+- **a. A death taken back or a split:** 957 tracks turn `dying` (13 taken back by the same track); 47 are followed
+  within 1 s by a new track of their kind within 30 px: **33 while fading in** (born faded in, 0.45-0.65 s old,
+  every one in `die1_2`, the opacity rising on all 33 - the strips: a Bubbling landing from its spawn hop, squashed,
+  read as `die1_2`), 10 other (real deaths whose die animation the fit then reads as a live pose - a new track on
+  the body - and 2 under the UI), 3 overlaps (two Bubblings overlapping as one dies), 1 after a hit.
+- **b. Real deaths (899):** the die pose starts at **full opacity** - the first die sighting >= 0.97 on 99.1 %; the
+  opacity stays 1.00 for 21 frames (p50; p90 25) and falls from frame ~20 (0.33 s); the first die frame against the
+  next: flat 867, falling 5, rising 3 of 875. So "falling" alone would slow the death gate by ~20 frames; the rule's
+  "or at full opacity" keeps it at the first die frame - the stop of the prompt's 1b was read as that (the premise "the
+  rule would slow the death gate" does not hold with the full-opacity half; the gate's re-run below checks it: p90
+  0.000 s).
+- **c. Faded-in births (641):** rising 618 (confirmed 604 of 612), flat 8, falling 5, one sighting 10; the flat
+  ones sit at 0.49 / 0.50 (2026-11-18 captures: seen half-transparent, the strips); by the 3rd sighting 617 have
+  risen > 0.02; one frame's rise while fading p1 / p50 0.007 / 0.023.
+
+**2. Built (`track/mobs.py`, `config.Track`; nothing else changed):** a die pose on a track not dying: the opacity
+**risen** more than `fade_eps` (0.005) since its last sighting -> the live mob (at any level: the fade's last frames
+reach 0.973); else at **full** (`die_full_o` 0.97) or **fallen** more than 0.005 -> `dying`; flat and faint -> the
+live mob. A birth under `fade_o` in a live pose is "faded in" only when its opacity rises more than `fade_rise` (0.02)
+within its first `fade_k` (3) sightings; flat or falling -> came into view / uncovered as otherwise; until settled the
+record says "faded in" and its `mob_new` waits (stats: 10 faint births settled otherwise, 49 die poses taken as the
+live mob). Tests (each fails with its rule switched off): `test_a_fading_in_mob_read_in_a_die_pose_stays_one_live_track`
+(+ the fade's last frame at 0.973 - the first build's `>= 0.97 first` left 2 splits: fixed to the user's words, "a die
+pose with the opacity rising is the live mob"), `test_a_death_at_full_opacity_or_fading_out_turns_dying_at_once`,
+`test_a_faint_birth_is_faded_in_only_with_its_opacity_rising`. pytest all green; bot speed 14.9 ms a tick (track
+0.4 ms) - unchanged.
+
+**3. Step 3's gate, from the kept replay (`*_f3c`, the sorted tags as live), against the 4b rows:**
+
+| Row | 4b (`s4b`) | now (`f3c`) | |
+|---|---:|---:|---|
+| found (>= 98.4 %) | 98.70 % | 98.70 % | met |
+| id kept across a cover (>= 93.1 %); by length | 93.48 %; 97.0 / 96.5 / 94.1 / 79.4 / 77.4 | 93.54 %; 97.1 / 96.5 / 94.1 / 79.4 / 77.4 | met |
+| one id for life not beside another (>= 90.6 %) | 90.98 % | **92.39 %** | met (up: the splits gone) |
+| extra ids (<= 1,032); changed mob (<= 10) | 1,019; 7 | **993**; 7 | met |
+| next to its set (>= 99.0 %); a death noticed p90 (<= 0.05 s); ghosts | 99.35 %; 0.000; 0 | 99.35 %; 0.000; 0 | met |
+| "died (seen)" ends | 979 | 945 | 34 false deaths fewer |
+| hops within 1.5 px (>= 91 %) | 91.4 % | 91.4 % | met |
+| **feet jolts (<= 556)** | 550 | **599** | **MISSED** |
+| L1 / L2 / L3 (as accepted) | 98.98 % / 15 of 16 / 19 of 22 | the same | - |
+| 1a again: splits while fading in (0) | 33 | **0** | met (13 left: 10 real deaths / UI, 3 overlaps) |
+
+**Why the jolts rose (every one of the new 48 on the first build, f3b: 550 -> 597; f3c 599):** each has `die1_2` in
+its three frames - the fit names the faint landing squash `die1_2` (the client's `die1_2` is a flat puddle, NOT
+`move_5`'s picture: no look-alike) and that reading puts the feet **exactly 18 px over** the `move_5` readings on
+either side (e.g. y 198, 180, 198). Before, the track split there (the old track "died", the new one began), so the
+step was never inside one track; now the die reading's wrong feet are. The feet everywhere else are unchanged (hops
+91.4 %, the same residuals).
+
+**For the user (stopped, stop rule 1; spawns.py not started):** the fade rule removes every fading-in split and 34
+false deaths, but the die reading it keeps moves the feet 18 px for one frame. Choose: (a) a die pose taken as the
+live mob does not move the feet (its pose is the fit's misreading, so are its feet: the track keeps its last feet
+that frame) - the jolts expected back to ~550, re-run; (b) take the die reading as "not seen" that frame (the track
+fading in is not checked for `fade_s` anyway); (c) accept 599 (the 49 are the fit's one-frame misreads, counted
+now that the tracks hold). Then step 4 (trace + the sheet) and spawns.py as the prompt says.
+
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.
 2. The real code cannot reproduce a prototype's number from the same kept replay within tolerance: stop - it is

@@ -205,6 +205,15 @@ class Track:
     jump_dh: int = 16               # ... every this many px
     fade_o: float = 0.9             # a sighting under this opacity is fading in (a spawn)
     fade_s: float = 0.4             # a mob last seen fading in is not checked for this long (the fade-in: 0.32 s)
+    # The fade's direction (PLAN-tracker "Step 3b, try 3"; the user, 2026-11-25: "dying needs falling opacity, a spawn
+    # needs rising"). Measured on the 13 sound captures: a death's die pose starts at full opacity (99.1 % >= 0.97;
+    # it fades out from frame ~20), a spawn fades in over 0.82 s (+0.023 a frame, p1 0.007).
+    die_full_o: float = 0.97        # a die pose at this opacity or more, not rising, turns a track dying (a death
+                                    # starts at full)
+    fade_eps: float = 0.005         # a die pose with the opacity risen more than this since its last sighting is the
+                                    # live mob (at any level); under die_full_o it is a death only when it fell more
+    fade_rise: float = 0.02         # a faint birth is "faded in" once its opacity rose more than this over its first
+    fade_k: int = 3                 # ... this many sightings; else it was born by how it came into sight otherwise
     entry_s: float = 0.5            # a track born this soon after the first frame with a camera: "there at entry"
     edge_px: tuple = (70, 70, 10, 60)   # "came into view": the feet within this of the left / right / bottom / top
     check_share: float = 0.5        # a place can be checked when this share of its core is world (shows a mob)
