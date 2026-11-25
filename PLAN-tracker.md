@@ -404,7 +404,8 @@ this frame, one transfer back). So the real tracker is graded on the kept replay
 GPU source is proved equal to the bitmap source on fresh footage.
 
 **3. Placement: the one rule of the model, with motion.** `stand` = the feet within 3 px of a surface and the
-step since the last frame within 1 px up or down (+ 0.9 x the sideways step, the steepest slope walked); else
+step since the last frame within 1 px up or down (+ the foothold's own rise over the sideways step, rounded up to a
+whole pixel: "Step 3, the slope fix"; it was + 0.9 x the sideways step); else
 `air` (or `fly`; `rope` for us and players). The node changes only on `stand`. Look-alike poses: every reading
 of the picture is kept; one under the floor the mob stands on or jumped from is dropped (unless all are), and
 of the rest the reading that continues its motion wins (measurement 3).
@@ -903,6 +904,51 @@ no try 3). What was missed is carried, not dropped:
 3. **The whole frame's +0.3 ms** cannot hold while world.py runs beside the shadow (both are paid: +0.97):
    **step 9** measures it after world.py goes, against today's frame. The tracker's p50 1.04 ms is accepted.
 L3's 26, 47 (uncovered inside the edge band) and 41 (there at entry by the picture) stay as reported.
+
+### Step 3, the slope fix (2026-11-25): built; every row MET but L1, MISSED by one case (98.98 %; stopped)
+Branch `tracker-build` (the main folder). **Built:** `track/graph.py`'s step rule = `|dy| <= 1 px + ceil(|the
+foothold's own slope| x |dx|)` - the slope of the surface the thing stands on at its x (at a joint the one going
+on, at a chain's end its last foothold: a new block of the table's row, `[|own slope|] * K1`); the rise is
+**rounded up to a whole pixel**, because read word for word ("slope x the step + 1 px") a 1 px step on a 0.6 slope
+allows 1.6 px and the prompt's own test (2 px for 1 px on 0.6) fails; feet and camera are whole pixels. Flat ground
+keeps 1 px however far sideways. `config.Track.stand_slope` (0.9) is gone (nothing else read it). Tests:
+`test_the_step_follows_the_slopes_own_rise` (a 1.8 slope: 3 px for 1 px, 4 for 2; a 0.6 slope: 2 for 1; flat:
+1 px) and the changed `test_moving_up_or_down_is_not_standing` fail on the old rule (checked with HEAD's graph.py);
+the plain reference rule of `test_place_equals_the_plain_rule_on_real_maps` has the new step (`step_ok`).
+**Case 124 relabelled** `stand` (node 196, the feet 0.1 px off it; pose `die1`), `was: fly`, a `relabelled` note
+with the user's words in `20261118_232410_1#4\labels\L1.json`; backup in
+`F:\dev\maple-corpus\work\track-plan\step3\labels_before_slope\`. Outputs: `...\track-plan\step3\*_slope.pkl`.
+
+What the tracker gave `place()` at try 2's 19 misses (a diagnostic run over the kept replay; dx, dy = the step since
+the track was last seen, px; slope = the foothold under the feet): the 5 steep - 2 (-1, -2, slope 1.90), 15 and 195
+(-1, +2, -1.90), 46 (+1, +3, 1.82), 50 (+1, +3, 1.90); the 5 whole-pixel - 37 (-1, -2, 0.79), 17 (+1, -2, -0.64),
+32 (-1, +2, -0.64), 10 (+1, +2, 0.56), 145 (-1, +2, -0.86) - every one in the slope's own direction. **Two of the
+"12 within 5 px" are not slope steps:** **155** (Zombie Mushroom `stand_0`: +1, **+6** on a 0.40 slope) and **184**
+(Evil Eye `jump_0`: -3, **+4** on a 0.09 slope) - no rule of the slope places them `stand`. So the expected 99.2 %
+(6 misses) counted them as fixed; with them L1 has 8.
+
+| Gate | slope fix | try 2 | |
+|---|---:|---:|---|
+| **L1 mobs: stand / air (>= 99 %: 7 misses allowed)** | **775 of 783 = 98.98 %** (8 misses) | 764 = 97.57 % | **MISSED by 1** |
+| L1: the node of standing mobs (99.42 % accepted) | 557 of 560 = 99.46 % (the same 3: 113, 190, 171) | 546 of 549 | met (as accepted) |
+| step 2's hops: air called standing (<= 0.8 %) | 126 of 26,811 = 0.47 % | 124 (0.46 %) | met |
+| step 2's hops: standing called air (<= 0.2 %) | 970 of 555,561 = 0.175 % | 1,014 (0.183 %) | met |
+| the 13 captures' rows (found, id kept + by length, one id, extra ids, changed mob, next to its set, death p90, ghosts) | 98.70 %; 93.48 % (97.0 / 96.5 / 94.1 / 79.4 / 77.4); 90.98 %; 1,019; 7; 99.35 % of 2,783; 0.000 s; 0 | the same | met |
+| feet: hops within 1.5 px rms (>= 91 %); jolts (<= 556) | 91.4 % of 919; 550 | the same | met |
+| pytest `tests/test_track_graph.py`, `tests/test_track_mobs.py` | 43 passed | - | met |
+
+The only other change in the pooled rows: one cover gap of 0.6-1.5 s fewer held (214 / 277, was 215 / 278).
+**The 8 L1 misses left:** the 6 feet 9-35 px off (24, 158, 29, 34, 35, 42: the fit's, stop rule 4) + **155**
+(6 px down for 1 px sideways, `stand_0`, 2.6 px over a 0.4 slope) and **184** (`jump_0`, 4 px down for 3 px, 2.3
+px over a 0.09 slope) - a real step the rule calls a jump (a pose or feet jump of the fit between frames, or a step
+measured over more than one frame: the step is since the track was last seen, up to `ballistic_s`).
+**Cost:** `place()` of 20 things +1.5-2 us (Line 1 19.8-20.3 -> 21.8-22.1 us best of 7, the largest map 21.0 ->
+22.6-23.1; an A/B in one process, idle machine; the extra gather + ceil) - step 2's 20 us line was not part of
+this gate.
+
+**For the user:** L1 misses 99 % by one case. (1) Accept at 98.98 % (155 and 184 are not slope steps; the rest is the
+fit's), or (2) a rule for 155 / 184 (e.g. the step per frame when the track was last seen frames ago, or a pose
+that does not move the feet), which is a new rule, not this fix - or (3) look at 155 / 184 frame by frame first.
 
 ## Stop rules
 1. A gate missed: stop with the numbers. No workaround, no changed constant, no lowered gate.

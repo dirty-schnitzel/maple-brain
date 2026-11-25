@@ -18,8 +18,10 @@ end on another chain's middle), a crossing. Ropes have no floor (-1).
 PLACEMENT: one rule for every kind, one call for every thing of a frame (`place`):
   1. stand: a surface at the feet's x is within `stand_tol` (3 px) - `stand_tol_slope` (5 px) when its foothold
      there is not level (mobs' feet sit 3.6-4.4 px off a slope: the user, 2026-11-24) - and the step since the last
-     frame is within `stand_step` (1 px) up or down + `stand_slope` (0.9) x the sideways step - a jump passing a
-     platform's level is not standing on it. A kind that flies is never standing (the user: "Stirges never land").
+     frame is within `stand_step` (1 px) up or down + the surface's own rise over the sideways step (its foothold's
+     slope x the step, rounded UP to a whole pixel: feet and camera are whole pixels, so 1 px sideways on a 0.6
+     slope shows up to 2 px up or down; mobs walk slopes of 1.8-1.9 - the user, 2026-11-25, PLAN-tracker "Step 3,
+     the slope fix") - a jump passing a platform's level is not standing on it. A kind that flies is never standing (the user: "Stirges never land").
      Two surfaces within their tolerance: the node of the last frame wins; else the nearest, then the lower id
      (NavMap.platform_at's order). The foothold at a whole x where two of a chain meet: the one going on.
   2. rope: a kind that climbs (us, players), not standing: the feet within `rope_tol` of a rope's x and of its ends
@@ -244,8 +246,8 @@ class Graph:
     def _build_columns(self):
         """Every whole x = c of the map: the surfaces over [c, c + 1) as K slots, then one slot for "nothing under",
         then two flags. Row c - x0 + 1 (rows 0 and W + 1, off the map, are empty), so floor(x) - x0 + 1 is any x's
-        row, clipped. A row = [y at c] * K1 + [slope] * K1 + [node id] * K1 + [tolerance] * K1 + [close] + [rope
-        near], the slots sorted by node id (equal distances: the lower id, as NavMap.platform_at); y at c is computed
+        row, clipped. A row = [y at c] * K1 + [slope] * K1 + [node id] * K1 + [tolerance] * K1 + [|own slope|] * K1 +
+        [close] + [rope near], the slots sorted by node id (equal distances: the lower id, as NavMap.platform_at); y at c is computed
         as Seg.y_at computes it. A foothold that ends at c covers c only: its slope is END (far above anywhere past
         c). A chain's two footholds meeting at c: the one going on. tolerance: stand_tol, stand_tol_slope for a
         foothold that is not level (+ EPS). An empty slot: y inf, node NONE; the last slot: y NOWHERE, node NONE (the
@@ -273,7 +275,7 @@ class Graph:
         slot = np.arange(len(rows)) - np.repeat(starts, counts)
         K1 = (int(counts.max()) if len(counts) else 0) + 1
         c = self.cfg
-        T = np.zeros((W + 2, 4 * K1 + 2), np.float64)
+        T = np.zeros((W + 2, 5 * K1 + 2), np.float64)
         T[:, :K1] = np.inf
         T[:, K1 - 1] = NOWHERE
         T[:, 3 * K1:4 * K1] = c.stand_tol + EPS
@@ -283,6 +285,7 @@ class Graph:
         T[rows, K1 + slot] = np.where(end, END, dyy / dxx)
         T[rows, 2 * K1 + slot] = self.seg_node[segs]
         T[rows, 3 * K1 + slot] = np.where(dyy != 0, c.stand_tol_slope, c.stand_tol) + EPS
+        T[rows, 4 * K1 + slot] = np.abs(dyy / dxx)                     # its own slope (also at its end), for the step
         # flag: two surfaces of the row come within twice the larger tolerance of each other on [c, c + 1] (only
         # then can two be within their tolerance of one thing's feet, and the last frame's node decide)
         y0 = T[:, :K1 - 1]
@@ -302,7 +305,7 @@ class Graph:
             T[0, -1] = T[-1, -1] = 1.0                          # a rope beyond the footholds' ends
         self._T, self._K1, self._roff = T, K1, x0 - 1
         self._flats = {}                                        # n -> flat slot indices (see _flat)
-        self._step, self._slope, self._rtol = c.stand_step + EPS, c.stand_slope, c.rope_tol
+        self._step, self._rtol = c.stand_step + EPS, c.rope_tol
         self._nr = len(self.ropes)
         self._rlo, self._rhi = self.rope_top - c.rope_tol, self.rope_bottom + c.rope_tol
 
@@ -341,7 +344,7 @@ class Graph:
         f = self._flats.get(n)
         if f is None:
             a = np.arange(n, dtype=np.intp)
-            f = self._flats[n] = (a * self._K1, a * (4 * self._K1 + 2) + 2 * self._K1)
+            f = self._flats[n] = (a * self._K1, a * (5 * self._K1 + 2) + 2 * self._K1)
         return f
 
     @staticmethod
@@ -380,9 +383,10 @@ class Graph:
             kc = np.where(m.any(1), m.argmax(1), kc)
         if fly is not None:                             # a kind that flies never stands
             stand &= ~np.asarray(fly, bool)
-        if dy is not None:
-            stand &= np.abs(dy) <= self._step + self._slope * np.abs(dx)
         gf, df = g.ravel(), d.ravel()
+        if dy is not None:                              # the step: the surface's own rise over it, in whole px, + 1
+            rise = np.ceil(gf[kc + fg + 2 * K1] * np.abs(dx) - EPS)
+            stand &= np.abs(dy) <= self._step + rise
         if stand.all():
             node = gf[kc + fg].astype(np.int64)
             return Placed(np.zeros(n, np.int8), node, node.copy(), df[kc + fs])

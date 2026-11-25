@@ -154,8 +154,8 @@ class Track:
                                     # pixel, us and players 1 px under it: the name tag's offset)...
     stand_tol_slope: float = 5.0    # ... of a sloped one (a foothold not level: mobs' feet 3.6-4.4 px off a slope; the
                                     # user, 2026-11-24: "allow 5 px", PLAN-tracker step 3's answers)...
-    stand_step: float = 1.0         # ...and the step since the last frame within this up or down...
-    stand_slope: float = 0.9        # ...+ this x the sideways step (the steepest slope walked: the client's walkSlant)
+    stand_step: float = 1.0         # ...and the step since the last frame within this up or down + the surface's own
+                                    # rise over the sideways step, in whole px (track/graph.py; the user, 2026-11-25)
     rope_tol: float = 7.0           # climbers: the feet within this of a rope's x, and of its ends in y (today's
                                     # SelfTracker value for our exact tag; nav/selfstate.py)
     # ---- mobs (track/mobs.py; PLAN-tracker design 4 = the prototype tools/perc/track/proto_mobs.py, its Cfg and the

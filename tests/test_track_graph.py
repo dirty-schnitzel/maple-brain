@@ -71,15 +71,35 @@ def test_stand_air_and_off():
 
 
 def test_moving_up_or_down_is_not_standing():
-    """A jump passing a platform's level is in the air; walking a slope is not (1 px + 0.9 x the sideways step)."""
+    """A jump passing a platform's level is in the air; walking a slope is not (1 px + the slope's own rise over the
+    sideways step, in whole px)."""
     g = Graph(demo(), edges=False)
     assert place1(g, 20, 100, dx=2.0, dy=0.0)[0] == STAND
     assert place1(g, 20, 100, dx=0.0, dy=1.0)[0] == STAND
     assert place1(g, 20, 100, dx=0.0, dy=-1.5)[0] == AIR            # rising through the floor's level
+    assert place1(g, 20, 100, dx=5.0, dy=1.5)[0] == AIR             # flat ground: 1 px, however far sideways
     assert place1(g, 150, 90, dx=5.0, dy=-1.0)[0] == STAND           # the slope (0.2): 1 px up in 5 px
-    assert place1(g, 150, 90, dx=5.0, dy=5.4)[0] == STAND           # 5.4 <= 1 + 0.9 * 5
-    assert place1(g, 150, 90, dx=5.0, dy=5.6)[0] == AIR
-    assert place1(g, 150, 90, dx=-5.0, dy=-5.6)[0] == AIR
+    assert place1(g, 150, 90, dx=5.0, dy=2.0)[0] == STAND           # 2 <= 1 + 0.2 * 5
+    assert place1(g, 150, 90, dx=5.0, dy=2.5)[0] == AIR
+    assert place1(g, 150, 90, dx=-5.0, dy=-2.5)[0] == AIR
+
+
+def test_the_step_follows_the_slopes_own_rise():
+    """The user, 2026-11-25 (PLAN-tracker "Step 3, the slope fix"): mobs walk slopes of 1.8-1.9 (Drakes, Evil Eyes,
+    Horny Mushrooms: 2-3 px up or down for 1 px sideways), and whole-pixel feet show 2 px for 1 px on a 0.6 slope -
+    the step follows the foothold's own slope + 1 px, rounded up to a whole pixel. Each was in the air with
+    1 px + 0.9 x the sideways step."""
+    g = Graph(mk([fh(1, 0, 100, 100, 100, 0, 2), fh(2, 100, 100, 200, -80, 1, 3),     # up a 1.8 slope
+                  fh(3, 200, -80, 300, -20, 2, 0)]), edges=False)                     # down a 0.6 one
+    assert place1(g, 150, 10, dx=1.0, dy=-3.0)[0] == STAND           # 1.8: 3 px up for 1 px (ceil 1.8 + 1)
+    assert place1(g, 150, 10, dx=-1.0, dy=2.0)[0] == STAND           # ... 2 px down walking back
+    assert place1(g, 150, 10, dx=2.0, dy=-4.0)[0] == STAND           # 2 px sideways: ceil(3.6) + 1 = 5
+    assert place1(g, 150, 10, dx=1.0, dy=-3.5)[0] == AIR             # over 3 for 1
+    assert place1(g, 250, -50, dx=1.0, dy=2.0)[0] == STAND           # 0.6: 2 px for 1 px (ceil 0.6 + 1)
+    assert place1(g, 250, -50, dx=-1.0, dy=-2.0)[0] == STAND
+    assert place1(g, 250, -50, dx=1.0, dy=2.5)[0] == AIR
+    assert place1(g, 250, -50, dx=0.0, dy=2.0)[0] == AIR             # no sideways step: 1 px, as on flat ground
+    assert place1(g, 50, 100, dx=1.0, dy=2.0)[0] == AIR              # the flat part keeps 1 px
 
 
 def test_two_surfaces_within_3px_the_last_node_wins():
@@ -216,8 +236,21 @@ def test_fixed_places():
 def tol_at(c, p, x):
     """The stand tolerance of chain p at x: its foothold there (at a joint the one going on, at the chain's right end
     the last) level or not."""
-    s = next((s for s in p.segs if s.x1 <= x < s.x2), p.segs[-1] if x == p.right else None)
+    s = seg_at(p, x)
     return c.stand_tol_slope if s is not None and s.y1 != s.y2 else c.stand_tol
+
+
+def seg_at(p, x):
+    """Chain p's foothold at x: at a joint the one going on, at the chain's right end the last."""
+    return next((s for s in p.segs if s.x1 <= x < s.x2), p.segs[-1] if x == p.right else None)
+
+
+def step_ok(c, p, x, dx, dy):
+    """The step since the last frame on chain p at x: within 1 px + its foothold's own rise over the sideways step,
+    rounded up to a whole pixel."""
+    s = seg_at(p, x)
+    slope = abs((s.y2 - s.y1) / (s.x2 - s.x1))
+    return abs(dy) <= c.stand_step + EPS + math.ceil(slope * abs(dx) - EPS)
 
 
 def slow_place(g, x, y, dx, dy, last, last_from, climb, fly):
@@ -226,9 +259,10 @@ def slow_place(g, x, y, dx, dy, last, last_from, climb, fly):
     surf = [(p.y_at(x), p.id, tol_at(c, p, x)) for p in g.platforms.values() if p.y_at(x) is not None]
     within = sorted((abs(y - sy), pid) for sy, pid, tol in surf if abs(y - sy) <= tol + EPS)
     surf = [(sy, pid) for sy, pid, _ in surf]
-    if within and not fly and abs(dy) <= c.stand_step + EPS + c.stand_slope * abs(dx):
+    if within and not fly:
         pid = last if any(pid == last for _, pid in within) else within[0][1]
-        return STAND, pid, pid, y - g.platforms[pid].y_at(x)
+        if step_ok(c, g.platforms[pid], x, dx, dy):
+            return STAND, pid, pid, y - g.platforms[pid].y_at(x)
     if climb:
         rs = [(abs(x - r.x), i) for i, r in enumerate(g.ropes)
               if abs(x - r.x) <= c.rope_tol and r.top - c.rope_tol <= y <= r.bottom + c.rope_tol]
