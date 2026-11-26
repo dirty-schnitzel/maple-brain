@@ -58,6 +58,11 @@ class Mob:
     last_hit_t: float | None = None
     last_hit_by: str | None = None
     seen_share: float = 1.0             # the share of its frames since birth it was seen on
+    hp: float | None = None             # its HP meter's green share 0..1 as last read (PLAN-tracker step 5a; the user,
+                                        # 2026-11-26: "current hp %, by looking at how much of the hp meter is full") -
+                                        # kept while the track lives; None: no meter ever read (only a mob WE hit shows
+                                        # one; a meter over two overlapping mobs teaches nothing)
+    hp_t: float | None = None           # ... when that reading was made (session clock, s)
 
     def as_dict(self) -> dict:
         return asdict(self)

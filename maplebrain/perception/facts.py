@@ -25,10 +25,13 @@ under a cloud too thick to undo), a `fit_hints` row the same two on a cloud map 
 v7 (2026-11-24, PLAN-tracker step 7): `slots` = the hotkey reader (perception/slots.py), every key of the bar:
 {key: [kind, id, amount] or None}. Before v7 it held "an item is in it" (True / False / None) for the two potion keys
 only: an older record's `slots` is read as {} (that reading is not this one).
+v8 (2026-11-26, PLAN-tracker step 5a): + `meters` = the HP meters over the mobs we hit (perception/meters.py: per meter
+its box's top-left, the green share or None, the frame columns seen, the `fit` mobs it may belong to) and `meters_ms`.
+Older records: None (not read).
 """
 from dataclasses import asdict, dataclass, field, fields
 
-VERSION = 7
+VERSION = 8
 
 
 @dataclass
@@ -71,20 +74,26 @@ class FrameFacts:
                                           # clouds.py); None: not a cloud map / no camera. On screen = undone
                                           # before D, the fit and the drops (step 5)
     clouds_ms: dict | None = None         # ... its parts' ms (follow, layer, whitened, find) + residue_px
+    meters: list | None = None            # [(x0, y0, fill, cols, cand)] the HP meters over mobs we hit (perception/
+                                          # meters.py): the box's top-left (screen px), the green share 0..1 (None: not
+                                          # known - its end or the green's end not seen), the frame columns seen (48 =
+                                          # all), the indexes into `fit` of the mobs whose expected box it is at; None:
+                                          # not read (no camera / no fit / perception.meters off)
+    meters_ms: float | None = None        # ... MeterReader.read's ms
 
     def as_dict(self) -> dict:
         return asdict(self)
 
     @classmethod
     def from_dict(cls, d: dict) -> "FrameFacts":
-        if d.get("v") not in (1, 2, 3, 4, 5, 6, VERSION):
+        if d.get("v") not in (1, 2, 3, 4, 5, 6, 7, VERSION):
             raise ValueError(f"FrameFacts v{d.get('v')} (this code reads v1-v{VERSION})")
 
         def tup(v):
             return None if v is None else tuple(tup(x) if isinstance(x, list) else x for x in v)
 
         kw = {f.name: d[f.name] for f in fields(cls) if f.name in d}
-        if d.get("v") != VERSION:
+        if d.get("v") not in (7, VERSION):
             kw.pop("slots", None)                       # v1-v6: the two potion keys' "holds something", not this
         for k in ("tag", "hp", "mp", "dot", "map_pos", "scene_cam", "lie"):
             kw[k] = tup(kw.get(k))
@@ -94,4 +103,6 @@ class FrameFacts:
         for k in ("movers", "clouds"):
             if kw.get(k) is not None:
                 kw[k] = [tuple(x) for x in kw[k]]
+        if kw.get("meters") is not None:
+            kw["meters"] = [tuple(x[:4]) + (tuple(x[4]),) for x in kw["meters"]]
         return cls(**kw)

@@ -77,3 +77,25 @@ two letters joined by "|", in order (`A|B`): that is an answer of its own, not a
 - **L2, two things over a mob:** a pet and another mob, or a pet and coins, over it at once: which one is the cover?
 - **L3, a hit or a death at BORN:** a squashed Bubbling, or a see-through outline under our skill's effect, at
   BORN: the hit pose (`uncover`, picked up late) or the death (`dying`)? One frame does not tell them apart.
+
+## L9 - the HP meter over a mob (PLAN-tracker step 5a, 2026-11-26)
+Sheets `F:\dev\maple-corpus\work\track-plan\labels\L9\a_NNN.png` (first look) or `b_NNN.png` (second look), two
+cases a sheet. Left: the area around the case (x3), the mobs the tracker saw lettered at their feet (yellow `+A`,
+`+B` ...). Right: for each lettered mob, the band where its meter would be drawn (x8) under a ruler: one tick per
+screen pixel, a number every 10.
+**The meter:** a small bar the game draws over a mob WE hit: a white frame between black lines (52 x 10 screen px),
+inside it 46 px: GREEN from the left = the HP left, then RED (fresh damage) or BLACK (older damage) = the HP lost. It
+sits about 30 px above the top of its mob's body, centred over it. Other things look alike: a name tag's box, a chat
+line, a window's border - only a white frame with green / red / black inside is a meter.
+For EVERY meter you see in the area (also one only partly visible), write one entry:
+- `mob`: the letter of the mob it is drawn over (the mob right under it). `none` - the mob under it has no letter
+  (hidden behind a character, or not marked); `?` - you cannot tell which (two mobs under it).
+- `L`, `G`: read on that mob's band strip with the ruler - `L` = the tick of the frame's LEFT WHITE column, `G` = the
+  tick of the LAST GREEN column (no green: `G` = `L` + 1). `fill` = (G - L - 1) / 46 x 100, one decimal. When the
+  frame's left end is not visible (cut, drawn over) but the right white column is: `R` = its tick instead of `L`, and
+  `fill` = (G - R + 48) / 46 x 100. When the end of the green cannot be seen (something drawn over it there):
+  `fill` = `?`.
+- A meter in no band strip (its mob has no strip, or it is not where the strip looks): judge the fill on the area
+  crop by eye, write `"band": false` and leave out `L` / `G`.
+Output per case: `{"case": K, "meters": [{"mob": "A", "L": 10, "G": 21, "fill": 21.7}, ...]}`; no meter in the area:
+`{"case": K, "meters": []}`.

@@ -1,0 +1,10 @@
+{"case": 0, "meters": [{"mob": "A", "L": 10, "G": 41, "fill": 65.2}, {"mob": "B", "R": 60, "G": 43, "fill": 67.4}, {"mob": "none", "band": false, "fill": "?"}]}
+{"case": 1, "meters": [{"mob": "A", "L": 10, "G": 32, "fill": 45.7}, {"mob": "none", "band": false, "fill": 26.1}]}
+{"case": 2, "meters": [{"mob": "B", "L": 10, "G": "?", "fill": "?"}, {"mob": "C", "L": 10, "G": 44, "fill": 71.7}, {"mob": "D", "L": 10, "G": 47, "fill": 78.3}]}
+{"case": 3, "meters": [{"mob": "A", "R": 59, "G": 32, "fill": 45.7}, {"mob": "B", "R": 59, "G": "?", "fill": "?"}]}
+{"case": 4, "meters": [{"mob": "A", "L": 10, "G": 48, "fill": 80.4}, {"mob": "B", "L": 11, "G": 42, "fill": 65.2}, {"mob": "none", "band": false, "fill": 71.7}]}
+{"case": 5, "meters": [{"mob": "A", "L": 10, "G": 46, "fill": 76.1}]}
+{"case": 6, "meters": [{"mob": "A", "L": 10, "G": 34, "fill": 50.0}]}
+{"case": 7, "meters": [{"mob": "A", "L": 10, "G": 16, "fill": 10.9}, {"mob": "B", "L": 10, "G": 25, "fill": 30.4}, {"mob": "C", "R": 59, "G": 21, "fill": 21.7}]}
+{"case": 8, "meters": [{"mob": "A", "L": 10, "G": 28, "fill": 37.0}, {"mob": "B", "L": 10, "G": "?", "fill": "?"}, {"mob": "C", "L": 10, "G": 16, "fill": 10.9}]}
+{"case": 9, "meters": [{"mob": "A", "L": 10, "G": 24, "fill": 28.3}]}

@@ -76,6 +76,12 @@ class Perception:
                                     # `every_s`) instead of the CPU thread (step 2.8)
     drops: bool = True              # drops on the ground (perception/drops.py, PLAN-loot.md; in shadow: FrameFacts.drops,
                                     # nothing reads them): a CUDA graph beside the fit, on clean maps
+    meters: bool = True             # the HP meters over the mobs WE hit (perception/meters.py, PLAN-tracker step 5a; in
+                                    # shadow: FrameFacts.meters -> the mob tracker's hp): looked for around the fit's mobs
+    meter_tol: tuple = (10, 10)     # ... in a band this far around a mob's expected box (x, y px; the fit's pose frame
+                                    # one off moves a meter up to ~9 px: Horny Mushroom hit1)
+    meter_tie: tuple = (3, 2)       # ... a meter this close to a mob's expected box names that mob (`cand`; the rule
+                                    # puts 99.6 % of single-mob meters exactly there, the rest are the fit's pose noise)
 
 
 @dataclass
@@ -275,6 +281,11 @@ class Track:
     landed_s: tuple = ((0.1, 0.25), (0.4, 0.6))     # "landed in view": its place was on screen in both windows
     landed_px: tuple = (30, 60, 10)                 # ... this far inside the sides / under the top / over the bottom
     pet_box: tuple = (-20, -40, 20, 0)  # a pet's body around its tag (35-45 px high: proto_players' col_body)
+    # ---- the HP meter (track/mobs.py `_meters`; PLAN-tracker step 5a): a meter teaches its mob's hp only when it names
+    # ONE sighting (perception's `cand`) and no other track stands over that mob - design 1: a meter over two
+    # overlapping mobs teaches nothing. Overlapping = the body boxes' x ranges meet (a remembered track: anywhere it can
+    # be) with the feet within meter_same_dy px up or down.
+    meter_same_dy: float = 40.0
     # ---- other players (track/players.py; PLAN-tracker design 6 = the prototype tools/perc/track/proto_players.py,
     # measurement 7: its constants)
     player_cover_s: float = 2.0     # a player whose tag is not found is kept this long while its place is in view

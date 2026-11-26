@@ -19,7 +19,9 @@ scores (score.py, sticky, why_switch); `pool` adds them up. `--kept NAME`: the k
 NAME (a new one, stop rule 5); `--hints`: the kept replay's looks (fit_hints) the fit's rule calls seen are taken as
 sightings too (does Fitter.look pay? PLAN-tracker design 4); `--tag`: a name for the variant's files. Since step 4b
 the run gives the mob tracker the SORTED tag list as the Perceiver does (track/us.py + players.py over the same kept
-replay: the covers' us / player boxes); `--unsorted`: every tag a player's box (step 3's runs).
+replay: the covers' us / player boxes); `--unsorted`: every tag a player's box (step 3's runs). `--meters` (step 5a): the
+HP meters the real reader found on the capture's frames (replay_meters.py `read`) go in as FrameFacts.meters, and the
+rows carry each track's `hp`, `hp_t`.
 """
 import argparse
 import pickle
@@ -47,10 +49,11 @@ FACE = {-1: "left", 1: "right", 0: "?"}
 
 class Facts:
     """The fields of FrameFacts the tracker reads, from a kept replay's row (its `facts` dict)."""
-    __slots__ = ("t", "scene_cam", "fit", "tags", "drops", "tag")
+    __slots__ = ("t", "scene_cam", "fit", "tags", "drops", "tag", "meters")
 
-    def __init__(self, r, hints: bool = False, seen=None):
+    def __init__(self, r, hints: bool = False, seen=None, meters=None):
         f = r["facts"]
+        self.meters = meters                    # the HP meters of this frame (replay_meters.py `read`; step 5a)
         self.t, self.scene_cam = r["t"], r["C"]
         self.fit = f.get("fit")
         if hints and self.fit is not None:
@@ -112,7 +115,7 @@ def row_of(m) -> dict:
             "sy": round(m.sy), "src": "acq" if m.seen else "none", "unseen": round(m.unseen_s, 2), "cover": m.cover,
             "node": m.from_node, "air": m.place != "stand", "vis": round(m.vis, 2), "facing": FACE[m.facing],
             "born_how": m.born_how, "first_pose": m.first_pose, "born": round(m.born_t, 3),
-            "can": None if m.can_lo is None else [m.can_lo, m.can_hi]}
+            "can": None if m.can_lo is None else [m.can_lo, m.can_hi], "hp": m.hp, "hp_t": m.hp_t}
 
 
 def spawn_view(sp) -> bytes:
@@ -124,7 +127,9 @@ def out_path(cap, kept=None, tag=None) -> Path:
     return OUT / ("_".join([cap.replace("#", "_")] + ([kept] if kept else []) + ([tag] if tag else [])) + ".pkl")
 
 
-def run(cap, hints=False, sort=True) -> dict:
+def run(cap, hints=False, sort=True, meters=None) -> dict:
+    """`meters`: {frame n: FrameFacts.meters} (replay_meters.py `read`: the real reader on the capture's frames) -
+    the tracker's hp (step 5a); None: no meters (every hp None)."""
     mp = Map(map_of(cap))
     trk = tracker(mp)
     us = pl = None
@@ -144,7 +149,7 @@ def run(cap, hints=False, sort=True) -> dict:
         bs = pickle.loads((d / f"bits_{kch:03d}.pkl").read_bytes())
         for r, (n, sh, wo) in zip(rs, bs):
             assert n == r["n"]
-            f = Facts(r, hints, seen)
+            f = Facts(r, hints, seen, meters.get(r["n"]) if meters is not None else None)
             ev = LazyBits(sh, wo)
             tags = None
             if us is not None:
@@ -186,11 +191,15 @@ def grade(cap, res) -> dict:
     return {"score": s, "sticky": f, "why": P.why_switch.last, "ghosts": gh}
 
 
-def cmd_run(caps, kept, hints, tag, sort=True):
+def cmd_run(caps, kept, hints, tag, sort=True, meters=False):
     OUT.mkdir(parents=True, exist_ok=True)
     for cap in caps:
         a = time.perf_counter()
-        res = run(cap, hints, sort)
+        mt = None
+        if meters:                              # the HP meters read by the real reader (replay_meters.py `read`)
+            import replay_meters
+            mt = replay_meters.read_back(cap)
+        res = run(cap, hints, sort, mt)
         b = time.perf_counter()
         gr = grade(cap, res)
         res.pop("trk")
@@ -623,6 +632,7 @@ def main():
     ap.add_argument("--jobs", type=int, default=1)
     ap.add_argument("--tag", default=None)
     ap.add_argument("--unsorted", action="store_true", help="run: every tag a player's box (step 3)")
+    ap.add_argument("--meters", action="store_true", help="run: the HP meters of replay_meters.py `read` (step 5a)")
     ap.add_argument("--n", type=int, default=3000, help="time: frames")
     ap.add_argument("--runs", type=int, default=3, help="time: runs on and off each")
     a = ap.parse_args()
@@ -637,12 +647,12 @@ def main():
                     cap = todo.pop(0)
                     cmd = [sys.executable, str(Path(__file__)), "run", cap] + (["--kept", a.kept] if a.kept else []) \
                         + (["--hints"] if a.hints else []) + (["--tag", a.tag] if a.tag else []) \
-                        + (["--unsorted"] if a.unsorted else [])
+                        + (["--unsorted"] if a.unsorted else []) + (["--meters"] if a.meters else [])
                     procs.append(subprocess.Popen(cmd, cwd=ROOT))
                 procs = [p for p in procs if p.poll() is None]
                 time.sleep(1)
             return
-        cmd_run(caps, a.kept, a.hints, a.tag, not a.unsorted)
+        cmd_run(caps, a.kept, a.hints, a.tag, not a.unsorted, a.meters)
     elif a.cmd == "pool":
         cmd_pool(caps, a.kept, a.tag)
     elif a.cmd == "feet":

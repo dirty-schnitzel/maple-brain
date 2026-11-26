@@ -1,0 +1,50 @@
+{"case": 0, "meters": [{"mob": "B", "L": 10, "G": 25, "fill": 30.4}]}
+{"case": 1, "meters": [{"mob": "none", "band": false, "fill": "?"}]}
+{"case": 2, "meters": [{"mob": "A", "L": 10, "G": 18, "fill": 15.2}]}
+{"case": 3, "meters": []}
+{"case": 4, "meters": []}
+{"case": 5, "meters": [{"mob": "A", "L": 10, "G": 15, "fill": 8.7}]}
+{"case": 6, "meters": [{"mob": "A", "R": 59, "G": 32, "fill": 45.7}, {"mob": "B", "R": 59, "G": "?", "fill": "?"}]}
+{"case": 7, "meters": [{"mob": "B", "L": 10, "G": 11, "fill": 0.0}]}
+{"case": 8, "meters": [{"mob": "A", "L": 10, "G": 11, "fill": 0.0}]}
+{"case": 9, "meters": [{"mob": "?", "band": "B", "L": 10, "G": "?", "fill": "?"}, {"mob": "?", "band": "C", "L": 10, "G": 44, "fill": 71.7}, {"mob": "?", "band": "D", "L": 10, "G": 47, "fill": 78.3}]}
+{"case": 10, "meters": [{"mob": "none", "band": false, "fill": 26.1}]}
+{"case": 11, "meters": [{"mob": "A", "L": 10, "G": 27, "fill": 34.8}, {"mob": "C", "L": 10, "G": 29, "fill": 39.1}, {"mob": "B", "L": 10, "G": 27, "fill": 34.8}]}
+{"case": 12, "meters": [{"mob": "A", "L": 10, "G": 48, "fill": 80.4}, {"mob": "B", "L": 11, "G": 42, "fill": 65.2}, {"mob": "?", "band": false, "fill": 71.7}]}
+{"case": 13, "meters": [{"mob": "A", "L": 10, "G": 25, "fill": 30.4}]}
+{"case": 14, "meters": [{"mob": "none", "band": false, "fill": 80.4}, {"mob": "none", "band": false, "fill": 82.6}]}
+{"case": 15, "meters": [{"mob": "A", "L": 10, "G": "?", "fill": "?"}, {"mob": "C", "L": 10, "G": 11, "fill": 0.0}, {"mob": "B", "R": 59, "G": "?", "fill": "?"}]}
+{"case": 16, "meters": [{"mob": "A", "L": 10, "G": 24, "fill": 28.3}]}
+{"case": 17, "meters": [{"mob": "A", "L": 10, "G": 41, "fill": 65.2}, {"mob": "C", "L": 10, "G": 42, "fill": 67.4}]}
+{"case": 18, "meters": [{"mob": "?", "band": "A", "L": 10, "G": 42, "fill": 67.4}, {"mob": "?", "band": "A", "L": 10, "G": 41, "fill": 65.2}]}
+{"case": 19, "meters": [{"mob": "A", "L": 10, "G": 41, "fill": 65.2}, {"mob": "B", "R": 60, "G": 43, "fill": 67.4}, {"mob": "?", "band": "A", "R": 65, "G": "?", "fill": "?"}]}
+{"case": 20, "meters": [{"mob": "A", "L": 10, "G": 42, "fill": 67.4}]}
+{"case": 21, "meters": [{"mob": "A", "L": 10, "G": 22, "fill": 23.9}]}
+{"case": 22, "meters": [{"mob": "A", "L": 10, "G": 25, "fill": 30.4}]}
+{"case": 23, "meters": [{"mob": "A", "L": 10, "G": 14, "fill": 6.5}]}
+{"case": 24, "meters": [{"mob": "none", "band": false, "fill": 23.9}, {"mob": "B", "L": 10, "G": 35, "fill": 52.2}, {"mob": "A", "L": 10, "G": 31, "fill": 43.5}]}
+{"case": 25, "meters": [{"mob": "A", "L": 10, "G": 35, "fill": 52.2}, {"mob": "B", "L": 10, "G": 31, "fill": 43.5}, {"mob": "C", "L": 10, "G": 22, "fill": 23.9}]}
+{"case": 26, "meters": [{"mob": "B", "L": 10, "G": 35, "fill": 52.2}, {"mob": "C", "L": 10, "G": 31, "fill": 43.5}]}
+{"case": 27, "meters": [{"mob": "B", "L": 10, "G": 12, "fill": 2.2}, {"mob": "C", "L": 10, "G": 22, "fill": 23.9}]}
+{"case": 28, "meters": [{"mob": "A", "L": 10, "G": 22, "fill": 23.9}, {"mob": "none", "band": false, "fill": 2.2}]}
+{"case": 29, "meters": [{"mob": "C", "L": 10, "G": 12, "fill": 2.2}, {"mob": "B", "L": 10, "G": 22, "fill": 23.9}]}
+{"case": 30, "meters": [{"mob": "A", "L": 10, "G": 12, "fill": 2.2}]}
+{"case": 31, "meters": [{"mob": "A", "L": 10, "G": 11, "fill": 0.0}]}
+{"case": 32, "meters": [{"mob": "B", "L": 10, "G": 11, "fill": 0.0}]}
+{"case": 33, "meters": [{"mob": "A", "L": 10, "G": 11, "fill": 0.0}]}
+{"case": 34, "meters": [{"mob": "B", "L": 10, "G": 47, "fill": 78.3}, {"mob": "?", "band": "C", "L": 10, "G": 46, "fill": 76.1}, {"mob": "?", "band": "C", "L": 7, "G": "?", "fill": "?"}, {"mob": "?", "band": "B", "R": 68, "G": "?", "fill": "?"}]}
+{"case": 35, "meters": [{"mob": "?", "band": "B", "L": 10, "G": 47, "fill": 78.3}, {"mob": "?", "band": "B", "L": 13, "G": "?", "fill": "?"}, {"mob": "?", "band": "C", "L": 10, "G": "?", "fill": "?"}, {"mob": "?", "band": "D", "R": 59, "G": "?", "fill": "?"}]}
+{"case": 36, "meters": [{"mob": "?", "band": "B", "L": 10, "G": 46, "fill": 76.1}, {"mob": "?", "band": "B", "L": 7, "G": "?", "fill": "?"}, {"mob": "C", "R": 59, "G": 47, "fill": 78.3}]}
+{"case": 37, "meters": [{"mob": "B", "L": 10, "G": 33, "fill": 47.8}, {"mob": "C", "L": 10, "G": 49, "fill": 82.6}, {"mob": "?", "band": "D", "L": 10, "G": 51, "fill": 87.0}, {"mob": "?", "band": "A", "area": false, "L": 10, "G": 31, "fill": 43.5}]}
+{"case": 38, "meters": [{"mob": "A", "L": 10, "G": 24, "fill": 28.3}, {"mob": "B", "L": 10, "G": 39, "fill": 60.9}, {"mob": "C", "L": 10, "G": 26, "fill": 32.6}]}
+{"case": 39, "meters": [{"mob": "B", "L": 10, "G": 24, "fill": 28.3}, {"mob": "A", "L": 10, "G": 24, "fill": 28.3}, {"mob": "none", "band": false, "fill": 32.6}]}
+{"case": 40, "meters": [{"mob": "?", "band": "B", "L": 10, "G": 24, "fill": 28.3}]}
+{"case": 41, "meters": [{"mob": "A", "L": 10, "G": 24, "fill": 28.3}]}
+{"case": 42, "meters": [{"mob": "A", "L": 11, "G": "?", "fill": "?"}]}
+{"case": 43, "meters": [{"mob": "A", "L": 10, "G": 24, "fill": 28.3}]}
+{"case": 44, "meters": [{"mob": "none", "band": false, "fill": 37.0}]}
+{"case": 45, "meters": [{"mob": "A", "L": 10, "G": 35, "fill": 52.2}]}
+{"case": 46, "meters": [{"mob": "A", "L": 10, "G": 28, "fill": 37.0}, {"mob": "B", "L": 10, "G": "?", "fill": "?"}, {"mob": "C", "L": 10, "G": 16, "fill": 10.9}]}
+{"case": 47, "meters": [{"mob": "?", "band": "B", "L": 10, "G": 16, "fill": 10.9}, {"mob": "?", "band": "A", "L": 10, "G": "?", "fill": "?"}]}
+{"case": 48, "meters": [{"mob": "A", "L": 10, "G": 31, "fill": 43.5}]}
+{"case": 49, "meters": [{"mob": "A", "R": 59, "G": 45, "fill": 73.9}]}

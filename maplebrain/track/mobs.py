@@ -46,6 +46,10 @@ the camera, the players' tags, the drops, our tag) -> the mob records (track/sta
    below; until settled the record says "faded in" and its mob_new event waits), "came into view" (at the screen's
    edge) or "uncovered" - and its first pose (`first_pose`: a die pose = first seen dying; a die pose is faint
    because the death fades it out); tentative until confirmed (then a `mob_new` event).
+6. THE HP METERS (PLAN-tracker step 5a; perception/meters.py finds them and reads each one's green share): a meter
+   names the fit's sightings whose expected meter box it is at; it teaches `hp` (0..1) and `hp_t` to the one track
+   whose sighting it names alone, when its fill was read and no other track overlaps that mob (`_overlapped`; design 1:
+   a meter over two overlapping mobs teaches nothing). `hp` is kept while the track lives; None = never read.
 A frame without a camera (blind) changes nothing: the records keep their values with cover "blind" and `seen` False
 (nothing is found on it; the prototype kept a track seen on the frame before "seen" through the blind frames).
 Events: mob_new (confirmed; how born), mob_died (a die pose seen, its animation over), mob_gone (its places show the
@@ -71,7 +75,7 @@ class _Tr:
                  "life", "die_t", "seen", "poss", "gx", "gy", "carry", "out_since", "x_seen", "y_seen", "sx", "sy",
                  "born_how", "n_seen", "cover", "hist", "conf", "vis", "o", "rin", "rout", "n_seen_at", "place",
                  "cur_node", "off", "n_frames", "first_pose", "how_alt", "o0", "new_held", "seen_prev",
-                 "hold_o", "hold_t")
+                 "hold_o", "hold_t", "hp", "hp_t", "fi")
 
     def __init__(self, tid, kind, pose, facing, x, y, sx, sy, node, air, place, off, o, vis, solid, die, t, how):
         self.id, self.votes, self.mob = tid, {kind: 1.0}, kind
@@ -98,12 +102,14 @@ class _Tr:
         self.seen_prev = False                          # seen on the frame before this one (blind frames skipped)
         self.hold_o = self.hold_t = None                # a die pose under die_full_o on a remembered track: held,
                                                         # judged on its next sighting (its opacity and time)
+        self.hp = self.hp_t = None                      # its HP meter's last reading taught (0..1) and when (step 5a)
+        self.fi = None                                  # this frame: the index into facts.fit of its sighting
 
 
 class _Readings:
     """This frame's sightings and their readings, padded to (S, M): M = the most readings of one sighting."""
     __slots__ = ("S", "M", "n", "ok", "x", "y", "pose", "node", "air", "place", "off", "die", "hit", "kind",
-                 "facing", "o", "vis", "on", "solid", "raw_x", "raw_y", "C")
+                 "facing", "o", "vis", "on", "solid", "raw_x", "raw_y", "C", "src")
 
 
 class MobTracker:
@@ -150,6 +156,7 @@ class MobTracker:
         for tr in self.tracks:
             tr.seen_prev, tr.seen = tr.seen, False
             tr.n_frames += 1
+            tr.fi = None
         used_s = self._pair(R, t)
         tb = time.perf_counter()
         got = []
@@ -162,6 +169,7 @@ class MobTracker:
         tc = time.perf_counter()
         self._born(R, used_s, t, keep)
         self.tracks = keep
+        self._meters(facts, t)
         self.records = self._records(t)
         self.ms = {"pair": 1000 * (tb - ta), "unseen": 1000 * (tc - tb), "new": 1000 * (time.perf_counter() - tc)}
         return self._ev
@@ -172,19 +180,20 @@ class MobTracker:
         R = _Readings()
         R.C = C
         S, rows = 0, []
-        for m in facts.fit or []:
+        for q, m in enumerate(facts.fit or []):
             k = self.kinds.get(m["type"])
             if k is None:
                 continue
             x, y = m["feet"][0] + C[0], m["feet"][1] + C[1]
             alts = k.alike.get((m["pose"], m["facing"]))
             cands = [(m["pose"], x, y)] + ([(p2, x + dx, y + dy) for p2, dx, dy in alts] if alts else [])
-            rows.append((k, m, x, y, cands))
+            rows.append((k, m, x, y, cands, q))
             S += 1
         R.S = S
         if not S:
             R.M = 1
             return R
+        R.src = [r[5] for r in rows]                    # the sighting's index into facts.fit (the meters name it)
         multi = [r for r in rows if len(r[4]) > 1]
         if multi:                                       # the first choice: the one reading that stands on a surface
             xs = np.array([cd[1] for r in multi for cd in r[4]], np.float64)
@@ -416,6 +425,7 @@ class MobTracker:
             tr.y = tr.y_seen = y
             tr.sx, tr.sy = x - R.C[0], y - R.C[1]
             tr.t_seen, tr.seen, tr.poss, tr.out_since = t, True, None, None
+            tr.fi = R.src[i]
             tr.facing, tr.pose = int(R.facing[i]), R.pose[i, m]
             tr.cover = "none"
             tr.vis, tr.o = float(R.vis[i]), o_new
@@ -704,6 +714,7 @@ class MobTracker:
             tr = _Tr(self.next_id, k.id, R.pose[i, 0], int(R.facing[i]), x, y, sx, sy, node, air,
                      int(R.place[i, 0]), float(R.off[i, 0]), o, float(R.vis[i]), bool(R.solid[i]), die, t, how)
             tr.n_seen_at = self.n
+            tr.fi = R.src[i]
             if how == "faded in":                       # settled by its next sightings (the opacity rising or not)
                 tr.how_alt, tr.o0 = ("came into view" if self._edge(sx, sy) else "uncovered"), o
             keep.append(tr)
@@ -736,6 +747,47 @@ class MobTracker:
         L, Rr, B, Tp = self.cfg.edge_px
         return sx < L or sx > SW - Rr or sy > PLAY_H - B or sy < Tp
 
+    # ------------------------------------------------------------------ the HP meters (step 5a)
+    def _meters(self, facts, t: float):
+        """Perception's HP meters (facts.meters, perception/meters.py: each names the fit's sightings whose expected
+        meter box it is at) -> the tracks' `hp`, `hp_t`. A meter teaches ONE track: it names one sighting, that
+        sighting is this track's on this frame, its fill was read, and no other track stands over this mob (design
+        1: a meter over two overlapping mobs teaches nothing). Nothing else changes `hp`: it is kept while the track
+        lives (no HP guessed, no healing modelled)."""
+        ms = getattr(facts, "meters", None)
+        if not ms:
+            return
+        by_fi = {tr.fi: tr for tr in self.tracks if tr.fi is not None}
+        for _, _, fill, _, cand in ms:
+            tr = by_fi.get(cand[0]) if len(cand) == 1 else None
+            if tr is None:
+                self.stats["meter: " + ("over two sightings" if len(cand) > 1 else "no track")] += 1
+            elif fill is None:
+                self.stats["meter: fill not seen"] += 1
+            elif self._overlapped(tr):
+                self.stats["meter: over two mobs"] += 1
+            else:
+                tr.hp, tr.hp_t = float(fill), t
+                self.stats["meter: taught"] += 1
+
+    def _overlapped(self, tr: _Tr) -> bool:
+        """Another track (seen, remembered or tentative; not dying: a dead mob's meter is gone) whose body's x range -
+        a remembered one's anywhere it can be - meets this one's, its feet within meter_same_dy up or down."""
+        k = self.kinds[tr.mob]
+        lo, hi = tr.x - k.half_w, tr.x + k.half_w
+        for u in self.tracks:
+            if u is tr or u.life == "dying" or abs(u.y - tr.y) > self.cfg.meter_same_dy:
+                continue
+            hw = self.kinds[u.mob].half_w
+            if not u.seen and u.poss is not None and u.poss.ndim == 1 and u.poss.any():
+                px = u.gx[u.poss]
+                ulo, uhi = float(px.min()) - hw, float(px.max()) + hw
+            else:
+                ulo, uhi = u.x - hw, u.x + hw
+            if ulo <= hi and uhi >= lo:
+                return True
+        return False
+
     # ------------------------------------------------------------------ the records
     def _records(self, t: float, blind: bool = False) -> list:
         out = []
@@ -751,7 +803,7 @@ class MobTracker:
                            PLACES[tr.place], tr.cur_node, tr.node, tr.off, tr.vx, tr.vy, tr.facing, tr.pose, tr.o,
                            life, tr.seen and not blind, tr.vis, "blind" if blind else tr.cover, t - tr.t_seen,
                            None if can is None else can[0], None if can is None else can[1], tr.born, tr.born_how,
-                           tr.first_pose, seen_share=tr.n_seen / max(1, tr.n_frames)))
+                           tr.first_pose, seen_share=tr.n_seen / max(1, tr.n_frames), hp=tr.hp, hp_t=tr.hp_t))
         return out
 
     def mobs(self) -> list:

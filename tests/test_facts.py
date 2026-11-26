@@ -58,7 +58,7 @@ def test_fit_fields_round_trip_and_older_records_read():
                            "dy": 3, "fh": 12, "layer": 1, "votes": 210, "n_fseen": 300}],
                    drops_ms={"launch": 0.25, "fetch": 0.07, "pick": 0.1, "feat": 9000, "feat2": 40, "cands": 3},
                    movers=[(1, 517.0, True, 0.91), (3, None, False, 0.0)], movers_ms=0.84)
-    assert f.v == VERSION == 7
+    assert f.v == VERSION == 8
     assert FrameFacts.from_dict(json.loads(json.dumps(f.as_dict()))) == f
     for v in (1, 2, 4, 5):
         old = FrameFacts.from_dict({"t": 0.0, "v": v})
@@ -85,3 +85,13 @@ def test_slots_round_trip_and_older_slots_are_dropped():
     f = FrameFacts(t=2.0, slots={"shift": ["action", 53, None], "end": ["item", 2010005, 57], "home": None})
     assert FrameFacts.from_dict(json.loads(json.dumps(f.as_dict()))) == f
     assert FrameFacts.from_dict({"t": 0.0, "v": 6, "slots": {"delete": True, "end": None}}).slots == {}
+    assert FrameFacts.from_dict({"t": 0.0, "v": 7, "slots": {"end": ["item", 2010005, 57]}}).slots == \
+        {"end": ["item", 2010005, 57]}                  # v7's slots are this reading: kept
+
+
+def test_meters_round_trip_and_older_records_read():
+    """v8 (PLAN-tracker step 5a): the HP meters - box, fill (None: not known), frame columns seen, candidate mobs."""
+    f = FrameFacts(t=3.0, meters=[(500, 320, 0.5652, 48, (0,)), (700, 300, None, 20, ())], meters_ms=0.06)
+    assert FrameFacts.from_dict(json.loads(json.dumps(f.as_dict()))) == f
+    old = FrameFacts.from_dict({"t": 0.0, "v": 7})
+    assert old.meters is None and old.meters_ms is None

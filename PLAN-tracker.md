@@ -46,6 +46,12 @@ node 96.6 %, the cover 5.8 %, L1 us 95.05 %, step 3's rows, the hops gate.
 every row equals try 3 regraded and meets its gate - players found 95.8 %, the cover 9.6 %, pet / player 2.87 %, the
 node 96.5 %, step 3's rows, the hops gate, the ms live p50 0.5 / p90 0.8 (<= 0.5 / 1.0); accepted: non-players 2.13 %,
 "FreakyRafiki", L1 us 95.05 %. A cheaper body call is left for step 9.
+**Step 5a (2026-11-26, "Step 5a, 2026-11-26"): the HP meter measured, then built in shadow; the gate MISSED on 3 rows -
+stopped, the user decides.** Measured: one place rule for every kind (30 px over the pose frame's body box, centred on
+it), a meter only after our hit (0 on a mob we did not hit), the lost part red fading to black in 2 s. Met: the fill
+(83 of 83 within 3 points), 0 meters on a mob not hit, step 3's rows identical, L9's second look 100 %. Missed: found
+on 94.1 % of L9's frames (hidden meters), tied 45 of 110 (0 wrong; the overlap guard and unread fills leave the rest),
+the reader's ms p50 0.101 (the whole frame +0.00).
 The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
 in this session on the kept replay (no GPU); the tools are in `tools/perc/track/` (branch `tracker-plan`).
 
@@ -1542,6 +1548,83 @@ should be pretty obvious on any recording"). **The user's observations - the spe
   The search looks in a band above the mobs, not the whole screen. A perception reader; the fit, the scene model and
   the drop finder are not changed (stop rule 4).
 - **Step 6 or 8 may run beside it** (a worktree).
+
+### Step 5a, 2026-11-26: measured, then built in shadow; the gate MISSED on 3 rows (found, tied, the ms by 0.001) - stopped, the user decides
+Tools: `tools/perc/track/proto_meter.py` (measuring: `scan`, `place`, `picture`, `new`, `ties`, `when`, `l9 ...`, `sheet
+odd`; its docstring holds the picture) and `replay_meters.py` (the real code: `read`, `hit`, `l9`, `time`);
+`replay_mobs.py run --meters --tag t5a`. Outputs and sheets: `F:\dev\maple-corpus\work\track-plan\meter\`, L9's
+sheets `...\labels\L9\`. Everything from the 13 sound captures and their keys; no v83 reference.
+
+**Measured first** (`scan`: every frame, the whole play area; 22,410 meters with a white end):
+- **The picture:** a box 52 x 10 px, opaque, pixel-exact: black / white / black frame lines, inside 46 px. Rows 3-5 of
+  the inside: green (0, 255, 0) from the left = the HP left, then the HP lost: **red at the hit (R ~220), fading
+  linearly to black in 2.0 s** (-12 a 0.1 s) - so the lost part is red or black; row 6 a darker line. Fixed size:
+  whole (all 48 frame columns, both white ends) on 63.5 %; frame columns hidden 35.7 % (drawn over by another mob's
+  meter, our character, other players, a rope or front scenery, damage digits: the meter is drawn with the mob),
+  cut by the screen's side 0.3 %. Sheet: `meter\sheet_odd.png`.
+- **The place: one rule for every size** (Slime, Bubbling, Green / Horny / Zombie Mushroom, Evil Eye, the flying
+  Stirge): **the box's top = the pose frame's body box top (mob.json `lt` y) - 30 px, centred on that body box**
+  (left = feet + floor((lt x + rb x) / 2) - 26, lt / rb mirrored for a mob facing right). Every kind's mode is -30;
+  `head` does not fit (Horny Mushroom -36 / -37 / -41 by pose). With the fit's pose and feet the rule ties **90.1 % of
+  20,231 meter-frames** to exactly one seen mob (within 3 px across, 2 up or down); the rest: the mob not seen on that
+  frame 6.9 % (behind us, a player, an effect: the tracker holds it remembered), the fit's pose frame one off 2.1 %
+  (Horny hit1 +9 px), two mobs at one place 0.8 %, a die frame (no body box) 0.07 %. **No Drake was ever hit in the
+  bank** (level 50; the character is 31): "big" rests on Evil Eye (97 x 50 px).
+- **When:** a NEW meter (144: followed by its own place, tied to a mob, not a continuation) comes **0.27-0.72 s after
+  our `q` key-down** (one press before it: n 42, median ~0.48), `e` 0.35-0.55 (n 17), `w` 0.44 / 0.58 (n 2): earlier
+  than measurement 6's hit-pose window (q 0.45-0.72): the stab reaches the mob ~0.15 s after the key-down, the meter
+  shows at once (`MWIN`: q / w 0.20-0.80, e 0.15-0.65 hold all 144). Against the hit pose: mostly the same 0-4 frames,
+  spread -0.6..+0.4 s. **It goes at the killing hit**, ~0.1 s before the die pose is first seen (142 of 148), its last
+  reading not 0. A meter lives on while the mob lives (followed through hops: a Bubbling's move frames move it 27 px).
+- **A meter on a mob we did not hit: never.** 144 of 144 new meters have our key-down in a meter window (9 looked at
+  by eye: our stab reaching the mob). The real code (`replay_meters.py hit`): 187 tracks got a meter, the first in our
+  window on 180; the 7 others were looked at (`meter\sheet_hit_outside.png`): all 7 a meter already on screen 0.2-1 s
+  before, taken over by a new track id (two Bubblings merging, an id change after a cover) - continuations.
+- **Several meters:** frames with 2 / 3 / 4 meters 2,398 / 616 / 165; 1,189 pairs of meters overlapping (stacked mobs).
+- **Our first hit's share** (the first reading within 0.25 s; "clean" = born faded in, no hit pose before ours):
+  Bubbling p5 / 50 / 95 0.28 / 0.54 / 0.96 (n 21 - only the survivors: most die of one hit), Horny 0.42 / 0.73 / 0.93
+  (6), Zombie 0.18 / 0.50 / 0.95 (7), Evil Eye 0.21 / 0.52 / 0.85 (10), Stirge 0.48 (1). Mobs another player hit
+  first: Bubbling 0.77 / 0.95 / 0.96 (6), Horny 0.29 / 0.35 (2), Evil Eye 0.22 / 0.46 / 0.63 (3). **Too few and too
+  spread to call "another hit first" from a first reading** (a hit's share varies 0.2-0.96 with the damage range).
+- **L9** (by eye, Claude labellers, `judged/BRIEF.md` "L9"; `judged/L9_a.p0-p2.jsonl`, `L9_b.jsonl`; the bank's
+  `labels\SESSION#K\labels\L9.json`, read back by `label_eval.py`): 112 frames of 12 captures - 101 with a meter (158
+  meters; 117 over a lettered mob, 21 `?`, 20 over a mob with no letter) + 11 picked where no meter was found near a
+  hit mob (none by eye either). Cases: drawn over 44, fresh 42, close 35, several 26, late 22, edge 3; Bubbling 35,
+  Zombie 15, Horny 15, Evil Eye 13, Stirge 12, Green Mushroom 8, Slime 1. **Second look (10 cases, blind): 35 of 35
+  items both answered agree (100 %)**; a `?` against an answer 5 (stacked mobs), both `?` 4.
+
+**Built (in shadow; nothing reads it):** `perception/meters.py` (`MeterReader`: in a band of +-10 px around each fit
+mob's expected box - five sample columns first, the band read whole only where they show the frame; a meter cut or
+drawn over is read from one white end; the fill known when the last green seen touches the first lost seen; each
+meter names the fit mobs whose expected box it is at, within 3 / 2 px), FrameFacts v8 `meters`, `meters_ms`; the
+Perceiver reads them after the fit (part `meters`; config `Perception.meters`, `meter_tol`, `meter_tie`); the mob
+tracker's `_meters` (track/mobs.py): a meter teaches `hp`, `hp_t` to the one track whose sighting it alone names, its
+fill read, no other track overlapping that mob (design 1; config `Track.meter_same_dy`); the Mob record `hp`, `hp_t`;
+`docs/state_model.md` "Every mob" (the user's words). Tests `tests/test_meters.py` (17; the overlap and the mirror
+rules reverted: their tests fail).
+
+| Row (step 5a) | Gate | Measured | |
+|---|---|---|---|
+| meters found on L9's frames | >= 99 % | **95 of 101 frames (94.1 %)**; meters 110 of 117. The 7 misses are meters almost wholly hidden: 5 behind another mob's meter (3-27 of 48 frame columns showing, no white end: the box cannot be placed), 2 under damage digits (0-5 columns) | **MISSED** |
+| tied to the right mob | >= 99 % | **of the meters the tracker tied: 45 of 45 right, 0 wrong; but 65 of the 110 found were not tied**: 38 by the overlap guard (another track's body meets the mob's), 27 the green's end not seen. Perception's one candidate alone names the right mob on **110 of 110** | **MISSED** as "tied" (40.9 % of the found), met as "right when tied" |
+| the fill against the eye's | within 3 % | **83 of 83 within 3 points** (p50 0.0, max 0.1); 15 fills the eye read where the reader did not | met |
+| a meter on a mob we did not hit (the kept replay against our windows) | 0 | **0** (187 tracks; the 7 outside a window continuations, by eye) | met |
+| the reader's ms, live (`replay_meters.py time`, the 4-minute capture, frames 3000-6000, 140 with a meter, two runs on / off) | p50 <= 0.1; > 1 ms added a frame: stop | **p50 0.101 / p90 0.133 / p99 0.293 / max 0.497**; the whole frame's observe p50 16.03 on / 16.03 off (+0.00). Frames 0-2000 (no meter): part `meters` 0.1 (rounded), observe +0.17 | **MISSED by 0.001 ms**; the frame +0.00 |
+| step 3's rows (`replay_mobs.py pool` + `feet` + `labels`, `--meters --tag t5a`) | unchanged | **identical to t4bc on every line** (found 98.7 %, L1 98.98, hops 91.4, jolts 524 ...); the replay's ms p50 0.96 (t4bc 0.88). Over the 13 captures the tracker taught 10,560 meter readings, refused 5,249 (overlap), 2,270 (fill not seen), 1,423 (no track), 125 (two sightings) | met |
+| L9's second look | >= 95 % | 35 of 35 (100 %) | met |
+| pytest (whole suite), bot speed | - | **green; 17.1 ms a tick** (p90 19.0; part `meters` 0.1). Step 4b's close: 15.1 - the game ran in front this time (the A/B above: +0.00) | - |
+
+**For the user to decide:**
+1. **Found 94.1 %:** the misses are meters a mob's meter or damage digits cover almost entirely. Accept, or let the
+   reader place a meter with no white end at its mob's expected box (the labellers read 4 of the 7 that way: the
+   strip's expected place) - a change of design, then measured again.
+2. **The tie:** keep design 1's overlap guard as built (never wrong on L9; teaches 45 of 110 there, 10,560 of 19,627
+   meter readings over the 13 captures), or let perception's one candidate decide among the SEEN mobs (110 of 110
+   right on L9) and keep the guard only for remembered tracks (not measured: one replay run).
+3. **The ms:** 0.101 against 0.1 at the median, +0.00 ms on the whole frame. Accept, or a speed pass (the reader's
+   Python per frame: `expected`, two `np.clip`) - measured again live.
+Also: this session's CPU jobs (8 decoders, ~20:20-20:35) overlapped the user's `record --label assassin` of 20:07:
+check that recording's dropped frames when it is filed.
 
 ### Step 3b - spawn points as tracked things (added by the user, 2026-11-25; one executor session, measure then build)
 **The user, 2026-11-25:** "keeping track of the time since last spawn (on spawn point) is a valid tracking object. It

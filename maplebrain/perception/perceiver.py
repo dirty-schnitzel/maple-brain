@@ -13,6 +13,9 @@ Moving scenery (PLAN-moving-scenery.md): the moving backgrounds followed (scene.
 scene; on a weather-cloud map the clouds followed (perception/clouds.py) and taken out of the frame before D, the fit
 and the drops (a cloud too thick to undo: those pixels not valid) -> FrameFacts.movers / clouds, the fit's cloud
 numbers per sighting and look.
+The HP meters (PLAN-tracker step 5a, perception/meters.py): right after the fit, in a band around each fit mob's
+expected meter -> FrameFacts.meters (box, green share, the mobs it may belong to), part `meters`; the mob tracker ties
+them to its tracks (the record's `hp`).
 The mob tracker (PLAN-tracker step 3, track/mobs.py) runs in shadow after the drops and D's patches, after us and the
 other players (step 4b, track/us.py, players.py: the tag list sorted, part `us_players`): the fit's mobs + the GPU
 evidence (track/evidence.Gpu on the fit's own tensors) -> `mob_tracker.records`, `players.records`, `us`,
@@ -149,6 +152,10 @@ class Perceiver:
             if kit.drops is not None:                   # drops (PLAN-loot.md, in shadow): this map's footholds and
                 self.drops = kit.drops                  # front planes
                 self.drops.set_map(kit.map_id, kit.scene)
+        self.meters = None                              # the HP meters over the mobs we hit (PLAN-tracker step 5a)
+        if self.fitter is not None and cfg.perception.meters:
+            from .meters import MeterReader
+            self.meters = MeterReader(kit.mobs, cfg.perception.meter_tol, cfg.perception.meter_tie)
         # the mob tracker in shadow (PLAN-tracker step 3; track/mobs.py): beside world.py, nothing reads it yet
         # + us and the other players (step 4b; track/us.py, players.py): the tag list sorted, so the mob tracker's
         # covers name us / players by it
@@ -388,6 +395,10 @@ class Perceiver:
         # step 3.4: the fit's mobs are the sightings; its look at each unseen track's predicted feet is the search
         # around tracks
         mobs = self._fit_mobs(fu, exact, ek, me_s, frame.shape, cloud)
+        if self.meters is not None:                     # the HP meters around the fit's mobs (step 5a) on the CPU frame
+            f.meters = self.meters.read(frame, f.fit)   # as captured (a weather cloud over a meter is not undone for
+            f.meters_ms = round(self.meters.ms, 3)      # it: not measured) -> the mob tracker
+            self._mark("meters")
         hits, f.fit_hints = [self.fitter.hit(m.type, m.pose, m.facing, m.feet) for m in mobs], []
         self._look_ms = 0.0
         f.tags = tags.result()
