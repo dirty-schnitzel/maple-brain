@@ -42,6 +42,10 @@ decides** ("Step 4b, try 4"): with `unsure` graded apart try 3 meets players fou
 (9.6 %); A + B misses players found (92.8 %; A alone 93.5, B alone 91.5) and saves little live (us_players mean 0.40 ->
 0.37 ms, p90 0.8 both: the body question costs per call, not per tag); met - non-players 1.55 %, pet / player 4.49 %, the
 node 96.6 %, the cover 5.8 %, L1 us 95.05 %, step 3's rows, the hops gate.
+**Step 4b DONE (2026-11-26, "Step 4b, close"):** the user undid A and B (back to try 3's sampling) and set the ms line;
+every row equals try 3 regraded and meets its gate - players found 95.8 %, the cover 9.6 %, pet / player 2.87 %, the
+node 96.5 %, step 3's rows, the hops gate, the ms live p50 0.5 / p90 0.8 (<= 0.5 / 1.0); accepted: non-players 2.13 %,
+"FreakyRafiki", L1 us 95.05 %. A cheaper body call is left for step 9.
 The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
 in this session on the kept replay (no GPU); the tools are in `tools/perc/track/` (branch `tracker-plan`).
 
@@ -1466,6 +1470,32 @@ as a pet). With the user's answers try 3 meets every gate (found 95.8 %, the cov
 node 96.5 %; non-players 2.13 % and L1 us 95.05 % accepted). **The ms line (the user):** us_players live p50 <= 0.5
 ms, p90 <= 1.0 ms on the 4-minute capture. A cheaper call (the tags' index built on the GPU) is left for step 9, if
 the frame needs it. Prompt "Tracker, step 4b, close".
+
+### Step 4b, close (2026-11-26): A and B undone, try 3's sampling; every gate MET - step 4b DONE
+Branch `tracker-build` (the main folder), 743c600. `players.py`, `config.Track` and `test_track_players.py` are back at
+try 3 (1740f87: `body_every`, `body_early_n`, `body_early_dist`, `_skip_boxes`, `Det.skipped`, `_Track.asked_n` / `q`
+and their three tests gone); `replay_players.py` keeps try 4's grading (`unsure` apart, `unsure_why`, the cover rate,
+`--cfg`) and prints the user's ms line. Runs `replay_players.py ... --tag t4bc`, `replay_mobs.py ... --tag t4bc`.
+
+| Gate | try 3 (regraded) | **close** | |
+|---|---:|---:|---|
+| L5 players found (>= 95 %; `short` 133 (56 players), `unsure` 35 (20) apart) | 158 of 165 = 95.8 % | **158 of 165 = 95.8 %** | met |
+| L5 non-players called players (accepted 2.13 %) | 7 of 329 = 2.13 % | **7 of 329 = 2.13 %** | accepted |
+| L5 a pet called a player or a player a pet (<= 5 %) | 6 of 209 = 2.87 % | **6 of 209 = 2.87 %** | met |
+| L5 the node of standing players (>= 95 %) | 138 of 143 = 96.5 % | **138 of 143 = 96.5 %** | met |
+| the 2 s cover, a rate (<= 10.4 %) | 34 of 353 = 9.6 % | **34 of 353 = 9.6 %** | met |
+| the delay, out of `short` / until pet / player (frames p50 / p90 / p99) | 12 / 77 / 251; 17 / 110 / 294 | **12 / 77 / 251; 17 / 110 / 294** | reported |
+| tracks `unsure` their whole life (L5's 2 captures) | 204 | **204** (138 seen under 1 s, 39 body never read, 27 cut / crowded) | reported |
+| L1 us (accepted 95.05 %) | 173 of 182 = 95.05 %, node 99.22 % | **173 of 182 = 95.05 %, node 128 of 129 = 99.22 %** | accepted |
+| us against SelfState / our feet known (accepted) | 95.70 / 97.04 % | **95.70 / 97.04 %** | - |
+| step 3's rows (`replay_mobs.py pool` + `labels` + `feet`) | t4b3 | **identical to t4b3 on every line** (found 98.70, id kept 93.51, one id 92.33, extra 994, changed 7, set 99.35, death p90 0.000, ghosts 0, L1 98.98, node 99.46, L2 16 of 16, L3 19 of 22, hops 91.4, jolts 524); only the replay ms p50 / p90 / p99 0.88 / 4.12 / 14.88 (t4b3 0.90 / 4.21 / 14.52) | met |
+| step 2's hops gate (`proto_feet.py --sound`) | 126 / 970 | **126 of 26,811 / 970 of 555,561** | met |
+| **the ms, live (the user's line: us_players p50 <= 0.5, p90 <= 1.0 ms; the 4-minute capture, all 15,181 frames, twice)** | 0.5 / 0.8 / 1.0 | **p50 0.5 / p90 0.8 / p99 1.0 and 1.1; track 1.1 / 1.3; observe p50 14.7 / 14.6; one transfer back on 13,239 frames, none on 1,942** | met |
+| pytest (whole suite), bot speed | 15.4 ms | **green; 15.1 ms a tick** (p90 16.8; `us_players` 0.9 on the bench's 40 frames) | - |
+
+**Step 4b DONE.** Accepted by the user: non-players called players 2.13 %, "FreakyRafiki" (a name cut by scenery learned
+as its piece's width), L1 us 95.05 % (the rope key rule). Left for step 9: a cheaper body CALL (the tags' index built on
+the GPU), if the frame needs it.
 
 ### Step 3b - spawn points as tracked things (added by the user, 2026-11-25; one executor session, measure then build)
 **The user, 2026-11-25:** "keeping track of the time since last spawn (on spawn point) is a valid tracking object. It
