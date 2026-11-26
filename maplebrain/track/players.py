@@ -40,13 +40,9 @@ class per tag of the list: `tag_class`), the player records (track/state.Player)
      rule (stand / air / rope: it climbs).
 One GPU round trip a frame (step 4b try 2, the user's answer 6): `begin` sorts the tags up to the body question and
 ASKS it of the evidence (`ask_columns`); the mob tracker's own evidence transfer carries the answer; `end` (or the
-mob tracker's call for the sorted boxes) finishes the frame. `update` = begin + end. The body question is cheapened
-(the ms; step 4b tries 3-4, the user's answers): a tag that is a SETTLED track's own (`_Track.settled`: a pet / player
-with body_settled alone body readings - or from body_early_n when its 75th percentile is body_early_dist px or more
-from pet_line: its class is clear -, a mob's / NPC's tag seen body_settled times) is not asked; an unsettled track's
-tag is asked every body_every-th frame (frames 1/60 s apart repeat the reading); a tag no track would take (a new one)
-is always asked. What stands on a tag (the body and D's blob) counts in the class only on the frames it was asked, so
-the sampling does not tilt the vote.
+mob tracker's call for the sorted boxes) finishes the frame. `update` = begin + end. A tag that is a SETTLED track's
+own (`_Track.settled`: a pet / player with body_settled alone body readings, a mob's / NPC's tag seen as long) is not
+asked (step 4b try 3: the ms).
 Mob kinds' own tag boxes are LEARNED while running (the prototype learned them over the whole capture first): the
 commonest (w, h, dx, dy) of the tags 0-4 px under a seen mob's feet, known after mob_tag_n near it (once known, the
 commonest is looked at again every 30th sighting).
@@ -83,12 +79,11 @@ class Det:
     """One tag of a frame (pieces on one row put together): its box on screen and on the map, its evidence, the
     list's tags it is made of (`raws`)."""
     __slots__ = ("x", "y", "w", "h", "L", "R", "T", "cx", "cut", "joined", "nobirth", "logrow", "off", "mob", "npc",
-                 "above", "tr", "raw", "body", "blob", "mobbox", "raws", "alone", "split", "skipped")
+                 "above", "tr", "raw", "body", "blob", "mobbox", "raws", "alone", "split")
 
-    def __init__(self, x, y, w, h, body=(-1, -1, False), raws=()):
+    def __init__(self, x, y, w, h, body=(-1, -1), raws=()):
         self.x, self.y, self.w, self.h, self.raw = x, y, w, h, 1
-        self.body, self.blob, self.skipped = body        # the body's height over it, D's blob over it, not asked by
-                                                         # choice (a settled track's / asked within body_every frames)
+        self.body, self.blob = body                      # the body's height over it, D's blob over it
         self.cut = self.joined = self.nobirth = self.logrow = self.mob = self.npc = self.above = self.mobbox = False
         self.alone = self.split = False                  # no other tag or body touching it; split among known tracks
         self.off, self.tr = None, None
@@ -101,8 +96,7 @@ class Det:
 class _Track:
     __slots__ = ("id", "x", "y", "w", "h", "wc", "hc", "t", "n", "t0", "n0", "unseen", "seen", "ev", "hist", "born",
                  "end", "sx", "sy", "scr", "merged", "wlast", "clean", "into", "vx", "px", "known", "shared", "place",
-                 "node", "from_node", "off", "vy", "was_player", "cls_now", "hb1", "hb", "bseq", "known_n", "nfull",
-                 "asked_n", "q")
+                 "node", "from_node", "off", "vy", "was_player", "cls_now", "hb1", "hb", "bseq", "known_n", "nfull")
 
     def __init__(self, tid, d, t, n):
         self.id = tid
@@ -130,10 +124,8 @@ class _Track:
         self.cls_now = "short"
         self.hb1 = np.zeros(BODY_BINS, np.int32)    # the body's heights over the stay: whole, alone, own width
         self.hb = np.zeros(BODY_BINS, np.int32)     # ... every sighting with a body read
-        self.bseq = []                               # a tool's (keep): (n, body - -2: not asked -, whole and alone, cut)
+        self.bseq = []                               # a tool's (keep): (n, body, whole and alone, cut)
         self.known_n = None                          # the frame its class was first more than "short"
-        self.asked_n = None                          # the last frame its tag was asked the body question
-        self.q = -1                                  # its alone heights' pet_q percentile at the last vote (-1: none)
 
     def cls(self, c: Track) -> str:
         """Its class by what was seen of it so far (the prototype's Track.cls)."""
@@ -152,7 +144,7 @@ class _Track:
         hist = self.hb1                                      # the heights of its ALONE sightings only (design 1)
         if hist.sum() < 5:
             return "unsure"                                  # no body read alone (crowded, under the play area, the UI)
-        q = self.q = int(np.searchsorted(np.cumsum(hist), c.pet_q / 100.0 * hist.sum(), side="left"))
+        q = int(np.searchsorted(np.cumsum(hist), c.pet_q / 100.0 * hist.sum(), side="left"))
         return "pet" if q < c.pet_line else "player"
 
     def feet_y(self, c: Track) -> float:
@@ -165,13 +157,10 @@ class _Track:
         return self.known and self.clean >= c.tag_confirm
 
     def settled(self, c: Track) -> bool:
-        """Its class will not change with another body reading: a pet / player with body_settled alone readings - or
-        with body_early_n when its pet_q percentile is body_early_dist px or more from pet_line (the class is clear: step
-        4b try 4, the user's answer 4 B) -, or a mob's / an NPC's tag (their votes read no body) seen body_settled
-        times (the ms: not asked the body question again)."""
+        """Its class will not change with another body reading: a pet / player with body_settled alone readings, or a
+        mob's / an NPC's tag (their votes read no body) seen as long (the ms: not asked the body question again)."""
         if self.cls_now in ("pet", "player"):
-            k = int(self.hb1.sum())
-            return k >= c.body_settled or (k >= c.body_early_n and abs(self.q - c.pet_line) >= c.body_early_dist)
+            return int(self.hb1.sum()) >= c.body_settled
         return self.cls_now in ("mob", "npc") and self.seen >= c.body_settled
 
 
@@ -270,47 +259,29 @@ class Players:
                             cand.append(d)
                     continue
             boxes.append((x, y, w, h, i))
-        ask, asked, skip = None, [], set()
+        ask, asked = None, []
         if boxes and evidence is not None and getattr(evidence, "ready", False):
-            why = self._skip_boxes(boxes, cx0, cy0, dt, n)
-            skip = {k for k, w in enumerate(why) if w}
-            asked = [k for k in range(len(boxes)) if k not in skip]
+            asked = [k for k, b in enumerate(boxes) if not self._settled_box(b, cx0, cy0, dt)]
             if asked:
                 ask = evidence.ask_columns(np.array([boxes[k][0] + boxes[k][2] // 2 for k in asked]),
                                            np.array([boxes[k][1] for k in asked]), c.body_reach, c.body_half)
             self.stats["body asked"] += len(asked)
-            self.stats["body settled"] += why.count("settled")
-            self.stats["body every"] += why.count("every")
+            self.stats["body settled"] += len(boxes) - len(asked)
         self._ours = ours
-        self._pend = (facts, boxes, cand, (ask, asked, skip), t, dt, cx0, cy0, moved, n)
+        self._pend = (facts, boxes, cand, (ask, asked), t, dt, cx0, cy0, moved, n)
 
-    def _skip_boxes(self, boxes, cx0, cy0, dt, n) -> list:
-        """Per box: "settled" - a settled track's own tag where that track would be now (its width, within its gates):
-        not asked (the track's class does not need it); "every" - an unsettled track's tag asked within the last
-        body_every frames: not asked this frame; "" - asked (a tag no track would take: always)."""
+    def _settled_box(self, b, cx0, cy0, dt) -> bool:
+        """The box is a settled track's own tag where that track would be now (its width, within its gates): the body
+        over it is not asked (the track's class does not need it)."""
         c = self.cfg
-        WT = c.tag_w_tol
-        cand = []
+        x, y, w, h, _ = b
         for tr in self.live:
-            if tr.into is not None:
-                continue
-            if tr.sure(c) and tr.settled(c):
-                cand.append((tr, "settled"))
-            elif tr.asked_n is not None and n - tr.asked_n < c.body_every:
-                cand.append((tr, "every"))
-        out = []
-        for x, y, w, h, _ in boxes:
-            why = ""
-            for tr, k in cand:
-                if abs(w - tr.w) <= WT:
-                    u = tr.unseen + dt
-                    if abs(x + w / 2.0 + cx0 - tr.x - tr.vx * min(u, 0.5)) <= c.tag_gate + c.tag_vx * u and \
-                            abs(y + cy0 - tr.y) <= c.tag_gate + c.tag_vy * u:
-                        why = k
-                        if k == "settled":
-                            break
-            out.append(why)
-        return out
+            if tr.into is None and abs(w - tr.w) <= c.tag_w_tol and tr.sure(c) and tr.settled(c):
+                u = tr.unseen + dt
+                if abs(x + w / 2.0 + cx0 - tr.x - tr.vx * min(u, 0.5)) <= c.tag_gate + c.tag_vx * u and \
+                        abs(y + cy0 - tr.y) <= c.tag_gate + c.tag_vy * u:
+                    return True
+        return False
 
     def end(self) -> list:
         """The rest of the frame `begin` started (the body's answer read) -> its events; a second call: []."""
@@ -381,11 +352,11 @@ class Players:
                         self.mob_tags[m["type"]] = (w0, h0, dx2 / 2.0, dy)
 
     def _bodies(self, boxes, patches, ask) -> list:
-        """Per box: (the body's height over it from the evidence's answer - -1 when not asked -, D's blob over it, not
-        asked by choice) - proto_players' col_body and blob_over."""
+        """Per box: (the body's height over it from the evidence's answer - -1 when not asked -, D's blob over it) -
+        proto_players' col_body and blob_over."""
         c = self.cfg
-        ask, asked, skip = ask
-        out = [[-1, self._blob(b[:4], patches), k in skip] for k, b in enumerate(boxes)]
+        out = [[-1, self._blob(b[:4], patches)] for b in boxes]
+        ask, asked = ask
         if ask is not None:
             over, world, inside = ask.get()
             for j, k in enumerate(asked):
@@ -421,7 +392,6 @@ class Players:
                     d.w, d.h = x1 - d.x, y1 - d.y
                     d.raw += 1
                     d.body, d.blob = -1, max(d.blob, body[1])   # the pieces' centres are not the tag's
-                    d.skipped = d.skipped and body[2]
                     d.joined = True
                     d.raws.append(i)
                     break
@@ -727,8 +697,6 @@ class Players:
         elif not tr.known and not shared and d.w > tr.w:
             tr.w = d.w                                       # nothing alone seen yet: at least this wide
         full = abs(d.w - tr.w) <= WT and not shared
-        if not d.skipped and not shared:
-            tr.asked_n = n
         if x is not None:
             pass
         elif full or new:
@@ -759,9 +727,7 @@ class Players:
                          ("logrow", d.logrow)):
                 if v:
                     e[k] += 1
-            if d.skipped:
-                pass                                         # not asked: what stands on it counts on asked frames only
-            elif d.blob == 0:
+            if d.blob == 0:
                 e["b0"] += 1                                 # nothing stands on it
             elif d.body > 0:
                 k = "bs" if d.body < c.body_tall else "bt"
@@ -772,7 +738,7 @@ class Players:
                     e[k + "1"] += 1
                     tr.hb1[b] += 1
         if self.keep:
-            tr.bseq.append((n, -2 if d.skipped else d.body, alone and full, d.cut))
+            tr.bseq.append((n, d.body, alone and full, d.cut))
         h = tr.hist
         if moved and tr.sx is not None and tr.n == n - 1 and not shared:
             tr.scr[1] += 1

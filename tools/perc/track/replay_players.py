@@ -374,7 +374,7 @@ def unsure_why(port=False):
     the UI, a joined piece - or crowded); alone, but the body over it never read (-1: under the minimap / UI / the
     play area's bottom, or 0: nothing over its centre); 1-4 readings over a short life (seen under 1 s); 1-4 over a
     longer one, mostly crowded. With the sightings' make-up: cut / crowded / alone, of the alone ones read / -1 / 0 /
-    not asked (body_every)."""
+    not asked (try 4's body_every, undone: 0 since)."""
     why, life, mk = Counter(), [], Counter()
     for cap in L5_CAPS:
         for t in load(cap, port)["tracks"]:
@@ -627,7 +627,7 @@ def cmd_time(cap, n):
             trips.append(getattr(ev, "trips", 0) - k0)
     up, tr, ob = np.array(up), np.array(tr), np.array(ob)
     print(f"{cap}: {len(up)} frames; us_players p50 / p90 / p99 {np.percentile(up, [50, 90, 99]).round(2).tolist()} "
-          f"(p50 <= 0.1; the part is kept to 0.1 ms); track p50 / p90 {np.percentile(tr, [50, 90]).round(2).tolist()}; "
+          f"(p50 <= 0.5, p90 <= 1.0: the user, step 4b close); track p50 / p90 {np.percentile(tr, [50, 90]).round(2).tolist()}; "
           f"observe p50 {np.median(ob):.2f}; the evidence's transfers back a frame {dict(Counter(trips))}")
 
 

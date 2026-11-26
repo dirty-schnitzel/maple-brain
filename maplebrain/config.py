@@ -311,11 +311,7 @@ class Track:
     split_rest: int = 20            # px: a box split with one track: the rest is another tag's piece from this wide
                                     # on; narrower, the box is a wider tag over the track (not split)
     body_settled: int = 30          # a pet / player track with this many alone body readings is not asked again
-                                    # (the ms: the body question costs ~0.4 ms a frame live - step 4b try 2) ...
-    body_early_n: int = 8           # ... or with this many when its pet_q percentile is body_early_dist px or more
-    body_early_dist: int = 10       # from pet_line (<= 40 or >= 60 px: the class is clear; step 4b try 4, the user)
-    body_every: int = 4             # an unsettled track's tag is asked the body question every this-many frames (a
-                                    # new tag always; frames 1/60 s apart repeat the reading: step 4b try 4, the user)
+                                    # (the ms: the body question costs ~0.4 ms a frame live - step 4b try 2)
     ours_list_s: float = 2.0        # our tag taken from the tag list only this long after our own tag was last found
     mob_tag_n: int = 20             # a mob kind's own tag ("Lv. N name") box is known after this many sightings
     log_rows: tuple = (602, 14, 6, 1363, 1369, 1000)   # the message log's tag boxes: first row's top y, pitch, rows,

@@ -17,14 +17,9 @@ DT = 1 / 60
 FLOOR = 500                                     # the floor's y (map = screen: camera (0, 0)); a tag's top = 501
 
 
-# The tests of the other rules ask the body question on every frame and settle only at body_settled (step 4b try 3's
-# sampling): rules A (body_every) and B (body_early_n) have their own tests, with the config as it is.
-EVERY = dict(body_every=1, body_early_n=10 ** 6)
-
-
-def tracker(cfg=None, **kw):
+def tracker(**kw):
     g = Graph(mk([fh(1, 0, FLOOR, 1300, FLOOR)]), edges=False)
-    return Players(g, cfg or Track(**EVERY), **kw)
+    return Players(g, Track(), **kw)
 
 
 def frame(t, tags=(), bodies=(), fit=None, C=(0, 0), patches="bodies"):
@@ -221,7 +216,7 @@ def test_crowded_sightings_teach_nothing():
 def test_a_settled_track_is_not_asked_the_body_question():
     """Step 4b try 3 (the ms): a pet / player track with body_settled alone body readings is not asked again; a new
     tag is."""
-    c = Track(**EVERY)
+    c = Track()
     trk = tracker()
     t = run(trk, c.body_settled + 5, 0.0, [(400, 501, 60, 17)], [body(400, 60)])
     asked = trk.stats["body asked"]
@@ -230,49 +225,6 @@ def test_a_settled_track_is_not_asked_the_body_question():
     assert trk.stats["body asked"] == asked and trk.tag_class == ["player"]
     run(trk, 1, t, [(400, 501, 60, 17), (800, 501, 50, 17)], [body(400, 60), body(800, 50)])
     assert trk.stats["body asked"] == asked + 1
-
-
-def test_an_unsettled_tracks_tag_is_asked_every_4th_frame():
-    """Step 4b try 4 (the user's answer 4 A): an unsettled track's tag is asked the body question every body_every-th
-    frame; a tag no track would take (a new one) is asked on the frame it is first seen. The class comes on the 5th
-    alone reading: frame 1 + 4 x body_every."""
-    c = Track()
-    trk = tracker(c)
-    tag, b = (400, 501, 60, 17), body(400, 60, 55)              # 55 px: near the line, not settled early
-    t = run(trk, 10, 0.0, [tag], [b])
-    assert trk.stats["body asked"] == 3 and trk.stats["body every"] == 7     # frames 1, 5, 9
-    t = run(trk, 1, t, [tag, (800, 501, 50, 17)], [b, body(800, 50)])       # frame 11: the new one is asked
-    assert trk.stats["body asked"] == 4
-    t = run(trk, 1 + 4 * c.body_every - 12, t, [tag], [b])                 # up to frame 16: 4 alone readings
-    assert trk.tag_class == ["unsure"]
-    run(trk, 1, t, [tag], [b])                                               # frame 17: the 5th
-    assert trk.tag_class == ["player"] and int(trk.live[0].hb1.sum()) == 5
-
-
-def test_what_stands_on_a_tag_counts_only_on_the_frames_it_was_asked():
-    """Step 4b try 4: the body and D's blob over a tag count in its class only on the frames the body question was
-    asked, so asking every 4th frame does not tilt the vote: a player whose blob reads 0 on the frames between (it
-    stepped aside) is not text."""
-    c = Track()
-    trk = tracker(c)
-    tag = (400, 501, 60, 17)
-    t = 0.0
-    for k in range(40):
-        t += DT
-        f, ev = frame(t, [tag], [body(400, 60, 55)] if k % c.body_every == 0 else [])
-        trk.update(f, ev)
-    assert trk.tag_class == ["player"] and trk.live[0].ev["b0"] == 0
-
-
-def test_a_clear_class_settles_early():
-    """Step 4b try 4 (the user's answer 4 B): a pet / player whose 75th percentile is body_early_dist px or more from
-    pet_line (<= 40 or >= 60 px) settles from body_early_n alone readings; near the line it needs body_settled."""
-    c = Track(body_every=1)
-    for tall, settle in ((70, c.body_early_n), (40, c.body_early_n), (55, c.body_settled)):
-        trk = tracker(c)
-        run(trk, c.body_settled + 10, 0.0, [(400, 501, 60, 17)], [body(400, 60, tall)])
-        assert trk.stats["body asked"] == settle, tall
-        assert trk.tag_class == ["player" if tall > c.pet_line else "pet"]
 
 
 def test_kept_two_seconds_in_view_then_left():
