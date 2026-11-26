@@ -4777,3 +4777,10 @@ From HANDOFF.md:
 - **Its footage** ("Footage asked of the user"): welcome: a map with flying mobs, an Ant Tunnel map. Step 3's new
   kept replay of `20261120_235747_1#0` is made (`work\20261120_235747_1#0\track_s3\`, f97dd4e; stop rule 5); the
   buff ask is dropped (the warrior has none).
+
+## 2026-11-26 - tracker step 4b try 2 (moved from HANDOFF.md)
+From HANDOFF.md:
+**Step 4b, try 2 STOPPED 2026-11-26** (3c437ef, the plan's "Step 4b, try 2"): the user's answers built - "not yet known" under 6 sightings, feet from the tag's top (a 21 px medal tag: its bottom), pets by the 75th percentile of a track's body heights against 50 px (measured first), L1J (18 "us" jump labels stand -> air on strips), a rope motion test, the body question in the mob tracker's one GPU transfer. Met: step 3's rows and the hops gate unchanged, one transfer a frame. Missed: L5 (found 92.8 %), the cover (33), L1 us 84.62 % (93.41 % without the motion test), the ms (0.7) - **the user decides** (Waiting on the user). SelfState 95.81 % and our feet known 97.04 % accepted (try 1).
+- **Step 4b, try 2's four questions** (PLAN-tracker.md "Step 4b, try 2", "For the user"): pets (75th percentile, a
+  share, or first the association: an owner's track taking its pet's box) and the cover with them; L1 us (drop the rope
+  motion test: 93.41 %, this frame's step: 92.86 %, keep: 84.62 %); the ms (accept ~0.8, or a cheaper body question).
