@@ -408,7 +408,11 @@ written with arrays, not loops, to stay at today's 0.7 ms.
 nothing in it knows the brain. Per frame it gets perception's facts (`FrameFacts`: the fit's sightings, the drop
 finder's, the name tags, our tag, the HUD's numbers, the slots, the camera), our key events since the last frame,
 and an *evidence* handle; it returns the state of `docs/state_model.md` (the frame, us, mobs, drops, players)
-and the events since the last frame. Fixed inputs: the graph and the facts registry. A frame without a camera
+and the events since the last frame. **Clean sightings teach, crowded ones only follow (the user, 2026-11-26):**
+what a thing IS - a player's or pet's class, a body's height, a name's width, a mob's kind, a death - is learned
+only from sightings where it is seen alone and whole; a sighting that overlaps another thing (tags touching, bodies
+over each other) keeps the track going and moves it, never relabels it. Built for players and pets in step 4b;
+mobs' overlaps (swapped ids, a death read on the wrong mob) are checked in step 5. Fixed inputs: the graph and the facts registry. A frame without a camera
 changes nothing (`cover = blind`).
 
 **2. Evidence: "does this place show the scene?"** One interface, two sources: the kept replay's two bitmaps
@@ -1249,6 +1253,23 @@ any of them. (4) **The ms** - accept ~0.8 ms for players + us (the 0.1 was the p
 cheaper body question (the index built on the GPU from the tags' corners; a track whose class is settled not asked
 again)?
 
+**The user's answers (2026-11-26, to the plan manager; prompt "Tracker, step 4b, try 3"):**
+1. **Pets: classify only when not obstructed** - the user, on the sheet `step4b\heights_pet.png` (track 815 "Snail"
+   holding the merged "GODxWAR" + "il" box, body 95; track 82 "Snai" holding "CGFzealot", body 64; the White Bunnies
+   41 px on every frame beside their owner's tag): "players and pets should be classified when not obstructed",
+   widened into the design rule "clean sightings teach, crowded ones only follow" (design 1). So: a track continues
+   only on a box of its own name's width; a merged box is split by the widths known (why the existing split did not
+   fire on 815: to find); the class, the height and the width learn only from sightings standing alone. The 75th
+   percentile and the 50 px line stay. The cover follows.
+2. **Ropes: "They are grabbed by pressing up or down"** (the user). For us: on a rope only when we got onto it with up
+   or down pressed (the key down at the grab); staying on it needs no key; a jump or fall past a rope without the key
+   is not on it, a grab mid-jump with the key is, whatever the speed. Replaces the speed test (which broke 22 grabs).
+   Live, until step 9 hands our keys in, us uses the plain rule (no motion test). Players: no key known - the session
+   measures no test / the speed test on L5's nodes and keeps the better.
+3. **The ms:** a track whose class is settled is not asked the body question again; accepted against a new line set
+   from what it then measures (the 0.1 was the prototype's, without the body).
+4. **L1 us:** accepted at what the key rule reaches if 99 % is not (182 cases: 99 % allows 1 miss).
+
 ### Step 3b - spawn points as tracked things (added by the user, 2026-11-25; one executor session, measure then build)
 **The user, 2026-11-25:** "keeping track of the time since last spawn (on spawn point) is a valid tracking object. It
 would not be trying to add predictive abilities to the tracking behavior (my original rule), it is a part of
@@ -1667,6 +1688,28 @@ docstring (its stuck cases become tests). Branch tracker-build. Build track/play
 by side are split by the widths already known; pets are sorted out. Also step 3's carry-over 2 ("Step 3, try 2",
 "The user's decision"): the mob tracker's covers use the sorted tags, `edge` = the sides and the window's bottom, L2
 re-graded on the 16 (>= 90 %). Gate as written; numbers into the plan; a gate missed: stop.
+```
+```text
+Tracker, step 4b, try 3 (players, pets and us: the user's answers of 2026-11-26). Read PLAN-tracker.md - design 1
+("clean sightings teach, crowded ones only follow"), step 4b's row, "Step 4b, try 2" and "The user's answers
+(2026-11-26)" under it, the stop rules - track/players.py, us.py, graph.py, evidence.py. Branch tracker-build (the
+main folder).
+1. MEASURE FIRST: a sheet of all 13 labelled pet tracks now called players (as heights_pet.png: the labelled frame +
+   the frames where the track holds another name's box); confirm the 10 are a track on another name's box and find
+   why the side-by-side split did not fire on track 815's merged "GODxWAR" + "il".
+2. Build: a track continues only on a box of its own name's width; a merged box is split by the widths known; the
+   class, the body height and the name width learn only from sightings standing alone (no other tag or body
+   touching). Keep the 75th percentile and the 50 px line. Add design 1's rule to docs/state_model.md with the
+   user's words.
+3. Ropes (us): on a rope only after a grab with up or down down; staying needs no key; past a rope without the key
+   = not on it, whatever the speed. The speed test goes. Live (no keys until step 9): the plain rule. Players: measure
+   no test against the speed test on L5's nodes, keep the better.
+4. The ms: a track whose class is settled is not asked the body question again; measure live (the Perceiver, the
+   4-minute capture, parts us_players and track) and report - the user sets the line from it.
+Tests (each fails without its rule). Gate: L5 as in try 2 (players found >= 95 %, non-players called players <= 1 %,
+pet / player mixed <= 5 %, the node >= 95 %, "not yet known" apart), the cover <= 29, L1 us (>= 99 %, or accepted at
+what the key rule reaches - report the misses), step 3's rows and step 2's hops gate unchanged, pytest + the bot
+speed line. Numbers into the plan under "Step 4b, try 3"; a gate missed: stop.
 ```
 ```text
 Tracker, step 5 (events). Needs steps 3-4 and step 1's labels L4. Read PLAN-tracker.md - measurement 6, design
