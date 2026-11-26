@@ -1519,12 +1519,22 @@ should be pretty obvious on any recording"). **The user's observations - the spe
   each one's green share (pixels, frame by frame, like `slots.py` / `hud.py`: the meter has a fixed size, so green /
   width = HP %); the mob TRACKER ties each meter to its track - it alone knows covered and remembered mobs, their
   ids and which we just hit (design 1: a meter over two overlapping mobs is not taught from).
+- **The user's clarifications (2026-11-26):** "meters just appear right after the mob is taking damage" (no
+  animation: the meter is there at once); "if it's a fresh mob (no meter yet) we (the player) will not see a meter
+  above someone else's mob, however if I already hit a mob and the meter appeared - any further damage by other
+  players will show up on MY meter. Similarly if I am not the 'first hitter' on a mob - the meter still shows up
+  with the absolute hp value of the mob".
 - **Two uses:** the mob's `hp` (0-1, with `hp_t`: when read; None = no meter ever; kept while the track lives -
-  memory, no HP guessed, no healing modelled) for the brain; and **a witness of OUR damage for step 5**: a meter
-  appearing or dropping in our hit window = our hit landed; dropping outside our windows = another player's damage on
-  a mob we also hit - so a death's credit and our share of the damage seen. (Damage done before our first hit is not
-  seen: the meter starts after it.) Measurement 6 saw a box under a mob within 1 s after 41 of 69 of our hits and 1
-  of 170 of another's: likely this meter's mob name.
+  memory, no HP guessed, no healing modelled) for the brain; and **a witness of damage for step 5**:
+  - a meter appearing in our hit window = our first hit landed;
+  - its green share falling in our hit window = our hit; **falling outside our windows = another player's damage**
+    on a mob we also hit (it shows on our meter);
+  - **the meter shows the mob's absolute HP**, so its first reading also carries damage done BEFORE our first hit:
+    a first reading clearly lower than our own first hit leaves on that kind (measured on mobs seen from full HP
+    with no other hitter) = another player hit it first;
+  - a mob only other players hit has no meter: their damage there is not seen (their hit poses still are).
+  So a death's credit and our share of the damage seen. Measurement 6 saw a box under a mob within 1 s after 41 of
+  69 of our hits and 1 of 170 of another's: likely this meter's mob name.
 - **Measured first:** the meter's picture (size, colours) from footage; its place above the mob for small / mid / big
   / flying kinds (Slime, Bubbling; Horny / Zombie Mushroom; Drake; Stirge) against the sprite box and `mob.json`'s
   `head` point; the delay from our hit to the meter and from the death to its going; whether one ever shows on a mob
@@ -2014,7 +2024,8 @@ FIRST MEASURE, build nothing in maplebrain/, on the 13 sound captures and their 
 colours: green = HP left, dark red = lost); its place above the mob for small / mid / big / flying kinds against the
 sprite box and mob.json's head point (one rule for every size?); the delay from our hit (q / w / e windows,
 measurement 6) to the meter appearing and from the death to its going; whether a meter ever shows on a mob we did
-not hit; several meters, two mobs close, under effects, at the screen's edge. Make label set L9 by eye (100 frames
+not hit; our own first hit's share per mob kind (mobs seen from full HP, no other hitter) and the first readings of
+mobs another player hit before us; several meters, two mobs close, under effects, at the screen's edge. Make label set L9 by eye (100 frames
 with a meter, every kind of case: its mob, its fill in %; 10 % looked at twice, blind: >= 95 % agree) and a picture
 sheet of the odd cases. If a meter shows on a mob we did not hit, or cannot be tied to its mob: stop with the
 numbers - the user decides.
@@ -2036,8 +2047,10 @@ track"); a death's credit is ours / shared / theirs / unknown plus our share of 
 hit windows against outside them), not "our last hit" (EXP is shared by damage, docs/game_rules.md G) - change
 .claude/rules/perception.md's "Kills are counted by our last hit" to match.
 Build track/events.py on the tracker's own tracks: cast (a skill key-down with no swing running, confirmed by the MP
-step); mob_hit by us (the meter appearing or dropping in our hit window; the hit pose in our window and reach as a
-second witness) and by another (a hit pose with no drop of ours; a meter dropping outside our windows); mob_died
+step); mob_hit by us (the meter appearing, or its green share falling, in our hit window; the hit pose in our
+window and reach as a second witness) and by another (on a mob we hit: the green share falling outside our windows;
+a first reading lower than our own first hit leaves on that kind (measured on solo, full-HP cases) = hit by another
+before us; on a mob with no meter: a hit pose with no hit of ours - step 5a's clarifications); mob_died
 (the die pose under the fade rule, the meter going with it) with its credit and damage share; every HUD step's
 cause; drop and player events from 4a / 4b. Checks: corpse tracks (a dead body read as a live pose) give no second
 death or new mob; hits and deaths while two mobs overlap (design 1), reported. Gate: step 5's row; step 3's rows
