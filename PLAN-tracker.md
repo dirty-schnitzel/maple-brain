@@ -1459,6 +1459,14 @@ corners - design question, not measured), not the tags. (2) **The ms line** from
 p50 0.2-0.5, p90 0.8, p99 1.0, mean 0.37-0.46 ms. (3) **The delay** with A: a class known p50 0.65 s later (39 frames)
 - acceptable if A is kept?
 
+**The user's decision (2026-11-26, to the plan manager): A and B are undone - back to try 3's sampling** (body_every 1,
+no early settle); the grading tools stay. Why: the body question costs per CALL, not per tag (A saved ~0.04 ms mean,
+p90 unchanged), and readings on consecutive frames are one pose, not independent looks (B locked a spear stance in
+as a pet). With the user's answers try 3 meets every gate (found 95.8 %, the cover 9.6 %, pet / player 2.87 %, the
+node 96.5 %; non-players 2.13 % and L1 us 95.05 % accepted). **The ms line (the user):** us_players live p50 <= 0.5
+ms, p90 <= 1.0 ms on the 4-minute capture. A cheaper call (the tags' index built on the GPU) is left for step 9, if
+the frame needs it. Prompt "Tracker, step 4b, close".
+
 ### Step 3b - spawn points as tracked things (added by the user, 2026-11-25; one executor session, measure then build)
 **The user, 2026-11-25:** "keeping track of the time since last spawn (on spawn point) is a valid tracking object. It
 would not be trying to add predictive abilities to the tracking behavior (my original rule), it is a part of
@@ -1919,6 +1927,17 @@ track/players.py, evidence.py. Branch tracker-build (the main folder).
    numbers - the user sets the ms line from them.
 4. pytest + the bot speed line. Numbers into the plan under "Step 4b, try 4". A gate missed: stop. If every gate
    is met, write step 4b as DONE (the user's accepted items 2 and 5 named) in the plan's status lines and HANDOFF.
+```
+```text
+Tracker, step 4b, close (the user's decision on try 4). Read PLAN-tracker.md - "Step 4b, try 4" and "The user's
+decision" under it, the stop rules. Branch tracker-build (the main folder). The user: A and B go - back to try 3's
+sampling (body_every 1, no early settle): take A and B out of track/players.py and config.Track with their tests;
+keep the grading tools (unsure apart, unsure_why, the cover rate, --cfg). Re-run L5, the cover, L1 us and step 3's
+rows: they must equal try 3 regraded (found 95.8 %, cover 9.6 %, pet / player 2.87 %, the node 96.5 %, non-players
+2.13 % accepted, L1 us 95.05 % accepted). The ms line, set by the user: us_players live p50 <= 0.5 ms, p90 <= 1.0 ms
+(the 4-minute capture). pytest + the bot speed line. Numbers under "Step 4b, close"; if met, step 4b DONE in the
+plan's status lines and HANDOFF (accepted: non-players 2.13 %, FreakyRafiki, L1 us 95.05 %; a cheaper call left for
+step 9). A gate missed: stop.
 ```
 ```text
 Tracker, step 5 (events). Needs steps 3-4 and step 1's labels L4. Read PLAN-tracker.md - measurement 6, design
