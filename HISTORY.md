@@ -4796,3 +4796,19 @@ From HANDOFF.md:
 **Step 3b DONE 2026-11-26** (the plan's "Step 3b, try 3" and its answers): the mob tracker takes the fade's direction (a die pose at >= 0.99 = a death, under it fallen = a death, rising / flat = the live mob keeping its feet, on a remembered track held one sighting; a faint birth is "faded in" only while its opacity rises) - 0 fading-in splits, one id 92.33 %, extra ids 994, jolts 524, every step-3 row met; `track/spawns.py` + `state.SpawnPoint` in shadow: 585 of 594 faded-in mobs traced to one point (98.5 %), sheet 29 of 30, live rows = replay rows (15,211 of 15,211), 0.045 ms live. **Step 4a DONE 2026-11-25, accepted by the user as it is, merged into `tracker-build`** (the plan's "Step 4a, 2026-11-25"): `track/drops.py` (proto_drops ported; "we took it" = the pickup key DOWN in the window; from_mob from the mob tracker's deaths), the port exact (746 of 746); 746 drops, L6 97.4 %, exactly one death 88.5 %, ms p50 0.197; accepted misses: 35 pickup hops without our key down (the pet "Snail" on the 2026-11-18 captures) and 1 false "gone" (a passing flight read as a pickup hop). Not in the live frame yet (no key events there).
 
 - **Step 4b, try 4's three questions** (PLAN-tracker.md "Step 4b, try 4", "For the user"): the body check - try 3's sampling (95.8 % found, us_players live mean 0.40-0.46 ms), A alone (93.5 %, -0.04 ms) or A + B (92.8 %); the ms line (us + players live p50 0.2-0.5, p90 0.8, p99 1.0); the delay with A (a class known p50 0.65 s later).
+
+## 2026-11-26 - tracker step 5a handoff (moved from HANDOFF.md)
+From "The order from here":
+| **P0.1-5** | **The plan's steps 1-5, one executor session each:** 1 the pictures right (the forest maps sound), 2-3 moving backs drawn and followed (40 maps hunt), 4-5 Perion's clouds followed and undone (42 maps hunt). Steps 4-5 need the user's Perion recording | Opus (high) | **steps 1-5 DONE 2026-11-23**, the numbers each missed gate fell short on ACCEPTED by the user (PLAN-moving-scenery.md's status); merged into `dev` 2026-11-23 (9085f5b). Steps 6-7 wait for footage | `PLAN-moving-scenery.md`, "Session prompts" |
+
+From "Decided by the user":
+- **Game rules (2026-11-25): our footage > meowdb's Classic World guides > v83 code** ("replace cosmic game
+  rules with meowdb when possible, observed data still beats server rules"). Done in `docs/game_rules.md`
+  (source MW; a replaced rule kept, marked) + `docs/meowdb.md` (what the guides say, checked against ours).
+  meowdb's swing formula is ours, `(10 + attackSpeed) / 16`; its 7.56 s respawn round lost to our measured ~7.1 s.
+
+From "Open items":
+- **Found by step 4b (PLAN-tracker.md "Step 4b, try 2"):** a pet's name tag is often taken by its owner's track (10 of
+  13 L5 pets called players: the boxes merge and part - fixed by try 3's design 1); a spear attack stance reads 10-22 px between the legs; try 1's
+  "the GPU transfer waits ~0.4 ms" was wrong - the GPU is idle there (a sync costs 0.03 ms), the cost is Python and
+  torch calls (`ask_columns` 0.37 ms for one tag).
