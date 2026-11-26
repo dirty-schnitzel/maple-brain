@@ -13,6 +13,7 @@ nav/selfstate.SelfTracker and the 2 s players' cover.
     python tools/perc/track/replay_players.py time CAP [--n 3000] the live Perceiver: part us_players p50 / p90
 
 Every command takes `--tag T`: the run's files are OUT/<cap>[_port]_T.pkl (step 4b try 3: `t4b3`; try 2's untagged).
+`run --cfg k=v ...`: a variant with config.Track's values changed (step 4b try 4: rule A or B alone).
 `run` writes OUT/<cap>[_port].pkl (OUT = CORPUS/work/track-plan/step4b): per frame the sorted tag list (class and track
 per tag of FrameFacts.tags, the track's place / node when seen), our state, SelfState's (SelfTracker over the same
 frames: obs.me_map, obs.map_pos and the keys held), the ms; per track its final class and life (`tracks`). `--port`:
@@ -119,6 +120,7 @@ class ProtoOurs:
 
 
 TAG = ""                                         # --tag: the run's outputs as <cap>_<tag>.pkl (try 2's stay as they are)
+CFG = {}                                         # --cfg k=v ...: config.Track's values changed for a variant's run
 
 
 def out_path(cap, port=False, tag=None) -> Path:
@@ -136,7 +138,7 @@ def run(cap, port=False) -> dict:
     import proto_players as PP
     mid = map_of(cap)
     mj = json.loads((ASSETS / "maps" / str(mid) / "map.json").read_text(encoding="utf-8"))
-    cfg = Track()
+    cfg = Track(**CFG)
     g = Graph(mj, track=cfg, edges=False)
     ui, mm = minimap_ui(cap)
     mob_tags = None
@@ -279,7 +281,9 @@ def cmd_l5(final=False, port=False):
     class voted so far: live; `final`: its track's class at the track's end, in hindsight - as the prototype's sheets
     the cases were picked from). Players found, non-players called players, pet <-> player, the node of standing
     players. A tag on a track seen under 6 times (`short`) is NOT YET KNOWN (the user, step 4b try 2, answer 1): not a
-    miss, counted apart, with the delay until a track's class is known (frames from its first sighting, p50 / p90)."""
+    miss, counted apart, with the delay until a track's class is known (frames from its first sighting, p50 / p90).
+    So is a tag on a track with fewer than 5 alone body readings (`unsure`: the user, step 4b try 3, answer 1); the
+    tracks that stay `unsure` their whole life are counted with why (`unsure_why`)."""
     conf = Counter()
     nodes = [0, 0]
     rows_miss = []
@@ -319,26 +323,87 @@ def cmd_l5(final=False, port=False):
     non_pl = sum(v for (a, b), v in conf.items() if a not in ("player", "?") and b == "player")
     pp = pl + sum(v for (a, b), v in conf.items() if a == "pet")
     swap = conf[("pet", "player")] + conf[("player", "pet")]
-    unk = sum(v for (a, b), v in conf.items() if b == "short")
-    unk_pl = conf[("player", "short")]
-    pl -= unk_pl
-    non -= sum(v for (a, b), v in conf.items() if a not in ("player", "?") and b == "short")
-    pp -= unk_pl + conf[("pet", "short")]
-    print(f"not yet known (a track seen under 6 times): {unk} labelled tags ({unk_pl} players), left out of the rows")
-    dl = []
+    NYK = ("short", "unsure")
+    unk = {k: sum(v for (a, b), v in conf.items() if b == k) for k in NYK}
+    unk_pl = {k: conf[("player", k)] for k in NYK}
+    pl -= sum(unk_pl.values())
+    non -= sum(v for (a, b), v in conf.items() if a not in ("player", "?") and b in NYK)
+    swap_out = sum(unk_pl.values()) + sum(conf[("pet", k)] for k in NYK)
+    pp -= swap_out
+    print(f"not yet known, left out of the rows: a track seen under 6 times {unk['short']} labelled tags "
+          f"({unk_pl['short']} players); under 5 alone body readings (`unsure`) {unk['unsure']} ({unk_pl['unsure']} "
+          f"players)")
+    dl, dpp = [], []
     for cap in L5_CAPS:
         for t in load(cap, port)["tracks"]:
             if t["known_n"] is not None and t["cls"] in ("player", "pet"):
                 dl.append(t["known_n"] - t["n0"])
+                k = pp_n(t)
+                if k is not None:
+                    dpp.append(k - t["n0"])
     if dl:
         print(f"the delay until a player's / pet's class is known: frames from its first sighting p50 / p90 / p99 "
-              f"{np.percentile(dl, [50, 90, 99]).round(1).tolist()} ({len(dl)} tracks; 60 frames a second)")
+              f"{np.percentile(dl, [50, 90, 99]).round(1).tolist()} (out of `short`, as try 3; {len(dl)} tracks; 60 "
+              f"frames a second); until it is pet / player (out of `unsure` too) "
+              f"{np.percentile(dpp, [50, 90, 99]).round(1).tolist()} ({len(dpp)} tracks)")
+    unsure_why(port)
     print(f"players found {found} of {pl} = {100 * found / max(1, pl):.1f} % (>= 95)")
     print(f"non-players called players {non_pl} of {non} = {100 * non_pl / max(1, non):.2f} % (<= 1)")
     print(f"a pet called a player or a player called a pet {swap} of {pp} = {100 * swap / max(1, pp):.2f} % (<= 5)")
     print(f"the node of standing players {nodes[1]} of {nodes[0]} = {100 * nodes[1] / max(1, nodes[0]):.1f} % (>= 95)")
     for x in rows_miss:
         print("   ", x)
+
+
+def pp_n(t):
+    """The frame a track (final class pet / player) was first more than `unsure`: its 5th alone body reading (bseq's
+    whole-and-alone sightings with a body over 0) once out of `short` (known_n) - exact unless a mob / text vote came
+    between."""
+    k = 0
+    for n, b, w, cut in t["bseq"]:
+        if b > 0 and w:
+            k += 1
+            if k >= 5:
+                return max(n, t["known_n"])
+    return None
+
+
+def unsure_why(port=False):
+    """The tracks whose class at their end is `unsure` (fewer than 5 alone body readings over their whole life), on
+    L5's two captures: how many, and why. Each by its first cause: never alone (every sighting cut - the screen's edge,
+    the UI, a joined piece - or crowded); alone, but the body over it never read (-1: under the minimap / UI / the
+    play area's bottom, or 0: nothing over its centre); 1-4 readings over a short life (seen under 1 s); 1-4 over a
+    longer one, mostly crowded. With the sightings' make-up: cut / crowded / alone, of the alone ones read / -1 / 0 /
+    not asked (body_every)."""
+    why, life, mk = Counter(), [], Counter()
+    for cap in L5_CAPS:
+        for t in load(cap, port)["tracks"]:
+            if t["cls"] != "unsure":
+                continue
+            bs = t["bseq"]
+            alone = [b for n, b, w, cut in bs if w]
+            mk["cut"] += sum(1 for n, b, w, cut in bs if cut)
+            mk["crowded"] += sum(1 for n, b, w, cut in bs if not cut and not w)
+            mk["alone, read"] += sum(1 for b in alone if b > 0)
+            mk["alone, -1"] += sum(1 for b in alone if b == -1)
+            mk["alone, 0"] += sum(1 for b in alone if b == 0)
+            mk["alone, not asked"] += sum(1 for b in alone if b == -2)
+            k = sum(1 for b in alone if b > 0)
+            if not alone:
+                w = "never alone: every sighting cut or crowded"
+            elif k == 0:
+                w = "alone, the body never read (-1 / 0)"
+            elif t["seen"] < 60:
+                w = "1-4 readings, seen under 1 s"
+            else:
+                w = "1-4 readings, seen 1 s or more (mostly cut / crowded)"
+            why[w] += 1
+            life.append(t["seen"])
+    print(f"tracks `unsure` their whole life (L5's 2 captures): {sum(why.values())}; sightings p50 / p90 "
+          f"{np.percentile(life, [50, 90]).round().tolist() if life else None}")
+    for k, v in why.most_common():
+        print(f"   {v:4d}  {k}")
+    print(f"   their sightings: {dict(mk)}")
 
 
 # ---------------------------------------------------------------------------------------------- the cover
@@ -362,7 +427,8 @@ def cmd_cover(cap):
             back += 1
             dts.append(best)
     print(f"COVER 2 s ({cap}): {len(pl)} player tracks; lost in view {len(lost)}; the same width back as a new id "
-          f"{back} (<= 29, the prototype at 2 s: 279 tracks, 29); after s p50 {np.median(dts) if dts else None}")
+          f"{back} = {100 * back / max(1, len(pl)):.1f} % of player tracks (<= 10.4 %: 29 of 280, the user, step 4b "
+          f"try 3 answer 3); after s p50 {np.median(dts) if dts else None}")
     print(f"   all tracks by class {dict(Counter(t['cls'] for t in res['tracks']))}; ends "
           f"{dict(Counter(t['end'].split(':')[0] for t in pl))}")
 
@@ -575,9 +641,11 @@ def main():
     ap.add_argument("--jobs", type=int, default=1)
     ap.add_argument("--n", type=int, default=3000)
     ap.add_argument("--tag", default="", help="outputs as <cap>_<tag>.pkl")
+    ap.add_argument("--cfg", nargs="*", default=[], help="run: config.Track values for a variant, k=v (ints)")
     a = ap.parse_args()
     global TAG
     TAG = a.tag
+    CFG.update({k: int(v) for k, v in (x.split("=", 1) for x in a.cfg)})
     caps = cache.SOUND if a.sound else a.caps
     if a.cmd == "run":
         if a.jobs > 1:
@@ -586,7 +654,8 @@ def main():
                 while todo and len(procs) < a.jobs:
                     cap = todo.pop(0)
                     procs.append(subprocess.Popen([sys.executable, str(Path(__file__)), "run", cap, "--tag", a.tag]
-                                                  + (["--port"] if a.port else []), cwd=ROOT))
+                                                  + (["--port"] if a.port else [])
+                                                  + (["--cfg", *a.cfg] if a.cfg else []), cwd=ROOT))
                 procs = [p for p in procs if p.poll() is None]
                 time.sleep(1)
             return
