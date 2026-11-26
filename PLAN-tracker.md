@@ -511,6 +511,7 @@ in `tools/perc/track/` are the reference: port their rules and constants, do not
 | **3b** | **Spawn points as tracked things** (added by the user 2026-11-25; `track/spawns.py`, the spawn point records of `state.py`; "Step 3b" below) | first, measured: do new mobs appear on their spawn point (the faded-in births of the 13 sound captures against map.json's points of their kind) - >= 95 % within 10 px, else stop with the distribution; then from the kept replay: every faded-in birth near a point of its kind is that point's spawn, a 30-case sheet checked by eye >= 29 right; the live path's shadow rows = the replay's; ms p50 <= 0.1 | 4a, 4b (a new file: reads the mob tracker's births) |
 | **4a** | **Drops** (`track/drops.py`): design 5; the finder (`perception/drops.py`) is not changed | from the kept replay, measurement 5 within tolerance: 746 drops, 0 lives with two items or over 131 s, 0 "gone" then seen again, pairs of one item within 3 px <= 9 and each looked at, exactly one death for >= 84.4 % of drops, "we took it" with the key down: no hop without it on any of the 13; L6 >= 90 %; PLAN-loot's gates still met; ms p50 <= 0.2 | 4b |
 | **4b** | **Other players and us** (`track/players.py`, `us.py`): design 6-7 | L5: players found >= 95 %, non-players called players <= 1 %, a pet called a player or a player called a pet <= 5 %, the node on >= 95 % of standing players; the 2 s players' cover (question 5): the same player back under a new number on <= 29 of the 30-minute capture's 308 tracks (within 1 %); L1 us: >= 99 %; every stuck case `nav/selfstate.py`'s docstring lists is a test; us against `SelfState` on the 30-minute capture: the same place on >= 99 % of frames, every difference listed; our feet known on >= 97.5 % of frames (today 96.7; the tag list gives 1.1 points); ms p50 <= 0.1 | 4a |
+| **5b** | **The mob HP reader** (added by the user 2026-11-26, before step 5; "Step 5b" below): `perception/` reads the HP bar Classic World draws over a mob WE hit; the mob record gets `hp` | first, measured: the bar's picture (client files / v83 reading), when it shows and for how long after our hit, whether it ever shows without our hit, tying it to its mob; a label set L9 by eye (100 bars: its mob, its fill); then: the bar found on >= 99 % of L9's frames, tied to the right mob >= 99 %, its fill within 3 % of the eye's; as a witness: a bar never on a mob we did not hit (0 in the kept replay against our hit windows); ms p50 <= 0.1 | 6, 8 |
 | **5** | **Events** (`track/events.py`; needs 3-4): design 8 | 30-minute capture, from the kept replay and its keys: casts 500 / 78 / 10 (q / e / w) within 1 %; every HUD step has a cause; "by us" by chance <= 1 % (windows moved in time); kills against EXP: "us" with no EXP step <= 1 %, whole-EXP kills missed <= 2 %; L4 >= 95 %; the swing length measured live within 0.03 s of 0.85 / 0.87 | 6 |
 | **6** | **Facts, the profile, Skill.img** (`track/facts.py`, `gamedata.py`, the profile file; `kinds.py` reads the registry): design 9 | every fact of state_model.md 5 is in the registry with its source; a profile edit is read without a restart and gives a `fact` event (a test); measured live on the 30-minute capture: walk 152-157 px/s, climb 121-127, the swing 0.85-0.87 s, potions +150 / +198, each kind's speed factor 1.95-2.05, hits per kill; a changed jump height rebuilds the edges on the worker (a test) | 5, 8 |
 | **7** | **The hotkey reader** (`perception/slots.py`, FrameFacts `slots`, the picture pack built by `assets build`; tracked in `us`): design 7, measurement 8 | the self-test: 0 wrong apart from pictures that are identical under the label or digits; the 30-minute capture, every frame: all 8 keys exact on >= 99.99 % of frames, 79 of 79 steps both ways, 0 misreads; the 43 captures: an unreadable cell only in a map change's fade or under a window, each stretch listed; L7: 100 % of frames right where the bar is readable or a reading is held, never a wrong item (the user, 2026-11-24; was "100 of 100"); the new footage (`20261124_093410_1#0`): a skill on a key read, an amount 0 read, a tooltip over a slot "unreadable" or read right, never a wrong item (no window over the bar in it: skipped by the user; the covered-cell case is the 43 captures' fades and "something over the bar"); ms <= 0.02 a frame on average, <= 1 for a full read | 1, 2 (its speed line alone) |
@@ -1497,6 +1498,23 @@ and their three tests gone); `replay_players.py` keeps try 4's grading (`unsure`
 as its piece's width), L1 us 95.05 % (the rope key rule). Left for step 9: a cheaper body CALL (the tags' index built on
 the GPU), if the frame needs it.
 
+### Step 5b - the mob HP reader (added by the user, 2026-11-26; one executor session, measure then build)
+**The user, 2026-11-26** (asked whether to pause for an HP reader): it is "more for brain decisions"; Classic World
+shows **"an hp bar only for mobs hit by us"**. This reverses the choice of 2026-11-23 ("not a mob's HP" - the
+state model's fields chosen by "how many are there and how quickly I can get there"): the brain may finish a
+wounded mob first or count the hits a tough mob still needs (Evil Eyes, Drakes, Perion; most Bubblings die in one).
+- **Two uses:** the mob's `hp` (a fraction 0-1, with when it was read) for the brain; and **a witness of OUR hit** -
+  the bar shows only over a mob we damaged, so step 5's `ours` / `shared` rests on it, not only on the key windows.
+  Measurement 6 saw a box under a mob within 1 s after 41 of 69 of our hits and 1 of 170 of another's: likely this
+  bar and its name.
+- **What it is not:** no damage numbers read, no HP guessed for a mob with no bar (`hp` None), no healing modelled.
+  The last bar read is kept on the mob's record while its track lives (memory, as the spawn points).
+- **Measured first:** the bar's picture in the client export (the UI files; v83's client for how it is drawn and
+  when: reading only), its place against the mob's body, how long it shows after our hit, whether it ever shows
+  without our hit, two bars near each other. A perception reader beside `slots.py` / `hud.py`; the fit, the scene
+  model and the drop finder are not changed (stop rule 4).
+- **Order:** before step 5 (its `ours` / `shared` uses the bar); step 6 or 8 may run beside it.
+
 ### Step 3b - spawn points as tracked things (added by the user, 2026-11-25; one executor session, measure then build)
 **The user, 2026-11-25:** "keeping track of the time since last spawn (on spawn point) is a valid tracking object. It
 would not be trying to add predictive abilities to the tracking behavior (my original rule), it is a part of
@@ -1968,6 +1986,22 @@ rows: they must equal try 3 regraded (found 95.8 %, cover 9.6 %, pet / player 2.
 (the 4-minute capture). pytest + the bot speed line. Numbers under "Step 4b, close"; if met, step 4b DONE in the
 plan's status lines and HANDOFF (accepted: non-players 2.13 %, FreakyRafiki, L1 us 95.05 %; a cheaper call left for
 step 9). A gate missed: stop.
+```
+```text
+Tracker, step 5b (the mob HP reader; added by the user 2026-11-26). Read PLAN-tracker.md - "Step 5b" (the user's
+words), its row in the steps table, measurement 6, design 1, the stop rules - docs/state_model.md sections 3-4,
+perception/slots.py and hud.py (readers of the same kind), assets/README.md. Branch tracker-build (the main folder).
+FIRST MEASURE, build nothing in maplebrain/: find the bar's picture in the client export (and how v83's client
+draws it: reading only, C:\Users\Yoav\dev\v83-ref); on the 13 sound captures and their keys: when a bar appears
+against our hit windows (q / w / e: measurement 6), how long it stays, whether one ever appears on a mob we did not
+hit, where it sits against the mob's body, how it looks with two mobs close, under effects and at the screen's edge.
+Make label set L9 by eye (100 frames with a bar, every kind of case: which mob it belongs to, its fill in %; 10 %
+looked at twice, blind: >= 95 % agree), and a picture sheet of the odd cases. If the bar shows without our hit, or
+cannot be tied to its mob: stop with the numbers - the user decides. Then build: a reader in perception/ (FrameFacts
+gets the bars), the mob tracker ties each bar to its track (the mob record: hp 0-1, hp_t; kept while the track
+lives; None when never read), in shadow; docs/state_model.md gets the field with the user's words. Tests (each
+fails without its rule). Gate: step 5b's row; step 3's rows unchanged; pytest + the bot speed line. Numbers into
+the plan under "Step 5b"; a gate missed: stop.
 ```
 ```text
 Tracker, step 5 (events). Needs steps 3-4 and step 1's labels L4. Read PLAN-tracker.md - measurement 6, design
