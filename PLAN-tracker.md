@@ -37,6 +37,11 @@ torch calls, not the GPU - try 1's reason was wrong). SelfState 95.81 % and our 
 pet / player 2.52 % (8.56), the node 96.5 %, step 3's rows (L2 now 16 of 16), the hops gate; missed - players found
 85.4 % (95.8 % if "unsure" - under 5 alone body readings - were "not yet known" like "short"), non-players 2.04 %, the
 cover 34; L1 us 95.05 % with the key rule (the user's answer 4: accepted at what it reaches); the ms live 0.6.
+**Step 4b, try 4 (2026-11-26): the cheaper body check (A: every 4th frame; B: an early settle) built; stopped, the user
+decides** ("Step 4b, try 4"): with `unsure` graded apart try 3 meets players found (95.8 %) and the cover as a rate
+(9.6 %); A + B misses players found (92.8 %; A alone 93.5, B alone 91.5) and saves little live (us_players mean 0.40 ->
+0.37 ms, p90 0.8 both: the body question costs per call, not per tag); met - non-players 1.55 %, pet / player 4.49 %, the
+node 96.6 %, the cover 5.8 %, L1 us 95.05 %, step 3's rows, the hops gate.
 The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
 in this session on the kept replay (no GPU); the tools are in `tools/perc/track/` (branch `tracker-plan`).
 
@@ -1377,6 +1382,82 @@ the first minute) - the line to set. (5) **FreakyRafiki:** a name cut by scenery
    estimate: the body check ~0.33 -> ~0.05-0.1 ms, us + players ~0.6 -> ~0.35 ms p50.
 5. **"FreakyRafiki" (a name cut by front scenery learned as its piece's width): accepted** (rare; the re-teach tried in
    try 3 made the node and the cover worse).
+
+### Step 4b, try 4 (2026-11-26): A + B built; the cover, non-players, pet / player, the node, step 3's rows and the hops gate MET; players found MISSED (stopped)
+Branch `tracker-build` (the main folder), a46b6d8. Runs `replay_players.py ... --tag t4b4` (A + B), `t4b4A` (A alone:
+`--cfg body_early_n=1000000`), `t4b4B` (B alone: `--cfg body_every=1`); `replay_mobs.py ... --tag t4b4`.
+
+**Built** (each rule's test fails with the rule switched off - checked):
+- **Grading (answers 1, 3):** `l5` sets `unsure` apart as "not yet known" like `short`; `unsure_why` counts the tracks
+  `unsure` their whole life and why; the delay is reported two ways - out of `short` (try 3's) and until the class is
+  pet / player (`pp_n`: the 5th alone reading); `cover` prints the rate. `run --cfg k=v` runs a variant.
+- **A (`config.Track.body_every` 4):** `_skip_boxes` - a box that is an unsettled track's tag (its width, within its
+  gates) asked within the last 3 frames is not asked; a box no track would take is always asked. **What stands on a
+  tag (the body and D's blob) counts in the class only on asked frames** (`Det.skipped`): without it a player whose
+  blob reads 0 between asks turns `text` (the b0 vote against 1/4 as many body readings). Tests
+  `test_an_unsettled_tracks_tag_is_asked_every_4th_frame`, `test_what_stands_on_a_tag_counts_only_on_the_frames_it_was_asked`.
+- **B (`body_early_n` 8, `body_early_dist` 10):** `_Track.settled` - a pet / player from 8 alone readings when its
+  p75 (`_Track.q`, the class's own percentile) is <= 40 or >= 60 px. Test `test_a_clear_class_settles_early`.
+- The older tests run with try 3's sampling (`EVERY`: body_every 1, no early settle): their rules did not change.
+
+| Gate | try 3 (regraded: `unsure` apart) | **try 4 (A + B)** | A alone | B alone | |
+|---|---:|---:|---:|---:|---|
+| L5 players found (>= 95 %) | 158 of 165 = 95.8 % | **128 of 138 = 92.8 %** (6 pet, 2 log, 1 mob, 1 ours) | 129 of 138 = 93.5 % | 151 of 165 = 91.5 % | **MISSED** |
+| ... "not yet known": `short` / `unsure` (players) | 133 (56) / 35 (20) | 133 (56) / **69 (47)** | 69 (47) | 35 (20) | - |
+| L5 non-players called players (accepted 2.04 %; must not rise) | 7 of 329 = 2.13 % | **5 of 322 = 1.55 %** | 1.55 % | 4.86 % | met |
+| L5 a pet called a player or a player a pet (<= 5 %) | 6 of 209 = 2.87 % | **8 of 178 = 4.49 %** | 3.93 % | 10.53 % | met |
+| L5 the node of standing players (>= 95 %) | 138 of 143 = 96.5 % | **112 of 116 = 96.6 %** | 96.6 % | 96.4 % | met |
+| the 2 s cover, a rate (<= 10.4 %) | 34 of 353 = 9.6 % | **14 of 241 = 5.8 %** | 16 of 253 = 6.3 % | 34 of 348 = 9.8 % | met |
+| the delay, out of `short` (frames p50 / p90 / p99) | 12 / 77 / 251 | **14 / 81 / 252** | 14 / 85 / 252 | 12 / 77 / 251 | reported |
+| the delay until pet / player (out of `unsure` too) | 17 / 110 / 294 | **39 / 178 / 463** | 39 / 174 / 463 | 17 / 111 / 294 | reported |
+| tracks `unsure` their whole life (L5's 2 captures) | 204 | **397** | 394 | 205 | reported |
+| body questions a frame (replay, L5's 2 captures) | 0.80 | **0.65** | 0.69 | 0.72 | - |
+| L1 us (accepted 95.05 %) | 95.05 % | **173 of 182 = 95.05 %**, node 99.22 % | | | met |
+| us against SelfState / our feet known (accepted) | 95.70 / 97.04 % | 95.70 / 97.04 % | | | - |
+| step 3's rows (`replay_mobs.py --tag t4b4`) | t4b3 | **identical to t4b3 on every row** (found 98.70, id kept 93.51, one id 92.33, extra 994, changed 7, set 99.35, death p90 0.000, ghosts 0, hops 91.4, jolts 524, L1 98.98, node 99.46, L2 16 of 16, L3 19 of 22); only the replay ms p90 4.21 -> 4.37 | | | met |
+| step 2's hops gate (`proto_feet.py --sound`) | 126 / 970 | **126 of 26,811 / 970 of 555,561** | | | met |
+| pytest (whole suite), bot speed | 15.4 ms | **green; 14.8 ms a tick** (p90 16.2; `us_players` 0.8 on the bench's 40 frames) | | | - |
+
+**The ms, live (the Perceiver; try 3's sampling = the same code with body_every 1 and no early settle, run alike):**
+| | try 3's sampling | **try 4** |
+|---|---:|---:|
+| 4-minute capture, 15,181 frames: us_players p50 / p90 / p99 (mean) | 0.5 / 0.8 / 1.0 (0.461) | **0.3 / 0.8 / 1.0 (0.418)** |
+| ... track p50 / p90 | 1.0 / 1.2 | 1.0 / 1.2 |
+| ... pieces, mean ms: us / players.begin / of it `ask_columns` / players.end | 0.084 / 0.214 / 0.188 / 0.161 | 0.084 / 0.185 / **0.160** / 0.150 |
+| ... the body check's share of us_players (mean); frames with a body question | 41 %; 56.1 % | 38 %; 48.3 % |
+| 30-minute capture, minutes 5-30 (92,052 frames): us_players p50 / p90 / p99 (mean) | 0.3 / 0.8 / 1.0 (0.403) | **0.2 / 0.8 / 1.0 (0.366)** |
+| ... track p50 / p90; observe p50 | 1.0 / 1.3; 14.42 | 1.0 / 1.3; 14.27 |
+| ... `ask_columns` mean; the share; frames with a body question | 0.157; 39 %; 46.5 % | **0.133**; 36 %; 40.2 % |
+
+**Why, by row:**
+- **The ms - the body question costs per CALL, not per tag:** `ask_columns` is ~0.3 ms on any frame that asks at least
+  one tag (~15 small torch calls), whatever the count. A cuts the tags asked by 19 % (0.80 -> 0.65 a frame), but the
+  frames that ask at all only from 56 to 48 % (4-minute) and 46.5 to 40 % (30-minute): most asked tags are ones no
+  track would take yet (new tags, pieces, `short` tracks, tags whose width changes) - always asked. So the mean falls
+  ~0.04 ms and p90 not at all (0.8). The plan manager's estimate (~0.05-0.1 ms for the body check) assumed the cost
+  scaled with the tags.
+- **Players found - A takes readings, B locks early ones:** A gives a track 1/4 of the alone readings, so 27 more
+  labelled player tags are still `unsure` on their frame (20 -> 47, set apart) and the delay until pet / player doubles
+  (p50 17 -> 39 frames); the readings it keeps are sparser, so a stance between the legs weighs more (5 players called
+  pets with A alone, 3 in try 3). B alone is worse: 8 readings on 8 consecutive frames are one pose - 10 players called
+  pets, 12 pets called players. A + B: 6 players called pets - **track 721** (w 38, a pet-width track holding its
+  neighbour's joined 77 px box: 3 labelled cases 36, 168, 192; sampled readings 18, 39, 55, 40, 39, 39, 39, 45 -> q 40,
+  settled a pet; try 3 read 30 readings, p75 48 - borderline both times) and **track 781** (w 65, a player in a spear
+  stance: 18, 57, 56, 27, 27, 9, 9, 9 -> q 27, settled a pet; try 3's p75 48); cases 119 and 187 were pets in try 3
+  too (true readings 34-40).
+- **Why tracks stay `unsure` their whole life (try 4, 397):** 283 have 1-4 alone readings and lived under 1 s; 67 have
+  1-4 over a longer life, most sightings cut or crowded; 47 were alone but the body never read (-1 under the minimap /
+  UI / the play area's bottom, or 0). Their sightings: 12,533 crowded, 4,543 cut, 2,508 alone but not asked (A), 863
+  alone and read. Try 3: 204 (138 / 27 / 39) - A doubles them.
+- **The cover:** fewer player tracks on the 30-minute capture (241 against 353; its `unsure` tracks 180 -> 353: lives
+  too short for 5 readings at one in 4), and of them 14 back as a new id.
+
+**For the user (stopped, stop rule 1):** (1) **The body check** - keep try 3's sampling (players found 95.8 %, us_players
+live p50 0.3-0.5 / p90 0.8, mean 0.40-0.46 ms), keep A alone (93.5 %: misses; mean -0.04 ms), or A + B as built
+(92.8 %)? A cheaper question would have to cut the CALL (one gather for every tag built on the GPU from the tags'
+corners - design question, not measured), not the tags. (2) **The ms line** from the numbers above: us + players live
+p50 0.2-0.5, p90 0.8, p99 1.0, mean 0.37-0.46 ms. (3) **The delay** with A: a class known p50 0.65 s later (39 frames)
+- acceptable if A is kept?
 
 ### Step 3b - spawn points as tracked things (added by the user, 2026-11-25; one executor session, measure then build)
 **The user, 2026-11-25:** "keeping track of the time since last spawn (on spawn point) is a valid tracking object. It
