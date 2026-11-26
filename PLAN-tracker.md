@@ -1362,6 +1362,22 @@ inside another's box? (4) **The ms:** us_players p50 0.6 live (the body question
 the first minute) - the line to set. (5) **FreakyRafiki:** a name cut by scenery learned as a narrower width - accept
 (rare), or let an alone box with one track in it re-teach the width (tried: the node fell to 94.5 %)?
 
+**The user's answers (2026-11-26, to the plan manager; prompt "Tracker, step 4b, try 4"):**
+1. **`unsure` = "not yet known"**: a track with fewer than 5 alone body readings has not learned its class yet
+   (design 1), so it is graded apart, like a track seen under 6 times (95.8 % found: met). Also reported: how many
+   tracks stay `unsure` their whole life, and why.
+2. **Non-players called players 2.04 % (7 of 343): accepted** (none is crowding: the light pillar, two medal-like
+   tags, a mob's tag not yet learned, a text tag).
+3. **The cover is graded as a rate**: the gate's 29 was counted on 280 player tracks (try 1) = 10.4 %; try 3 has 34
+   of 353 = 9.6 % (met). The count grew with the tracks: pets no longer turn players, a hidden track is unseen.
+4. **The ms: the body check made cheaper first (A + B), then the line set from what it measures.** A: an unsettled
+   track's tag is asked the body question every 4th frame, not every frame (frames 1/60 s apart repeat the reading).
+   B: a track settles early when its class is clear - from 8 alone readings, the 75th percentile 10 px or more from
+   the 50 px line (under 40 or over 60); a track near the line still needs `body_settled` 30. The plan manager's
+   estimate: the body check ~0.33 -> ~0.05-0.1 ms, us + players ~0.6 -> ~0.35 ms p50.
+5. **"FreakyRafiki" (a name cut by front scenery learned as its piece's width): accepted** (rare; the re-teach tried in
+   try 3 made the node and the cover worse).
+
 ### Step 3b - spawn points as tracked things (added by the user, 2026-11-25; one executor session, measure then build)
 **The user, 2026-11-25:** "keeping track of the time since last spawn (on spawn point) is a valid tracking object. It
 would not be trying to add predictive abilities to the tracking behavior (my original rule), it is a part of
@@ -1802,6 +1818,26 @@ Tests (each fails without its rule). Gate: L5 as in try 2 (players found >= 95 %
 pet / player mixed <= 5 %, the node >= 95 %, "not yet known" apart), the cover <= 29, L1 us (>= 99 %, or accepted at
 what the key rule reaches - report the misses), step 3's rows and step 2's hops gate unchanged, pytest + the bot
 speed line. Numbers into the plan under "Step 4b, try 3"; a gate missed: stop.
+```
+```text
+Tracker, step 4b, try 4 (the user's answers to try 3, and a cheaper body check). Read PLAN-tracker.md - design 1,
+step 4b's row, "Step 4b, try 3" and "The user's answers (2026-11-26)" under it, the stop rules -
+track/players.py, evidence.py. Branch tracker-build (the main folder).
+1. Grading (tools only): a track with fewer than 5 alone body readings at the labelled frame is "not yet known",
+   set apart like a track seen under 6 times; report how many tracks stay unsure their whole life and why. The 2 s
+   cover is graded as a rate: back under a new number <= 10.4 % of player tracks (29 of 280).
+2. Build A: an unsettled track's tag is asked the body question every 4th frame, not every frame (the frame it is
+   first seen is always asked). Build B: a track settles early when its class is clear - from 8 alone readings, the
+   75th percentile at 40 px or less, or 60 px or more (10 px from the 50 px line); near the line it still needs
+   body_settled 30. Constants in config.Track. Tests (each fails without its rule).
+3. Measure: L5 (players found >= 95 % with unsure apart, non-players called players: 2.04 % accepted - report it,
+   must not rise; pet / player mixed <= 5 %; the node >= 95 %), the cover rate, the delay until a class is known
+   (p50 / p90 / p99, against try 3's 12 / 77 / 251 frames), L1 us (accepted at 95.05 %: must not fall), step 3's
+   rows and step 2's hops gate unchanged. The ms live (the Perceiver): the 4-minute capture (us_players and track,
+   p50 / p90, the body check's share) and the steady state on the 30-minute capture, minutes 5-30. Report the
+   numbers - the user sets the ms line from them.
+4. pytest + the bot speed line. Numbers into the plan under "Step 4b, try 4". A gate missed: stop. If every gate
+   is met, write step 4b as DONE (the user's accepted items 2 and 5 named) in the plan's status lines and HANDOFF.
 ```
 ```text
 Tracker, step 5 (events). Needs steps 3-4 and step 1's labels L4. Read PLAN-tracker.md - measurement 6, design
