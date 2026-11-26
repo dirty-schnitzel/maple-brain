@@ -511,8 +511,8 @@ in `tools/perc/track/` are the reference: port their rules and constants, do not
 | **3b** | **Spawn points as tracked things** (added by the user 2026-11-25; `track/spawns.py`, the spawn point records of `state.py`; "Step 3b" below) | first, measured: do new mobs appear on their spawn point (the faded-in births of the 13 sound captures against map.json's points of their kind) - >= 95 % within 10 px, else stop with the distribution; then from the kept replay: every faded-in birth near a point of its kind is that point's spawn, a 30-case sheet checked by eye >= 29 right; the live path's shadow rows = the replay's; ms p50 <= 0.1 | 4a, 4b (a new file: reads the mob tracker's births) |
 | **4a** | **Drops** (`track/drops.py`): design 5; the finder (`perception/drops.py`) is not changed | from the kept replay, measurement 5 within tolerance: 746 drops, 0 lives with two items or over 131 s, 0 "gone" then seen again, pairs of one item within 3 px <= 9 and each looked at, exactly one death for >= 84.4 % of drops, "we took it" with the key down: no hop without it on any of the 13; L6 >= 90 %; PLAN-loot's gates still met; ms p50 <= 0.2 | 4b |
 | **4b** | **Other players and us** (`track/players.py`, `us.py`): design 6-7 | L5: players found >= 95 %, non-players called players <= 1 %, a pet called a player or a player called a pet <= 5 %, the node on >= 95 % of standing players; the 2 s players' cover (question 5): the same player back under a new number on <= 29 of the 30-minute capture's 308 tracks (within 1 %); L1 us: >= 99 %; every stuck case `nav/selfstate.py`'s docstring lists is a test; us against `SelfState` on the 30-minute capture: the same place on >= 99 % of frames, every difference listed; our feet known on >= 97.5 % of frames (today 96.7; the tag list gives 1.1 points); ms p50 <= 0.1 | 4a |
-| **5b** | **The mob HP reader** (added by the user 2026-11-26, before step 5; "Step 5b" below): `perception/` reads the HP bar Classic World draws over a mob WE hit; the mob record gets `hp` | first, measured: the bar's picture (client files / v83 reading), when it shows and for how long after our hit, whether it ever shows without our hit, tying it to its mob; a label set L9 by eye (100 bars: its mob, its fill); then: the bar found on >= 99 % of L9's frames, tied to the right mob >= 99 %, its fill within 3 % of the eye's; as a witness: a bar never on a mob we did not hit (0 in the kept replay against our hit windows); ms p50 <= 0.1 | 6, 8 |
-| **5** | **Events** (`track/events.py`; needs 3-4): design 8 | 30-minute capture, from the kept replay and its keys: casts 500 / 78 / 10 (q / e / w) within 1 %; every HUD step has a cause; "by us" by chance <= 1 % (windows moved in time); kills against EXP: "us" with no EXP step <= 1 %, whole-EXP kills missed <= 2 %; L4 >= 95 %; the swing length measured live within 0.03 s of 0.85 / 0.87 | 6 |
+| **5a** | **The HP meter** (added by the user 2026-11-26, BEFORE step 5; "Step 5a" below): `perception/` finds the HP meters Classic World draws over mobs WE hit and reads each one's green share; the mob tracker ties each meter to its track; the mob record gets `hp` | first, measured from the recordings only: the meter's picture, its place above the mob across mob sizes (against the sprite box and `mob.json`'s `head` point), when it appears after our hit and goes at the death, whether it ever shows on a mob we did not hit, several meters, two mobs close; a label set L9 by eye (100 meters: its mob, its fill %; 10 % twice, blind, >= 95 % agree); then: meters found on >= 99 % of L9's frames, tied to the right mob >= 99 %, the fill within 3 % of the eye's; 0 meters on a mob we did not hit (the kept replay against our hit windows); ms p50 <= 0.1, **more than 1 ms added a frame: stop and discuss** (the user) | 6, 8 |
+| **5** | **Events** (`track/events.py`; needs 3-4 and 5a): design 8, with the meter | 30-minute capture, from the kept replay and its keys: casts 500 / 78 / 10 (q / e / w) within 1 %; every HUD step has a cause; "by us" by chance <= 1 % (windows moved in time); a death's credit `ours` / `shared` / `theirs` / `unknown` against EXP on solo captures (the offline grader, question 8): an `ours` death with no whole EXP step <= 1 %, whole-EXP kills missed <= 2 %, a partial EXP step matched by a `shared` death (reported); L4 >= 95 %; the swing length measured live within 0.03 s of 0.85 / 0.87; corpse tracks: no second death or new mob from a dead body; overlaps: hits and deaths of two mobs overlapping, reported | 6 |
 | **6** | **Facts, the profile, Skill.img** (`track/facts.py`, `gamedata.py`, the profile file; `kinds.py` reads the registry): design 9 | every fact of state_model.md 5 is in the registry with its source; a profile edit is read without a restart and gives a `fact` event (a test); measured live on the 30-minute capture: walk 152-157 px/s, climb 121-127, the swing 0.85-0.87 s, potions +150 / +198, each kind's speed factor 1.95-2.05, hits per kill; a changed jump height rebuilds the edges on the worker (a test) | 5, 8 |
 | **7** | **The hotkey reader** (`perception/slots.py`, FrameFacts `slots`, the picture pack built by `assets build`; tracked in `us`): design 7, measurement 8 | the self-test: 0 wrong apart from pictures that are identical under the label or digits; the 30-minute capture, every frame: all 8 keys exact on >= 99.99 % of frames, 79 of 79 steps both ways, 0 misreads; the 43 captures: an unreadable cell only in a map change's fade or under a window, each stretch listed; L7: 100 % of frames right where the bar is readable or a reading is held, never a wrong item (the user, 2026-11-24; was "100 of 100"); the new footage (`20261124_093410_1#0`): a skill on a key read, an amount 0 read, a tooltip over a slot "unreadable" or read right, never a wrong item (no window over the bar in it: skipped by the user; the covered-cell case is the 43 captures' fades and "something over the bar"); ms <= 0.02 a frame on average, <= 1 for a full read | 1, 2 (its speed line alone) |
 | **8** | **The stored tables** (`state.py`'s writer and reader; the recorder and the hunt write them; a converter from the kept replay) | the 30-minute capture: <= 60 MB an hour raw, <= 12 packed (prototype 48 / 9); written and read back equal; a file without a newer column still reads (a test); <= 0.05 ms a frame | 6 |
@@ -1498,22 +1498,40 @@ and their three tests gone); `replay_players.py` keeps try 4's grading (`unsure`
 as its piece's width), L1 us 95.05 % (the rope key rule). Left for step 9: a cheaper body CALL (the tags' index built on
 the GPU), if the frame needs it.
 
-### Step 5b - the mob HP reader (added by the user, 2026-11-26; one executor session, measure then build)
-**The user, 2026-11-26** (asked whether to pause for an HP reader): it is "more for brain decisions"; Classic World
-shows **"an hp bar only for mobs hit by us"**. This reverses the choice of 2026-11-23 ("not a mob's HP" - the
-state model's fields chosen by "how many are there and how quickly I can get there"): the brain may finish a
-wounded mob first or count the hits a tough mob still needs (Evil Eyes, Drakes, Perion; most Bubblings die in one).
-- **Two uses:** the mob's `hp` (a fraction 0-1, with when it was read) for the brain; and **a witness of OUR hit** -
-  the bar shows only over a mob we damaged, so step 5's `ours` / `shared` rests on it, not only on the key windows.
-  Measurement 6 saw a box under a mob within 1 s after 41 of 69 of our hits and 1 of 170 of another's: likely this
-  bar and its name.
-- **What it is not:** no damage numbers read, no HP guessed for a mob with no bar (`hp` None), no healing modelled.
-  The last bar read is kept on the mob's record while its track lives (memory, as the spawn points).
-- **Measured first:** the bar's picture in the client export (the UI files; v83's client for how it is drawn and
-  when: reading only), its place against the mob's body, how long it shows after our hit, whether it ever shows
-  without our hit, two bars near each other. A perception reader beside `slots.py` / `hud.py`; the fit, the scene
-  model and the drop finder are not changed (stop rule 4).
-- **Order:** before step 5 (its `ours` / `shared` uses the bar); step 6 or 8 may run beside it.
+### Step 5a - the HP meter (added by the user, 2026-11-26; one executor session, measure then build; BEFORE step 5)
+**The user, 2026-11-26** (asked whether to pause for an HP reader): it is "more for brain decisions" - the brain may
+finish a wounded mob first or count the hits a tough mob still needs (Evil Eyes, Drakes, Perion; most Bubblings die
+in one). This reverses the choice of 2026-11-23 ("not a mob's HP" - the state model's fields chosen by "how many are
+there and how quickly I can get there"). Named 5a and run first so that step 5's events and its EXP grading start
+with the meter available. **No v83 references** (the user: "I'm not sure the HP bar was there in the same way. It
+should be pretty obvious on any recording"). **The user's observations - the spec:**
+- "The only thing we would be tracking from it is current hp %, by looking at how much of the hp meter is full
+  (green)".
+- "Only mobs that have been hit by us will display the hp meter".
+- "The meter appears almost immediately after hitting a mob (full hp mobs have no meter) and disappears immediately
+  after death of the mob".
+- "Every hit reduces the green bar on the meter (replaced by dark red) until the mob dies, the meter itself is at a
+  fixed size".
+- "Multiple mobs hit = multiple meters".
+- "I'm looking for a very very small performance impact, blocked if it adds more than 1ms to discuss it".
+- "Need to determine what range above the monster sprite the meter is, look at different mob sizes".
+- **Where it is computed (the user asked; the plan manager's answer, OK'd):** perception FINDS the meters and READS
+  each one's green share (pixels, frame by frame, like `slots.py` / `hud.py`: the meter has a fixed size, so green /
+  width = HP %); the mob TRACKER ties each meter to its track - it alone knows covered and remembered mobs, their
+  ids and which we just hit (design 1: a meter over two overlapping mobs is not taught from).
+- **Two uses:** the mob's `hp` (0-1, with `hp_t`: when read; None = no meter ever; kept while the track lives -
+  memory, no HP guessed, no healing modelled) for the brain; and **a witness of OUR damage for step 5**: a meter
+  appearing or dropping in our hit window = our hit landed; dropping outside our windows = another player's damage on
+  a mob we also hit - so a death's credit and our share of the damage seen. (Damage done before our first hit is not
+  seen: the meter starts after it.) Measurement 6 saw a box under a mob within 1 s after 41 of 69 of our hits and 1
+  of 170 of another's: likely this meter's mob name.
+- **Measured first:** the meter's picture (size, colours) from footage; its place above the mob for small / mid / big
+  / flying kinds (Slime, Bubbling; Horny / Zombie Mushroom; Drake; Stirge) against the sprite box and `mob.json`'s
+  `head` point; the delay from our hit to the meter and from the death to its going; whether one ever shows on a mob
+  we did not hit (if so: stop - it breaks the witness); several meters, two mobs close, under effects, at the edge.
+  The search looks in a band above the mobs, not the whole screen. A perception reader; the fit, the scene model and
+  the drop finder are not changed (stop rule 4).
+- **Step 6 or 8 may run beside it** (a worktree).
 
 ### Step 3b - spawn points as tracked things (added by the user, 2026-11-25; one executor session, measure then build)
 **The user, 2026-11-25:** "keeping track of the time since last spawn (on spawn point) is a valid tracking object. It
@@ -1988,27 +2006,42 @@ plan's status lines and HANDOFF (accepted: non-players 2.13 %, FreakyRafiki, L1 
 step 9). A gate missed: stop.
 ```
 ```text
-Tracker, step 5b (the mob HP reader; added by the user 2026-11-26). Read PLAN-tracker.md - "Step 5b" (the user's
-words), its row in the steps table, measurement 6, design 1, the stop rules - docs/state_model.md sections 3-4,
-perception/slots.py and hud.py (readers of the same kind), assets/README.md. Branch tracker-build (the main folder).
-FIRST MEASURE, build nothing in maplebrain/: find the bar's picture in the client export (and how v83's client
-draws it: reading only, C:\Users\Yoav\dev\v83-ref); on the 13 sound captures and their keys: when a bar appears
-against our hit windows (q / w / e: measurement 6), how long it stays, whether one ever appears on a mob we did not
-hit, where it sits against the mob's body, how it looks with two mobs close, under effects and at the screen's edge.
-Make label set L9 by eye (100 frames with a bar, every kind of case: which mob it belongs to, its fill in %; 10 %
-looked at twice, blind: >= 95 % agree), and a picture sheet of the odd cases. If the bar shows without our hit, or
-cannot be tied to its mob: stop with the numbers - the user decides. Then build: a reader in perception/ (FrameFacts
-gets the bars), the mob tracker ties each bar to its track (the mob record: hp 0-1, hp_t; kept while the track
-lives; None when never read), in shadow; docs/state_model.md gets the field with the user's words. Tests (each
-fails without its rule). Gate: step 5b's row; step 3's rows unchanged; pytest + the bot speed line. Numbers into
-the plan under "Step 5b"; a gate missed: stop.
+Tracker, step 5a (the HP meter; added by the user 2026-11-26, before step 5). Read PLAN-tracker.md - "Step 5a" (the
+user's observations are the spec), its row in the steps table, measurement 6, design 1, the stop rules -
+docs/state_model.md sections 3-4, perception/slots.py and hud.py (readers of the same kind). Branch tracker-build
+(the main folder). No v83 references: everything from the recordings.
+FIRST MEASURE, build nothing in maplebrain/, on the 13 sound captures and their keys: the meter's picture (size,
+colours: green = HP left, dark red = lost); its place above the mob for small / mid / big / flying kinds against the
+sprite box and mob.json's head point (one rule for every size?); the delay from our hit (q / w / e windows,
+measurement 6) to the meter appearing and from the death to its going; whether a meter ever shows on a mob we did
+not hit; several meters, two mobs close, under effects, at the screen's edge. Make label set L9 by eye (100 frames
+with a meter, every kind of case: its mob, its fill in %; 10 % looked at twice, blind: >= 95 % agree) and a picture
+sheet of the odd cases. If a meter shows on a mob we did not hit, or cannot be tied to its mob: stop with the
+numbers - the user decides.
+Then build: perception finds the meters and reads each one's green share (FrameFacts gets them: box + fill), looking
+in a band above the mobs, not the whole screen; the mob tracker ties each meter to its track (the mob record: hp
+0-1, hp_t; kept while the track lives; None when never read; a meter over two overlapping mobs teaches nothing -
+design 1), in shadow; docs/state_model.md gets the field with the user's words. Tests (each fails without its rule).
+Gate: step 5a's row (ms p50 <= 0.1; more than 1 ms added a frame: stop and discuss); step 3's rows unchanged;
+pytest + the bot speed line. Numbers into the plan under "Step 5a"; a gate missed: stop.
 ```
 ```text
-Tracker, step 5 (events). Needs steps 3-4 and step 1's labels L4. Read PLAN-tracker.md - measurement 6, design
-8, step 5, the stop rules - docs/state_model.md section 4 and tools/perc/track/proto_events.py (the reference:
-re-run it first and compare with measurement 6; a difference: stop). Before building, put question 8 (EXP in
-the kill rule; the note under measurement 6) to the user and write the answer into the plan. Branch
-tracker-build. Build track/events.py on the tracker's own tracks. Gate as written; numbers into the plan; a gate missed: stop.
+Tracker, step 5 (events, with the HP meter). Needs steps 3-4, 5a and step 1's labels L4. Read PLAN-tracker.md -
+measurement 6, design 1 and 8, "Step 5a", step 5's row, the stop rules - docs/state_model.md section 4,
+tools/perc/track/proto_events.py (the reference: re-run it on the tracker's own tracks first and compare with
+measurement 6; a difference: report it). Branch tracker-build (the main folder). The user's answers (2026-11-26),
+write them under step 5 first: question 8 = (a) - EXP is out of the live rule and is the offline grader on solo
+captures; solo only, parties later ("in party exp comes from all sources and it will be more complicated to
+track"); a death's credit is ours / shared / theirs / unknown plus our share of the HP the meter saw lost (in our
+hit windows against outside them), not "our last hit" (EXP is shared by damage, docs/game_rules.md G) - change
+.claude/rules/perception.md's "Kills are counted by our last hit" to match.
+Build track/events.py on the tracker's own tracks: cast (a skill key-down with no swing running, confirmed by the MP
+step); mob_hit by us (the meter appearing or dropping in our hit window; the hit pose in our window and reach as a
+second witness) and by another (a hit pose with no drop of ours; a meter dropping outside our windows); mob_died
+(the die pose under the fade rule, the meter going with it) with its credit and damage share; every HUD step's
+cause; drop and player events from 4a / 4b. Checks: corpse tracks (a dead body read as a live pose) give no second
+death or new mob; hits and deaths while two mobs overlap (design 1), reported. Gate: step 5's row; step 3's rows
+unchanged; pytest + the bot speed line. Numbers into the plan under "Step 5"; a gate missed: stop.
 ```
 ```text
 Tracker, step 6 (facts, the profile, Skill.img). Read PLAN-tracker.md - measurements 4 and 6, design 9, step 6,
