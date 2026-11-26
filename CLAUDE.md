@@ -20,7 +20,9 @@ lives: the last section.
 - Hard problems run as three kinds of session. A planner (Fable, max) measures and prototypes first, then writes
   PLAN-<topic>.md with a gate per step, stop rules and session prompts: PROPOSED until the user's OK, nothing
   built in maplebrain/. An executor (Opus, or Fable at medium) follows the plan's steps and gates exactly and stops with numbers
-  when one fails - no workarounds. A plan manager (Opus, medium) runs beside the executors from the plan's
+  when one fails - no workarounds. When its question to the user is about cases that can be seen, it draws a
+  picture sheet of exactly those cases and names its path in the plan (the user, 2026-11-26: not required - a
+  question with nothing to show needs none). A plan manager (Opus, medium) runs beside the executors from the plan's
   review to its last step, so that small things never cost an executor's big context: it explains the plan and
   each step's findings, records the user's answers, writes the step prompts and worktrees, re-checks a step's
   numbers, makes small doc fixes and merges on the user's word (claude_architecture.md section 3, "The plan
