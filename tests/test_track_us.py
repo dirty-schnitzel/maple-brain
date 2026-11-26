@@ -27,7 +27,7 @@ def at(t, x, y, tags=(), tag=TAG):
 
 def run(us, frames, held=()):
     """frames = [(t, x, y)] with `held` keys down from the first -> the last state."""
-    keys = [{"t": 0.0, "key": k, "down": True} for k in held]
+    keys = [{"t": 0.0, "key": k, "down": True} for k in held] or None     # none held: our keys unknown (live)
     for i, (t, x, y) in enumerate(frames):
         us.update(at(t, x, y), keys if i == 0 else None)
     return us.state()
@@ -185,28 +185,68 @@ def test_leaving_a_platforms_end_lets_go_of_it(graph):
     assert us.state()["place"] == "air" and us.place.ledge is None
 
 
-def test_falling_or_jumping_past_a_ladder_is_not_on_it(graph):
-    """Step 4b try 2 (the user's answer 5): a fall straight down past ladder 778 (x 778) and a jump arc across it are
-    air; climbing it at ~125 px/s is on it."""
+def test_a_rope_is_grabbed_only_with_up_or_down(graph):
+    """Step 4b try 3 (the user, 2026-11-26: "They are grabbed by pressing up or down"): our keys known, a fall straight
+    down past ladder 778 (x 778, 15..176) or a jump across it without up / down is not on it - every frame; a jump
+    across it at 150 px/s with up held, or a fall past it with down, grabs it whatever the speed; up pressed and let go
+    within grab_s of the frame counts. (Try 2's speed test called both grabs air.)"""
     us = Us(graph)
-    for i in range(8):                                        # falling at 300 px/s right at the ladder's x
+    us.update(at(0.0, 778, 40), [])                           # keys known, none down
+    for i in range(1, 8):                                     # falling at 300 px/s right at the ladder's x
+        us.update(at(i / 60, 778, 40 + 5 * i), [])
+        assert us.state()["place"] == "air", i
+    us = Us(graph)
+    us.update(at(0.0, 750, 90), [])
+    for i in range(1, 16):                                    # a jump across it: 150 px/s sideways
+        us.update(at(i / 60, 750 + 2.5 * i, 90), [])
+        assert us.state()["place"] == "air", i
+    us = Us(graph)
+    us.update(at(0.0, 750, 90), [{"t": 0.0, "key": "up", "down": True}])
+    for i in range(1, 12):                                    # the same jump with up held: on it at its x
+        us.update(at(i / 60, 750 + 2.5 * i, 90), [])          # (the game stops us there)
+    s = us.state()
+    assert s["place"] == "rope" and graph.rope_x[-1 - s["node"]] == 778 and us.place.why == "rule"
+    us = Us(graph)
+    us.update(at(0.0, 778, 40), [{"t": 0.0, "key": "down", "down": True}])
+    us.update(at(1 / 60, 778, 45), [])
+    assert us.state()["place"] == "rope"                      # a fall past it with down: grabbed
+    us = Us(graph)
+    us.update(at(0.0, 760, 90), [])
+    us.update(at(1 / 60, 765, 90), [{"t": 0.005, "key": "up", "down": True}, {"t": 0.01, "key": "up", "down": False}])
+    us.update(at(2 / 60, 773, 90), [])                        # up tapped 0.023 s before: counts
+    assert us.state()["place"] == "rope"
+
+
+def test_staying_on_a_rope_needs_no_key(graph):
+    """Grabbed with up, then up let go: hanging and climbing on it stay on it; leaving it sideways is air. Right after
+    a grab from a jump our 0.2 s speed still carries the jump (try 2's 22 broken grabs): on it all the same."""
+    us = Us(graph)
+    us.update(at(0.0, 750, 90), [{"t": 0.0, "key": "up", "down": True}])
+    for i in range(1, 12):                                    # a jump into ladder 778 with up held
+        us.update(at(i / 60, 750 + 2.5 * i, 90), [])
+    us.update(at(12 / 60, 777.5, 90), [{"t": 0.19, "key": "up", "down": False}])
+    for i in range(13, 25):                                   # up let go: hanging there, the jump's speed fading
+        us.update(at(i / 60, 777.5, 90), [])
+        assert us.state()["place"] == "rope", (i, us.place.vx)
+    us = Us(graph)
+    us.update(at(0.0, 778, 100), [{"t": 0.0, "key": "up", "down": True}])
+    assert us.state()["place"] == "rope"
+    us.update(at(0.04, 778, 100), [{"t": 0.03, "key": "up", "down": False}])
+    for i in range(2, 20):
+        us.update(at(i * 0.04, 778, 100 - (i % 5)), [])
+        assert us.state()["place"] == "rope", i
+    for i in range(1, 6):
+        us.update(at(0.8 + i * 0.04, 778 + 8 * i, 100 - i), [])
+    assert us.state()["place"] == "air"
+
+
+def test_our_keys_unknown_the_plain_rule(graph):
+    """Live, until PLAN-tracker step 9 hands our keys in: no key and no speed test - at a rope's x between its ends
+    is on it (the graph's rule)."""
+    us = Us(graph)
+    for i in range(8):                                        # falling at 300 px/s at the ladder's x
         us.update(at(i / 60, 778, 40 + 5 * i))
-    assert us.state()["place"] == "air"
-    us = Us(graph)
-    for i in range(10):                                       # a jump across it: 150 px/s sideways
-        us.update(at(i / 60, 760 + 2.5 * i, 90))
-    assert us.state()["place"] == "air"
-    us = Us(graph)
-    for i in range(10):                                       # hanging on it, then letting go: the fall leaves it
-        us.update(at(i * 0.04, 778, 100))
-    assert us.state()["place"] == "rope"
-    for i in range(1, 10):
-        us.update(at(0.4 + i / 60, 778, 100 + 6 * i))
-    assert us.state()["place"] == "air"
-    us = Us(graph)
-    for i in range(10):                                       # climbing: on it
-        us.update(at(i / 60, 778, 120 - 2 * i))
-    assert us.state()["place"] == "rope"
+    assert us.state()["place"] == "rope" and not us.keys_known
 
 
 def test_our_tag_from_the_list_by_its_width_and_the_edge_that_kept_its_place(graph):

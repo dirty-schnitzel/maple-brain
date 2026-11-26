@@ -12,6 +12,7 @@ nav/selfstate.SelfTracker and the 2 s players' cover.
     python tools/perc/track/replay_players.py ms [--sound]        players + us ms a frame (the decode apart)
     python tools/perc/track/replay_players.py time CAP [--n 3000] the live Perceiver: part us_players p50 / p90
 
+Every command takes `--tag T`: the run's files are OUT/<cap>[_port]_T.pkl (step 4b try 3: `t4b3`; try 2's untagged).
 `run` writes OUT/<cap>[_port].pkl (OUT = CORPUS/work/track-plan/step4b): per frame the sorted tag list (class and track
 per tag of FrameFacts.tags, the track's place / node when seen), our state, SelfState's (SelfTracker over the same
 frames: obs.me_map, obs.map_pos and the keys held), the ms; per track its final class and life (`tracks`). `--port`:
@@ -117,8 +118,12 @@ class ProtoOurs:
         return None, out
 
 
-def out_path(cap, port=False) -> Path:
-    return OUT / (cap.replace("#", "_") + ("_port" if port else "") + ".pkl")
+TAG = ""                                         # --tag: the run's outputs as <cap>_<tag>.pkl (try 2's stay as they are)
+
+
+def out_path(cap, port=False, tag=None) -> Path:
+    tag = TAG if tag is None else tag
+    return OUT / (cap.replace("#", "_") + ("_port" if port else "") + (f"_{tag}" if tag else "") + ".pkl")
 
 
 def run(cap, port=False) -> dict:
@@ -211,8 +216,8 @@ def cmd_run(caps, port):
               f"{np.percentile(ms, [50, 90, 99]).round(3).tolist()}; {time.perf_counter() - a:.0f} s -> {p}", flush=True)
 
 
-def load(cap, port=False) -> dict:
-    return pickle.loads(out_path(cap, port).read_bytes())
+def load(cap, port=False, tag=None) -> dict:
+    return pickle.loads(out_path(cap, port, tag).read_bytes())
 
 
 # ---------------------------------------------------------------------------------------------- the port
@@ -569,7 +574,10 @@ def main():
     ap.add_argument("--final", action="store_true", help="l5: the track's class at its end (hindsight)")
     ap.add_argument("--jobs", type=int, default=1)
     ap.add_argument("--n", type=int, default=3000)
+    ap.add_argument("--tag", default="", help="outputs as <cap>_<tag>.pkl")
     a = ap.parse_args()
+    global TAG
+    TAG = a.tag
     caps = cache.SOUND if a.sound else a.caps
     if a.cmd == "run":
         if a.jobs > 1:
@@ -577,7 +585,7 @@ def main():
             while todo or procs:
                 while todo and len(procs) < a.jobs:
                     cap = todo.pop(0)
-                    procs.append(subprocess.Popen([sys.executable, str(Path(__file__)), "run", cap]
+                    procs.append(subprocess.Popen([sys.executable, str(Path(__file__)), "run", cap, "--tag", a.tag]
                                                   + (["--port"] if a.port else []), cwd=ROOT))
                 procs = [p for p in procs if p.poll() is None]
                 time.sleep(1)

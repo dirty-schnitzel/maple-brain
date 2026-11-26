@@ -158,10 +158,9 @@ class Track:
                                     # rise over the sideways step, in whole px (track/graph.py; the user, 2026-11-25)
     rope_tol: float = 7.0           # climbers: the feet within this of a rope's x, and of its ends in y (today's
                                     # SelfTracker value for our exact tag; nav/selfstate.py)
-    rope_vx: float = 100.0          # px/s: a climber moving faster than this sideways ...
-    rope_vy: float = 200.0          # ... or this up / down is not on a rope (step 4b try 2, measured on our own feet
-                                    # over 27,105 rope frames: sideways p90 27 px/s, climbing 100-150 px/s; a jump or a
-                                    # fall past a rope 148-437 px/s sideways - L1 cases 77, 104, 83, 107, 99)
+    grab_s: float = 0.1             # us: a rope we were not on is a grab only with up / down down within this before
+                                    # the frame (the user, 2026-11-26: "grabbed by pressing up or down"; step 4b try 3:
+                                    # L1 us the same for 0-0.5 s). No speed test - us, players (L5: the same with it)
     # ---- mobs (track/mobs.py; PLAN-tracker design 4 = the prototype tools/perc/track/proto_mobs.py, its Cfg and the
     # numbers inline in it, measurement 1). Mob speed: the kind's top speed from the client files x mob_speed_x.
     shadow: bool = True             # the Perceiver runs the mob tracker beside world.py (step 3: nothing reads it)
@@ -301,6 +300,18 @@ class Track:
     body_reach: int = 120           # px over the tag read for the body, in 2 body_half + 1 columns over its centre ...
     body_half: int = 8
     body_gap: int = 8               # ... upward until a break of more than this many rows
+    # Clean sightings teach, crowded ones only follow (PLAN-tracker design 1; the user, 2026-11-26): a tag is ALONE
+    # when no other tag (or our own) is within alone_gap px of it on its rows and no other tag's owner's body could
+    # stand in its column: another tag's centre within alone_dx px sideways and from alone_dy[0] px over it to
+    # alone_dy[1] px under it (the body column reads body_reach px up; a body is ~70 px tall). Only alone sightings
+    # teach a track its name's width, its body's height and its class.
+    alone_gap: int = 12
+    alone_dx: int = 32              # body_half (8) + a player's half width (player_box: 24)
+    alone_dy: tuple = (-120, 70)
+    split_rest: int = 20            # px: a box split with one track: the rest is another tag's piece from this wide
+                                    # on; narrower, the box is a wider tag over the track (not split)
+    body_settled: int = 30          # a pet / player track with this many alone body readings is not asked again
+                                    # (the ms: the body question costs ~0.4 ms a frame live - step 4b try 2)
     ours_list_s: float = 2.0        # our tag taken from the tag list only this long after our own tag was last found
     mob_tag_n: int = 20             # a mob kind's own tag ("Lv. N name") box is known after this many sightings
     log_rows: tuple = (602, 14, 6, 1363, 1369, 1000)   # the message log's tag boxes: first row's top y, pitch, rows,

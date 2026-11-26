@@ -25,9 +25,9 @@ PLACEMENT: one rule for every kind, one call for every thing of a frame (`place`
      Two surfaces within their tolerance: the node of the last frame wins; else the nearest, then the lower id
      (NavMap.platform_at's order). The foothold at a whole x where two of a chain meet: the one going on.
   2. rope: a kind that climbs (us, players), not standing: the feet within `rope_tol` of a rope's x and of its ends
-     in y; the nearest rope by x - and, when the caller gives the thing's speed, not moving faster than `rope_vx`
-     sideways or `rope_vy` up / down (a climber holds still or climbs at ~125 px/s; falling or jumping past a rope is
-     not on it: PLAN-tracker step 4b try 2, the user's answer 5).
+     in y; the nearest rope by x. No speed test (PLAN-tracker step 4b try 3: try 2's broke grabs from a jump, and on
+     other players it changed nothing on L5): whether a climber GRABBED the rope is its caller's (us: up or down down
+     at the grab - track/us.py).
   3. otherwise air, or fly for a kind that flies; node = the first surface at or under the feet (none: NONE).
   from_node = the node stood or hung on last: this one on stand / rope, else the caller's last from_node (it changes
   only on stand or rope: where a remembered mob's places are, PLAN-tracker design 3-4). off = feet y - the node's
@@ -371,12 +371,11 @@ class Graph:
         return (np.where(ok, g.ravel()[kc + fg], NONE).astype(np.int64),
                 np.where(ok, sy.ravel()[kc + fs], np.nan))
 
-    def place(self, xs, ys, dx=None, dy=None, last=None, last_from=None, climb=None, fly=None, vx=None,
-              vy=None) -> Placed:
+    def place(self, xs, ys, dx=None, dy=None, last=None, last_from=None, climb=None, fly=None) -> Placed:
         """The placement rule for n things in one call (the module's docstring). xs, ys: feet (map px); dx, dy: the
         step since the thing's last frame (both or neither; None: no step); last: its last frame's node, last_from:
         its from_node (None: NONE); climb: can hang on ropes (us, players); fly: a kind that flies (never stands;
-        its air is `fly`); vx, vy: the climbers' speed, px/s (both or neither; None: no motion test on ropes)."""
+        its air is `fly`)."""
         x, y = self._arr(xs), self._arr(ys)
         n = len(x)
         sy, d, g = self._slots(x, y)
@@ -409,10 +408,7 @@ class Graph:
         if climb is not None and self._nr:
             climb = climb if type(climb) is np.ndarray else np.asarray(climb, bool)
             if np.count_nonzero(g[:, -1][climb]):       # a climber where a rope is within reach (the row's flag)
-                hold = climb
-                if vx is not None:                      # too fast to be holding a rope: past it
-                    hold = climb & (np.abs(vx) <= self.cfg.rope_vx) & (np.abs(vy) <= self.cfg.rope_vy)
-                ci = np.flatnonzero((g[:, -1] > 0) & hold & ~stand)
+                ci = np.flatnonzero((g[:, -1] > 0) & climb & ~stand)
                 xc, yc = x[ci], y[ci]
                 ar = np.abs(xc[:, None] - self.rope_x)
                 yc = yc[:, None]

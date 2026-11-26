@@ -143,17 +143,88 @@ def test_two_tags_side_by_side_are_split_by_the_widths_known():
     """A (60 px) and B (50 px) known apart, then the finder joins them into one box: both stay seen, each placed
     by its own width at the edge that kept its place, both drawn for the mob tracker's covers."""
     trk = tracker()
-    a, b = (400, 501, 60, 17), (470, 501, 50, 17)               # 10 px apart: two tags (6 px: one, cut)
-    bodies = [body(400, 60), body(470, 50)]
+    a, b = (400, 501, 60, 17), (480, 501, 50, 17)               # 20 px apart: alone (12 px: touching)
+    bodies = [body(400, 60), body(480, 50)]
     t = run(trk, 10, 0.0, [a, b], bodies)
     ids = {m.w: m.id for m in trk.records}
     assert set(ids) == {60, 50}
-    t = run(trk, 3, t, [(400, 501, 120, 17)], bodies)
+    t = run(trk, 3, t, [(400, 501, 130, 17)], bodies)
     rec = {m.id: m for m in trk.records}
     assert rec[ids[60]].seen and rec[ids[50]].seen
-    assert rec[ids[60]].x == 430 and rec[ids[50]].x == 495       # each by its own width: left edge / right edge
-    assert sorted(round(b[1] + 24) for b in trk.drawn) == [430, 495]
+    assert rec[ids[60]].x == 430 and rec[ids[50]].x == 505       # each by its own width: left edge / right edge
+    assert sorted(round(b[1] + 24) for b in trk.drawn) == [430, 505]
     assert trk.tag_class == ["player"]
+    assert all(tr.wc[130] == 0 and tr.w in (50, 60) for tr in trk.live)    # the shared box taught no width
+
+
+def test_two_tags_joined_into_one_box_are_split_too():
+    """Track 815 (step 4b try 3, measure 1): "GODxWAR" (69 px) and its pet "Snail" (38 px) 3 px apart are put
+    together by the ladder-rail join (tag_join) into one 110 px box - a cut box no known track takes as its own: it is
+    split by the widths known, and the pet's track does not take it (try 2: it did, and read the owner's body)."""
+    trk = tracker()
+    own, pet = (400, 501, 69, 17), (500, 501, 38, 17)
+    bodies = [body(400, 69, 70), body(500, 38, 40)]
+    t = run(trk, 10, 0.0, [own, pet], bodies)
+    ids = {m.w: m.id for m in trk.records}
+    assert set(ids) == {69} and trk.tag_class == ["player", "pet"]
+    pid = next(tr.id for tr in trk.live if tr.w == 38)
+    for k in range(1, 31):                                      # the pet walks up to its owner: 3 px apart, joined
+        t += DT
+        x = max(472, 500 - k)
+        f, ev = frame(t, [own, (x, 501, 38, 17)], [body(400, 69, 70), body(x, 38, 40)])
+        trk.update(f, ev)
+    assert trk.stats["split"] > 0
+    pet_tr = next(tr for tr in trk.live if tr.id == pid)
+    assert pet_tr.w == 38 and pet_tr.cls_now == "pet" and pet_tr.n == trk.n
+    assert set(pet_tr.wc) == {38} and pet_tr.hb1[55:].sum() == 0  # it learned nothing from the joined box
+    assert {tr.id for tr in trk.live if tr.into is None} == {pid, ids[69]}
+
+
+def test_a_known_track_never_takes_another_names_tag():
+    """Step 4b try 3 (10 of the 13 labelled pets called players): an owner's track (82 px) whose tag is hidden does not
+    take its pet's tag (66 px) next to it as a piece of its own - the pet's tag is the pet's (a new track); the owner's
+    track is kept unseen (the 2 s cover) and takes its own tag back."""
+    trk = tracker()
+    own = (400, 501, 82, 17)
+    t = run(trk, 10, 0.0, [own], [body(400, 82, 70)])
+    oid = trk.records[0].id
+    pet = (410, 501, 66, 17)                                    # inside the owner's span: try 2 took it "by an edge"
+    t = run(trk, 10, t, [pet], [body(410, 66, 40)])
+    owner = next(tr for tr in trk.live if tr.id == oid)
+    assert owner.n != trk.n and owner.wc[66] == 0 and owner.hb1[:50].sum() == 0
+    assert trk.tag_track[0] != oid
+    run(trk, 1, t, [own], [body(400, 82, 70)])
+    assert trk.tag_track == [oid] and trk.tag_class == ["player"]
+
+
+def test_crowded_sightings_teach_nothing():
+    """Design 1 (the user, 2026-11-26): "clean sightings teach, crowded ones only follow". A pet whose tag touches its
+    owner's (within alone_gap) and whose body column reads the owner standing over it is never taught "player": its
+    crowded sightings follow it; its alone ones (40 px) make it a pet. Try 2 counted every whole sighting."""
+    trk = tracker()
+    own, pet = (400, 501, 82, 17), (491, 501, 38, 17)          # 9 px apart: touching (6: one box, joined)
+    tall = [body(400, 82, 70), (491, 431, 529, 501)]            # the owner over the pet's column: reads 70
+    t = run(trk, 20, 0.0, [own, pet], tall)
+    pet_tr = next(tr for tr in trk.live if tr.x > 491)
+    assert pet_tr.hb1.sum() == 0 and pet_tr.cls_now != "player"
+    t = run(trk, 6, t, [own, (504, 501, 38, 17)], [body(400, 82, 70), body(504, 38, 40)])   # apart: alone, 40 px
+    assert trk.tag_class == ["player", "pet"]
+    t = run(trk, 20, t, [own, pet], tall)                       # crowded again: it stays a pet
+    assert trk.tag_class[1] == "pet"
+
+
+def test_a_settled_track_is_not_asked_the_body_question():
+    """Step 4b try 3 (the ms): a pet / player track with body_settled alone body readings is not asked again; a new
+    tag is."""
+    c = Track()
+    trk = tracker()
+    t = run(trk, c.body_settled + 5, 0.0, [(400, 501, 60, 17)], [body(400, 60)])
+    asked = trk.stats["body asked"]
+    assert trk.live[0].settled(c) and asked == c.body_settled
+    t = run(trk, 10, t, [(400, 501, 60, 17)], [body(400, 60)])
+    assert trk.stats["body asked"] == asked and trk.tag_class == ["player"]
+    run(trk, 1, t, [(400, 501, 60, 17), (800, 501, 50, 17)], [body(400, 60), body(800, 50)])
+    assert trk.stats["body asked"] == asked + 1
 
 
 def test_kept_two_seconds_in_view_then_left():

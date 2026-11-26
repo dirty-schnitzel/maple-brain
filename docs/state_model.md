@@ -167,6 +167,21 @@ Targets are proposals; "today" is `world.py` on the 13 sound captures (REPORT-tr
 | `seen`, `cover`, `unseen_s` | as a mob | the tracker | - |
 Not perceived, so not fields: a player's facing, what it does, its party.
 
+**Clean sightings teach, crowded ones only follow** (the user, 2026-11-26, on the sheet of pet tracks holding their
+owners' name tags: "players and pets should be classified when not obstructed"). What a thing IS - a player's or a
+pet's class, a body's height, a name's width, a mob's kind, a death - is learned only from sightings where it is seen
+alone and whole. A sighting that overlaps another thing (name tags touching, bodies over each other) keeps the track
+going and moves it, never relabels it. For players and pets (PLAN-tracker step 4b, try 3): a track whose name's width
+is sure continues only on a box of that width; a box where two names run together is split by the widths known; the
+class, the body's height and the name's width learn only from tags standing alone (no other tag within 12 px on its
+rows, no other character's body in its column). Mobs' overlaps (swapped ids, a death read on the wrong mob) are
+checked in PLAN-tracker step 5.
+
+**Ropes are grabbed by pressing up or down** (the user, 2026-11-26). We are on a rope only after a grab with up or
+down down; staying on it needs no key; a jump or a fall past a rope without the key is not on it, whatever the speed.
+While our keys are not handed to the tracker (live, until PLAN-tracker step 9) and for other players (no keys known),
+the placement rule alone decides.
+
 ---
 
 ## 3. Memory: what the state keeps of things not seen now

@@ -13,17 +13,23 @@ class per tag of the list: `tag_class`), the player records (track/state.Player)
      near an NPC of map.json, 12-45 px over another tag (a pattern on a character's clothes), and what STANDS on it:
      the body's height over its centre (a character ~70 px, a pet ~40; `columns`) and how far D's blob reaches over
      it (0: text drawn over the world).
-  2. Candidates follow tracks in MAP coordinates (one tag's life = one id), nearest first: a tag of the track's own
-     width (its name: constant for one name) by its centre, a narrower or wider box by the edge that kept its place.
-     TWO TAGS SIDE BY SIDE (find_tags joins text at most 7 px apart) are split by the widths already known: the box
-     goes to one track, the other track is placed inside it by its own width at the edge that kept its place (and
-     both are drawn there for the mob tracker's covers); a box as wide as both, when they are not both sure, is two
-     pieces of one tag. A young track that now shows the width of an older one still covered nearby is that one back.
+  2. Candidates follow tracks in MAP coordinates (one tag's life = one id), nearest first. CLEAN SIGHTINGS TEACH,
+     CROWDED ONES ONLY FOLLOW (PLAN-tracker design 1; the user, 2026-11-26): a tag is ALONE when it is whole and no
+     other tag or body touches it (`_alone`); only alone sightings teach a track its name's width, its tag's height,
+     its body's height and its class. A track whose width is SURE (seen alone at it tag_confirm times) continues only
+     on a box of that width (by its centre) or a cut piece of it (at the screen's edge or the UI, joined, sticking out
+     of ours) - never on another name's tag (try 2: 10 of 13 labelled pets called players were an owner's track on its
+     pet's tag); a young track follows any box near it (a piece or a wider box by the edge that kept its place). TAGS
+     RUN TOGETHER (find_tags joins text at most 7 px apart; `_join` pieces 6 px apart: "GODxWAR" + "Snail") are split
+     by the widths known (`_split`): the surest track at each edge of the box is seen there, SHARED - it follows, it
+     learns nothing - and drawn for the mob tracker's covers; one track in it and the rest >= split_rest px: the rest
+     is another tag's piece. A young track that now shows the width of an older one still covered nearby is that
+     one back; two young tracks in a box as wide as both are pieces of one tag.
   3. A track's CLASS is voted over its sightings so far, every frame (the prototype voted over the whole life in
      hindsight): mob / pattern / npc / text (nothing stands on it, or it stays put on the screen while the camera
      moves) / pet or player / unsure (no body readable) / short (under tag_min_seen sightings: "not yet known").
      PET OR PLAYER by the body's heights over the stay (step 4b try 2, the user's answer 3): pet_q (75th) percentile of
-     its whole, alone sightings (else of every reading) under pet_line (50 px) = a pet - measured on L5's tracks: pets
+     its alone sightings (5 at least; fewer: unsure) under pet_line (50 px) = a pet - measured on L5's tracks: pets
      35-41 px, players 57-120; a player in an attack stance reads 10-22 px between its legs on some sightings, which
      the percentile rides over (the prototype voted per sighting at 55 px). Pets are sorted out, not tracked (the
      user, 2026-11-24, question 4): their class stays, so a later step can track them without re-sorting.
@@ -34,7 +40,9 @@ class per tag of the list: `tag_class`), the player records (track/state.Player)
      rule (stand / air / rope: it climbs).
 One GPU round trip a frame (step 4b try 2, the user's answer 6): `begin` sorts the tags up to the body question and
 ASKS it of the evidence (`ask_columns`); the mob tracker's own evidence transfer carries the answer; `end` (or the
-mob tracker's call for the sorted boxes) finishes the frame. `update` = begin + end.
+mob tracker's call for the sorted boxes) finishes the frame. `update` = begin + end. A tag that is a SETTLED track's
+own (`_Track.settled`: a pet / player with body_settled alone body readings, a mob's / NPC's tag seen as long) is not
+asked (step 4b try 3: the ms).
 Mob kinds' own tag boxes are LEARNED while running (the prototype learned them over the whole capture first): the
 commonest (w, h, dx, dy) of the tags 0-4 px under a seen mob's feet, known after mob_tag_n near it (once known, the
 commonest is looked at again every 30th sighting).
@@ -71,12 +79,13 @@ class Det:
     """One tag of a frame (pieces on one row put together): its box on screen and on the map, its evidence, the
     list's tags it is made of (`raws`)."""
     __slots__ = ("x", "y", "w", "h", "L", "R", "T", "cx", "cut", "joined", "nobirth", "logrow", "off", "mob", "npc",
-                 "above", "tr", "raw", "body", "blob", "mobbox", "raws")
+                 "above", "tr", "raw", "body", "blob", "mobbox", "raws", "alone", "split")
 
     def __init__(self, x, y, w, h, body=(-1, -1), raws=()):
         self.x, self.y, self.w, self.h, self.raw = x, y, w, h, 1
         self.body, self.blob = body                      # the body's height over it, D's blob over it
         self.cut = self.joined = self.nobirth = self.logrow = self.mob = self.npc = self.above = self.mobbox = False
+        self.alone = self.split = False                  # no other tag or body touching it; split among known tracks
         self.off, self.tr = None, None
         self.raws = list(raws)
 
@@ -87,7 +96,7 @@ class Det:
 class _Track:
     __slots__ = ("id", "x", "y", "w", "h", "wc", "hc", "t", "n", "t0", "n0", "unseen", "seen", "ev", "hist", "born",
                  "end", "sx", "sy", "scr", "merged", "wlast", "clean", "into", "vx", "px", "known", "shared", "place",
-                 "node", "from_node", "off", "vy", "was_player", "cls_now", "hb1", "hb", "bseq", "known_n")
+                 "node", "from_node", "off", "vy", "was_player", "cls_now", "hb1", "hb", "bseq", "known_n", "nfull")
 
     def __init__(self, tid, d, t, n):
         self.id = tid
@@ -99,6 +108,7 @@ class _Track:
         self.n = self.n0 = n
         self.unseen = 0.0                # seconds of frames with a camera since it was last seen
         self.seen = 0
+        self.nfull = 0                   # sightings of its own width, not shared (the class's evidence)
         self.clean = 0                   # sightings whole, alone and of its own width
         self.shared = 0                  # sightings inside a box another track took
         self.ev = Counter()              # evidence counts: mob, mobbox, npc, above, logrow, b0 / bs / bt (+1: whole)
@@ -119,9 +129,10 @@ class _Track:
 
     def cls(self, c: Track) -> str:
         """Its class by what was seen of it so far (the prototype's Track.cls)."""
-        s, e = self.seen, self.ev
-        if s < c.tag_min_seen or self.clean < c.tag_confirm:
+        e = self.ev
+        if self.seen < c.tag_min_seen or self.clean < c.tag_confirm:
             return "short"
+        s = self.nfull                                       # the evidence counts on its own width's sightings
         if 2 * e["mob"] >= s or (e["mob"] >= 3 and 2 * e["mobbox"] >= s):
             return "mob"                                     # under a seen mob's feet / a mob tag's box, seen so 3 times
         if 2 * e["above"] >= s:
@@ -130,9 +141,9 @@ class _Track:
             return "npc"
         if (e["b0"] >= 3 and e["b0"] >= e["bs"] + e["bt"]) or (self.scr[1] >= 5 and self.scr[0] >= 0.8 * self.scr[1]):
             return "text"                                    # nothing stands on it / it stays put on the screen
-        hist = self.hb1 if self.hb1.sum() >= 5 else self.hb if self.hb.sum() >= 5 else None
-        if hist is None:                                     # the heights: of its whole, alone sightings, else all
-            return "unsure"                                  # no body could be read (under the play area, at the UI)
+        hist = self.hb1                                      # the heights of its ALONE sightings only (design 1)
+        if hist.sum() < 5:
+            return "unsure"                                  # no body read alone (crowded, under the play area, the UI)
         q = int(np.searchsorted(np.cumsum(hist), c.pet_q / 100.0 * hist.sum(), side="left"))
         return "pet" if q < c.pet_line else "player"
 
@@ -140,6 +151,17 @@ class _Track:
         """The feet's map y from the track's own box (top y, commonest height): top - 1; a medal box (tag_medal_h)
         grew up: its bottom - 18."""
         return self.y + self.h - 18.0 if self.h == c.tag_medal_h else self.y - 1.0
+
+    def sure(self, c: Track) -> bool:
+        """Its name's width is sure: seen alone at that width tag_confirm times (design 1's strict rules need it)."""
+        return self.known and self.clean >= c.tag_confirm
+
+    def settled(self, c: Track) -> bool:
+        """Its class will not change with another body reading: a pet / player with body_settled alone readings, or a
+        mob's / an NPC's tag (their votes read no body) seen as long (the ms: not asked the body question again)."""
+        if self.cls_now in ("pet", "player"):
+            return int(self.hb1.sum()) >= c.body_settled
+        return self.cls_now in ("mob", "npc") and self.seen >= c.body_settled
 
 
 def col_body(over, world, inside, top, c: Track) -> int:
@@ -237,11 +259,29 @@ class Players:
                             cand.append(d)
                     continue
             boxes.append((x, y, w, h, i))
-        ask = None
+        ask, asked = None, []
         if boxes and evidence is not None and getattr(evidence, "ready", False):
-            ask = evidence.ask_columns(np.array([x + w // 2 for x, y, w, h, i in boxes]),
-                                       np.array([y for x, y, w, h, i in boxes]), c.body_reach, c.body_half)
-        self._pend = (facts, boxes, cand, ask, t, dt, cx0, cy0, moved, n)
+            asked = [k for k, b in enumerate(boxes) if not self._settled_box(b, cx0, cy0, dt)]
+            if asked:
+                ask = evidence.ask_columns(np.array([boxes[k][0] + boxes[k][2] // 2 for k in asked]),
+                                           np.array([boxes[k][1] for k in asked]), c.body_reach, c.body_half)
+            self.stats["body asked"] += len(asked)
+            self.stats["body settled"] += len(boxes) - len(asked)
+        self._ours = ours
+        self._pend = (facts, boxes, cand, (ask, asked), t, dt, cx0, cy0, moved, n)
+
+    def _settled_box(self, b, cx0, cy0, dt) -> bool:
+        """The box is a settled track's own tag where that track would be now (its width, within its gates): the body
+        over it is not asked (the track's class does not need it)."""
+        c = self.cfg
+        x, y, w, h, _ = b
+        for tr in self.live:
+            if tr.into is None and abs(w - tr.w) <= c.tag_w_tol and tr.sure(c) and tr.settled(c):
+                u = tr.unseen + dt
+                if abs(x + w / 2.0 + cx0 - tr.x - tr.vx * min(u, 0.5)) <= c.tag_gate + c.tag_vx * u and \
+                        abs(y + cy0 - tr.y) <= c.tag_gate + c.tag_vy * u:
+                    return True
+        return False
 
     def end(self) -> list:
         """The rest of the frame `begin` started (the body's answer read) -> its events; a second call: []."""
@@ -265,6 +305,7 @@ class Players:
         for d in cand:
             d.to_map(cx0, cy0)
             d.cut = d.joined or d.nobirth or bool(self._why(d.x, d.y, d.x + d.w, d.y + d.h))
+        self._alone(cand, self._ours)
         self._evidence(cand, facts.fit)
         self._dirty = set()
         self._associate(cand, n, t, dt, cx0, cy0, moved)
@@ -311,14 +352,16 @@ class Players:
                         self.mob_tags[m["type"]] = (w0, h0, dx2 / 2.0, dy)
 
     def _bodies(self, boxes, patches, ask) -> list:
-        """Per box: (the body's height over it from the evidence's answer, D's blob over it) - proto_players'
-        col_body and blob_over."""
+        """Per box: (the body's height over it from the evidence's answer - -1 when not asked -, D's blob over it) -
+        proto_players' col_body and blob_over."""
         c = self.cfg
-        out = [(-1, self._blob(b[:4], patches)) for b in boxes]
-        if ask is None:
-            return out
-        over, world, inside = ask.get()
-        return [(col_body(over[k], world[k], inside[k], int(boxes[k][1]), c), out[k][1]) for k in range(len(boxes))]
+        out = [[-1, self._blob(b[:4], patches)] for b in boxes]
+        ask, asked = ask
+        if ask is not None:
+            over, world, inside = ask.get()
+            for j, k in enumerate(asked):
+                out[k][0] = col_body(over[j], world[j], inside[j], int(boxes[k][1]), c)
+        return [tuple(o) for o in out]
 
     def _blob(self, tag, patches) -> int:
         """proto_players.blob_over: how far the tallest of D's blobs that lies over the tag's centre and comes down to
@@ -366,6 +409,29 @@ class Players:
                 return "ui"
         return ""
 
+    def _alone(self, dets, ours):
+        """Design 1, "clean sightings teach": a tag is alone when it is whole (not cut, not joined) and no other tag -
+        another candidate or our own - is within alone_gap px of it on its rows, and no other tag's owner could stand
+        in its body column (that tag's centre within alone_dx sideways, alone_dy over / under it)."""
+        c = self.cfg
+        G, DX, (D0, D1) = c.alone_gap, c.alone_dx, c.alone_dy
+        boxes = [(d.x, d.y, d.w, d.h) for d in dets]
+        if ours is not None:
+            boxes.append(tuple(ours[:4]))
+        for k, d in enumerate(dets):
+            d.alone = not d.cut
+            if not d.alone:
+                continue
+            x, y, w, h = d.x, d.y, d.w, d.h
+            cx = x + w / 2.0
+            for j, (X, Y, W, H) in enumerate(boxes):
+                if j == k:
+                    continue
+                if (min(y + h, Y + H) > max(y, Y) and max(X - x - w, x - X - W) <= G) or \
+                        (abs(X + W / 2.0 - cx) < DX and D0 < Y - y < D1):
+                    d.alone = False
+                    break
+
     def _evidence(self, dets, fit):
         c = self.cfg
         if not dets:
@@ -392,40 +458,18 @@ class Players:
         c = self.cfg
         G0, WT = c.tag_gate, c.tag_w_tol
         live = self.live
-        pairs = []
-        for a, tr in enumerate(live):
-            u = tr.unseen
-            px = tr.px = tr.x + tr.vx * min(u, 0.5)          # where it would be by now, walking on as it did
-            pl, pr = px - tr.w / 2.0, px + tr.w / 2.0
-            gx, gy, ge = G0 + c.tag_vx * u, G0 + c.tag_vy * u, G0 + 60.0 * u
-            for b, d in enumerate(dets):
-                ey = min(abs(d.T - tr.y), abs(d.T + d.h - tr.y - tr.h))
-                if ey > gy:
-                    continue
-                dw = d.w - tr.w
-                if abs(dw) <= WT and tr.known:               # its own width: the whole tag
-                    ex = abs(d.cx - px)
-                    if tr.merged:
-                        ex = min(ex, abs(d.L - pl), abs(d.R - pr))
-                    if ex > gx:
-                        continue
-                    cost = ex + ey
-                else:                                        # a piece of it / a wider box it is part of: by an edge
-                    ex = min(abs(d.L - pl), abs(d.R - pr))
-                    if dw < 0 and pl - G0 <= d.L and d.R <= pr + G0:
-                        ex = min(ex, G0 / 2.0)               # a piece inside its box
-                    if ex > ge:
-                        continue
-                    cost = ex + ey + (4.0 * abs(dw) if tr.merged else 8.0)
-                pairs.append((cost, a, b))
-        pairs.sort()
+        for tr in live:
+            tr.px = tr.x + tr.vx * min(tr.unseen, 0.5)       # where it would be by now, walking on as it did
+        # Design 1: a track whose name's width is known continues only on a box of that width (or a cut piece of it);
+        # a wider box with known tracks inside is split among them by their widths; a young track follows as before.
         ua, ub = {}, {}
-        for cost, a, b in pairs:
-            if a in ua or b in ub:
-                continue
-            ua[a], ub[b] = b, a
+        self._pair([a for a, tr in enumerate(live) if tr.sure(c)], range(len(dets)), dets, ua, ub)
+        self._split(dets, ua, ub, n, t, moved)
+        self._pair([a for a, tr in enumerate(live) if a not in ua], [b for b, d in enumerate(dets) if not d.split],
+                   dets, ua, ub)
         for a, b in ua.items():
-            self._update(live[a], dets[b], n, t, moved)
+            if not dets[b].split:
+                self._update(live[a], dets[b], n, t, moved)
         self._together(dets, ua, ub, n, t, moved)
         for a, tr in enumerate(live):                        # not seen on this frame
             if a in ua or tr.into is not None:
@@ -466,6 +510,106 @@ class Players:
                 keep.append(tr)
         self.live = keep
 
+    def _pair(self, As, Bs, dets, ua, ub):
+        """Nearest first, the tracks As (not yet paired) with the boxes Bs (not yet taken) -> ua, ub. A track whose
+        width is sure (`_Track.sure`): a box of its width by its centre, or a CUT piece of it (at the screen's edge or
+        the UI, joined, sticking out of ours) by the edge that kept its place - never another name's whole box, never a
+        wider box (that is `_split`'s). A young track: any box near it, a piece or a wider one by an edge."""
+        c = self.cfg
+        G0, WT = c.tag_gate, c.tag_w_tol
+        live = self.live
+        pairs = []
+        for a in As:
+            if a in ua:
+                continue
+            tr = live[a]
+            u = tr.unseen
+            px = tr.px
+            pl, pr = px - tr.w / 2.0, px + tr.w / 2.0
+            gx, gy, ge = G0 + c.tag_vx * u, G0 + c.tag_vy * u, G0 + 60.0 * u
+            for b in Bs:
+                if b in ub:
+                    continue
+                d = dets[b]
+                ey = min(abs(d.T - tr.y), abs(d.T + d.h - tr.y - tr.h))
+                if ey > gy:
+                    continue
+                dw = d.w - tr.w
+                if abs(dw) <= WT and tr.known:               # its own width: the whole tag
+                    ex = abs(d.cx - px)
+                    if tr.merged:
+                        ex = min(ex, abs(d.L - pl), abs(d.R - pr))
+                    if ex > gx:
+                        continue
+                    cost = ex + ey
+                else:                                        # a piece of it / a wider box it is part of: by an edge
+                    if tr.sure(c) and (dw > 0 or not d.cut):
+                        continue                             # another name's tag, or a box for _split
+                    ex = min(abs(d.L - pl), abs(d.R - pr))
+                    if dw < 0 and pl - G0 <= d.L and d.R <= pr + G0:
+                        ex = min(ex, G0 / 2.0)               # a piece inside its box
+                    if ex > ge:
+                        continue
+                    cost = ex + ey + (4.0 * abs(dw) if tr.merged else 8.0)
+                pairs.append((cost, a, b))
+        pairs.sort()
+        for cost, a, b in pairs:
+            if a in ua or b in ub:
+                continue
+            ua[a], ub[b] = b, a
+
+    def _split(self, dets, ua, ub, n, t, moved):
+        """A box no track took by its width, wider than sure tracks not yet seen this frame whose tags would lie inside
+        it AT ONE OF ITS EDGES: their tags run together or one partly over another (tags in a row are drawn edge to
+        edge; one wholly inside another's is hidden by it). The surest such track at the left edge and the surest at
+        the right edge are seen there as SHARED (they follow, they learn nothing). With one track in it, the rest of
+        the box is another tag: from split_rest px on, its piece (a cut box: a young track's or a birth); narrower, the
+        box is another, wider tag over the track (not split: the track is not seen, the box is a tag of its own). The
+        box's tags are named after the widest track in it."""
+        c = self.cfg
+        G0, WT = c.tag_gate, c.tag_w_tol
+        live = self.live
+        for b in range(len(dets)):
+            d = dets[b]
+            if b in ub:
+                continue
+            side = [None, None]                         # the surest track at the left / the right edge
+            for a, tr in enumerate(live):
+                if a in ua or not tr.sure(c) or tr.into is not None or tr.w >= d.w - WT:
+                    continue
+                u = tr.unseen
+                ge = G0 + 60.0 * u
+                pl, pr = tr.px - tr.w / 2.0, tr.px + tr.w / 2.0
+                if not (d.L - ge <= pl and pr <= d.R + ge) or                         min(abs(d.T - tr.y), abs(d.T + d.h - tr.y - tr.h)) > G0 + c.tag_vy * u:
+                    continue
+                el, er = abs(pl - d.L), abs(pr - d.R)
+                k = 0 if el <= er else 1
+                if min(el, er) <= ge and (side[k] is None or tr.clean > live[side[k]].clean):
+                    side[k] = a
+            mem = [a for a in side if a is not None]
+            if len(mem) == 1 and d.w - live[mem[0]].w < c.split_rest:
+                continue                                # a wider tag over it: not split
+            if not mem:
+                continue
+            d.split = True
+            self.stats["split"] += 1
+            for k, a in enumerate(side):
+                if a is None:
+                    continue
+                tr = live[a]
+                x = d.L + tr.w / 2.0 if k == 0 else d.R - tr.w / 2.0
+                self._update(tr, d, n, t, moved, shared=True, x=x)
+                ua[a] = b
+            ub[b] = mem[0]
+            d.tr = max((live[a] for a in mem), key=lambda tr: tr.w)
+            if len(mem) == 1:
+                tr = live[mem[0]]
+                rest = d.w - tr.w
+                e = Det(d.x + tr.w if side[0] is not None else d.x, d.y, rest, d.h)
+                e.joined = e.cut = True
+                e.to_map(d.L - d.x, d.T - d.y)
+                dets.append(e)
+
     def _together(self, dets, ua, ub, n, t, moved):
         """A track left without a tag whose place is inside a wider box another track took: two tags run together
         (the box narrower than the two side by side) - split by the widths known: it is placed inside the box by its
@@ -480,7 +624,7 @@ class Players:
             pl, pr = tr.px - tr.w / 2.0, tr.px + tr.w / 2.0
             for b, o in list(ub.items()):
                 d, other = dets[b], live[o]
-                if other.into is not None or (other.clean >= c.tag_confirm and d.w <= other.w + WT):
+                if d.split or other.into is not None or (other.clean >= c.tag_confirm and d.w <= other.w + WT):
                     continue                                 # the other's tag alone: this one is not in it
                 if d.w > tr.wlast + WT and d.L - G0 <= pl and pr <= d.R + G0 and \
                         min(abs(d.T - tr.y), abs(d.T + d.h - tr.y - tr.h)) <= G0:
@@ -519,11 +663,12 @@ class Players:
         old.hist = [seen[k] for k in sorted(seen)]
         old.seen = len(old.hist)
         self._dirty.add(id(old))
-        for k, v in new.ev.items():
-            old.ev[k] += v
-        old.hb1 += new.hb1
-        old.hb += new.hb
-        if why == "back":
+        if why == "back":                                    # the same tag back: what it learned is the old one's
+            for k, v in new.ev.items():                      # (a piece's sightings were not of the tag's own width
+                old.ev[k] += v                               # nor over its centre: they teach nothing - design 1)
+            old.hb1 += new.hb1
+            old.hb += new.hb
+            old.nfull += new.nfull
             old.wc.update(new.wc)
             old.hc.update(new.hc)
             old.clean += new.clean
@@ -533,12 +678,16 @@ class Players:
         if self.keep:
             self.done.append(new)
 
-    def _update(self, tr, d, n, t, moved, shared=False, new=False):
+    def _update(self, tr, d, n, t, moved, shared=False, new=False, x=None):
+        """A sighting of `tr` in `d` (`shared`: inside a box split among tracks, at `x`). Design 1: only an ALONE
+        sighting (`Det.alone`) teaches the track its name's width and its tag's height; only an alone sighting of its
+        own width its body's height (hb1, the class's) and counts toward tag_confirm; the class's other evidence
+        (mob, npc, pattern, text) counts on sightings of its own width, never on a shared box."""
         c = self.cfg
         G0, WT = c.tag_gate, c.tag_w_tol
         self._dirty.add(id(tr))
-        whole = not d.cut and not shared
-        if whole:                                            # its own width: the commonest whole one
+        alone = d.alone and not shared
+        if alone:                                            # its own width: the commonest alone one
             k = tr.wc[d.w] = tr.wc[d.w] + 1
             if not tr.known or k > tr.wc[tr.w]:
                 tr.w, tr.known = d.w, True
@@ -546,9 +695,11 @@ class Players:
             if k > tr.hc[tr.h] or tr.hc[tr.h] == 0:
                 tr.h = d.h
         elif not tr.known and not shared and d.w > tr.w:
-            tr.w = d.w                                       # nothing whole seen yet: at least this wide
+            tr.w = d.w                                       # nothing alone seen yet: at least this wide
         full = abs(d.w - tr.w) <= WT and not shared
-        if full or new:
+        if x is not None:
+            pass
+        elif full or new:
             x = d.cx
         else:                                                # a piece, or a wider box: the edge that kept its place
             pl, pr = tr.px - tr.w / 2.0, tr.px + tr.w / 2.0
@@ -568,29 +719,32 @@ class Players:
         tr.seen += 1
         tr.merged = shared
         tr.shared += shared
-        tr.clean += whole and full
+        tr.clean += alone and full
         e = tr.ev
-        for k, v in (("mob", d.mob), ("mobbox", d.mobbox), ("npc", d.npc), ("above", d.above), ("logrow", d.logrow)):
-            if v:
+        if full or new:                                      # its own width (crowded or not): the class's evidence
+            tr.nfull += 1
+            for k, v in (("mob", d.mob), ("mobbox", d.mobbox), ("npc", d.npc), ("above", d.above),
+                         ("logrow", d.logrow)):
+                if v:
+                    e[k] += 1
+            if d.blob == 0:
+                e["b0"] += 1                                 # nothing stands on it
+            elif d.body > 0:
+                k = "bs" if d.body < c.body_tall else "bt"
                 e[k] += 1
-        if d.blob == 0:
-            e["b0"] += 1                                     # nothing stands on it
-        elif d.body > 0:
-            k = "bs" if d.body < c.body_tall else "bt"
-            e[k] += 1
-            b = min(d.body, BODY_BINS - 1)
-            tr.hb[b] += 1
-            if whole and full:                               # the tag whole and alone: its centre is its owner's
-                e[k + "1"] += 1
-                tr.hb1[b] += 1
+                b = min(d.body, BODY_BINS - 1)
+                tr.hb[b] += 1
+                if alone:                                    # the tag alone: what stands on it is its owner
+                    e[k + "1"] += 1
+                    tr.hb1[b] += 1
         if self.keep:
-            tr.bseq.append((n, d.body, whole and full, d.cut))
+            tr.bseq.append((n, d.body, alone and full, d.cut))
         h = tr.hist
         if moved and tr.sx is not None and tr.n == n - 1 and not shared:
             tr.scr[1] += 1
             tr.scr[0] += d.x == tr.sx and d.y == tr.sy
         tr.sx, tr.sy = d.x, d.y
-        h.append((n, t, x, y, d.w, d.h, KIND_WHOLE if full and whole else KIND_PART))
+        h.append((n, t, x, y, d.w, d.h, KIND_WHOLE if full and alone else KIND_PART))
         k = h[-6] if len(h) >= 6 else h[0]                   # its sideways speed over the last 5 frames
         tr.vx = max(-300.0, min(300.0, (x - k[2]) / (t - k[1]))) if 0.03 < t - k[1] <= 0.15 else 0.0
         tr.t, tr.n = t, n
@@ -622,8 +776,7 @@ class Players:
         dy = np.array([0.0 if p is None else tr.y - p[3] for tr, p in zip(seen, prev)])
         last = np.array([tr.node for tr in seen], np.int64)
         lfrom = np.array([tr.from_node for tr in seen], np.int64)
-        P = self.g.place(xs, ys, dx, dy, last, lfrom, climb=np.ones(len(seen), bool),
-                         vx=np.array([tr.vx for tr in seen]), vy=np.array([tr.vy for tr in seen]))
+        P = self.g.place(xs, ys, dx, dy, last, lfrom, climb=np.ones(len(seen), bool))   # no key known: no grab test
         for q, tr in enumerate(seen):
             tr.place, tr.node, tr.from_node, tr.off = int(P.place[q]), int(P.node[q]), int(P.from_node[q]), float(P.off[q])
             cls = tr.cls_now

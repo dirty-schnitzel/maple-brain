@@ -11,9 +11,13 @@ the players' gates of our last place - and only within ours_list_s (2 s) of the 
 pieces, but also other players standing there, pets and mobs' own tags (by eye, 20 cases: 11 ours). No tag: our feet
 are not known on this frame (`seen` False; the last values kept). No camera: likewise (cover "blind").
 
-PLACE: the graph's one rule (track/graph.py: stand / rope / air; we climb; on a rope only while not moving faster than
-rope_vx / rope_vy - our 0.2 s speed) with the step since our last sighting, then the stuck cases nav/selfstate.py
-found live (its docstring; each one a test in tests/test_track_us.py):
+PLACE: the graph's one rule (track/graph.py: stand / rope / air; we climb) with the step since our last sighting.
+ROPES NEED A KEY (the user, 2026-11-26: "They are grabbed by pressing up or down"): when our keys are known, a rope the
+rule puts us on that we were not on the frame before is a GRAB, taken only with up or down down at it (pressed within
+grab_s before the frame); staying on it needs no key; a jump or a fall past a rope without the key is not on it,
+whatever the speed (no speed test: try 2's broke 22 grabs from a jump). Our keys unknown (live, until PLAN-tracker step
+9 hands them in): the plain rule. Then the stuck cases nav/selfstate.py found live (its docstring; each one a test in
+tests/test_track_us.py):
   - hovering: off every surface, not moving (HOVER_V) for HOVER_S, within HOVER_TOL of a rope's x at its height = on
     that rope (ladder 778's tag reads x +10 px, past rope_tol); once on a rope we stay on it within HOVER_TOL while not
     moving sideways;
@@ -53,6 +57,7 @@ LEDGE_TOL = 9.0                   # px: our feet at a platform end's surface hei
 LEDGE_REACH = 20.0                # px: a ladder "spans our height" within this of its ends (SelfTracker._ladder_near)
 VEL_S = 0.2                       # s of sightings for vx, vy
 WALK = ("left", "right")
+GRAB = {"up", "down"}                     # a rope is grabbed with one of these down (the user, 2026-11-26)
 MOVE = ("left", "right", "up", "down")
 
 
@@ -190,6 +195,7 @@ class Place:
         self.hang = None                     # (rope index, x, y): found hanging there
         self.ledge = None                    # (node, x, y): found standing past its end
         self.why = ""                        # the rule that decided this frame's place (a tool reads it)
+        self.grab_t = -9.0                   # the last time up or down was down
         g = graph
         self._ropes = [(i, float(g.rope_x[i]), float(g.rope_top[i]), float(g.rope_bottom[i]))
                        for i in range(len(g.rope_x))]
@@ -226,8 +232,12 @@ class Place:
                 best = (abs(yp - y), int(nid), cx, yp)
         return best
 
-    def update(self, t, feet, held) -> bool:
-        """feet (map px) or None (not known: nothing changes) -> True when placed."""
+    def update(self, t, feet, held, keys_known: bool = False) -> bool:
+        """feet (map px) or None (not known: nothing changes) -> True when placed. `held`: the keys down now;
+        `keys_known`: our keys are known (else a rope needs no key: the plain rule)."""
+        keys = set(held or ())
+        if keys & GRAB:
+            self.grab_t = t
         if feet is None:
             return False
         x, y = float(feet[0]), float(feet[1])
@@ -238,12 +248,16 @@ class Place:
         while self.hist and t - self.hist[0][0] > VEL_S:
             self.hist.popleft()
         self.vx, self.vy = self._velocity(t)
-        P = self.g.place(np.array([x]), np.array([y]), np.array([dx]), np.array([dy]), np.array([self.node]),
-                         np.array([self.from_node]), climb=np.array([True]), vx=np.array([self.vx]),
-                         vy=np.array([self.vy]))
+        args = (np.array([x]), np.array([y]), np.array([dx]), np.array([dy]), np.array([self.node]),
+                np.array([self.from_node]))
+        P = self.g.place(*args, climb=np.array([True]))
         place, node, off = int(P.place[0]), int(P.node[0]), float(P.off[0])
         self.why = "rule"
-        keys = set(held or ())
+        grab = place == ROPE and not (self.place == ROPE and self.node == node)   # a rope we were not on
+        if grab and keys_known and t - self.grab_t > c.grab_s:   # ... without up / down: past it, not on it
+            P = self.g.place(*args, climb=np.array([False]))
+            place, node, off = int(P.place[0]), int(P.node[0]), float(P.off[0])
+            self.why = "no grab"
         if keys - set(MOVE):
             self.frozen_until = t + ATTACK_FREEZE_S
         walking = bool(set(WALK) & keys) and t >= self.frozen_until
@@ -269,10 +283,9 @@ class Place:
             was = -1 - node if place == ROPE else (-1 - self.node if self.place == ROPE else None)
             best = None
             for i, rx, top, bot in self._ropes:
-                stays = was == i and abs(self.vx) < HOVER_V and abs(self.vy) <= c.rope_vy   # climbing on, not
-                #                                                 leaving sideways nor falling past (the rope's motion test)
-                if not (hovering or stays):             # the plain rope_tol case is the graph's rule (with its
-                    continue                            # motion test); here only the stuck cases' wider reach
+                stays = was == i and abs(self.vx) < HOVER_V     # climbing on it, not leaving sideways
+                if not (hovering or stays):             # the plain rope_tol case is the graph's rule (and the
+                    continue                            # grab's key); here only the stuck cases' wider reach
                 tol = max(c.rope_tol, HOVER_TOL)
                 if abs(rx - x) <= tol and top - c.rope_tol <= y <= bot + c.rope_tol \
                         and (best is None or abs(rx - x) < best[0]):
@@ -307,6 +320,7 @@ class Us:
         self.tag = OurTag(self.cfg)
         self.place = Place(self.graph, self.cfg) if self.graph is not None else None
         self.held = set()
+        self.keys_known = False              # our keys were ever handed in (live: not until PLAN-tracker step 9)
         self.facing = 0
         self.seen = False
         self.box = None                      # our tag on the screen this frame (x, y, w, h, list index or None)
@@ -320,9 +334,12 @@ class Us:
         events = self.slots.update(facts.slots, facts.t)
         t, C = facts.t, facts.scene_cam
         self.t = t
+        self.keys_known |= keys is not None
         for k in keys or ():
             if k["down"]:
                 self.held.add(k["key"])
+                if k["key"] in GRAB and self.place is not None:     # pressed and let go between two frames counts
+                    self.place.grab_t = max(self.place.grab_t, k.get("t", t))
                 if k["key"] in WALK:
                     self.facing = -1 if k["key"] == "left" else 1
             else:
@@ -340,7 +357,7 @@ class Us:
         if self.box is not None:
             x, y, w, h, _ = self.box
             self.sx, self.sy = x + w / 2.0, y - 1.0
-            self.seen = self.place.update(t, (self.sx + C[0], self.sy + C[1]), self.held)
+            self.seen = self.place.update(t, (self.sx + C[0], self.sy + C[1]), self.held, self.keys_known)
         else:
             self.cover = "unseen"
         return events

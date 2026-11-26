@@ -33,6 +33,10 @@ step 3's rows unchanged, the hops gate unchanged, one GPU transfer a frame, L1J 
 look 5 of 5); missed - L5 (found 92.8 %, non-players 5.62 %, pet / player 8.56 %, node 94.0 %), the cover (33: the
 pet rule), L1 us 84.62 % (93.41 % without the rope motion test, which breaks 22 rope grabs), the ms (0.7: Python and
 torch calls, not the GPU - try 1's reason was wrong). SelfState 95.81 % and our feet 97.04 % accepted by the user.
+**Step 4b, try 3 (2026-11-26): design 1 and the rope key built; stopped, the user decides** ("Step 4b, try 3"): met -
+pet / player 2.52 % (8.56), the node 96.5 %, step 3's rows (L2 now 16 of 16), the hops gate; missed - players found
+85.4 % (95.8 % if "unsure" - under 5 alone body readings - were "not yet known" like "short"), non-players 2.04 %, the
+cover 34; L1 us 95.05 % with the key rule (the user's answer 4: accepted at what it reaches); the ms live 0.6.
 The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
 in this session on the kept replay (no GPU); the tools are in `tools/perc/track/` (branch `tracker-plan`).
 
@@ -1269,6 +1273,94 @@ again)?
 3. **The ms:** a track whose class is settled is not asked the body question again; accepted against a new line set
    from what it then measures (the 0.1 was the prototype's, without the body).
 4. **L1 us:** accepted at what the key rule reaches if 99 % is not (182 cases: 99 % allows 1 miss).
+
+### Step 4b, try 3 (2026-11-26): design 1 and the rope key built; pet / player, the node, step 3's rows and the hops gate MET; players found, non-players, the cover MISSED (stopped)
+Branch `tracker-build` (the main folder). Runs `replay_players.py ... --tag t4b3` (try 2's files untagged),
+`replay_mobs.py ... --tag t4b3`.
+
+**Measured first (the user's point 1):** sheet `step4b\heights_pet_taken.png` (`height_sheet.py --taken`): the 17
+labelled pet tags called players sit on **13 tracks; 10 are a track of another width on the pet's tag** (52 "Snail" on
+"Alistia", 195 / 82 on "CGFzealot", 697 on "Snail snorley", 705 "ImThat1Dude" / "Brown Puppy" swapping, 70 / 131
+"KingKonGTH" on "Black Kitty", 857 a 150 px merged box learned as a width): the owner's track took its pet's NARROWER
+box "by an edge" (try 2's piece rule), or the pet's track the owner's. **Why the split did not fire on 815:** "GODxWAR"
+(69) and "Snail" (38) 3 px apart are put together by `_join` (the ladder-rail rule, tag_join 6 px) into ONE cut box
+of 104 before the tracks are paired; the young track 815 took it by an edge as its own piece, and `_together`'s split
+needs a track left WITHOUT a tag. 3 of the 13 are the pet's own track: 815, 82 (pieces of its owner's tag), 128 (player
+only on the labelled frame).
+
+**Built** (each rule's test fails with the rule switched off - checked):
+- **Design 1 in `players.py`:** `_alone` - a tag is alone when whole and no other tag (or ours) is within `alone_gap`
+  12 px on its rows and no other tag's centre within `alone_dx` 32 px sideways, `alone_dy` -120..+70 px (another
+  character in its body column). Only alone sightings teach the width (`wc`, `known`), the tag's height, `clean`
+  (tag_confirm) and the body heights of the class (`hb1`; **the fallback to every reading is gone**: fewer than 5
+  alone readings = `unsure`); the class's other evidence counts on sightings of its own width (`nfull`), never on a
+  shared box; a "piece" absorbed teaches nothing. A track whose width is **sure** (`clean >= tag_confirm`) pairs only
+  with a box of its width or a CUT piece (edge / UI / joined / sticking out of ours) - never another name's tag; a
+  young track as before. **`_split`:** a box no track took, wider than sure tracks inside it at one of its EDGES: the
+  surest at each edge is seen there SHARED (follows, learns nothing); one track and the rest >= `split_rest` 20 px: the
+  rest is a cut piece (a young track or a birth); the rest narrower: a wider tag over it, not split. Tests
+  `test_two_tags_joined_into_one_box_are_split_too` (815), `test_a_known_track_never_takes_another_names_tag`,
+  `test_crowded_sightings_teach_nothing`; the side-by-side test's tags now 20 px apart (10 px is "touching").
+- **The rope key (`us.py`):** with our keys known (sticky once any are handed in), a rope the rule puts us on that we
+  were not on the frame before is a grab only with up / down down within `grab_s` 0.1 s (key events count, a tap
+  between frames too); staying needs no key; keys unknown (live): the plain rule. **The speed test is gone** from
+  `graph.place`, us, players and config (`rope_vx`, `rope_vy`). Tests `test_a_rope_is_grabbed_only_with_up_or_down`,
+  `test_staying_on_a_rope_needs_no_key` (a grab from a jump: the 0.2 s speed still carries it),
+  `test_our_keys_unknown_the_plain_rule`.
+- **Players' rope test, measured:** the speed test against none on L5 - **identical** (the node 137 of 145 both; every
+  labelled player place the same: stand 204 of 217, air 10 of 10, rope 5 of 6). Kept the simpler: none.
+- **The ms:** `_Track.settled` (a pet / player with `body_settled` 30 alone body readings, a mob's / NPC's tag seen 30
+  times): its own tag where it would be now is not asked the body question. Test
+  `test_a_settled_track_is_not_asked_the_body_question`.
+- **Tried and taken out:** sure = one alone sighting (junk 27-31 px pieces became split members of a player's box on
+  ~30 % of frames); split members by the sum of widths (wrong on overlapping tags); an alone box with one sure track
+  in it re-teaching that track's width (for "FreakyRafiki" seen as "Rafiki", below): found +0.2, the node 96.5 -> 94.5
+  %, cover 36.
+- `docs/state_model.md`: design 1 and the rope key, in the user's words (after "Every other player").
+
+| Gate | try 2 | **try 3** | |
+|---|---:|---:|---|
+| L5 players found (>= 95 %; "not yet known" apart: 133 tags, 56 players) | 92.8 % | **158 of 185 = 85.4 %** (20 `unsure`, 3 pet, 2 log, 1 mob, 1 ours) | **MISSED** |
+| ... the same with `unsure` (under 5 alone body readings) set apart as "not yet known" - not the gate, for the user | - | 158 of 165 = 95.8 % | - |
+| L5 non-players called players (<= 1 %) | 5.62 % | **7 of 343 = 2.04 %** (3 pets, 2 none, 1 mob, 1 text) | **MISSED** |
+| L5 a pet called a player or a player a pet (<= 5 %) | 8.56 % | **6 of 238 = 2.52 %** | met |
+| L5 the node of standing players (>= 95 %) | 94.0 % | **138 of 143 = 96.5 %** | met |
+| the delay until a class is known (reported) | p50 9 / p90 42 frames | p50 12 / p90 77 / p99 251 (564 tracks) | - |
+| the 2 s cover: back under a new number (<= 29) | 33 of 309 | **34 of 353** | **MISSED** |
+| L1 us (>= 99 %, or accepted at the key rule) | 84.62 % | **173 of 182 = 95.05 %**, the node 99.22 % (the plain rule 93.41 %; grab_s 0 / 0.05 / 0.1 / 0.25 / 0.5: all 95.05) | accepted (answer 4) |
+| us against SelfState (accepted 95.81 %) | 95.81 % | 95.70 % (new: 120 frames "no grab" air / SelfState rope) | - |
+| our feet known (accepted 97.04 %) | 97.04 % | 97.04 % | - |
+| step 3's rows (`replay_mobs.py --tag t4b3`) | t4b2 | **identical to t4b2 on every row** (found 98.70, id kept 93.51, one id 92.33, extra 994, changed 7, set 99.35, death p90 0.000, ghosts 0, hops 91.4, jolts 524, L1 98.98, node 99.46, L3 19 of 22); **L2 16 of 16** (15) | met |
+| step 2's hops gate (`proto_feet.py --sound`) | 126 / 970 | **126 of 26,811 / 970 of 555,561** | met |
+| the ms, live (the Perceiver, 4-minute capture, 2,970 frames, twice) | us_players 0.7 / p90 1.0, track 1.1 / 1.4, frame 15.65 | **us_players p50 0.6 / p90 0.9 / p99 1.0, track 1.1 / 1.3, frame 15.1** | for the user's line |
+| ... its pieces (p50 / mean ms) | - | us 0.09 / 0.09; players.begin 0.35 / 0.24, of it `ask_columns` 0.33 / 0.21; players.end 0.17 / 0.18; 1,036 of 3,453 boxes not asked (settled) over the first 50 s | - |
+| replay ms (CPU bitmaps, 13 captures) | 0.19 | p50 0.19 / p90 0.35 (us 0.05) | - |
+| pytest (whole suite), bot speed | 16.3 ms | **green; 15.4 ms a tick** (p90 16.9; `us_players` 0.9 on the bench's 40 frames: nothing settles that soon) | - |
+
+**Why, by row:**
+- **Players found - the 20 `unsure`:** tracks with fewer than 5 alone body readings when the labelled frame came (try
+  2 read them from every sighting): a tag under the minimap window (no column readable, "CGFzealot"); a find_tags box
+  stretched over dark scenery ("FunKneel" 107 px: the column over its centre is empty - perception, stop rule 4);
+  merged boxes the labeller called `player` (104-150 px) held by a track still under 5; **a name cut by front
+  scenery whose piece was taken as the width** ("FreakyRafiki" 77 px seen for 31 frames as "Rafiki" 40 px - the
+  other piece is not in the tag list at all, so the piece looks whole and alone; later the whole tag is split as two
+  names); tags at the screen's edge. 7 of them are tracks whose final class is player (known later: the delay).
+- **Non-players called players (7):** a pet under a light-pillar effect (its column reads 120 px on every alone
+  sighting), a pet whose p75 is exactly 50, two 21 px medal-like tags labelled `none`, a mob's own tag not learned
+  yet, a text tag reading 120.
+- **The cover (34):** more player tracks (353; try 2 309 - pets no longer turn players, and a hidden track is now
+  unseen instead of riding its neighbour's box), more of them lost in view (145) and back as a new id.
+- **L1 us, 9 misses:** 5 standing frames read as air while we move (cases 61, 137, 116, 110, 136 - as in try 2, not
+  ropes); 2 jumps past a rope with up held, labelled air (83, 107 - the key was down: the rule says grabbed); 1 off a
+  rope with no key 0.18 s after (54: still "staying"); 1 labelled rope read air with up held (134: the tag came back
+  moving right); the node: 102 (rope -6 / -5).
+
+**For the user (stopped, stop rule 1):** (1) **`unsure`** - set a track with under 5 alone body readings apart as "not
+yet known" (95.8 % found), or keep it a miss (85.4 %)? (2) **Non-players 2.04 %** - the light pillar and the medal
+tags are not crowding: accept, or a rule for them? (3) **The cover 34** - accept, or longer than 2 s for a track hidden
+inside another's box? (4) **The ms:** us_players p50 0.6 live (the body question 0.33 of it, asked on most frames of
+the first minute) - the line to set. (5) **FreakyRafiki:** a name cut by scenery learned as a narrower width - accept
+(rare), or let an alone box with one track in it re-teach the width (tried: the node fell to 94.5 %)?
 
 ### Step 3b - spawn points as tracked things (added by the user, 2026-11-25; one executor session, measure then build)
 **The user, 2026-11-25:** "keeping track of the time since last spawn (on spawn point) is a valid tracking object. It

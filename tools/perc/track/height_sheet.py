@@ -4,6 +4,10 @@ their heights over the stay. Per track: its labelled frame and its sightings nea
 (yellow) and the column the body is read in (cyan: 17 px over the tag's centre, from its top up the height read).
 
     python tools/perc/track/height_sheet.py [--q 90] [--k 6] [--per 4]   -> CORPUS/work/track-plan/step4b/heights_*.png
+    python tools/perc/track/height_sheet.py --taken [--tag t4b3]          -> .../step4b/heights_pet_taken[_TAG].png
+
+`--taken` (step 4b try 3, measure 1): every L5-labelled pet tag called a player - its labelled frame and three frames
+where its track holds a box of another width (another name's tag, or two run together), the box yellow.
 """
 import argparse
 import json
@@ -18,12 +22,70 @@ sys.path.insert(0, str(HERE.parent))
 import replay_players as RP  # noqa: E402
 
 
+def cell(cv2, img, box, lines):
+    x, y, w, h = box
+    cx = x + w // 2
+    X0, Y0 = int(min(max(0, cx - 110), img.shape[1] - 220)), int(min(max(0, y - 150), img.shape[0] - 190))
+    crop = img[Y0:Y0 + 190, X0:X0 + 220].copy()
+    cv2.rectangle(crop, (x - X0 - 1, y - Y0 - 1), (x + w - X0, y + h - Y0), (0, 230, 255), 1)
+    crop = cv2.resize(crop, None, fx=2, fy=2, interpolation=cv2.INTER_NEAREST)
+    for j, line in enumerate(lines):
+        cv2.putText(crop, line, (4, 16 + 16 * j), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 0), 3)
+        cv2.putText(crop, line, (4, 16 + 16 * j), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (255, 255, 255), 1)
+    return crop
+
+
+def taken(tag, per=4):
+    """`--taken`: the labelled pet tags called players, each with frames where its track holds another width."""
+    import cv2
+    import frames as rec
+    rows = []
+    for cap in RP.L5_CAPS:
+        res = RP.load(cap, tag=tag)
+        by = {f["n"]: f for f in res["frames"]}
+        trs = {t["id"]: t for t in res["tracks"]}
+        lab = json.loads((RP.LABELS / cap / "labels" / "L5.json").read_text(encoding="utf-8"))
+        c = RP.dump.clip_of(cap)
+        for n, fr in sorted(lab["frames"].items(), key=lambda p: int(p[0])):
+            n = int(n)
+            f = by[n]
+            idx = {tuple(b): i for i, b in enumerate(f["tags"])}
+            for e in fr["tags"]:
+                i = idx.get(tuple(e["box"]))
+                if e["class"] != "pet" or i is None or f["cls"][i] != "player":
+                    continue
+                tid = f["trk"][i]
+                tr = trs[tid]
+                other = [h[0] for h in tr["hist"] if abs(h[3] - e["box"][2]) > 1]
+                pick = [other[int(k * (len(other) - 1) / 2)] for k in range(3)] if other else []
+                cells = []
+                for m in [n] + pick:
+                    g = by.get(m)
+                    img = rec.read(c.run, rec.name_of(m))
+                    box = next((g["tags"][j] for j, t in enumerate(g["trk"]) if t == tid), None) if g else None
+                    if img is None or box is None:
+                        continue
+                    cells.append(cell(cv2, img, box, (f"pet {cap[-4:]} case {fr.get('case')} track {tid} w{tr['w']}",
+                                                      f"n{m}{' LABEL' if m == n else ''} box w{box[2]}")))
+                while len(cells) < per:
+                    cells.append(np.zeros((380, 440, 3), np.uint8))
+                rows.append(np.hstack(cells[:per]))
+    p = RP.OUT / f"heights_pet_taken{'_' + tag if tag else ''}.png"
+    if rows:
+        cv2.imwrite(str(p), np.vstack(rows))
+    print(p, len(rows), "labelled pet tags called players")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--q", type=int, default=90)
     ap.add_argument("--k", type=int, default=6)
     ap.add_argument("--per", type=int, default=4)
+    ap.add_argument("--taken", action="store_true")
+    ap.add_argument("--tag", default="")
     a = ap.parse_args()
+    if a.taken:
+        return taken(a.tag, a.per)
     import cv2
     import frames as rec
     tracks = {"pet": [], "player": []}
