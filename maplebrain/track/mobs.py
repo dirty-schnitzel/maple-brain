@@ -48,8 +48,9 @@ the camera, the players' tags, the drops, our tag) -> the mob records (track/sta
    because the death fades it out); tentative until confirmed (then a `mob_new` event).
 6. THE HP METERS (PLAN-tracker step 5a; perception/meters.py finds them and reads each one's green share): a meter
    names the fit's sightings whose expected meter box it is at; it teaches `hp` (0..1) and `hp_t` to the one track
-   whose sighting it names alone, when its fill was read and no other track overlaps that mob (`_overlapped`; design 1:
-   a meter over two overlapping mobs teaches nothing). `hp` is kept while the track lives; None = never read.
+   whose sighting it names alone, when its fill was read and no track NOT seen on this frame (remembered, hidden,
+   tentative unseen) overlaps that mob (`_overlapped`; step 5a, try 2: perception's one candidate is trusted among the
+   seen). `hp` is kept while the track lives; None = never read.
 A frame without a camera (blind) changes nothing: the records keep their values with cover "blind" and `seen` False
 (nothing is found on it; the prototype kept a track seen on the frame before "seen" through the blind frames).
 Events: mob_new (confirmed; how born), mob_died (a die pose seen, its animation over), mob_gone (its places show the
@@ -751,8 +752,8 @@ class MobTracker:
     def _meters(self, facts, t: float):
         """Perception's HP meters (facts.meters, perception/meters.py: each names the fit's sightings whose expected
         meter box it is at) -> the tracks' `hp`, `hp_t`. A meter teaches ONE track: it names one sighting, that
-        sighting is this track's on this frame, its fill was read, and no other track stands over this mob (design
-        1: a meter over two overlapping mobs teaches nothing). Nothing else changes `hp`: it is kept while the track
+        sighting is this track's on this frame, its fill was read, and no track unseen on this frame can stand over
+        this mob (`_overlapped`). Nothing else changes `hp`: it is kept while the track
         lives (no HP guessed, no healing modelled)."""
         ms = getattr(facts, "meters", None)
         if not ms:
@@ -765,21 +766,23 @@ class MobTracker:
             elif fill is None:
                 self.stats["meter: fill not seen"] += 1
             elif self._overlapped(tr):
-                self.stats["meter: over two mobs"] += 1
+                self.stats["meter: over an unseen mob"] += 1
             else:
                 tr.hp, tr.hp_t = float(fill), t
                 self.stats["meter: taught"] += 1
 
     def _overlapped(self, tr: _Tr) -> bool:
-        """Another track (seen, remembered or tentative; not dying: a dead mob's meter is gone) whose body's x range -
-        a remembered one's anywhere it can be - meets this one's, its feet within meter_same_dy up or down."""
+        """Another track NOT seen on this frame (remembered, hidden, tentative unseen; not dying: a dead mob's meter is
+        gone) whose body's x range - a remembered one's anywhere it can be - meets this one's, its feet within
+        meter_same_dy up or down: a hidden mob under the meter could be its owner. A SEEN track does not block
+        (step 5a, try 2, the user: "trust the candidate" - perception's place rule already chose among the seen)."""
         k = self.kinds[tr.mob]
         lo, hi = tr.x - k.half_w, tr.x + k.half_w
         for u in self.tracks:
-            if u is tr or u.life == "dying" or abs(u.y - tr.y) > self.cfg.meter_same_dy:
+            if u is tr or u.seen or u.life == "dying" or abs(u.y - tr.y) > self.cfg.meter_same_dy:
                 continue
             hw = self.kinds[u.mob].half_w
-            if not u.seen and u.poss is not None and u.poss.ndim == 1 and u.poss.any():
+            if u.poss is not None and u.poss.ndim == 1 and u.poss.any():
                 px = u.gx[u.poss]
                 ulo, uhi = float(px.min()) - hw, float(px.max()) + hw
             else:

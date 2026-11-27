@@ -91,6 +91,7 @@ def clip_of(cap):
     return rec.clip(cap, False, "track/dump.py")
 
 
+SELF_TAG = None                  # --self-tag: another character's own-tag picture (None: the warrior's, in assets/)
 KEPT = "track"                   # the kept replay's folder under CORPUS/work/SESSION#K: `track` = the one the plan's
                                  # numbers were measured on (never overwritten: PLAN-tracker stop rule 5); another
                                  # name = a new kept replay (dump.py --out NAME; readers: set dump.KEPT first)
@@ -147,7 +148,7 @@ def dump(cap, t0: float, t1: float, force: bool) -> None:
         if p.exists():
             p.unlink()
     fr = c.frames(t0, t1)
-    per = replay.bench_module().build(c.map_id)[0]
+    per = replay.bench_module().build(c.map_id, self_tag=None if SELF_TAG is None else np.load(SELF_TAG))[0]
     tol = per.fitter.cfg.tol
     gpu_s = dec_s = 0.0
     rws, bts, k, nbytes, no_cam, n_done = [], [], 0, 0, 0, 0
@@ -217,6 +218,7 @@ def dump(cap, t0: float, t1: float, force: bool) -> None:
          "t": [fr[0][2], fr[-1][2]] if fr else None, "observe_s": round(gpu_s, 1), "decode_s": round(dec_s, 1),
          "wall_s": round(time.perf_counter() - t_start, 1), "bytes": nbytes, "code": commit,
          "maplebrain_dirty": bool(dirty), "made": time.strftime("%Y-%m-%dT%H:%M:%S"), "kept": KEPT,
+         "self_tag": SELF_TAG,
          "tracker_stats": dict(getattr(per.world, "stats", {}) or {})}
     (out / "meta.json").write_text(json.dumps(m, indent=1), encoding="utf-8")
     print(f"{cap}: map {c.map_id}, {n_done} frames ({no_cam} without a camera); observe {gpu_s:.0f} s, decode "
@@ -232,9 +234,12 @@ def main():
     ap.add_argument("--force", action="store_true")
     ap.add_argument("--out", default=None, help="the kept replay's folder name under CORPUS/work/SESSION#K (default "
                     "`track`, the plan's: refused - a new kept replay goes into its own folder, stop rule 5)")
+    ap.add_argument("--self-tag", default=None, help="another character's own-tag picture (.npy; meter_ranged.py "
+                    "`tag`): the Perceiver finds US by it (default: the warrior's assets/self_tag_gray.npy)")
     a = ap.parse_args()
-    global KEPT
+    global KEPT, SELF_TAG
     KEPT = a.out or KEPT
+    SELF_TAG = a.self_tag
     if KEPT == "track" and a.force:
         raise SystemExit("--force on `track` would overwrite the plan's kept replay (PLAN-tracker stop rule 5): "
                          "make a new one with --out NAME")

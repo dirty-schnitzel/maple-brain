@@ -40,9 +40,10 @@ def machine() -> str:
     return f"{platform.node()} | {gpu}"
 
 
-def build(map_id: int, scene_tol: int = 4):
+def build(map_id: int, scene_tol: int = 4, self_tag=None):
     """The live rig for `map_id` (runner._load_map), a Perceiver, SelfTracker and BrainV2. `scene_tol`: the scene
-    camera's tolerance (native PNG frames: 4; a JPEG run: 30)."""
+    camera's tolerance (native PNG frames: 4; a JPEG run: 30). `self_tag`: another character's own-tag picture
+    (tools/perc/track/meter_ranged.py `tag`; None = the warrior's assets/self_tag_gray.npy)."""
     from maplebrain.brain.brain_v2 import BrainV2
     from maplebrain.config import Config
     from maplebrain.humanize import Humanizer
@@ -53,7 +54,8 @@ def build(map_id: int, scene_tol: int = 4):
     cfg = Config()
     cfg.perception.scene_tol = scene_tol
     hz = Humanizer(cfg.humanize.jitter, 1)
-    rig = Rig(cfg, hz, None, None, None, LieDetector.load(ASSETS), np.load(ASSETS / "self_tag_gray.npy"))
+    rig = Rig(cfg, hz, None, None, None, LieDetector.load(ASSETS),
+              np.load(ASSETS / "self_tag_gray.npy") if self_tag is None else self_tag)
     if not _load_map(rig, map_id, lambda msg: None):
         raise RuntimeError(f"map {map_id} not in assets")
     per = Perceiver(cfg, rig.self_tag, rig.kit, lie_detector=rig.lie, locator=rig.locator)

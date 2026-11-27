@@ -54,6 +54,13 @@ on 94.1 % of L9's frames (hidden meters), tied 45 of 110 (0 wrong; the overlap g
 the reader's ms p50 0.101 (the whole frame +0.00). **The user's answers (2026-11-27):** found 94.1 % and the ms
 accepted; the tie: trust perception's candidate among the seen mobs, the guard kept for remembered ones -> **step 5a,
 try 2** (its prompt under "Session prompts").
+**Step 5a, try 2 (2026-11-27, "Step 5a, try 2"): built; the tie MISSED - stopped, the user decides.** L9's meters whose
+fill was read: tied 61 of 83 (73.5 %, >= 99 % asked), 0 wrong; the 22 left are refused by the guard against unseen
+tracks (in 17 no hidden mob there has a meter; in 5 one has, drawn at its own place; the candidate right on all 22).
+Step 3's rows identical, the bot speed 17.1 ms. The user's choice: (a) drop the guard, (b) refuse only where more
+meters than seen mobs, (c) keep. The assassin (report only): the place rule 97.2 %, the window holds at 0-354 px, 0
+meters on a mob not hit; found: perception's own-tag picture is the warrior's (another character: no camera without
+its own), and a held attack key repeats casts.
 The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
 in this session on the kept replay (no GPU); the tools are in `tools/perc/track/` (branch `tracker-plan`).
 
@@ -1643,6 +1650,72 @@ same numbers):**
    Lucky Seven (the attack skill), z loot, 1 Haste, 2 Claw Booster, Del HP potion, End and Home MP potions. Not in
    `Keys` (config.py): a class's keys belong in step 6's profile; the tool takes them as an argument. No gate: the
    numbers go under "Step 5a, try 2" for the user.
+
+### Step 5a, try 2 (2026-11-27): "trust the candidate" built; tied 61 of 83, 0 wrong - the gate MISSED (stopped, the user decides); the assassin report beside it
+**Built:** `track/mobs.py` `_overlapped` skips every track seen on this frame - the guard stays only against tracks
+NOT seen (remembered, hidden, tentative unseen; dying excluded as before); its stat is now "meter: over an unseen
+mob"; the config comment and `docs/state_model.md`'s `hp` row say so. Tests (`tests/test_meters.py`, 17): "a meter
+over two overlapping seen mobs teaches the one it names" (the old guard test, changed) fails without the seen-skip;
+"a remembered mob that can be under it blocks the teaching" fails without the guard. Tools: `replay_meters.py l9`
+grades the meters whose fill was read apart and lists the guard's refusals with what blocks them + a sheet;
+`meter_ranged.py` (new, report only); `dump.py --self-tag` and `bench.build(self_tag=)` (below, the assassin).
+
+| Row (try 2) | Gate | Measured | |
+|---|---|---|---|
+| L9's meters whose fill the reader read (83): tied to the right mob | >= 99 %, wrong 0 | **61 of 83 (73.5 %), wrong 0** (try 1: 45). The 22 not tied: all refused by the guard - an unseen track can be under the mob | **MISSED** |
+| L9's unread fills (reported) | - | 27, not tied (fill not read), as in try 1 | - |
+| over the 13 captures: taught / refused | against try 1 | **taught 12,795** (try 1 10,560: +2,235); refused: over an unseen mob 3,014 (try 1's overlap 5,249), fill not seen 2,270, no track 1,423, two sightings 125 (the last three unchanged) | - |
+| step 3's rows (`pool` + `feet` + `labels`, t5a2 against t5a) | identical | **identical** (only the meter counts differ). The replay's ms p50 1.21 pooled was run beside 7 jobs and a GPU dump; alone on a quiet machine (Line 1 4-minute) **0.91** (t5a's file 1.09), the rows equal | met |
+| the reader's ms | as in try 1 | the reader not changed (0.101, accepted); the tie does less work (a seen track is skipped first) | met |
+| pytest (whole), bot speed | - | **green; 17.1 ms a tick** (p90 18.5; part `meters` 0.1, `track` 0.5) = try 1's 17.1 | - |
+
+**The 22 refused, looked at** (`meter\sheet_guard_t5a2_0.png`, `_1.png`: the seen track cyan, the unseen ones under
+it orange with their possible range): the tracks under them are hidden, covered by a mob 26, by us 6, by an effect 2.
+Counting the whole-screen finder's meters near each refused meter against the mobs seen there: **in 17 of 22 every
+meter near belongs to a seen mob** - the hidden track there has no meter of its own, so it cannot own this one (stale
+memory of a mob that left, or a mob we did not hit); **in 5 (case 12 twice, 50, 81, 89) more meters are drawn than
+mobs seen** - a hit mob really is hidden there, but its meter is drawn at its own place. In all 22 L9's eye says the
+candidate is the right mob (perception's one candidate: 110 of 110 found meters on L9).
+
+**For the user to decide (the tie, a third time):**
+- **(a) drop the guard: trust perception's one candidate** (its place rule, 3 px across / 2 up or down): L9 83 of 83.
+  The risk left: a hidden mob of the same kind and pose standing within 3 px behind a seen one - its meter on the
+  same box (over the 13 captures "two mobs at one place" was 0.8 % of meter-frames, both seen; L9 has no such case).
+- (b) refuse only where more meters are drawn near than mobs seen: 78 of 83 (94.0 %) - under 99 %.
+- (c) keep try 2 as built: 61 of 83 (73.5 %), never wrong.
+My reading: (a) - a meter is drawn over its own mob, so the box decides; a hidden mob is a risk only when it stands
+exactly behind the seen one.
+
+**The assassin, report only** (`20261126_200826_2#0` = `2026-11-26_2008_assassin_farming_idle_7m35s_s00`, Ant Tunnel
+IV, 27,343 frames; beside it the same map's spearman capture `20261118_232410_1#3`, 4,595 frames - only 1.3 minutes).
+- **Dropped frames: 0** (27,343 frames over 455.69 s = 60.0 a second; the longest gap 0.038 s): the overlap with try
+  1's CPU jobs did not touch it.
+- **Perception found US by a picture of the warrior's own name tag** (`assets/self_tag_gray.npy`, "JenkinsJob"): the
+  first kept replay had **no scene camera on any frame** (the camera is seeded by our tag). A "Beeperz" picture was
+  made the same way (`meter_ranged.py tag`: the median of 1,585 aligned crops; found on 429 of 456 frames, p50 0.97,
+  the best other place <= 0.65 against the 0.66 line - a thinner margin than the warrior's <= 0.59) and kept beside
+  the capture (`CORPUS\work\20261126_200826_2#0\self_tag_gray.npy`, not in assets/); `dump.py --self-tag` used it:
+  a camera on 27,343 of 27,343 frames. **Every other character's capture needs its own picture** (step 6's profile).
+- **The keys (the user, 2026-11-27):** `c` is the basic attack ("attack with throwing star (not lucky seven, still
+  throwing a star but costs no mana, animation is expected)"), beside space = Lucky Seven. `ctrl` (pressed once):
+  not known. Space was **held** once for 2.76 s: two new meters came inside the hold, 0.8 s apart - **a held attack
+  key casts again with no new key-down** (step 5's cast rule counts key-downs: holds must be added).
+
+| (each number beside the spearman's, same map) | assassin | spearman |
+|---|---|---|
+| attack key-downs | space 341, `c` 1 (+ the 2.76 s hold) | q 23, w 8, e 3 |
+| **the place rule**: meter-frames tied to exactly one seen mob (13 captures: 90.1 %) | **6,572 of 6,761 (97.2 %)**; off 2.2 %, no seen mob 0.4 %, two mobs 0.2 % | 671 of 709 (94.6 %) |
+| the reader: meters; fill read; one candidate | 7,099; 86.6 %; 95.0 % | 804; 75.0 %; 84.1 % |
+| the tracker: taught; refused (fill, no track, unseen under it, two sightings) | 5,841; 751, 340, 154, 13 | 537; 84, 126, 55, 2 |
+| **new meters against our attacks** | **39: 37 within 0.20-0.80 s of a key-down, 2 inside the held space; 0 on a mob we did not hit** | 5: 5 within |
+| **the delay against the distance** (clean: one key-down in the 1.3 s before, no hold) | n 17, **0.365-0.641 s** (p50 0.568) at 0-354 px; no trend (-0.21 ms a px, r -0.27): **the star's flight does not widen try 1's window** | n 2: 0.271, 0.480 at 84-102 px (try 1's q: 0.27-0.72) |
+| **30 random meters by eye** (`meter\ranged\random_<cap>_0..2.png`) | **30 real, 30 found; 25 taught - every one to the mob under it, the fill as drawn (0.00-0.91)**; 5 not taught: no fill read 4 (a ladder, a coin, a client window over it), the guard 1 | 30 real, 29 found (1 almost wholly behind another meter); 24 taught, each to the mob under it (a crowd, partly behind us); 5 not taught: no fill 2, the guard 3 |
+| meters cut by the screen's side (`cut_<cap>_0.png`) | 1 (35 frames, the right side): found from its white end, the right mob, fill 0.00 (the inside black) - right | 0 |
+| meters under the buffs (1 Haste, 2 Claw Booster) | **none to see**: 17 buff key-downs, no meter on screen within 1.5 s of one (cast on a ladder between fights); the Haste effect (`buffs_look.png`) is drawn over our body and gone by 0.8 s | - |
+| Ant Tunnel's scenery read as Zombie Mushroom with a meter | **0**: 23 Zombie tracks named by a meter, every one with hit / die poses and moving | 0 (3 tracks) |
+| the reader's ms in `read` (4 processes; not the live number) | p50 0.424 / p90 0.851 | 0.431 / 1.07 |
+So range changes nothing the meter rests on: the place rule ties more (97.2 %), the window holds, no meter on a mob we
+did not hit. What it adds: our own tag is per character, and a held key repeats casts (both for steps 5-6).
 
 ### Step 3b - spawn points as tracked things (added by the user, 2026-11-25; one executor session, measure then build)
 **The user, 2026-11-25:** "keeping track of the time since last spawn (on spawn point) is a valid tracking object. It

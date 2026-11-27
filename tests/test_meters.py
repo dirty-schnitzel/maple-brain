@@ -1,7 +1,8 @@
 """The HP meter (PLAN-tracker step 5a): perception/meters.py finds the meters over the mobs we hit and reads each one's
 green share, on frames drawn exactly as the client draws one (measured on the recordings: tools/perc/track/
 proto_meter.py); track/mobs.py ties a meter to its track (`hp`, `hp_t`) - only a meter that names one sighting, read,
-over no other mob. Its numbers on footage: the step's gate (PLAN-tracker "Step 5a")."""
+over no mob unseen on that frame (try 2: another SEEN mob does not block). Its numbers on footage: the step's gate
+(PLAN-tracker "Step 5a", "Step 5a, try 2")."""
 from types import SimpleNamespace
 
 import numpy as np
@@ -144,11 +145,12 @@ def test_a_meter_naming_two_sightings_teaches_nothing():
     assert [m.hp for m in trk.mobs()] == [None, None]
 
 
-def test_a_meter_over_two_overlapping_mobs_teaches_nothing():
-    trk = a_tracker()
+def test_a_meter_over_two_overlapping_seen_mobs_teaches_the_one_it_names():
+    trk = a_tracker()                                                 # try 2: "trust the candidate" among the seen
     trk.update(mfacts(0.0, [mob(600), mob(630)]), ev(False, True))
     trk.update(mfacts(0.1, [mob(600), mob(630)], meters=[(0, 0, 0.4, 48, (0,))]), ev(False, True))
-    assert [m.hp for m in trk.mobs()] == [None, None]                 # the bodies meet (40 px wide, 30 apart)
+    hp = {round(m.x_seen): m.hp for m in trk.mobs()}
+    assert hp == {600: 0.4, 630: None}                                # the bodies meet (40 px wide, 30 apart)
 
 
 def test_a_remembered_mob_that_can_be_under_it_blocks_the_teaching():

@@ -223,6 +223,8 @@ def cmd_l9(tag):
     cases = json.loads((L9_DIR / "cases.json").read_text(encoding="utf-8"))
     J = judged("a")
     runs, rep = {}, Counter()
+    byfill = {"read": Counter(), "unread": Counter()}             # the found meters over a lettered mob, by fill
+    guard = []                                                     # refused by the overlap guard (try 2: unseen only)
     fills, rows_out, frame_found = [], [], []
     for k, case in enumerate(cases):
         j = J.get(k)
@@ -280,17 +282,23 @@ def cmd_l9(tag):
             else:
                 rep["  cand alone: " + ("none" if not g[4] else "two")] += 1
             tt = R.taught(n, g)
+            fr_ = "read" if g[2] is not None else "unread"          # try 2's gate: the meters whose fill was read
             if tt is None:
                 rep["  mob: not tied (taught no track)"] += 1
                 why = ("no mob's expected box within the tie" if not g[4] else "two mobs' expected boxes" if
                        len(g[4]) > 1 else "fill not read" if g[2] is None else
                        "its sighting has no track" if R.track_of(n, g[4][0]) is None else
-                       "another track overlaps the mob")
+                       "an unseen track can be under it (the overlap guard)")
                 rep["    not tied: " + why] += 1
+                byfill[fr_]["not tied: " + why] += 1
+                if why.startswith("an unseen track"):
+                    guard.append((k, cap, n, g, R.track_of(n, g[4][0]), want, lab.get("fill")))
             elif tt["id"] == want:
                 rep["  mob: tied right"] += 1
+                byfill[fr_]["tied right"] += 1
             else:
                 rep["  mob: tied WRONG"] += 1
+                byfill[fr_]["tied WRONG"] += 1
                 rows_out.append(("tied wrong", k, cap, n, lab, tt["id"], want))
         frame_found.append(all_found)
     for key in sorted(rep):
@@ -308,8 +316,77 @@ def cmd_l9(tag):
     if tr + tw + nt:
         print(f"  tied to the right mob: {tr} of {tr + tw + nt} ({100 * tr / (tr + tw + nt):.1f} %); wrong {tw}, not "
               f"tied {nt}")
+    for fr_, c in byfill.items():                 # step 5a, try 2: graded on the meters whose fill the reader read
+        tot = sum(c.values())
+        if tot:
+            print(f"  fill {fr_}: {tot} meters over a lettered mob - tied right {c['tied right']} "
+                  f"({100 * c['tied right'] / tot:.1f} %), wrong {c['tied WRONG']}; "
+                  + ", ".join(f"{k} {v}" for k, v in sorted(c.items()) if k.startswith("not tied")))
     for r in rows_out:
         print("   ", r)
+    if guard:
+        guard_report(guard, runs, tag)
+
+
+def blockers(R, n, tr, same_dy=40.0) -> list:
+    """The tracks NOT seen on frame n (not dying) that the tracker's overlap guard finds under the seen track `tr` (its
+    rows: a remembered one's `can` range, else its x; half body widths from the first stand / move / fly frame)."""
+    out = []
+    for u in R.rows[n]["mobs"]:
+        if u["id"] == tr["id"] or u["src"] == "acq" or u["state"] == "dying" or abs(u["y"] - tr["y"]) > same_dy:
+            continue
+        hw, hwt = half_w(R, u["mob"]), half_w(R, tr["mob"])
+        lo, hi = (u["can"][0] - hw, u["can"][1] + hw) if u.get("can") else (u["x"] - hw, u["x"] + hw)
+        if lo <= tr["x"] + hwt and hi >= tr["x"] - hwt:
+            out.append(u)
+    return out
+
+
+def half_w(R, mob) -> float:
+    if not hasattr(R, "_hw"):
+        R._hw = {}
+    if mob not in R._hw:
+        fr = (load.Map(load.map_of(R.cap)).mobs.get(mob) or {}).get("frames") or {}
+        f = next((fr[a][0] for a in ("stand", "move", "fly") if fr.get(a) and fr[a][0].get("lt")), None)
+        R._hw[mob] = 0.0 if f is None else (f["rb"][0] - f["lt"][0]) / 2
+    return R._hw[mob]
+
+
+def guard_report(guard, runs, tag):
+    """Try 2: L9's meters the overlap guard refused - per case the seen track, the unseen tracks under it (state,
+    cover, s unseen, dx from the seen track, its possible range); and a picture sheet of exactly these cases."""
+    import cv2
+    import proto_meter as PM
+    print(f"\n  REFUSED BY THE GUARD (an unseen track can be under the mob): {len(guard)}")
+    kinds = Counter()
+    tiles = []
+    for k, cap, n, g, tr, want, lf in guard:
+        R = runs[cap]
+        bl = blockers(R, n, tr)
+        desc = [(u["id"], u["state"], u["cover"], u["unseen"], round(u["x"] - tr["x"]), round(u["y"] - tr["y"]),
+                 u.get("can")) for u in bl]
+        kinds.update(f"{u['state']} / {u['cover']}" for u in bl)
+        print(f"    case {k} {cap} n {n}: meter fill {g[2]:.2f} (eye {lf}) over track {tr['id']} (= L9's {want}); "
+              f"under it: {desc}")
+        img = PM.read_frame(cap, n)
+        marks = [(tr["sx"], tr["sy"], f"{tr['id']} seen", (255, 255, 0))]
+        C = R.kept[n]["C"]
+        for u in bl:
+            marks.append((u["sx"], u["sy"], f"{u['id']} {u['state']} {u['unseen']}s", (0, 128, 255)))
+        t = PM.tile(img, g[0] + 26, g[1] + 45, 260, 150, 3, marks,
+                    f"case {k} n{n}: fill {g[2]:.2f}; guard: {len(bl)} unseen")
+        for u in bl:                                    # its possible range (map x) as a line at its feet
+            if u.get("can") and C is not None:
+                ox, oy = g[0] + 26 - 130, g[1] + 45 - 75
+                a, b = int((u["can"][0] - C[0] - ox) * 3), int((u["can"][1] - C[0] - ox) * 3)
+                y = int((u["sy"] - oy) * 3) + 22
+                cv2.line(t, (a, y), (b, y), (0, 128, 255), 2)
+        tiles.append(t)
+    print(f"    the unseen tracks under them, by state / cover: {dict(kinds)}")
+    for i in range(0, len(tiles), 12):
+        p = out_dir() / f"sheet_guard_{tag}_{i // 12}.png"
+        cv2.imwrite(str(p), PM.grid(tiles[i:i + 12], 3))
+        print(f"    sheet: {p}")
 
 
 # ------------------------------------------------------------------ time: the live Perceiver
