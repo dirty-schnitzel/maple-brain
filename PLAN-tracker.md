@@ -2164,7 +2164,9 @@ picture sheet of 30 random meters + every meter cut by the screen's side, judged
 the delay from a space key-down to a NEW meter against the distance from us to the mob (does the star's flight
 widen try 1's window MWIN 0.20-0.80?); any new meter with no space key-down in a window (look at each: stop rule as
 in try 1 - a meter on a mob we did not hit breaks step 5's witness); meters under the buff effects (1, 2); Ant
-Tunnel's scenery read as Zombie Mushroom carrying a meter (should be never). When try 2's gate is met: step 5a DONE
+Tunnel's scenery read as Zombie Mushroom carrying a meter (should be never). Each number beside the same map's
+spearman capture, 20261118_232410_1#3 (Ant Tunnel IV, kept replay exists): range against the map. The whole 7.6
+minutes (the user, 2026-11-27). When try 2's gate is met: step 5a DONE
 in the status lines, the steps table and HANDOFF.md (the handoff skill), the assassin's report beside it.
 ```
 ```text
