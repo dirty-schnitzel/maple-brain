@@ -51,7 +51,9 @@ stopped, the user decides.** Measured: one place rule for every kind (30 px over
 it), a meter only after our hit (0 on a mob we did not hit), the lost part red fading to black in 2 s. Met: the fill
 (83 of 83 within 3 points), 0 meters on a mob not hit, step 3's rows identical, L9's second look 100 %. Missed: found
 on 94.1 % of L9's frames (hidden meters), tied 45 of 110 (0 wrong; the overlap guard and unread fills leave the rest),
-the reader's ms p50 0.101 (the whole frame +0.00).
+the reader's ms p50 0.101 (the whole frame +0.00). **The user's answers (2026-11-27):** found 94.1 % and the ms
+accepted; the tie: trust perception's candidate among the seen mobs, the guard kept for remembered ones -> **step 5a,
+try 2** (its prompt under "Session prompts").
 The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
 in this session on the kept replay (no GPU); the tools are in `tools/perc/track/` (branch `tracker-plan`).
 
@@ -1626,6 +1628,16 @@ rules reverted: their tests fail).
 Also: this session's CPU jobs (8 decoders, ~20:20-20:35) overlapped the user's `record --label assassin` of 20:07:
 check that recording's dropped frames when it is filed.
 
+**The user's answers (2026-11-27; the plan manager re-ran `replay_meters.py l9 --tag t5a` and `test_meters.py`: the
+same numbers):**
+1. Found 94.1 %: **accepted** ("ok").
+2. The tie: **"trust the candidate"** - a meter whose perception candidate is one seen sighting teaches that sighting's
+   track, whatever other SEEN track overlaps it (perception's place rule already chose among the seen: 110 of 110 on
+   L9); the overlap guard stays only against REMEMBERED tracks (not seen on this frame: a hidden mob under the meter
+   could be its owner). Built and measured in **step 5a, try 2**. The tie is graded on the meters whose fill was read
+   (83 on L9: a meter with no fill read teaches nothing, unchanged); the 27 unread fills are reported.
+3. The ms 0.101: **accepted** ("the speed ok").
+
 ### Step 3b - spawn points as tracked things (added by the user, 2026-11-25; one executor session, measure then build)
 **The user, 2026-11-25:** "keeping track of the time since last spawn (on spawn point) is a valid tracking object. It
 would not be trying to add predictive abilities to the tracking behavior (my original rule), it is a part of
@@ -2118,6 +2130,24 @@ in a band above the mobs, not the whole screen; the mob tracker ties each meter 
 design 1), in shadow; docs/state_model.md gets the field with the user's words. Tests (each fails without its rule).
 Gate: step 5a's row (ms p50 <= 0.1; more than 1 ms added a frame: stop and discuss); step 3's rows unchanged;
 pytest + the bot speed line. Numbers into the plan under "Step 5a"; a gate missed: stop.
+```
+```text
+Tracker, step 5a, try 2 (the tie: trust the candidate). Read PLAN-tracker.md - "Step 5a, 2026-11-26" and the user's
+answers under it, design 1, the stop rules - and maplebrain/track/mobs.py `_meters` / `_overlapped`,
+perception/meters.py, tools/perc/track/replay_meters.py. Branch tracker-build (the main folder).
+Change only the tie in track/mobs.py: a meter whose candidate is one seen sighting, its fill read, teaches that
+sighting's track even when another SEEN track overlaps it; the overlap guard stays only against tracks NOT seen on
+this frame (remembered, hidden, tentative not seen; dying ones excluded as now). The reader, the place rule, the fit
+and everything else unchanged. Tests: the seen-overlap case now taught, the remembered-overlap case still refused
+(each fails without its rule); the old guard test changed to match.
+Run replay_mobs.py run --sound --meters --tag t5a2, replay_meters.py l9 --tag t5a2, replay_mobs.py pool + feet +
+labels, the whole pytest.
+Gate: on L9's meters whose fill the reader read (83 in try 1): tied to the right mob >= 99 %, wrong 0 (one wrong:
+stop with the case and its picture); the not-tied ones by reason; the 27 unread fills reported, not graded. Over the
+13 captures: taught / refused by reason against try 1's (10,560 taught; refused 5,249 overlap, 2,270 fill, 1,423 no
+track, 125 two sightings). Step 3's rows identical to t5a; the ms row as in try 1 (accepted 0.101, the whole frame
++0.00); the bot speed line. Numbers into the plan under "Step 5a, try 2"; a gate missed: stop. When met: step 5a
+DONE in the status lines, the steps table and HANDOFF.md (the handoff skill).
 ```
 ```text
 Tracker, step 5 (events, with the HP meter). Needs steps 3-4, 5a and step 1's labels L4. Read PLAN-tracker.md -
