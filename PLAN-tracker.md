@@ -503,6 +503,9 @@ levels, the weapon); Skill.img built into `assets/mcw`; measured live: our walk 
 files' (the factor 2.0 lives here, with its source). **Observed beats the rules** (the user, 2026-11-24,
 question 3): where a measured value and the v83 rule clash, the measured one is used and the rule's number is
 kept beside it as its source. The HP items' x 1.24 = the warrior's passive healing-bonus skill (question 7).
+**The user, 2026-11-27: "Hotkeys should be fully modular, changing values of items should be in config file"** -
+no key, skill or item bound in code: which key holds what is set in the config / profile only, so a class or a
+moved item is a config edit (the first two: the warrior's `Keys`, the assassin's keys under "Step 5a" answer 4).
 
 **10. Stored:** the tables of state_model.md 8, written by the recorder and the hunt, readable with a field
 added later.
