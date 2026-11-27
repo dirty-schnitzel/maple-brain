@@ -436,10 +436,13 @@ written with arrays, not loops, to stay at today's 0.7 ms.
 nothing in it knows the brain. Per frame it gets perception's facts (`FrameFacts`: the fit's sightings, the drop
 finder's, the name tags, our tag, the HUD's numbers, the slots, the camera), our key events since the last frame,
 and an *evidence* handle; it returns the state of `docs/state_model.md` (the frame, us, mobs, drops, players)
-and the events since the last frame. **Clean sightings teach, crowded ones only follow (the user, 2026-11-26):**
-what a thing IS - a player's or pet's class, a body's height, a name's width, a mob's kind, a death - is learned
-only from sightings where it is seen alone and whole; a sighting that overlaps another thing (tags touching, bodies
-over each other) keeps the track going and moves it, never relabels it. Built for players and pets in step 4b;
+and the events since the last frame. **Clean sightings teach first, crowded ones may teach too (the user,
+2026-11-26; relaxed 2026-11-27: "Lets relax this rule, it is best if possible to classify something when it is
+alone, but not mandatory"):** what a thing IS - a player's or pet's class, a body's height, a name's width, a mob's
+kind, a death, a mob's HP - is best learned from sightings where it is seen alone and whole; a sighting that overlaps
+another thing (tags touching, bodies over each other) may teach too when its own evidence names one thing (the HP
+meter's box: step 5a), and a clean sighting's reading is preferred over a crowded one's. Step 4b's players and pets
+were built under the strict rule and stay as built (their gates met). Built for players and pets in step 4b;
 mobs' overlaps (swapped ids, a death read on the wrong mob) are checked in step 5. Fixed inputs: the graph and the facts registry. A frame without a camera
 changes nothing (`cover = blind`).
 
@@ -1720,6 +1723,14 @@ IV, 27,343 frames; beside it the same map's spearman capture `20261118_232410_1#
 So range changes nothing the meter rests on: the place rule ties more (97.2 %), the window holds, no meter on a mob we
 did not hit. What it adds: our own tag is per character, and a held key repeats casts (both for steps 5-6).
 
+**The user's answers (2026-11-27; the plan manager re-ran `replay_meters.py l9 --tag t5a2`: the same numbers):**
+design 1 relaxed - "Lets relax this rule, it is best if possible to classify something when it is alone, but not
+mandatory" (design 1 and `docs/state_model.md` say so) - so the tie is **(a): the guard goes**, perception's one
+candidate decides; a meter naming two sightings and an unread fill still teach nothing. **The user's idea: "could we
+use the meters to help when mobs overlap?"** - measured first, in the close session (report only): ids at
+crossings, a hidden hit mob placed by its meter, a death on the right one of two overlapping mobs. A build, if the
+numbers call for it, is a step of its own before step 5. -> **"Step 5a, close"** (its prompt under "Session prompts").
+
 ### Step 3b - spawn points as tracked things (added by the user, 2026-11-25; one executor session, measure then build)
 **The user, 2026-11-25:** "keeping track of the time since last spawn (on spawn point) is a valid tracking object. It
 would not be trying to add predictive abilities to the tracking behavior (my original rule), it is a part of
@@ -2244,6 +2255,35 @@ Tunnel's scenery read as Zombie Mushroom carrying a meter (should be never). Eac
 spearman capture, 20261118_232410_1#3 (Ant Tunnel IV, kept replay exists): range against the map. The whole 7.6
 minutes (the user, 2026-11-27). When try 2's gate is met: step 5a DONE
 in the status lines, the steps table and HANDOFF.md (the handoff skill), the assassin's report beside it.
+```
+```text
+Tracker, step 5a, close (the guard goes) + the meters at overlaps, measured. Read PLAN-tracker.md - design 1 (relaxed
+by the user 2026-11-27), "Step 5a, try 2" and the user's answers under it, measurement 1, the stop rules - and
+maplebrain/track/mobs.py `_meters` / `_overlapped`, tools/perc/track/replay_meters.py, replay_mobs.py, proto_mobs.py
+(the fair counts), oracle.py. Branch tracker-build (the main folder). No GPU needed.
+PART 1, build: the tie's guard against unseen tracks goes - a meter whose candidate is one seen sighting, its fill
+read, teaches that sighting's track. Still refused: a meter naming two sightings, an unread fill, no track. Keep
+"an unseen mob could be under it" as a COUNTED stat (not a refusal), for step 5. Tests: the remembered-overlap case now
+taught and counted (fails without the change); the two-sightings case still refused. Run replay_mobs.py run --sound
+--meters --tag t5a3, replay_meters.py l9 --tag t5a3, replay_mobs.py pool + feet + labels, the whole pytest.
+Gate: L9's meters whose fill was read: tied to the right mob >= 99 % (try 2: 61 of 83; the 22 refused all right by
+eye), wrong 0 (one wrong: stop with the case and its picture); over the 13 captures taught / refused against try 2's
+(12,795; 3,014 unseen, 2,270 fill, 1,423 no track, 125 two sightings); step 3's rows identical to t5a2; the bot speed
+line. Met: step 5a DONE in the status lines and the steps table.
+PART 2, REPORT ONLY (nothing built; the user's idea "could we use the meters to help when mobs overlap?"), on the
+t5a3 rows of the 13 captures against the truth's fair counts:
+ a. ids: of step 3's id errors (an id changed across a cover, a life split in two ids, "the track changed mob", the
+    two-of-a-kind swaps at crossings), how many had a meter on at least one of the mobs involved within the error's
+    time, and in how many the meters alone (one has one and the other not, or the fills differ by more than 3
+    points) would have told the two apart - by kind of error and by capture;
+ b. hidden hit mobs: meter-frames with no seen sighting under the meter (try 1's "no track" / "the mob not seen" 6.9 %)
+    where a remembered track of that kind can be there: how often, how long, and how far the meter's place (x = the
+    box's centre, the body's top = the box's top + 30) is from where the track later reappears, against the
+    tracker's own possible range;
+ c. deaths while two mobs overlap: the death the tracker put against the mob whose meter went at the killing hit -
+    agree / differ, each difference looked at.
+A picture sheet of the cases in a-c where the meter would have decided (up to 30). Numbers under "Step 5a, close";
+the user decides whether a build step comes before step 5. End with the handoff skill.
 ```
 ```text
 Tracker, step 5 (events, with the HP meter). Needs steps 3-4, 5a and step 1's labels L4. Read PLAN-tracker.md -

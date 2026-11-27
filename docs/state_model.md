@@ -168,11 +168,13 @@ Targets are proposals; "today" is `world.py` on the 13 sound captures (REPORT-tr
 | `seen`, `cover`, `unseen_s` | as a mob | the tracker | - |
 Not perceived, so not fields: a player's facing, what it does, its party.
 
-**Clean sightings teach, crowded ones only follow** (the user, 2026-11-26, on the sheet of pet tracks holding their
-owners' name tags: "players and pets should be classified when not obstructed"). What a thing IS - a player's or a
-pet's class, a body's height, a name's width, a mob's kind, a death - is learned only from sightings where it is seen
-alone and whole. A sighting that overlaps another thing (name tags touching, bodies over each other) keeps the track
-going and moves it, never relabels it. For players and pets (PLAN-tracker step 4b, try 3): a track whose name's width
+**Clean sightings teach first, crowded ones may teach too** (the user, 2026-11-26, on the sheet of pet tracks holding
+their owners' name tags: "players and pets should be classified when not obstructed"; relaxed 2026-11-27: "Lets relax
+this rule, it is best if possible to classify something when it is alone, but not mandatory"). What a thing IS - a
+player's or a pet's class, a body's height, a name's width, a mob's kind, a death, a mob's HP - is best learned from
+sightings where it is seen alone and whole. A sighting that overlaps another thing (name tags touching, bodies over
+each other) may teach too when its own evidence names one thing (the HP meter's box), and a clean sighting's reading is
+preferred over a crowded one's. For players and pets (built under the strict rule, kept as built) (PLAN-tracker step 4b, try 3): a track whose name's width
 is sure continues only on a box of that width; a box where two names run together is split by the widths known; the
 class, the body's height and the name's width learn only from tags standing alone (no other tag within 12 px on its
 rows, no other character's body in its column). Mobs' overlaps (swapped ids, a death read on the wrong mob) are
