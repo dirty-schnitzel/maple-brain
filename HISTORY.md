@@ -4825,3 +4825,31 @@ From "Waiting on the user" (answered 2026-11-27: found and the ms accepted, the 
 From "Open items" (checked 2026-11-27 by step 5a try 2: 27,343 frames over 455.69 s, 0 dropped):
 - **The user's `record --label assassin --label farming` (2026-11-26, from 20:07)** ran while step 5a's CPU jobs (8
   decoders, ~20:20-20:35) did: check that recording's dropped frames when it is filed (`corpus-check`).
+
+## 2026-11-27 - tracker step 5a try 2 and its decision (moved from HANDOFF.md)
+From the order table's step 4 row (replaced by step 5a's close, e9776a5):
+**Step 5a:** try 1 (b3d7bc2) missed 3 rows - the user accepted found 94.1 % and the ms 0.101 and chose "trust the candidate" for the tie; **try 2 (02b473f, the plan's "Step 5a, try 2") built it and MISSED: L9's meters with a read fill tied 61 of 83 (73.5 %, >= 99 % asked), 0 wrong** - the 22 left are refused by the guard against unseen tracks (in 17 no hidden mob there carries a meter; in 5 one does, drawn at its own place; the candidate right on all 22); step 3's rows identical, bot speed 17.1 ms; the assassin report beside it. **The user picks (a) drop the guard / (b) refuse only where more meters than seen mobs (78 of 83) / (c) keep (61 of 83); (a) or (b) = try 3, an executor (Opus, medium) whose prompt the plan manager writes.
+
+From "Waiting on the user" (the user answered (a), design 1 relaxed, 2026-11-27):
+- **Step 5a's tie** (PLAN-tracker "Step 5a, try 2"; sheets `meter\sheet_guard_t5a2_0..1.png`): (a) drop the guard - the
+  candidate decides (L9 83 of 83; risk: a hidden mob of one kind and pose within 3 px behind the seen one), (b) refuse
+  only where more meters than seen mobs (78 of 83), (c) keep try 2 (61 of 83, never wrong). Claude's reading: (a).
+- **The fade-in measured on Classic World: 0.82 s** (v83 E3: 0.32 s; PLAN-tracker "Step 3b, try 2") - into
+  `docs/game_rules.md` E3 as observed? (not asked yet)
+- **`PLAN-tracker.md` (APPROVED 2026-11-24): question 8** (EXP in the kill rule), put to the user by step 5's
+  session. Questions 1-7 answered and written into the plan: observed data beats server rules, no pets, players'
+  cover 2 s, no buffs / cooldowns for the warrior, HP x 1.24 = the warrior's passive; the empty-place rule 40 %.
+- The "explained" reading of PLAN-data's stop rule (REPORT-track-before.md section 3), to confirm or change:
+  map places the scene model misses on more than half of the frames that show them (what moves over the
+  scenery does not count). PLAN-moving-scenery.md assumes it.
+(The last three stay open in HANDOFF.md, shortened.)
+
+From "Branches (2026-11-26)" (rewritten shorter, nothing dropped):
+- `dev` holds everything: `rules`, `claude-arch`, `tracker` and `data` are merged into it (2026-11-21, on the
+  user's word) and can be deleted. One worktree is registered that is not this layout's: `wt64`, detached at
+  64f9713, in another session's scratchpad - leave it to that session.
+- `moving-scenery` and `tracker-plan`: merged into `dev` (2026-11-23 / 11-24), nothing missing; can be deleted.
+- **`tracker-build`** (2026-11-24, off `dev` at 8f00b8e): PLAN-tracker's steps; **the main folder is on it** (at
+  step 5a try 2, 02b473f, pushed). `dev` is merged into it (steps 2 and 7 are in); a step that runs beside another
+  works in its own worktree on `tracker-build-<step>` and is merged back. `tracker-build-drops` (step 4a) is merged into it (2026-11-25) and can be
+  deleted with its worktree `.claude/worktrees/drops`. `.claude/worktrees/slots`: an empty leftover, deletable.
