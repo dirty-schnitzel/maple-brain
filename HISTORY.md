@@ -4812,3 +4812,16 @@ From "Open items":
   13 L5 pets called players: the boxes merge and part - fixed by try 3's design 1); a spear attack stance reads 10-22 px between the legs; try 1's
   "the GPU transfer waits ~0.4 ms" was wrong - the GPU is idle there (a sync costs 0.03 ms), the cost is Python and
   torch calls (`ask_columns` 0.37 ms for one tag).
+
+## 2026-11-27 - tracker step 5a, try 1's state and questions (moved from HANDOFF.md)
+Replaced by step 5a try 2 (PLAN-tracker "Step 5a, try 2"). From the order table's status cell:
+**Step 5a built in shadow, its gate MISSED on 3 rows** (b3d7bc2; the plan's "Step 5a, 2026-11-26"): met - the fill 83 of 83 within 3 points, 0 meters on a mob we did not hit, step 3's rows identical, L9's second look 100 %; missed - found on 94.1 % of L9's frames (meters hidden behind another meter or digits), tied 45 of 110 (0 wrong: the overlap guard and unread fills leave the rest; perception's one candidate alone 110 of 110), the reader's ms p50 0.101 (the frame +0.00). **The user answers the plan's 3 questions there; then step 5 (events, xhigh, with the meter) and 6 (facts + profile + Skill.img, medium) beside each other**
+
+From "Waiting on the user" (answered 2026-11-27: found and the ms accepted, the tie "trust the candidate"):
+- **Step 5a's 3 questions** (PLAN-tracker "Step 5a, 2026-11-26", "For the user to decide"): accept found 94.1 % or
+  place a meter with no white end at its mob's expected box; the tie - the overlap guard as built (45 of 110 taught, 0
+  wrong) or perception's one candidate among seen mobs (110 of 110); accept the reader's ms p50 0.101 or a speed pass.
+
+From "Open items" (checked 2026-11-27 by step 5a try 2: 27,343 frames over 455.69 s, 0 dropped):
+- **The user's `record --label assassin --label farming` (2026-11-26, from 20:07)** ran while step 5a's CPU jobs (8
+  decoders, ~20:20-20:35) did: check that recording's dropped frames when it is filed (`corpus-check`).

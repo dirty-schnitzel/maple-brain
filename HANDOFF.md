@@ -5,7 +5,7 @@ what is true NOW and what comes NEXT. The `handoff` skill rewrites it at the end
 appended to. Everything older is in HISTORY.md (grep it; what left this file on 2026-11-21 is its last
 blocks). Rules that stay true: CLAUDE.md and .claude/rules/. Plans and their progress: PLAN-*.md.
 
-## START HERE (2026-11-26): `PLAN-tracker.md` - steps 1-4b, 7 DONE; 5a built, gate MISSED: the user decides
+## START HERE (2026-11-27): `PLAN-tracker.md` - steps 1-4b, 7 DONE; 5a try 2 built, the tie MISSED: the user decides
 
 **The user's goal (2026-11-19):** "have a great perception / tracking / data model in order to feed that into an
 ai to see how many hours of farming on a specific map with a specific class and style are needed to teach it to
@@ -22,7 +22,7 @@ that led to it: HISTORY.md, the block of 2026-11-24).
 ### The order from here
 | # | Session | Run as | Status | Prompt |
 |---|---|---|---|---|
-| 4 | **PLAN-tracker.md's steps, one executor session each** (branch `tracker-build` off `dev`, after `tracker-plan` is merged into `dev`): 1 label sets by eye, 2 the graph and placement, 3 mobs in shadow, 4a drops, 4b other players and us, 5a the HP meter (added by the user 2026-11-26), 5 events, 6 the facts registry + profile + Skill.img, 7 the hotkey reader, 8 the stored tables, 9 the switch (the brain reads the new state, `world.py` goes). Steps 1, 2 and 7 could run beside each other, 4a beside 4b, 5 / 6 / 8 in pairs (the plan's table) - the user decides. Beside it, at any time: the viewer (PLAN-livemap.md Session 1: use `dev`). No engine session | Opus (effort per step: 1 medium, 2 high, 3 xhigh, 4a / 4b high, 5 xhigh, 6-8 medium, 9 high) | **Steps 1, 2, 3 (+ the slope fix: L1 98.98 %, accepted) and 7 DONE** (their plan sections; 2 is in `dev`). **Steps 3b, 4a, 4b DONE** (their plan sections; 4b: the plan's "Step 4b, close", 743c600 - A and B undone, try 3's sampling: players found 95.8 %, the cover 9.6 %, pet / player 2.87 %, the node 96.5 %, step 3's rows and the hops gate equal, the ms live p50 0.5 / p90 0.8 against the user's line 0.5 / 1.0; accepted: non-players 2.13 %, "FreakyRafiki", L1 us 95.05 %; a cheaper body call left for step 9). **Step 5a built in shadow, its gate MISSED on 3 rows** (b3d7bc2; the plan's "Step 5a, 2026-11-26"): met - the fill 83 of 83 within 3 points, 0 meters on a mob we did not hit, step 3's rows identical, L9's second look 100 %; missed - found on 94.1 % of L9's frames (meters hidden behind another meter or digits), tied 45 of 110 (0 wrong: the overlap guard and unread fills leave the rest; perception's one candidate alone 110 of 110), the reader's ms p50 0.101 (the frame +0.00). **The user answers the plan's 3 questions there; then step 5 (events, xhigh, with the meter) and 6 (facts + profile + Skill.img, medium) beside each other** (each in its own worktree on `tracker-build-<step>`), **then 8** (the stored tables, medium: needs 5). Step 5's session puts question 8 (EXP in the kill rule) to the user before it builds | `PLAN-tracker.md`, "Session prompts" |
+| 4 | **PLAN-tracker.md's steps, one executor session each** (branch `tracker-build` off `dev`, after `tracker-plan` is merged into `dev`): 1 label sets by eye, 2 the graph and placement, 3 mobs in shadow, 4a drops, 4b other players and us, 5a the HP meter (added by the user 2026-11-26), 5 events, 6 the facts registry + profile + Skill.img, 7 the hotkey reader, 8 the stored tables, 9 the switch (the brain reads the new state, `world.py` goes). Steps 1, 2 and 7 could run beside each other, 4a beside 4b, 5 / 6 / 8 in pairs (the plan's table) - the user decides. Beside it, at any time: the viewer (PLAN-livemap.md Session 1: use `dev`). No engine session | Opus (effort per step: 1 medium, 2 high, 3 xhigh, 4a / 4b high, 5 xhigh, 6-8 medium, 9 high) | **Steps 1, 2, 3 (+ the slope fix: L1 98.98 %, accepted) and 7 DONE** (their plan sections; 2 is in `dev`). **Steps 3b, 4a, 4b DONE** (their plan sections; 4b: the plan's "Step 4b, close", 743c600 - A and B undone, try 3's sampling: players found 95.8 %, the cover 9.6 %, pet / player 2.87 %, the node 96.5 %, step 3's rows and the hops gate equal, the ms live p50 0.5 / p90 0.8 against the user's line 0.5 / 1.0; accepted: non-players 2.13 %, "FreakyRafiki", L1 us 95.05 %; a cheaper body call left for step 9). **Step 5a:** try 1 (b3d7bc2) missed 3 rows - the user accepted found 94.1 % and the ms 0.101 and chose "trust the candidate" for the tie; **try 2 (02b473f, the plan's "Step 5a, try 2") built it and MISSED: L9's meters with a read fill tied 61 of 83 (73.5 %, >= 99 % asked), 0 wrong** - the 22 left are refused by the guard against unseen tracks (in 17 no hidden mob there carries a meter; in 5 one does, drawn at its own place; the candidate right on all 22); step 3's rows identical, bot speed 17.1 ms; the assassin report beside it. **The user picks (a) drop the guard / (b) refuse only where more meters than seen mobs (78 of 83) / (c) keep (61 of 83); (a) or (b) = try 3, an executor (Opus, medium) whose prompt the plan manager writes. Then step 5 (events, xhigh, with the meter) and 6 (facts + profile + Skill.img, medium) beside each other** (each in its own worktree on `tracker-build-<step>`), **then 8** (the stored tables, medium: needs 5). Step 5's session puts question 8 (EXP in the kill rule) to the user before it builds | `PLAN-tracker.md`, "Session prompts" |
 | 4b | Wide maps: plan, then execute, the scrolling minimap placed by several agreeing patches (Open items, "Ideas from another bot") | Fable, max -> Opus | after the tracker (the user, 2026-11-22) | - |
 | 5 | FSM or clone, decided on what both score in live runs, counted by the tracker's events | - | open | - |
 
@@ -102,8 +102,9 @@ that led to it: HISTORY.md, the block of 2026-11-24).
 - **When `tracker-build` merges into `dev`:** CLAUDE.md's code map gets `perception/slots.py` (the hotkey reader),
   `perception/meters.py` (the HP meters) and a `track/` row (the new tracker: `graph.py`, `us.py`, `players.py`,
   `mobs.py`, `drops.py`, `spawns.py`, `kinds.py`, `evidence.py`, `state.py`).
-- **The user's `record --label assassin --label farming` (2026-11-26, from 20:07)** ran while step 5a's CPU jobs (8
-  decoders, ~20:20-20:35) did: check that recording's dropped frames when it is filed (`corpus-check`).
+- **Found by the assassin capture `20261126_200826_2#0` (5a try 2), for steps 5-6:** perception finds US by the warrior's
+  own-tag picture (`assets/self_tag_gray.npy`): another character needs its own (`meter_ranged.py tag`, `dump.py
+  --self-tag`; step 6's profile); a HELD attack key casts again with no key-down (step 5); its `c` = the basic attack.
 - **Found by step 4b tries 3-4:** the body question (`ask_columns`) costs ~0.3 ms on any frame that asks one tag or more - a cheaper check must cut the call, not the tags (left for step 9, the user 2026-11-26); a name cut by a rail whose other piece is not in the tag list looks whole ("FreakyRafiki"
   as "Rafiki"); find_tags stretches a box over dark scenery ("FunKneel", perception); a light pillar reads 120 px.
 - **`PLAN-moving-scenery.md` is not valid UTF-8** (the Read tool says so; the Edit tool refuses it): to be
@@ -127,15 +128,15 @@ that led to it: HISTORY.md, the block of 2026-11-24).
   64f9713, in another session's scratchpad - leave it to that session.
 - `moving-scenery` and `tracker-plan`: merged into `dev` (2026-11-23 / 11-24), nothing missing; can be deleted.
 - **`tracker-build`** (2026-11-24, off `dev` at 8f00b8e): PLAN-tracker's steps; **the main folder is on it** (at
-  step 5a, b3d7bc2 + its docs, pushed). `dev` is merged into it (steps 2 and 7 are in); a step that runs beside another
+  step 5a try 2, 02b473f, pushed). `dev` is merged into it (steps 2 and 7 are in); a step that runs beside another
   works in its own worktree on `tracker-build-<step>` and is merged back. `tracker-build-drops` (step 4a) is merged into it (2026-11-25) and can be
   deleted with its worktree `.claude/worktrees/drops`. `.claude/worktrees/slots`: an empty leftover, deletable.
 - `main` has not moved since 2026-11-09 (02a639a) and has no CLAUDE.md. Parked: `vnc-keys` (the VM attempt).
 
 ## Waiting on the user
-- **Step 5a's 3 questions** (PLAN-tracker "Step 5a, 2026-11-26", "For the user to decide"): accept found 94.1 % or
-  place a meter with no white end at its mob's expected box; the tie - the overlap guard as built (45 of 110 taught, 0
-  wrong) or perception's one candidate among seen mobs (110 of 110); accept the reader's ms p50 0.101 or a speed pass.
+- **Step 5a's tie** (PLAN-tracker "Step 5a, try 2"; sheets `meter\sheet_guard_t5a2_0..1.png`): (a) drop the guard - the
+  candidate decides (L9 83 of 83; risk: a hidden mob of one kind and pose within 3 px behind the seen one), (b) refuse
+  only where more meters than seen mobs (78 of 83), (c) keep try 2 (61 of 83, never wrong). Claude's reading: (a).
 - **The fade-in measured on Classic World: 0.82 s** (v83 E3: 0.32 s; PLAN-tracker "Step 3b, try 2") - into
   `docs/game_rules.md` E3 as observed? (not asked yet)
 - **`PLAN-tracker.md` (APPROVED 2026-11-24): question 8** (EXP in the kill rule), put to the user by step 5's
