@@ -40,8 +40,10 @@ and 6 (section "What the tracker must add first").
   user's own recorded **gestures**, after a reaction delay -> the KeyDriver. Channels are what makes potions and
   looting run *during* combat, as the user does: legs (walk / jump / up / down), cast (attacks and buffs), item
   (potions), pickup (the loot key).
-- **Combat is the EXP engine, on two levels.** At each swing's end, shoot what is in the hit box (5-400 px in front,
-  +-50 px: the v83 client's box for a ranged attack), turning for a mob behind. Between platforms, **where next** is
+- **Combat is the EXP engine, on two levels.** At each swing's end, shoot what is in the hit box (up to 200 px in
+  front + Keen Eyes' up to 200, meowdb; +-50 px), turning for a mob behind - and with a mob inside 65 px always as a
+  jump-shot, because a grounded claw attack that close is a weak punch (meowdb; the user: a jump-shot throws even up
+  close; 57 of the user's 58 such shots were jump-shots). Between platforms, **where next** is
   chosen like a forager leaving a patch (the marginal value theorem): stay while this platform pays better than the
   area's average, then go to the platform a two-step look-ahead values most (mobs known + spawn points due) per second.
   Open loop on the capture, the two-step look-ahead matches the user's next platform on 59 % of 39 decisions, the
@@ -63,10 +65,15 @@ and 6 (section "What the tracker must add first").
   0..1, products of considerations through response curves.
 - **Commitment:** the goal that holds a channel keeps it unless another beats it by a margin, or until its varied
   minimum stay ends, or a higher rank wants it.
-- **Hit box:** where a shot can hit: x from 5 px to R px in front of our feet, y from 50 px above to 50 px below
-  (HeavenClient `CharStats::get_range`, R = 400 px; Classic World's Keen Eyes has a `range` value 50-200 at levels
-  1-15 - whether it adds to R is measured live). Lucky Seven hits one mob (the nearest in the box, mobCount 1), two
-  stars.
+- **Hit box:** where a shot can hit: x up to R px in front of our feet, y about 50 px above to 50 px below (the y
+  extent is v83's, HeavenClient `CharStats::get_range`; meowdb gives none for stars). **R = 200 px + Keen Eyes (up to
+  +200: 400 px at Keen Eyes 15)** - meowdb's `weapon-reach` and `thief-class-guide`, which replace v83's fixed 400.
+  Lucky Seven uses the star range and hits one mob (the nearest in the box, mobCount 1), two stars.
+- **Punch zone:** a mob inside 65 px in front makes a grounded claw attack a punch (a stab) instead of a throw -
+  "deals almost no damage" (meowdb `thief-class-guide` / `assassin-class-guide`; the damage page: a close-range claw
+  hit uses weapon multiplier 1.0 and stat / 300 against Lucky Seven's 3.0 and stat / 100). **A jump-shot throws even
+  up close** (the user, 2026-11-27; the footage agrees: 57 of 58 shots with a mob inside 65 px in front were
+  jump-shots).
 - **Swing:** from a cast key-down to when the next can start: 0.63-0.70 s for the user's claw (p10-p30 of the gaps
   between their confirmed casts; Claw Booster on most of the time).
 - **Area:** the platforms (graph nodes) the bot may hunt on: all by default, marked with F9 in platform mode, or
@@ -119,10 +126,21 @@ frames), 16 (24 %), 468 (18 %), 231 (8 %), 194 (7 %), 330 (5 %), 235 (5 %), 89 (
 of the map.
 
 ### 2. The game's rules for the assassin (client files, v83 code, the footage)
-- **The hit box** (HeavenClient `CharStats::get_range`, `Combat::apply_move`): x from 5 px to `projectilerange`
-  (400) in front, y -50..+50 around the feet; a skill's `range` (percent) scales the far edge (Lucky Seven has none).
-  The footage agrees roughly: the mob that reacted after a confirmed cast stood p30 50 px .. p90 320 px in front
-  (noisy: other players' hits are mixed in; PLAN-tracker step 5's `mob_hit by us` gives the clean number).
+- **The hit box.** meowdb (Classic World, 2026-11-27): stars fly 200 px, 400 px with Keen Eyes 15 ("one point gives
+  +50 early"; no per-level table); Lucky Seven uses the star range. v83 (HeavenClient `CharStats::get_range`) has a
+  fixed 400 px and y -50..+50 around the feet - its y extent is kept, its range replaced (gamedata rules: meowdb over
+  v83). The footage: the mob that reacted after a confirmed cast stood p30 50 px .. p90 320 px in front (noisy: other
+  players' hits are mixed in; PLAN-tracker step 5's `mob_hit by us` gives the clean number, and with it the user's
+  Keen Eyes level is checked).
+- **The punch zone** (the user, 2026-11-27, and meowdb): a grounded attack with a mob inside 65 px in front punches
+  with the claw - much weaker (meowdb's damage page: multiplier 1.0 and stat / 300, against Lucky Seven's 3.0 and
+  stat / 100). A jump-shot always throws. v83's client has no such distance rule (HeavenClient stabs only when prone
+  or out of stars), so this is Classic World's. The footage: of the shots with a live mob inside 65 px in front, 57 of
+  58 were jump-shots; of the shots without one, 228 of 257 (89 %) - the user jumps almost always when a mob is close.
+- **Buffs (meowdb `assassin-class-guide`):** Haste level 1: 15 MP, 100 s; level 20: 35 MP, 300 s. Claw Booster: +2
+  attack-speed stages at every level; level 9: 22 HP + 22 MP, 180 s; level 20: 10 + 10, 300 s. The user's casts cost
+  Haste 15 MP (level 1) and Claw Booster 30 HP + 30 MP (a low level: meowdb's default build takes Booster 1 at 32).
+  Lucky Seven 20/20: two 140 % lines for 16 MP and two stars - the user's 16 MP step.
 - **Thief skills in the export** (Skill/400.img): 4001003 Lucky Seven (claw, mpCon 8-16, damage 60-140 %, 2 stars,
   1 mob), 4001002 Double Stab, 4001001 Dark Sight, 4001000 Disorder, 4000001 Keen Eyes (`range` 50-200), 4000000
   Nimble Body. **Assassin (410) is not exported** - String.img names 4100000 Claw Mastery, 4100001 Critical Throw,
@@ -217,9 +235,13 @@ for p in proposals:
 At our swing's end (the swing clock), on what is on screen now:
 | Case | Action | Score |
 |---|---|---|
-| a seen live mob in the hit box in front | **shoot** (a jump-shot chord while the legs advance, a lone shot while standing: the style's share) | 0.9 |
-| none in front, one in the box behind | **turn and shoot** (cast + legs: a direction tap, then the shot) | 0.85 |
+| a seen live mob in the hit box in front, **inside the punch zone (< 65 px)** | **jump-shot** (cast + legs: the chord; a grounded shot here would punch) - or step back first when a jump cannot land on our floor | 0.9 |
+| a seen live mob in the hit box in front, beyond 65 px | **shoot** (a jump-shot chord while the legs advance, a lone shot while standing: the style's share) | 0.9 |
+| none in front, one in the box behind | **turn and shoot** (cast + legs: a direction tap, then the shot; a jump-shot if it is inside 65 px) | 0.85 |
 | none in either box | nothing (the style's rare "air shot": 14 of 341 shots of the user's) | 0 |
+The punch zone makes the jump part of Combat's choice, not only style: a grounded shot is never proposed with a mob
+inside 65 px in front (the nearest mob is the one hit, so it would take the punch). Whether 65 px is measured from
+our feet to the mob's feet or to its body box's near edge is checked in step 1 (the punch is visible: no star flies).
 Never at a mob that is only remembered (PLAN-tracker step 9's check, kept). DRY, as in v2: shots with no reaction in
 front for two swings and a bit -> doubt our facing, turn. The game's rules kept from v2 (rules/brain.md): one press
 = one swing; a key-down during a swing is ignored; a direction key released during a swing is dropped. The style may
@@ -295,7 +317,7 @@ bot and the user alike.
 ### D10. The profiles
 - **Class profile `assassin`** (PLAN-tracker step 6's profile, with this plan's needs): keys - space Lucky Seven,
   shift jump, z loot, 1 Haste, 2 Claw Booster, delete HP potion, end and home MP potions (the user, 2026-11-27); the
-  skills with their levels -> their numbers from Skill.img (400 and 410); the hit box (5..R, +-50); the swing length
+  skills with their levels -> their numbers from Skill.img (400 and 410); the hit box (R = 200 + Keen Eyes, +-50) and the punch zone (65 px); the swing length
   (measured live); what the potions give (+160, +150, +200, measured).
 - **Style profile `user_assassin`:** the potion and buff distributions, the gesture library, the jump-shot share, the
   loot weight, the air-shot and mashing shares, the where-next constants, the critical line, the reaction defaults.
@@ -368,11 +390,12 @@ game for its live gate: one live run at a time (stop rule 8). The plan manager d
 1. **Potions in step 1.** "Combat only" cannot run long without them: the user's MP covers ~62 casts (~1.7 minutes at
    37 casts a minute) and HP ~4 minutes of hits. Recommendation: step 1 keeps today's potion reflex (HP 50 %, MP 10 %)
    as a scaffold that step 3 removes. Or: the Potion goal first, combat second.
-2. **The jump-shot.** 309 of your 341 shots came with a jump (one chord, 37 ms apart), mostly while walking. Is it for
-   speed (shooting without stopping), for dodging touch damage, to reach mobs a little higher, or habit? Speed or
-   dodging makes it part of Combat's choice; habit makes it a style share.
-3. **Your assassin's build:** the levels of Keen Eyes, Haste, Claw Booster, Critical Throw, Drain; the claw (its name
-   or attack speed); the throwing stars you use. They go into the class profile.
+2. **The jump-shot - answered in part (2026-11-27):** a grounded attack with a mob inside 65 px punches; a jump-shot
+   throws even up close (written into the Words and D4). Still open: is the jump-shot far from mobs (228 of 257 such
+   shots) also for speed or dodging, or habit? That decides whether it is Combat's choice there too or a style share.
+3. **Your assassin's build:** the levels of Keen Eyes (it sets the range: 200 px + up to 200), Haste (your cast costs
+   15 MP: level 1, 100 s?), Claw Booster (30 HP + 30 MP), Critical Throw, Drain; the claw (its name or attack speed);
+   the throwing stars you use. They go into the class profile.
 4. **The area for the tests:** your cluster on Ant Tunnel IV (nodes 477, 468, 16, 235, 231, 194, maybe 330 and 89 -
    the picture in measurement 1), or all of the map (the default) from the start?
 5. **Similar or optimal.** When the where-next score finds a better route than your rotation, which wins?
