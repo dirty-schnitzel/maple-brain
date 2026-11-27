@@ -1637,6 +1637,12 @@ same numbers):**
    could be its owner). Built and measured in **step 5a, try 2**. The tie is graded on the meters whose fill was read
    (83 on L9: a meter with no fill read teaches nothing, unchanged); the 27 unread fills are reported.
 3. The ms 0.101: **accepted** ("the speed ok").
+4. **A ranged class, report only (the user, 2026-11-27: "to see if adding range changes anything"):** try 2 also runs
+   the meter on one assassin capture, `2026-11-26_2008_assassin_farming_idle_7m35s_s00` (Ant Tunnel IV, level 33,
+   27,343 frames; it ended 20:16, before try 1's CPU jobs). **The assassin's keys (the user):** shift jump, space
+   Lucky Seven (the attack skill), z loot, 1 Haste, 2 Claw Booster, Del HP potion, End and Home MP potions. Not in
+   `Keys` (config.py): a class's keys belong in step 6's profile; the tool takes them as an argument. No gate: the
+   numbers go under "Step 5a, try 2" for the user.
 
 ### Step 3b - spawn points as tracked things (added by the user, 2026-11-25; one executor session, measure then build)
 **The user, 2026-11-25:** "keeping track of the time since last spawn (on spawn point) is a valid tracking object. It
@@ -2146,8 +2152,20 @@ Gate: on L9's meters whose fill the reader read (83 in try 1): tied to the right
 stop with the case and its picture); the not-tied ones by reason; the 27 unread fills reported, not graded. Over the
 13 captures: taught / refused by reason against try 1's (10,560 taught; refused 5,249 overlap, 2,270 fill, 1,423 no
 track, 125 two sightings). Step 3's rows identical to t5a; the ms row as in try 1 (accepted 0.101, the whole frame
-+0.00); the bot speed line. Numbers into the plan under "Step 5a, try 2"; a gate missed: stop. When met: step 5a
-DONE in the status lines, the steps table and HANDOFF.md (the handoff skill).
++0.00); the bot speed line. Numbers into the plan under "Step 5a, try 2"; a gate missed: stop.
+Then, REPORT ONLY (no gate, nothing in maplebrain/ changed for it; the user's answer 4 under "Step 5a, 2026-11-26"):
+does a ranged class change the meter? One assassin capture, 2026-11-26_2008_assassin_farming_idle_7m35s_s00 (Ant
+Tunnel IV), its keys from the user: space = Lucky Seven (the attack), shift jump, z loot, 1 Haste, 2 Claw Booster,
+Del / End / Home potions - passed to the tools as an argument, not into config.Keys (step 6's profile). Its dropped
+frames first (video.json / frames.jsonl). A new kept replay of it (dump.py; the GPU) in its own folder (stop rule 5),
+then the meter reader + the tracker with try 2's tie (replay_meters.py read / replay_mobs.py run --meters on it).
+Report: the place rule on it (meters tied to exactly one seen mob, the share against the 13 captures' 90.1 %); a
+picture sheet of 30 random meters + every meter cut by the screen's side, judged by eye (found, right mob, fill);
+the delay from a space key-down to a NEW meter against the distance from us to the mob (does the star's flight
+widen try 1's window MWIN 0.20-0.80?); any new meter with no space key-down in a window (look at each: stop rule as
+in try 1 - a meter on a mob we did not hit breaks step 5's witness); meters under the buff effects (1, 2); Ant
+Tunnel's scenery read as Zombie Mushroom carrying a meter (should be never). When try 2's gate is met: step 5a DONE
+in the status lines, the steps table and HANDOFF.md (the handoff skill), the assassin's report beside it.
 ```
 ```text
 Tracker, step 5 (events, with the HP meter). Needs steps 3-4, 5a and step 1's labels L4. Read PLAN-tracker.md -
