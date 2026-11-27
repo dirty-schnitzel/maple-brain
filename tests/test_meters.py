@@ -1,8 +1,8 @@
 """The HP meter (PLAN-tracker step 5a): perception/meters.py finds the meters over the mobs we hit and reads each one's
 green share, on frames drawn exactly as the client draws one (measured on the recordings: tools/perc/track/
-proto_meter.py); track/mobs.py ties a meter to its track (`hp`, `hp_t`) - only a meter that names one sighting, read,
-over no mob unseen on that frame (try 2: another SEEN mob does not block). Its numbers on footage: the step's gate
-(PLAN-tracker "Step 5a", "Step 5a, try 2")."""
+proto_meter.py); track/mobs.py ties a meter to its track (`hp`, `hp_t`) - a meter that names one sighting, its fill
+read (try 2: another SEEN mob does not block; the close: an UNSEEN one that could be under it is counted, not a
+refusal). Its numbers on footage: the step's gate (PLAN-tracker "Step 5a", "Step 5a, try 2", "Step 5a, close")."""
 from types import SimpleNamespace
 
 import numpy as np
@@ -143,6 +143,16 @@ def test_a_meter_naming_two_sightings_teaches_nothing():
     trk.update(mfacts(0.0, [mob(400), mob(800)]), ev(False, True))
     trk.update(mfacts(0.1, [mob(400), mob(800)], meters=[(0, 0, 0.25, 48, (0, 1))]), ev(False, True))
     assert [m.hp for m in trk.mobs()] == [None, None]
+    assert trk.stats["meter: over two sightings"] == 1 and trk.stats["meter: taught"] == 0
+
+
+def test_a_meter_naming_two_overlapping_sightings_with_an_unseen_one_near_teaches_nothing():
+    trk = a_tracker()                                                 # the close keeps this refusal
+    trk.update(mfacts(0.0, [mob(600), mob(601), mob(560)]), ev(False, True))
+    trk.update(mfacts(0.1, [mob(600), mob(601)]), ev(False, True))
+    trk.update(mfacts(0.2, [mob(600), mob(601)], meters=[(0, 0, 0.4, 48, (0, 1))]), ev(False, True))
+    assert all(m.hp is None for m in trk.mobs())
+    assert trk.stats["meter: over two sightings"] == 1 and trk.stats["meter: taught"] == 0
 
 
 def test_a_meter_over_two_overlapping_seen_mobs_teaches_the_one_it_names():
@@ -153,13 +163,25 @@ def test_a_meter_over_two_overlapping_seen_mobs_teaches_the_one_it_names():
     assert hp == {600: 0.4, 630: None}                                # the bodies meet (40 px wide, 30 apart)
 
 
-def test_a_remembered_mob_that_can_be_under_it_blocks_the_teaching():
-    trk = a_tracker()
+def test_a_remembered_mob_that_can_be_under_it_is_counted_not_a_refusal():
+    trk = a_tracker()                                                 # step 5a, close: the candidate decides
     trk.update(mfacts(0.0, [mob(600), mob(560)]), ev(False, True))
     trk.update(mfacts(0.1, [mob(600)]), ev(False, True))              # the one at 560 drawn over: remembered
     trk.update(mfacts(0.2, [mob(600)], meters=[(0, 0, 0.4, 48, (0,))]), ev(False, True))
     by_x = {round(m.x_seen): m for m in trk.mobs()}
-    assert not by_x[560].seen and by_x[600].hp is None
+    assert not by_x[560].seen and by_x[560].hp is None
+    assert (by_x[600].hp, by_x[600].hp_t) == (0.4, 0.2)
+    assert trk.stats["meter: taught"] == 1
+    assert trk.stats["meter: taught, an unseen mob could be under it"] == 1
+
+
+def test_a_meter_with_no_unseen_mob_near_is_not_counted_as_one():
+    trk = a_tracker()
+    trk.update(mfacts(0.0, [mob(600), mob(900)]), ev(False, True))
+    trk.update(mfacts(0.1, [mob(600)]), ev(False, True))              # the one at 900 remembered, far away
+    trk.update(mfacts(0.2, [mob(600)], meters=[(0, 0, 0.4, 48, (0,))]), ev(False, True))
+    assert trk.stats["meter: taught"] == 1
+    assert trk.stats["meter: taught, an unseen mob could be under it"] == 0
 
 
 def test_a_meter_whose_fill_was_not_read_teaches_nothing():

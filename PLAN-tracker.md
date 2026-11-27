@@ -61,6 +61,14 @@ Step 3's rows identical, the bot speed 17.1 ms. The user's choice: (a) drop the 
 meters than seen mobs, (c) keep. The assassin (report only): the place rule 97.2 %, the window holds at 0-354 px, 0
 meters on a mob not hit; found: perception's own-tag picture is the warrior's (another character: no camera without
 its own), and a held attack key repeats casts.
+**The user's answer (2026-11-27): (a), design 1 relaxed. Step 5a, close (2026-11-27, "Step 5a, close"): the guard
+dropped; L9 MET - 83 of 83, 0 wrong; step 3's rows identical, pytest green, bot speed 15.9 ms; STOPPED on a wrong tie
+outside L9** (the prompt: "one wrong: stop with the case and its picture"): Cave 7 frame 35601, a hidden Zombie
+Mushroom's meter taught to the Evil Eye in front of it; over the 13 captures at most 36 of 15,809 readings carry an
+unseen track's fill, a track's HP rose 29 times (try 2: 5). The user decides: keep (a), or a narrower refusal (R1 / R2:
+L9 82 of 83 under either), or try 2's guard. **Part 2 (report only):** the meters decide 50 of the 994 fair id errors
+(11 against the tracker, ~8 right by eye), 1 of 187 overlapped deaths; a hidden mob placed within 2 px (p50) against
+the set's middle 9 px. My reading: no build step before step 5 - the user decides.
 The model this tracker fills: `docs/state_model.md` (OK'd by the user 2026-11-23). Every number below was measured
 in this session on the kept replay (no GPU); the tools are in `tools/perc/track/` (branch `tracker-plan`).
 
@@ -1731,6 +1739,126 @@ use the meters to help when mobs overlap?"** - measured first, in the close sess
 crossings, a hidden hit mob placed by its meter, a death on the right one of two overlapping mobs. A build, if the
 numbers call for it, is a step of its own before step 5. -> **"Step 5a, close"** (its prompt under "Session prompts").
 
+### Step 5a, close (2026-11-27): the guard dropped; L9 met (83 of 83) - STOPPED on a wrong tie outside L9 (the user decides); the overlaps measured (report only)
+**Built (Part 1):** `track/mobs.py` `_meters`: a meter whose candidate is one seen sighting, its fill read, teaches that
+sighting's track; `_overlapped` (a track NOT seen on this frame that could stand under it) is now only COUNTED -
+stat "meter: taught, an unseen mob could be under it" - never a refusal. Still refused: two sightings, an unread fill,
+no track. Config comment, the module docstring, `docs/state_model.md`'s `hp` row say so. Tests (`tests/test_meters.py`,
+19): "a remembered mob that can be under it is counted, not a refusal" (fails without the change: reverted, seen
+failing, restored), "a meter with no unseen mob near is not counted as one", the two-sightings refusal (also with an
+unseen mob near). Tools: `tools/perc/track/meter_overlaps.py` (new: `ids`, `hidden`, `deaths`, `all`, `ties`; its
+docstring holds every rule below). Outputs: `F:\dev\maple-corpus\work\track-plan\meter\` (`overlaps_t5a3.txt`,
+`overlaps_t5a3_0..5.png`, `wrong_ties_t5a3.png`, `rises_t5a3_0..2.png`, `overlaps_t5a3_deaths_0..2.png`, `look_c_*.png`).
+
+| Row (the close) | Gate | Measured | |
+|---|---|---|---|
+| L9's meters whose fill was read: tied to the right mob | >= 99 %, wrong 0 | **83 of 83 (100 %), wrong 0** (try 2: 61); the 27 unread fills not tied, as before | met |
+| over the 13 captures: taught / refused | against try 2 | **taught 15,809** = try 2's 12,795 + the 3,014 the guard refused (now the counted stat "an unseen mob could be under it": 3,014); refused: fill not seen 2,270, no track 1,423, two sightings 125 - unchanged | - |
+| step 3's rows (`pool` + `feet` + `labels`, t5a3 against t5a2) | identical | **identical**: the three outputs differ only in the meter counts and the replay's ms (p50 1.00 against 1.21); all 952,287 track-frames equal field by field apart from `hp` / `hp_t` (`hp` differs on 7,690) | met |
+| pytest (whole), bot speed | - | **green; 15.9 ms a tick** (p90 16.9; `track` 0.4, `meters` 0.1) - a quiet machine (try 2's 17.1: the game in front) | - |
+| **a wrong tie (the prompt: "one wrong: stop with the case and its picture")** | 0 | **found outside L9, on the 13 captures** - below | **STOP** |
+
+**The wrong tie** (`meter\wrong_ties_t5a3.png`, row 1): **Cave of Evil Eye 7 (`20261118_232410_1#7`), frame 35601** - two
+Zombie Mushrooms (13: 0.83, 11: 0.76) and an Evil Eye (7) in front of them. On that frame the fit misses Zombie 13 (seen
+by eye; the Evil Eye steps over it) and sees the Evil Eye; the Zombie's own meter (0.83, box at 509, 400) lies within
+3 / 2 px of the Evil Eye's expected box (`move_1`) - perception's one candidate is the Evil Eye, so the Evil Eye's
+track 7 is taught a Zombie Mushroom's HP (0.48 -> 0.83). The old guard refused it (13 remembered there). Row 4 of the
+same sheet, **Line 1 frames 82658-82661**: two Bubblings stacked exactly, one place's meter reads 0.48 then 0.78
+three frames later (HP never rises: two mobs' meters taking turns in front), the one seen track gets both. Rows 2-3
+(Cave 9, 47705 and 41858): the meter is the visible mob's own - there the TRACK changed mob, not the tie.
+**How often (`meter_overlaps.py ties`; every taught reading against its track's own last reading):**
+
+| taught readings | continue its own (within 3 points) | first | lower | **rise** (a mob's HP never rises) |
+|---|---:|---:|---:|---:|
+| the old guard would have refused (an unseen track under it; recomputed from the rows: 3,022 ~ the tracker's 3,014) | 2,907 | 45 | 46 (7 to an unseen track's own fill) | **24 (10 to an unseen track's own fill)** |
+| no unseen track under it (12,787) | 12,620 | 137 | 25 | 5 |
+
+On try 2's rows (the guard on) a track's HP rose 5 times; here 29 (on 22 tracks; 21 within 2 s of a fair id switch of
+that track - the id flicker between stacked mobs the guard hid by not teaching). Two meters naming one sighting: 148
+sightings, never with fills > 3 points apart (not the cause). **Two narrower rules, evaluated on the rows (nothing
+built):** R1 "the hidden one's fill" (refuse when an unseen track under it holds the meter's fill and the seen track's
+own memory does not) refuses 36 of 15,809; R2 "HP never rises" (refuse a reading > 3 points over the track's last)
+refuses 29; **both refuse one of L9's right ties** - case 19 (Cave 3, frame 16559, track 2, 0.65: right by eye; its
+track's previous reading, 0.61, was the hidden mob's) -> L9 82 of 83 (98.8 %) under either.
+
+**For the user to decide (the tie, a fourth time):**
+- **(a) keep the close as built** - L9 83 of 83; over the 13 captures a hidden mob's meter reaches the seen one in
+  crowds of stacked mobs: at most 36 readings of 15,809 (0.23 %, R1's count) carry an unseen track's fill, 1 seen by eye
+  across kinds (above); step 5 reads "HP rose" as a sign of an id error, not as a refusal.
+- (b) R1 or (c) R2 as a refusal (36 / 29 refused; L9 82 of 83 - under 99 %).
+- (d) back to try 2's guard (L9 61 of 83, never wrong).
+My reading: (a) - the wrong ties are rare and sit where the ids themselves flicker (stacked mobs of one kind, a mob
+the fit misses behind another); the meter's place rule is right on L9's every read meter. Step 5a stays NOT DONE until
+the user's word.
+
+**PART 2, report only: "could we use the meters to help when mobs overlap?"** (the user, 2026-11-27; t5a3's rows of the
+13 captures against the truth's fair counts; `meter_overlaps.py all`; nothing built)
+
+*a. Ids.* Each of the **994 fair id switches** (the pool's extra ids; 172 not beside another mob of its kind) is one
+error: the truth's mob A leaves track O for track N. "A meter involved" = a meter the reader tied to A's or the other
+mob B's sighting from 1 s before to 1 s after, or a meter memory on O or N; "the meters alone decide" = O's and N's
+memories on the frame before differ (one has one, the other not, or > 3 points apart) and A's first meter state after
+(a read fill, or "none" on 3+ frames) matches exactly one of them (B's not the same one). Matching O = the meter sides
+with the truth (the tracker was wrong); N = with the tracker (the truth's own link was wrong).
+
+| kind of error | n | a meter involved | the meters decide | with the truth / the tracker |
+|---|---:|---:|---:|---:|
+| crossing: the truth changed mob | 457 | 29 (6.3 %) | 8 | 0 / 8 |
+| crossing: cannot say | 273 | 32 (11.7 %) | 18 | 1 / 17 |
+| the track changed mob | 7 | 1 | 1 | 0 / 1 |
+| a life split (the old track ended) | 54 | 8 (14.8 %) | 6 | 3 / 3 |
+| old track remembered / far | 203 | 41 (20.2 %) | 17 | 7 / 10 |
+| **all** (at a cover's end 137) | **994** | **111 (11.2 %)** | **50 (5.0 %)** | **11 / 39** |
+| not beside another mob of its kind | 172 | 28 (16.3 %) | 14 | 8 / 6 |
+
+By capture (n / involved / decide): the 30-minute Line 1 678 / 55 / 24, Cave 7 34 / 17 / 9, Cave 9 55 / 19 / 9, Line 1
+4-minute 65 / 5 / 5, Cave 1 52 / 5 / 2, the rest 0-4. Involved but not decided: both memories none 30, both read alike
+15, A's meter after matches neither (a hit between) 12, A's meter not read 4. The user's own rule on the TWO MOBS of a
+crossing (their own meters before the switch): B found 736 of 737, both known 732, **told apart 25**. **By eye**
+(`overlaps_t5a3_1..5.png`, cases 7-29): of the 11 "with the truth", 8 right (cases 7-9: one Bubbling behind us, its meter
+0.46 steady, the tracker made 3 new ids in 10 frames; 10, 11 the same fill across a cover; 14, 16, 17 no meter over the
+mob a track with an HP took), 1 two Bubblings stacked exactly (cannot tell), 1 the mob's meter under damage digits (the
+"none" doubtful), 1 the old track's HP had already risen (12: it changed mob before). "With the tracker", where it can
+be read (20, 22, 23): the meter is over the mob the tracker kept - the truth's own swaps of two of a kind (measurement
+1). Also: **a track's taught HP rose by more than 3 points 29 times on 22 tracks, 21 within 2 s of a fair switch of it**
+- a free id-error flag. So: the meters would fix about 8-11 of the tracker's 994 fair-count id errors (~1 %); most mobs
+at a crossing carry no meter (killed in one hit) or the same.
+
+*b. Hidden hit mobs* (the whole-screen finder's meters followed by place; a meter-frame with no seen mob under it =
+`why_untied` "no seen mob"): **482 episodes, 12,912 meter-frames**.
+- **A remembered track can be there** (its set within the kind's half body of the meter's implied feet, the feet
+  within 20 px of the implied body top): **155 episodes, 1,813 frames**; s p50 0.07 / p90 0.52 / max 2.58 (30 of 0.25 s
+  or more); two or more such tracks 55. Afterwards: seen again 132, ended unseen 23. **Seen again (132): |the meter's x
+  - where it reappears| p50 2.0 / p90 16.9 / max 136 px, against |the set's middle - there| 9.0 / 32.9 / 174 and the
+  set's width 76 / 116 / 364; inside its set 126 of 132; the meter closer by > 4 px 73, farther 12, within 8 px 108;**
+  seen again after s p50 0.02 / p90 0.44. Cases 1-6 of the sheet: a Bubbling behind us, the meter within 1-2 px.
+- **None can: 327 episodes, 11,099 frames** (s p50 0.05 / p90 1.7 / max 15.1): no track near (the fit missed the mob,
+  or its body is off the play area) 249, a seen track whose expected box is > 40 / 60 px off 55, a remembered track not
+  where the meter puts it 17, dying 5, tentative 1.
+
+*c. Deaths while two mobs overlap* (a track's final death - its first row of the last dying stretch, `ended` "died" -
+with another track's body over it; 16 deaths taken back not counted; the meter that went = a whole-screen meter chain
+ending 0.6 s before to 0.1 s after the die pose near the two, no new meter at its place within 1 s; its owner = the
+track it was last tied to): **187 deaths: no meter went 130** (killed in one hit: no meter), **agree 45**, the meter never
+tied 1, **differ 11**, each looked at (`overlaps_t5a3_deaths_0..2.png`, `look_c_5772.png`, `look_c_35849.png`):
+- 8: the meter's owner died too, within 1 s - 5 of them two mobs seen side by side 45-60 frames before (up to 3 die
+  poses on one frame: killed together), 3 seen together on 6 frames or fewer (perhaps one body under two ids: step 5's
+  corpse-track row). Not a disagreement: the death the tracker put was on a mob with no meter of its own.
+- 1 the tracker right: Line 1 frame 73793, two Bubblings stacked, the tie named the wrong one at the meter's last
+  frame (the owner lives on with its own meter).
+- 1 the measuring tool's artefact: Cave 7 frame 35849 - the Evil Eye's meter was followed onto a neighbour's of the
+  same fill (0.28, 13 of 46 columns), and the "meter that went" was a Zombie Mushroom's under the damage digits.
+- **1 the tracker wrong, the meter right** (sheet case 0, `look_c_5772.png`): Line 1 frames 5740-5794 - track 70 carried
+  the meter (0.57), 78 none; the meter went at 5760, the die pose came to 70 at 5764 (right), a living pose took it
+  back at 5770 and the death went to 78; 70 lives on with hp 0.57 over a mob with no meter.
+
+**The picture sheet** (`meter\overlaps_t5a3_0..5.png`, 30 cases, one row of three frames each, meters boxed magenta):
+case 0 the death above, 1-6 hidden Bubblings placed by their meter, 7-17 id switches the meter decides against the
+tracker, 18-29 for it. **My reading for the user** (the build-step question): not worth a step before step 5 - the
+meter decides ~1 % of id errors and 1 of 187 overlapped deaths, and places a hidden mob better than the set mostly for
+under 0.1 s; step 5 already takes the meter as a witness of hits and deaths, and can take "HP rose" as an id-error
+flag. **The user decides** - with the tie's (a)-(d) above.
+
 ### Step 3b - spawn points as tracked things (added by the user, 2026-11-25; one executor session, measure then build)
 **The user, 2026-11-25:** "keeping track of the time since last spawn (on spawn point) is a valid tracking object. It
 would not be trying to add predictive abilities to the tracking behavior (my original rule), it is a part of
@@ -2413,5 +2541,7 @@ tools\perc\track\dump.py CAP --out NAME; replay_mobs.py live CAP --kept NAME  # 
 tools\perc\track\replay_mobs.py time CAP                                      # step 3: the ms, shadow on / off
 tools\perc\track\replay_players.py run --sound --jobs 4; ... run CAP --port; ... port CAP   # step 4b: the real code; the port
 tools\perc\track\replay_players.py l5 [--final] [--port]; ... cover; ... us; ... ms; ... time CAP   # step 4b: the gate
+tools\perc\track\replay_mobs.py run --sound --meters --tag t5a3; tools\perc\track\replay_meters.py l9 --tag t5a3   # step 5a: the tie
+tools\perc\track\meter_overlaps.py all|ties [--tag t5a3]       # step 5a, close: the meters at overlaps (a-c), the readings the guard refused
 ```
 Outputs, sheets and reports: `F:\dev\maple-corpus\work\track-plan\` (`mobs\`, `drops\`, `events\`, `players\`, `slots\`).

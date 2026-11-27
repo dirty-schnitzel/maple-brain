@@ -281,10 +281,11 @@ class Track:
     landed_s: tuple = ((0.1, 0.25), (0.4, 0.6))     # "landed in view": its place was on screen in both windows
     landed_px: tuple = (30, 60, 10)                 # ... this far inside the sides / under the top / over the bottom
     pet_box: tuple = (-20, -40, 20, 0)  # a pet's body around its tag (35-45 px high: proto_players' col_body)
-    # ---- the HP meter (track/mobs.py `_meters`; PLAN-tracker step 5a): a meter teaches its mob's hp only when it names
-    # ONE sighting (perception's `cand`) and no track NOT seen on this frame (remembered, hidden, tentative unseen) can
-    # stand over that mob - a seen one does not block (step 5a, try 2: "trust the candidate"). Overlapping = the body
-    # boxes' x ranges meet (a remembered track: anywhere it can be) with the feet within meter_same_dy px up or down.
+    # ---- the HP meter (track/mobs.py `_meters`; PLAN-tracker step 5a): a meter teaches its mob's hp when it names ONE
+    # sighting (perception's `cand`) and its fill was read (step 5a, close: the candidate decides). A track NOT seen on
+    # this frame (remembered, hidden, tentative unseen) that can stand over that mob is COUNTED, not a refusal (for
+    # step 5). Overlapping = the body boxes' x ranges meet (a remembered track: anywhere it can be) with the feet
+    # within meter_same_dy px up or down.
     meter_same_dy: float = 40.0
     # ---- other players (track/players.py; PLAN-tracker design 6 = the prototype tools/perc/track/proto_players.py,
     # measurement 7: its constants)
