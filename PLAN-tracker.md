@@ -1859,6 +1859,10 @@ meter decides ~1 % of id errors and 1 of 187 overlapped deaths, and places a hid
 under 0.1 s; step 5 already takes the meter as a witness of hits and deaths, and can take "HP rose" as an id-error
 flag. **The user decides** - with the tie's (a)-(d) above.
 
+**The user's answers (2026-11-27; the plan manager re-ran `meter_overlaps.py ties`: the same numbers):** "drop the
+meters overlap completely" - no build step, and none of Part 2 goes into step 5 (no "HP rose" flag, no death by the
+meter). "I will provide multi hit per kill footage" - this footage is mostly one-hit Bubblings.
+
 ### Step 3b - spawn points as tracked things (added by the user, 2026-11-25; one executor session, measure then build)
 **The user, 2026-11-25:** "keeping track of the time since last spawn (on spawn point) is a valid tracking object. It
 would not be trying to add predictive abilities to the tracking behavior (my original rule), it is a part of
