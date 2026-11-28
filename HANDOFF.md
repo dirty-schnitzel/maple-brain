@@ -119,6 +119,9 @@ that led to it: HISTORY.md, the block of 2026-11-24).
   converted on the user's word.
 - **Wide maps:** F7 now recognises maps whose minimap scrolls sideways; whether the locator and perception work
   on them is untested. To plan and execute (the user, 2026-11-22), with the other bot's minimap idea above.
+- **A recording's logged mouse is 2 frames (33 ms) ahead of its picture** (found 2026-11-28 on the bank's two Lie
+  Detector sections: frames.jsonl's `cur` is read after the grab; `tools/perc/ld/cursor_delay.py`, numbers in its
+  docstring). To fix when more footage is in (the user); until then pair frame i with the `cur` of frame i - 2.
 - **The scene camera waits ~1 s on every map entry** (the map is on screen before our character is drawn; the
   first seed needs our tag), and **after a 6.4 s hole in a recording it never came back** (Cave of Evil Eye III,
   `20261118_232410_1#11`: 22 s blind). REPORT-track-before.md, "What surprised me" 1-2.
