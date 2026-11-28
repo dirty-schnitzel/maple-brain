@@ -1,6 +1,6 @@
 # PLAN-brain: the goal planner (utility AI) - an assassin's farming loop
 
-**Status: PROPOSED 2026-11-27** by the brain plan session (branch `brain-plan`, worktree `.claude/worktrees/brain-plan`,
+**Status: PROPOSED 2026-11-27; questions 2 and 3 answered 2026-11-28** by the brain plan session (branch `brain-plan`, worktree `.claude/worktrees/brain-plan`,
 off `tracker-build` at 32cd470). Nothing is built in `maplebrain/`. The measurements and prototypes are in
 `tools/brain/` (`proto_play.py`, `proto_where.py`, `draw_play.py`); their outputs are in
 `F:\dev\maple-corpus\work\brain-plan\`. **This plan replaces PLAN-tracker's step 9** (the user, 2026-11-27): the new
@@ -41,7 +41,7 @@ and 6 (section "What the tracker must add first").
   looting run *during* combat, as the user does: legs (walk / jump / up / down), cast (attacks and buffs), item
   (potions), pickup (the loot key).
 - **Combat is the EXP engine, on two levels.** At each swing's end, shoot what is in the hit box (up to 200 px in
-  front + Keen Eyes' up to 200, meowdb; +-50 px), turning for a mob behind - and with a mob inside 65 px always as a
+  front + Keen Eyes' up to 200, meowdb: 400 px for the user's Keen Eyes 15; +-50 px), turning for a mob behind - and with a mob inside 65 px always as a
   jump-shot, because a grounded claw attack that close is a weak punch (meowdb; the user: a jump-shot throws even up
   close; 57 of the user's 58 such shots were jump-shots). Between platforms, **where next** is
   chosen like a forager leaving a patch (the marginal value theorem): stay while this platform pays better than the
@@ -236,7 +236,7 @@ At our swing's end (the swing clock), on what is on screen now:
 | Case | Action | Score |
 |---|---|---|
 | a seen live mob in the hit box in front, **inside the punch zone (< 65 px)** | **jump-shot** (cast + legs: the chord; a grounded shot here would punch) - or step back first when a jump cannot land on our floor | 0.9 |
-| a seen live mob in the hit box in front, beyond 65 px | **shoot** (a jump-shot chord while the legs advance, a lone shot while standing: the style's share) | 0.9 |
+| a seen live mob in the hit box in front, beyond 65 px | **jump-shot** by default (full damage at any range: the user, 2026-11-28); a grounded shot only as the style's share (29 of the user's 257 such shots) and only where no mob is inside 65 px | 0.9 |
 | none in front, one in the box behind | **turn and shoot** (cast + legs: a direction tap, then the shot; a jump-shot if it is inside 65 px) | 0.85 |
 | none in either box | nothing (the style's rare "air shot": 14 of 341 shots of the user's) | 0 |
 The punch zone makes the jump part of Combat's choice, not only style: a grounded shot is never proposed with a mob
@@ -390,12 +390,13 @@ game for its live gate: one live run at a time (stop rule 8). The plan manager d
 1. **Potions in step 1.** "Combat only" cannot run long without them: the user's MP covers ~62 casts (~1.7 minutes at
    37 casts a minute) and HP ~4 minutes of hits. Recommendation: step 1 keeps today's potion reflex (HP 50 %, MP 10 %)
    as a scaffold that step 3 removes. Or: the Potion goal first, combat second.
-2. **The jump-shot - answered in part (2026-11-27):** a grounded attack with a mob inside 65 px punches; a jump-shot
-   throws even up close (written into the Words and D4). Still open: is the jump-shot far from mobs (228 of 257 such
-   shots) also for speed or dodging, or habit? That decides whether it is Combat's choice there too or a style share.
-3. **Your assassin's build:** the levels of Keen Eyes (it sets the range: 200 px + up to 200), Haste (your cast costs
-   15 MP: level 1, 100 s?), Claw Booster (30 HP + 30 MP), Critical Throw, Drain; the claw (its name or attack speed);
-   the throwing stars you use. They go into the class profile.
+2. **The jump-shot - ANSWERED (the user, 2026-11-28):** "when a mob is close, using attack / luck7 without jump results
+   in a low damage melee hit, jump shotting guarantees full damage at any range." So the jump-shot is Combat's
+   **default shot** (D4); a grounded shot is only a style share, and only with no mob inside 65 px.
+3. **The build - ANSWERED (the user, 2026-11-28):** Keen Eyes max (15: R = 400 px), Haste 1 (100 s, 15 MP: meowdb),
+   Claw Booster 1 (its length from Skill/410.img or measured; meowdb gives levels 9 and 20 only). "Soon all of this
+   will be available in a config file (tracker branch pending)": the class profile of PLAN-tracker step 6 holds it;
+   this plan reads it from there and keeps no copy.
 4. **The area for the tests:** your cluster on Ant Tunnel IV (nodes 477, 468, 16, 235, 231, 194, maybe 330 and 89 -
    the picture in measurement 1), or all of the map (the default) from the start?
 5. **Similar or optimal.** When the where-next score finds a better route than your rotation, which wins?
