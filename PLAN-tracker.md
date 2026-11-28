@@ -524,7 +524,9 @@ a potion's heal comes from the client files or is measured. Every action or item
   **`speed` / `jump` = the character's base values with its items only, no skills** (the user: "the character's
   passive speed without skills, so only affected by items"; today 100 / 100). Passive skills, active skills (Haste),
   consumables and so on add on top, each from its own data (Skill.img, the item files) while it applies; the measured
-  walk / jump is checked against them (meowdb: 150 px/s at Speed 100; observed beats the rules).
+  walk / jump is checked against them (meowdb: 150 px/s at Speed 100; observed beats the rules). Both characters
+  100 / 100 (the user, 2026-11-28); **JenkinsJob's Polearm Mastery is a passive that adds speed** ("slightly
+  increased speed due to polearm mastery"; its level: the user, later) - his measured 151.8 px/s walk is that.
 - `[[skill]]`: name, key (none for a passive), level, use (`single` / `area` / `mobility` / `buff`; the class's
   attacks differ - the warrior uses a single-target, an area and a mobility skill, the assassin mainly Lucky Seven
   and buffs - and change with level: a level-up is an edit of `level` or a new block), `hold` (a held key keeps
