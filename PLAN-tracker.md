@@ -517,6 +517,23 @@ kept beside it as its source. The HP items' x 1.24 = the warrior's passive heali
 **The user, 2026-11-27: "Hotkeys should be fully modular, changing values of items should be in config file"** -
 no key, skill or item bound in code: which key holds what is set in the config / profile only, so a class or a
 moved item is a config edit (the first two: the warrior's `Keys`, the assassin's keys under "Step 5a" answer 4).
+**The profile's form (the user, 2026-11-27/28):** one TOML file per CHARACTER in `profiles/`; `config.py` keeps only
+the bot's own keys (F7-F12). No item numbers in it for now ("no items in config file for now, start without them"):
+a potion's heal comes from the client files or is measured. Every action or item is an object, like the skills:
+- `[character]`: name, job, `speed`, `jump`, the name-tag picture perception finds us by, the weapon type.
+  **`speed` / `jump` = the character's base values with its items only, no skills** (the user: "the character's
+  passive speed without skills, so only affected by items"; today 100 / 100). Passive skills, active skills (Haste),
+  consumables and so on add on top, each from its own data (Skill.img, the item files) while it applies; the measured
+  walk / jump is checked against them (meowdb: 150 px/s at Speed 100; observed beats the rules).
+- `[[skill]]`: name, key (none for a passive), level, use (`single` / `area` / `mobility` / `buff`; the class's
+  attacks differ - the warrior uses a single-target, an area and a mobility skill, the assassin mainly Lucky Seven
+  and buffs - and change with level: a level-up is an edit of `level` or a new block), `hold` (a held key keeps
+  casting). The skill's numbers per level (mobs hit, reach, MP, cooldown, a buff's time) come from Skill.img.
+- `[[basic_action]]`: name, key (attack = the plain attack, jump, loot, ...).
+- `[[item]]`: name (or "?": the hotkey reader names what is on the bar), key, use (`hp` / `mp` / ...).
+How the character PLAYS (jump shots, Rush to close in, an area skill on a crowd) is the brain's, not the profile's.
+Open: per character (the user's answer) against `profiles/yoav.toml`, a per-PLAYER draft another session wrote
+2026-11-27 (with a shared `[style]` and a bot-written `measured` part) - to reconcile before step 6 builds the reader.
 
 **10. Stored:** the tables of state_model.md 8, written by the recorder and the hunt, readable with a field
 added later.
